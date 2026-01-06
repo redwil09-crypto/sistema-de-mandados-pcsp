@@ -49,3 +49,14 @@ Este software foi desenvolvido para uso em ambiente de segurança pública. Cert
 
 ---
 Desenvolvido por **Agente Silva** & **Antigravity AI**.
+
+## 🚀 Deploy na Vercel
+
+Para colocar o sistema online na Vercel, siga estes passos:
+
+1. **Conecte seu GitHub**: Acesse [vercel.com](https://vercel.com), crie uma conta e conecte seu repositório `sistema-de-mandados-pcsp`.
+2. **Configure as Variáveis de Ambiente**: No momento do deploy, adicione as seguintes chaves em "Environment Variables":
+   - `VITE_SUPABASE_URL`: (Sua URL do Supabase)
+   - `VITE_SUPABASE_ANON_KEY`: (Sua chave anônima do Supabase)
+3. **Build Settings**: A Vercel deve detectar automaticamente as configurações de Vite. O comando de build deve ser `npm run build` e o diretório de saída `dist`.
+4. **Pronto!**: O sistema estará disponível em uma URL `.vercel.app`.

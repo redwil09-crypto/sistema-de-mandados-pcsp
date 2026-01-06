@@ -1904,20 +1904,28 @@ const WarrantDetail = ({ warrants, onUpdate, onDelete, routeWarrants = [], onRou
             // Badges - Left and Right
             try {
                 const badgePC = new Image();
-                badgePC.src = '/brasao_pcsp.png';
+                badgePC.src = '/brasao_pcsp_colorido.png';
                 const badgeSP = new Image();
-                badgeSP.src = '/brasao_sp.png';
+                badgeSP.src = '/brasao_sp.png'; // Keeping this but it will likely fail gracefully
 
-                await Promise.all([
-                    new Promise((resolve) => { badgePC.onload = resolve; badgePC.onerror = resolve; }),
-                    new Promise((resolve) => { badgeSP.onload = resolve; badgeSP.onerror = resolve; })
-                ]);
+                const loadImg = (img: HTMLImageElement) => new Promise((resolve) => {
+                    img.onload = () => resolve(true);
+                    img.onerror = () => resolve(false);
+                });
+
+                const [pcLoaded, spLoaded] = await Promise.all([loadImg(badgePC), loadImg(badgeSP)]);
 
                 const badgeW = 18;
                 const badgeH = 22;
-                doc.addImage(badgePC, 'PNG', margin, 12, badgeW, badgeH);
-                doc.addImage(badgeSP, 'PNG', pageWidth - margin - badgeW, 12, badgeW, badgeH);
-            } catch (e) { console.error("Badges load error", e); }
+                if (pcLoaded) {
+                    doc.addImage(badgePC, 'PNG', margin, 12, badgeW, badgeH);
+                }
+                if (spLoaded) {
+                    doc.addImage(badgeSP, 'PNG', pageWidth - margin - badgeW, 12, badgeW, badgeH);
+                }
+            } catch (e) {
+                console.error("Badges load error", e);
+            }
 
             doc.setFont('helvetica', 'bold');
             doc.setFontSize(14);
