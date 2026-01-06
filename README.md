@@ -1,20 +1,51 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# Sistema de Mandados - PCSP
 
-# Run and deploy your AI Studio app
+Este é um sistema avançado para gestão e planejamento de mandados da Polícia Civil do Estado de São Paulo. Ele permite o registro, busca, visualização em mapa e geração de roteiros de diligências.
 
-This contains everything you need to run your app locally.
+## 🚀 Funcionalidades
 
-View your app in AI Studio: https://ai.studio/apps/drive/1eUO39wyD8ZPuN66sGuxZSDkdYsanHyvb
+- **Dashboard de Estatísticas**: Visualize a evolução de mandados, crimes mais comuns e metas.
+- **Busca Avançada**: Filtre por nome, RG, CPF, número do processo ou crime.
+- **Roteiro de Diligências**: Adicione mandados a um roteiro e abra diretamente no Google Maps para otimizar o trajeto.
+- **Impressão de Fichas**: Gere PDFs profissionais com foto e dados completos dos alvos.
+- **Integração Supabase**: Banco de dados em tempo real e autenticação segura.
+- **Modo Noturno**: Interface moderna e adaptativa.
 
-## Run Locally
+## 🛠️ Tecnologias Utilizadas
 
-**Prerequisites:**  Node.js
+- **Frontend**: React + Vite + Tailwind CSS
+- **Ícones**: Lucide React
+- **Gráficos**: Recharts
+- **PDF**: jsPDF
+- **Backend/Auth**: Supabase
 
+## 📦 Como rodar o projeto
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+1. **Instale as dependências**:
+   ```bash
+   npm install
+   ```
+
+2. **Configure o ambiente**:
+   Crie um arquivo `.env` com as seguintes variáveis:
+   ```env
+   VITE_SUPABASE_URL=sua_url_aqui
+   VITE_SUPABASE_ANON_KEY=sua_chave_aqui
+   ```
+
+3. **Inicie o servidor de desenvolvimento**:
+   ```bash
+   npm run dev
+   ```
+
+4. **Build para produção**:
+   ```bash
+   npm run build
+   ```
+
+## 🔒 Segurança
+
+Este software foi desenvolvido para uso em ambiente de segurança pública. Certifique-se de seguir os protocolos de acesso e proteção de dados.
+
+---
+Desenvolvido por **Agente Silva** & **Antigravity AI**.
