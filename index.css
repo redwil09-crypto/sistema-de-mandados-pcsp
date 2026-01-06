@@ -1,0 +1,42 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-background-dark text-text-dark antialiased;
+    background-image: 
+      radial-gradient(circle at 50% 50%, rgba(30, 58, 138, 0.05) 0%, transparent 50%),
+      radial-gradient(circle at 100% 0%, rgba(0, 245, 255, 0.03) 0%, transparent 30%);
+    background-attachment: fixed;
+  }
+}
+
+@layer components {
+  .neon-card {
+    @apply bg-surface-dark border border-white/5 rounded-2xl transition-all duration-300;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+  }
+
+  .neon-card:hover {
+    @apply border-primary/20 bg-primary/5;
+    box-shadow: 0 0 30px rgba(0, 245, 255, 0.05);
+  }
+
+  .neon-border {
+    @apply border border-primary/30 shadow-neon-blue;
+  }
+
+  .glass-morphism {
+    @apply bg-white/5 backdrop-blur-md border border-white/10;
+  }
+
+  .animate-pulse-slow {
+    animation: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+}
