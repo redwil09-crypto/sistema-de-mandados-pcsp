@@ -27,6 +27,15 @@ import { createWarrant, getWarrants, updateWarrant as updateWarrantDb, deleteWar
 import { Warrant } from './types';
 
 import { Toaster, toast } from 'sonner';
+import { useLocation as useRouteLocation } from 'react-router-dom';
+
+function ScrollToTop() {
+    const { pathname } = useRouteLocation();
+    useEffect(() => {
+        window.scrollTo(0, 0);
+    }, [pathname]);
+    return null;
+}
 
 function App() {
     const [isDark, setIsDark] = useState(() => {
@@ -176,6 +185,7 @@ function App() {
 
     return (
         <HashRouter>
+            <ScrollToTop />
             <Toaster richColors position="top-right" />
             <div className="min-h-screen bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark transition-colors duration-200">
 
