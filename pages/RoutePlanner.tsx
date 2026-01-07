@@ -160,8 +160,8 @@ const RoutePlanner = ({ warrants = [], onRouteToggle, onUpdate }: RoutePlannerPr
                         </div>
 
                         {/* Actions Footer */}
-                        <div className="fixed bottom-0 left-0 right-0 p-4 pb-10 bg-surface-light border-t border-border-light dark:bg-surface-dark dark:border-border-dark backdrop-blur-lg bg-opacity-95 dark:bg-opacity-95 z-40">
-                            <div className="max-w-md mx-auto grid grid-cols-3 gap-3">
+                        <div className="fixed bottom-0 left-0 right-0 p-4 pb-safe bg-surface-light border-t border-border-light dark:bg-surface-dark dark:border-border-dark backdrop-blur-lg bg-opacity-95 dark:bg-opacity-95 z-40 shadow-[0_-10px_25px_rgba(0,0,0,0.1)]">
+                            <div className="max-w-md mx-auto grid grid-cols-3 gap-3 mb-2">
                                 <button
                                     onClick={handleOpenMap}
                                     className="col-span-2 flex items-center justify-center gap-2 py-4 bg-indigo-600 text-white font-bold rounded-2xl shadow-lg active:scale-95 transition-all hover:bg-indigo-700"
