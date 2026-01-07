@@ -6,7 +6,7 @@ import {
     AlertCircle, User, Gavel, Calendar, MapPin, Map,
     Bike, FileCheck, FileText, Paperclip, Edit,
     Route as RouteIcon, RotateCcw, CheckCircle, Printer,
-    Zap, Bell, Eye, StreetView, History, Send, Copy,
+    Trash2, Zap, Bell, Eye, History, Send, Copy,
     ShieldAlert, MessageSquare, Plus, PlusCircle
 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -33,6 +33,7 @@ const WarrantDetail = ({ warrants, onUpdate, onDelete, routeWarrants = [], onRou
         result: 'Fechado'
     });
 
+    const [isReopenConfirmOpen, setIsReopenConfirmOpen] = useState(false);
     const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
 
     // Investigative States
