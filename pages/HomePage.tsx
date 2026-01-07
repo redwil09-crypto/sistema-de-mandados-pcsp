@@ -4,7 +4,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import {
     Search, Sun, Moon, Bell, Gavel, Baby, FilePlus,
     BarChart2, Route as RouteIcon, Siren, ChevronRight,
-    Activity, CalendarClock, X, CheckCircle
+    Activity, CalendarClock, X, CheckCircle, Bot
 } from 'lucide-react';
 import { Warrant } from '../types';
 import WarrantCard from '../components/WarrantCard';
@@ -201,6 +201,16 @@ const HomePage = ({ isDark, toggleTheme, warrants, routeCount = 0 }: HomePagePro
                         <div>
                             <h3 className="font-bold text-text-light dark:text-text-dark">Roteiro</h3>
                             <p className="text-xs text-text-secondary-light dark:text-text-secondary-dark">Planejar diligência</p>
+                        </div>
+                    </Link>
+
+                    <Link to="/ai-assistant" className="group flex flex-col gap-3 rounded-2xl bg-gradient-to-br from-primary/5 to-primary/10 p-4 shadow-sm transition-all active:scale-[0.98] dark:from-primary/10 dark:to-primary/20 border border-primary/20 hover:border-primary/40">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-white shadow-md">
+                            <Bot size={24} />
+                        </div>
+                        <div>
+                            <h3 className="font-bold text-text-light dark:text-text-dark">Assistente IA</h3>
+                            <p className="text-xs text-text-secondary-light dark:text-text-secondary-dark tracking-tight">Extração e Voz</p>
                         </div>
                     </Link>
                 </div>
