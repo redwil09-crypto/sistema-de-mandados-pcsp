@@ -159,6 +159,9 @@ function App() {
         });
     }, [warrants]);
 
+    // Determine if BottomNav should be hidden
+    const hideNav = ['/warrant-detail', '/new-warrant', '/ai-assistant'].some(p => location.pathname.startsWith(p));
+
     if (loading) {
         return (
             <div className="flex min-h-screen items-center justify-center bg-background-dark">
@@ -214,7 +217,7 @@ function App() {
                     <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
 
-                <BottomNav routeCount={routeWarrants.length} />
+                {!hideNav && <BottomNav routeCount={routeWarrants.length} />}
             </div>
         </HashRouter>
     );

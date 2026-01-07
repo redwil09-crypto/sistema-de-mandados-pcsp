@@ -159,20 +159,22 @@ const RoutePlanner = ({ warrants = [], onRouteToggle, onUpdate }: RoutePlannerPr
                             })}
                         </div>
 
-                        {/* Actions Footer */}
-                        <div className="fixed bottom-0 left-0 right-0 p-4 pb-safe bg-surface-light border-t border-border-light dark:bg-surface-dark dark:border-border-dark backdrop-blur-lg bg-opacity-95 dark:bg-opacity-95 z-40 shadow-[0_-10px_25px_rgba(0,0,0,0.1)]">
-                            <div className="max-w-md mx-auto grid grid-cols-3 gap-3 mb-2">
+                        {/* Actions Footer - Justified and smaller above BottomNav */}
+                        <div className="fixed bottom-16 left-0 right-0 p-3 bg-surface-light border-t border-border-light dark:bg-surface-dark dark:border-border-dark backdrop-blur-lg bg-opacity-95 dark:bg-opacity-95 z-40 shadow-[0_-10px_25px_rgba(0,0,0,0.1)]">
+                            <div className="max-w-md mx-auto grid grid-cols-3 gap-2">
                                 <button
                                     onClick={handleOpenMap}
-                                    className="col-span-2 flex items-center justify-center gap-2 py-4 bg-indigo-600 text-white font-bold rounded-2xl shadow-lg active:scale-95 transition-all hover:bg-indigo-700"
+                                    className="flex flex-col items-center justify-center gap-1 py-2 bg-indigo-600 text-white font-bold rounded-xl shadow-lg active:scale-95 transition-all hover:bg-indigo-700"
                                 >
-                                    <Map size={20} /> Trançar Rota (Google Maps)
+                                    <Map size={18} />
+                                    <span className="text-[10px] uppercase">Mapa</span>
                                 </button>
                                 <button
                                     onClick={() => window.print()}
-                                    className="flex items-center justify-center gap-2 py-4 bg-gray-100 dark:bg-gray-800 text-text-light dark:text-text-dark font-bold rounded-2xl active:scale-95 transition-all"
+                                    className="flex flex-col items-center justify-center gap-1 py-2 bg-gray-100 dark:bg-gray-800 text-text-light dark:text-text-dark font-bold rounded-xl active:scale-95 transition-all"
                                 >
-                                    <Printer size={20} />
+                                    <Printer size={18} />
+                                    <span className="text-[10px] uppercase">PDF</span>
                                 </button>
 
                                 <button
@@ -187,9 +189,10 @@ const RoutePlanner = ({ warrants = [], onRouteToggle, onUpdate }: RoutePlannerPr
                                             'danger'
                                         );
                                     }}
-                                    className="col-span-3 flex items-center justify-center gap-2 py-3 text-red-500 font-bold hover:bg-red-50 dark:hover:bg-red-900/10 rounded-xl transition-all"
+                                    className="flex flex-col items-center justify-center gap-1 py-2 bg-red-100 dark:bg-red-900/20 text-red-600 dark:text-red-400 font-bold rounded-xl active:scale-95 transition-all"
                                 >
-                                    <Trash2 size={16} /> Limpar Tudo
+                                    <Trash2 size={18} />
+                                    <span className="text-[10px] uppercase">Limpar</span>
                                 </button>
                             </div>
                         </div>

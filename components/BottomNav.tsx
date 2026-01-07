@@ -11,7 +11,7 @@ const BottomNav = ({ routeCount = 0 }: BottomNavProps) => {
     const location = useLocation();
     const isActive = (path: string) => location.pathname === path;
 
-    const hideNav = ['/warrant-detail', '/new-warrant', '/ai-assistant', '/route-planner'].some(p => location.pathname.startsWith(p));
+    const hideNav = ['/warrant-detail', '/new-warrant', '/ai-assistant'].some(p => location.pathname.startsWith(p));
 
     if (hideNav) return null;
 

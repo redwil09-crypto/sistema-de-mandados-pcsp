@@ -715,7 +715,7 @@ Equipe de Capturas - DIG
                             }`}
                     >
                         {data.status === 'CUMPRIDO' ? <RotateCcw size={18} /> : <CheckCircle size={18} />}
-                        <span className="text-[8px] sm:text-[9px] font-bold uppercase truncate w-full text-center">{data.status === 'CUMPRIDO' ? 'REABRIR' : 'OK'}</span>
+                        <span className="text-[8px] sm:text-[9px] font-bold uppercase truncate w-full text-center">{data.status === 'CUMPRIDO' ? 'REABRIR' : 'FECHAR'}</span>
                     </button>
 
                     <button
@@ -838,7 +838,7 @@ Equipe de Capturas - DIG
                                     className="flex-1 py-3 px-4 rounded-xl font-bold bg-green-600 text-white shadow-lg hover:bg-green-700 transition-colors flex items-center justify-center gap-2"
                                 >
                                     <CheckCircle size={20} />
-                                    Confirmar
+                                    FECHAR
                                 </button>
                             </div>
                         </div>
