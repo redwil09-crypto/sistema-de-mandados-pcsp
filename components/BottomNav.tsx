@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useLocation, Link } from 'react-router-dom';
-import { Home, Search, Bot, Route as RouteIcon, BarChart2, User } from 'lucide-react';
+import { Home, Search, Bot, User, Gavel, Baby, Plus } from 'lucide-react';
 
 interface BottomNavProps {
     routeCount?: number;
@@ -16,41 +16,51 @@ const BottomNav = ({ routeCount = 0 }: BottomNavProps) => {
     if (hideNav) return null;
 
     return (
-        <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-border-light bg-surface-light/95 backdrop-blur dark:bg-surface-dark/95 dark:border-border-dark pb-safe">
-            <div className="mx-auto flex h-14 max-w-md items-center justify-around px-2">
-                <Link to="/" className={`relative flex flex-col items-center gap-0.5 p-2 ${isActive('/') ? 'text-primary' : 'text-text-secondary-light dark:text-text-secondary-dark'}`}>
-                    <Home size={22} strokeWidth={isActive('/') ? 2.5 : 2} fill={isActive('/') ? "currentColor" : "none"} className={isActive('/') ? "opacity-20" : ""} />
-                    {isActive('/') && <span className="text-[10px] font-bold">Início</span>}
-                </Link>
-                <Link to="/advanced-search" className={`flex flex-col items-center gap-0.5 p-2 ${isActive('/advanced-search') ? 'text-primary' : 'text-text-secondary-light dark:text-text-secondary-dark'}`}>
-                    <Search size={22} strokeWidth={isActive('/advanced-search') ? 2.5 : 2} />
-                    {isActive('/advanced-search') && <span className="text-[10px] font-bold">Busca</span>}
-                </Link>
+        <>
+            {/* IA Floating Action Button */}
+            <Link
+                to="/ai-assistant"
+                className="fixed bottom-20 right-4 z-50 bg-gradient-to-tr from-primary-dark to-primary p-4 rounded-full shadow-xl shadow-primary/30 border-2 border-white/20 transform transition-transform active:scale-95 group hover:rotate-12"
+            >
+                <Bot size={24} className="text-white" />
+                <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[8px] font-bold text-white border border-white">IA</span>
+            </Link>
 
-                <Link to="/ai-assistant" className="relative -top-3 bg-gradient-to-tr from-primary-dark to-primary p-2 rounded-full shadow-lg shadow-primary/40 border-4 border-background-light dark:border-background-dark transform transition-transform active:scale-95 group">
-                    <Bot size={20} className="text-white" />
-                </Link>
+            <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-border-light bg-surface-light/95 backdrop-blur dark:bg-surface-dark/95 dark:border-border-dark pb-safe">
+                <div className="mx-auto flex h-14 max-w-md items-center justify-around px-1">
+                    <Link to="/" className={`flex flex-col items-center gap-0.5 min-w-[50px] ${isActive('/') ? 'text-primary' : 'text-text-secondary-light dark:text-text-secondary-dark'}`}>
+                        <Home size={20} strokeWidth={isActive('/') ? 2.5 : 2} />
+                        <span className="text-[9px] font-bold">Início</span>
+                    </Link>
 
-                <Link to="/route-planner" className={`relative flex flex-col items-center gap-0.5 p-2 ${isActive('/route-planner') ? 'text-primary' : 'text-text-secondary-light dark:text-text-secondary-dark'}`}>
-                    {routeCount > 0 && (
-                        <span className="absolute top-0 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-indigo-600 text-[9px] font-bold text-white shadow-sm animate-bounce">
-                            {routeCount}
-                        </span>
-                    )}
-                    <RouteIcon size={22} strokeWidth={isActive('/route-planner') ? 2.5 : 2} />
-                    {isActive('/route-planner') && <span className="text-[10px] font-bold">Roteiro</span>}
-                </Link>
+                    <Link to="/warrant-list" className={`flex flex-col items-center gap-0.5 min-w-[50px] ${isActive('/warrant-list') ? 'text-primary' : 'text-text-secondary-light dark:text-text-secondary-dark'}`}>
+                        <Gavel size={20} strokeWidth={isActive('/warrant-list') ? 2.5 : 2} />
+                        <span className="text-[9px] font-bold">Prisão</span>
+                    </Link>
 
-                <Link to="/stats" className={`flex flex-col items-center gap-0.5 p-2 ${isActive('/stats') ? 'text-primary' : 'text-text-secondary-light dark:text-text-secondary-dark'}`}>
-                    <BarChart2 size={22} strokeWidth={isActive('/stats') ? 2.5 : 2} />
-                    {isActive('/stats') && <span className="text-[10px] font-bold">Estatísticas</span>}
-                </Link>
-                <Link to="/profile" className={`flex flex-col items-center gap-0.5 p-2 ${isActive('/profile') ? 'text-primary' : 'text-text-secondary-light dark:text-text-secondary-dark'}`}>
-                    <User size={22} strokeWidth={isActive('/profile') ? 2.5 : 2} />
-                    {isActive('/profile') && <span className="text-[10px] font-bold">Perfil</span>}
-                </Link>
-            </div>
-        </nav>
+                    <Link to="/minor-search" className={`flex flex-col items-center gap-0.5 min-w-[50px] ${isActive('/minor-search') ? 'text-primary' : 'text-text-secondary-light dark:text-text-secondary-dark'}`}>
+                        <Baby size={20} strokeWidth={isActive('/minor-search') ? 2.5 : 2} />
+                        <span className="text-[9px] font-bold">Busca/Apr</span>
+                    </Link>
+
+                    <Link to="/new-warrant" className={`flex flex-col items-center gap-0.5 min-w-[50px] ${isActive('/new-warrant') ? 'text-primary' : 'text-text-secondary-light dark:text-text-secondary-dark'}`}>
+                        <div className="bg-primary/10 p-1.5 rounded-lg text-primary">
+                            <Plus size={18} strokeWidth={3} />
+                        </div>
+                    </Link>
+
+                    <Link to="/advanced-search" className={`flex flex-col items-center gap-0.5 min-w-[50px] ${isActive('/advanced-search') ? 'text-primary' : 'text-text-secondary-light dark:text-text-secondary-dark'}`}>
+                        <Search size={20} strokeWidth={isActive('/advanced-search') ? 2.5 : 2} />
+                        <span className="text-[9px] font-bold">Busca</span>
+                    </Link>
+
+                    <Link to="/profile" className={`flex flex-col items-center gap-0.5 min-w-[50px] ${isActive('/profile') ? 'text-primary' : 'text-text-secondary-light dark:text-text-secondary-dark'}`}>
+                        <User size={20} strokeWidth={isActive('/profile') ? 2.5 : 2} />
+                        <span className="text-[9px] font-bold">Perfil</span>
+                    </Link>
+                </div>
+            </nav>
+        </>
     );
 };
 
