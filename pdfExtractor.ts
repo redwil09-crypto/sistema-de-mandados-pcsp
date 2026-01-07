@@ -22,6 +22,10 @@ interface ExtractedData {
     status: string;
     attachments: string[];
     observations?: string;
+    tacticalSummary?: string[]; // New: Periculosidade/Modus Operandi
+    autoPriority?: string[];    // New: Sugestão de tags
+    searchChecklist?: string[];  // New: Itens para busca
+    isDuplicate?: boolean;      // New: Verificação de duplicidade
 }
 
 // Helper functions for parsing
@@ -237,7 +241,6 @@ const extractObservations = (text: string): string => {
         }
     }
 
-    // Identificação global de telefones (qualquer lugar do texto)
     const phonePattern = /(?:\(?\d{2}\)?\s?\d{4,5}[-\s]?\d{4})/g;
     const phones = text.match(phonePattern);
     if (phones && phones.length > 0) {
@@ -246,6 +249,54 @@ const extractObservations = (text: string): string => {
     }
 
     return results.join(' | ');
+};
+
+const extractTacticalSummary = (text: string): string[] => {
+    const markers = [
+        { label: 'Histórico de Resistência', regex: /(resistencia|desobediencia|fuga|evadiu)/gi },
+        { label: 'Uso de Arma de Fogo', regex: /(arma|fogo|pistola|revolver|munica[oc]o)/gi },
+        { label: 'Organização Criminosa', regex: /(pcc|comando|fac[çc][ãa]o|organiza[çc][ãa]o)/gi },
+        { label: 'Violência Extrema', regex: /(tortura|crueldade|grave amea[çc]a|violencia)/gi },
+        { label: 'Tráfico de Grande Porte', regex: /(quilos|laborat[óo]rio|refino|balan[çc]a)/gi }
+    ];
+
+    const summary: string[] = [];
+    markers.forEach(m => {
+        if (m.regex.test(text)) summary.push(m.label);
+    });
+    return summary;
+};
+
+const extractSearchChecklist = (text: string, category: string): string[] => {
+    if (category !== 'search') return [];
+
+    const checklist: string[] = [];
+    const items = [
+        { label: 'Telefones Celulares / Smartphones', regex: /(celular|smartphone|aparelho telefonico)/gi },
+        { label: 'Computadores / Laptops', regex: /(computador|notebook|laptop|informatica)/gi },
+        { label: 'Documentos / Arquivos', regex: /(documento|arquivo|anota[çc][ãa]o|papel)/gi },
+        { label: 'Dinheiro em Espécie', regex: /(dinheiro|especie|moeda|valores)/gi },
+        { label: 'Mídias (Pen-drive/HD)', regex: /(pendrive|hd externo|midia|dispositivo de armazenamento)/gi },
+        { label: 'Armas / Munições', regex: /(arma|fogo|munica[çc][ãa]o|projetil)/gi },
+        { label: 'Veículos', regex: /(veiculo|carro|moto|propriedade)/gi }
+    ];
+
+    items.forEach(item => {
+        if (item.regex.test(text)) checklist.push(item.label);
+    });
+
+    return checklist.length > 0 ? checklist : ['Itens genéricos de busca'];
+};
+
+const determineAutoPriority = (text: string, crime: string): string[] => {
+    const tags: string[] = [];
+    const highPriorityCrimes = ['Homicídio', 'Feminicídio', 'Roubo', 'Crimes Sexuais (Estupro)', 'Drogas/Trafico'];
+
+    if (highPriorityCrimes.includes(crime)) tags.push('Urgente');
+    if (text.toLowerCase().includes('prazo determinado') || text.toLowerCase().includes('imediato')) tags.push('Prioridade');
+    if (crime === 'Pensão alimenticia') tags.push('Ofício de Cobrança');
+
+    return Array.from(new Set(tags));
 };
 
 // Main extraction function
@@ -293,7 +344,10 @@ export const extractPdfData = async (file: File): Promise<ExtractedData> => {
             sourceFile: file.name,
             status: 'EM ABERTO',
             attachments: [file.name],
-            observations: extractObservations(fullText)
+            observations: extractObservations(fullText),
+            tacticalSummary: extractTacticalSummary(fullText),
+            searchChecklist: extractSearchChecklist(fullText, category),
+            autoPriority: determineAutoPriority(fullText, crime)
         };
     } catch (error: any) {
         console.error('Erro detalhado ao extrair PDF:', error);
@@ -329,6 +383,9 @@ export const extractFromText = (text: string, sourceName: string): ExtractedData
         sourceFile: sourceName,
         status: 'EM ABERTO',
         attachments: [],
-        observations: extractObservations(text)
+        observations: extractObservations(text),
+        tacticalSummary: extractTacticalSummary(text),
+        searchChecklist: extractSearchChecklist(text, category),
+        autoPriority: determineAutoPriority(text, crime)
     };
 };
