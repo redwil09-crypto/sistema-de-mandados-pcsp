@@ -540,47 +540,43 @@ const BottomNav = ({ routeCount = 0 }: { routeCount?: number }) => {
     const location = useLocation();
     const isActive = (path: string) => location.pathname === path;
 
-    // Added '/ai-assistant' to hidden list to provide more screen real estate for tool
     const hideNav = ['/warrant-detail', '/new-warrant', '/ai-assistant'].some(p => location.pathname.startsWith(p));
 
     if (hideNav) return null;
 
     return (
         <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-border-light bg-surface-light/95 backdrop-blur dark:bg-surface-dark/95 dark:border-border-dark pb-safe">
-            <div className="mx-auto flex h-16 max-w-md items-center justify-around px-2">
-                <Link to="/" className={`relative flex flex-col items-center gap-1 p-2 ${isActive('/') ? 'text-primary' : 'text-text-secondary-light dark:text-text-secondary-dark'}`}>
-                    <Home size={24} strokeWidth={isActive('/') ? 2.5 : 2} fill={isActive('/') ? "currentColor" : "none"} className={isActive('/') ? "opacity-20" : ""} />
+            <div className="mx-auto flex h-14 max-w-md items-center justify-around px-2">
+                <Link to="/" className={`relative flex flex-col items-center gap-0.5 p-2 ${isActive('/') ? 'text-primary' : 'text-text-secondary-light dark:text-text-secondary-dark'}`}>
+                    <Home size={22} strokeWidth={isActive('/') ? 2.5 : 2} fill={isActive('/') ? "currentColor" : "none"} className={isActive('/') ? "opacity-20" : ""} />
                     {isActive('/') && <span className="text-[10px] font-bold">Início</span>}
-                    {!isActive('/') && <Home size={24} className="absolute top-2" />}
+                    {!isActive('/') && <Home size={22} className="absolute top-2" />}
                 </Link>
-                {/* Updated: Search now links to Advanced Search */}
-                <Link to="/advanced-search" className={`flex flex-col items-center gap-1 p-2 ${isActive('/advanced-search') ? 'text-primary' : 'text-text-secondary-light dark:text-text-secondary-dark'}`}>
-                    <Search size={24} strokeWidth={isActive('/advanced-search') ? 2.5 : 2} />
+                <Link to="/advanced-search" className={`flex flex-col items-center gap-0.5 p-2 ${isActive('/advanced-search') ? 'text-primary' : 'text-text-secondary-light dark:text-text-secondary-dark'}`}>
+                    <Search size={22} strokeWidth={isActive('/advanced-search') ? 2.5 : 2} />
                     {isActive('/advanced-search') && <span className="text-[10px] font-bold">Busca</span>}
                 </Link>
 
-                {/* AI Assistant Button - MADE SMALLER */}
-                <Link to="/ai-assistant" className="relative -top-4 bg-gradient-to-tr from-primary-dark to-primary p-2.5 rounded-full shadow-lg shadow-primary/40 border-4 border-background-light dark:border-background-dark transform transition-transform active:scale-95 group">
-                    <Bot size={22} className="text-white" />
+                <Link to="/ai-assistant" className="relative -top-3 bg-gradient-to-tr from-primary-dark to-primary p-2 rounded-full shadow-lg shadow-primary/40 border-4 border-background-light dark:border-background-dark transform transition-transform active:scale-95 group">
+                    <Bot size={20} className="text-white" />
                 </Link>
 
-                {/* Route Planner Button */}
-                <Link to="/route-planner" className={`relative flex flex-col items-center gap-1 p-2 ${isActive('/route-planner') ? 'text-primary' : 'text-text-secondary-light dark:text-text-secondary-dark'}`}>
+                <Link to="/route-planner" className={`relative flex flex-col items-center gap-0.5 p-2 ${isActive('/route-planner') ? 'text-primary' : 'text-text-secondary-light dark:text-text-secondary-dark'}`}>
                     {routeCount > 0 && (
                         <span className="absolute top-0 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-indigo-600 text-[9px] font-bold text-white shadow-sm animate-bounce">
                             {routeCount}
                         </span>
                     )}
-                    <RouteIcon size={24} strokeWidth={isActive('/route-planner') ? 2.5 : 2} />
+                    <RouteIcon size={22} strokeWidth={isActive('/route-planner') ? 2.5 : 2} />
                     {isActive('/route-planner') && <span className="text-[10px] font-bold">Roteiro</span>}
                 </Link>
 
-                <Link to="/stats" className={`flex flex-col items-center gap-1 p-2 ${isActive('/stats') ? 'text-primary' : 'text-text-secondary-light dark:text-text-secondary-dark'}`}>
-                    <BarChart2 size={24} strokeWidth={isActive('/stats') ? 2.5 : 2} />
+                <Link to="/stats" className={`flex flex-col items-center gap-0.5 p-2 ${isActive('/stats') ? 'text-primary' : 'text-text-secondary-light dark:text-text-secondary-dark'}`}>
+                    <BarChart2 size={22} strokeWidth={isActive('/stats') ? 2.5 : 2} />
                     {isActive('/stats') && <span className="text-[10px] font-bold">Estatísticas</span>}
                 </Link>
-                <Link to="/profile" className={`flex flex-col items-center gap-1 p-2 ${isActive('/profile') ? 'text-primary' : 'text-text-secondary-light dark:text-text-secondary-dark'}`}>
-                    <User size={24} strokeWidth={isActive('/profile') ? 2.5 : 2} />
+                <Link to="/profile" className={`flex flex-col items-center gap-0.5 p-2 ${isActive('/profile') ? 'text-primary' : 'text-text-secondary-light dark:text-text-secondary-dark'}`}>
+                    <User size={22} strokeWidth={isActive('/profile') ? 2.5 : 2} />
                     {isActive('/profile') && <span className="text-[10px] font-bold">Perfil</span>}
                 </Link>
             </div>
@@ -664,7 +660,7 @@ const HomePage = ({ isDark, toggleTheme, warrants, routeCount = 0 }: { isDark: b
         : urgentNotifications.filter(w => w.daysLeft <= 7);
 
     return (
-        <div className="min-h-screen pb-24 relative">
+        <div className="min-h-screen pb-20 relative">
             {/* Notification Overlay */}
             {showNotifications && (
                 <div className="fixed inset-0 z-50 flex items-start justify-end p-4 pt-16">
@@ -873,7 +869,7 @@ const RecentActivityPage = ({ warrants, routeWarrants = [], onRouteToggle }: { w
     }, [warrants]);
 
     return (
-        <div className="min-h-screen pb-24 bg-background-light dark:bg-background-dark">
+        <div className="min-h-screen pb-20 bg-background-light dark:bg-background-dark">
             <Header title="Atividades Recentes" back />
             <div className="p-4 space-y-3">
                 {sortedWarrants.slice(0, 20).map((warrant) => (
@@ -942,7 +938,7 @@ const WarrantList = ({ warrants, routeWarrants = [], onRouteToggle }: { warrants
     const hasActiveFilters = filterCrime || filterRegime || filterStatus || dateStart || dateEnd || observationKeyword;
 
     return (
-        <div className="min-h-screen pb-24 bg-background-light dark:bg-background-dark">
+        <div className="min-h-screen pb-20 bg-background-light dark:bg-background-dark">
             <Header title="Mandados" back onBack={() => navigate('/')} />
             <div className="p-4">
                 <div className="flex gap-2 mb-4">
@@ -1127,7 +1123,7 @@ const AdvancedSearch = ({ warrants, routeWarrants = [], onRouteToggle }: { warra
     };
 
     return (
-        <div className="min-h-screen pb-24 bg-background-light dark:bg-background-dark">
+        <div className="min-h-screen pb-20 bg-background-light dark:bg-background-dark">
             <Header title="Busca Avançada" back />
             <div className="p-4">
 
@@ -1395,7 +1391,7 @@ const Stats = ({ warrants }: { warrants: Warrant[] }) => {
     }, [warrants]);
 
     return (
-        <div className="min-h-screen pb-24 bg-background-light dark:bg-background-dark">
+        <div className="min-h-screen pb-20 bg-background-light dark:bg-background-dark">
             <Header title="Estatísticas Avançadas" back showHome />
             <div className="p-4 space-y-6">
 
@@ -1602,7 +1598,7 @@ const Stats = ({ warrants }: { warrants: Warrant[] }) => {
 };
 
 const Profile = () => (
-    <div className="min-h-screen pb-24 bg-background-light dark:bg-background-dark">
+    <div className="min-h-screen pb-20 bg-background-light dark:bg-background-dark">
         <Header title="Perfil" back />
         <div className="flex flex-col items-center p-8">
             <div className="w-24 h-24 bg-primary/10 rounded-full flex items-center justify-center text-primary mb-4">
@@ -1684,7 +1680,7 @@ const MinorSearch = ({ warrants, routeWarrants = [], onRouteToggle }: { warrants
     const hasActiveFilters = filterCrime || filterRegime || filterStatus || dateStart || dateEnd || observationKeyword;
 
     return (
-        <div className="min-h-screen pb-24 bg-background-light dark:bg-background-dark">
+        <div className="min-h-screen pb-20 bg-background-light dark:bg-background-dark">
             <Header title="Busca de Menores" back onBack={() => navigate('/')} />
             <div className="p-4">
                 <div className="flex gap-2 mb-4">
@@ -1816,7 +1812,7 @@ const MinorSearch = ({ warrants, routeWarrants = [], onRouteToggle }: { warrants
 };
 
 const PriorityList = ({ warrants, routeWarrants = [], onRouteToggle }: { warrants: Warrant[], routeWarrants?: string[], onRouteToggle?: (id: string) => void }) => (
-    <div className="min-h-screen pb-24 bg-background-light dark:bg-background-dark">
+    <div className="min-h-screen pb-20 bg-background-light dark:bg-background-dark">
         <Header title="Prioridades" back />
         <div className="p-4 space-y-4">
             {warrants.map(w => (
@@ -2295,7 +2291,7 @@ const WarrantDetail = ({ warrants, onUpdate, onDelete, routeWarrants = [], onRou
             </div>
 
             {/* Sticky Action Bar */}
-            <div className="fixed bottom-0 left-0 right-0 p-2 sm:p-4 pb-10 sm:pb-10 bg-surface-light/95 dark:bg-surface-dark/95 backdrop-blur-md border-t border-border-light dark:border-border-dark z-50 shadow-[0_-10px_25px_rgba(0,0,0,0.1)]">
+            <div className="fixed bottom-0 left-0 right-0 p-2 sm:p-4 pb-6 sm:pb-6 bg-surface-light/95 dark:bg-surface-dark/95 backdrop-blur-md border-t border-border-light dark:border-border-dark z-50 shadow-[0_-10px_25px_rgba(0,0,0,0.1)]">
                 <div className="max-w-md mx-auto grid grid-cols-5 gap-1 sm:gap-2">
                     <Link
                         to={`/new-warrant?edit=${data.id}`}
@@ -3626,11 +3622,11 @@ const AIAssistantPage = ({ onAdd, warrants }: { onAdd: (w: Warrant) => Promise<b
     );
 };
 
-const RoutePlanner = ({ warrants, onRouteToggle }: { warrants: Warrant[], onRouteToggle: (id: string) => void }) => {
+const RoutePlanner = ({ warrants, onRouteToggle, onUpdate }: { warrants: Warrant[], onRouteToggle: (id: string) => void, onUpdate: (id: string, updates: Partial<Warrant>) => Promise<boolean> }) => {
     const navigate = useNavigate();
 
     return (
-        <div className="min-h-screen pb-safe bg-background-light dark:bg-background-dark">
+        <div className="min-h-screen pb-20 bg-background-light dark:bg-background-dark">
             <Header title="Roteiro de Diligências" back />
             <div className="p-4 space-y-4">
                 {warrants.length === 0 ? (
@@ -3675,17 +3671,31 @@ const RoutePlanner = ({ warrants, onRouteToggle }: { warrants: Warrant[], onRout
                                             className="!pl-8"
                                         />
                                     </div>
-                                    <button
-                                        onClick={() => onRouteToggle(w.id)}
-                                        className="absolute -right-2 -top-2 p-1.5 bg-red-500 text-white rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
-                                    >
-                                        <X size={14} />
-                                    </button>
+                                    <div className="absolute -right-2 top-0 flex flex-col gap-2 z-20">
+                                        <button
+                                            onClick={() => {
+                                                if (window.confirm("Deseja finalizar este mandado como CUMPRIDO? Ele será removido do roteiro automaticamente.")) {
+                                                    onUpdate(w.id, { status: 'CUMPRIDO' });
+                                                }
+                                            }}
+                                            className="p-2 bg-green-500 text-white rounded-full shadow-lg hover:bg-green-600 transition-colors"
+                                            title="Finalizar Mandado"
+                                        >
+                                            <Check size={16} strokeWidth={3} />
+                                        </button>
+                                        <button
+                                            onClick={() => onRouteToggle(w.id)}
+                                            className="p-2 bg-red-500 text-white rounded-full shadow-lg hover:bg-red-600 transition-colors"
+                                            title="Remover do Roteiro"
+                                        >
+                                            <X size={16} />
+                                        </button>
+                                    </div>
                                 </div>
                             ))}
                         </div>
 
-                        <div className="fixed bottom-0 left-0 right-0 p-4 pb-10 bg-surface-light/95 dark:bg-surface-dark/95 backdrop-blur-md border-t border-border-light dark:border-border-dark z-50 shadow-[0_-10px_25px_rgba(0,0,0,0.1)]">
+                        <div className="fixed bottom-0 left-0 right-0 p-4 pb-8 bg-surface-light/95 dark:bg-surface-dark/95 backdrop-blur-md border-t border-border-light dark:border-border-dark z-50 shadow-[0_-10px_25px_rgba(0,0,0,0.1)]">
                             <div className="max-w-md mx-auto grid grid-cols-3 gap-3">
                                 <button
                                     onClick={() => {
@@ -3887,7 +3897,7 @@ function App() {
                     <Route path="/warrant-detail/:id" element={<WarrantDetail warrants={warrants} onUpdate={handleUpdateWarrant} onDelete={handleDeleteWarrant} routeWarrants={routeWarrants} onRouteToggle={handleRouteToggle} />} />
                     <Route path="/new-warrant" element={<NewWarrant onAdd={handleAddWarrant} onUpdate={handleUpdateWarrant} warrants={warrants} />} />
                     <Route path="/ai-assistant" element={<AIAssistantPage onAdd={handleAddWarrant} warrants={warrants} />} />
-                    <Route path="/route-planner" element={<RoutePlanner warrants={warrants.filter(w => routeWarrants.includes(w.id))} onRouteToggle={handleRouteToggle} />} />
+                    <Route path="/route-planner" element={<RoutePlanner warrants={warrants.filter(w => routeWarrants.includes(w.id))} onRouteToggle={handleRouteToggle} onUpdate={handleUpdateWarrant} />} />
                 </Routes>
                 <BottomNav routeCount={routeWarrants.length} />
             </div>
