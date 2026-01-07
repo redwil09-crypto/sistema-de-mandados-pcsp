@@ -120,6 +120,37 @@ const AIAssistantPage = ({ onAdd, warrants }: AIAssistantPageProps) => {
 
     const extractedData = batchResults[currentIndex] || null;
 
+    const handleVoiceAssistant = () => {
+        if (!('webkitSpeechRecognition' in window)) {
+            toast.error("Reconhecimento de voz não suportado.");
+            return;
+        }
+
+        const recognition = new (window as any).webkitSpeechRecognition();
+        recognition.lang = 'pt-BR';
+        recognition.onstart = () => {
+            setIsRecording(true);
+            toast.info("Descreva o mandado (ex: Prisão de João da Silva por roubo...)");
+        };
+        recognition.onend = () => setIsRecording(false);
+        recognition.onresult = async (event: any) => {
+            const text = event.results[0][0].transcript;
+            setStep('processing');
+            try {
+                const data = await extractFromText(text);
+                const isDuplicate = warrants.some(w => w.number === data.processNumber);
+                setBatchResults([{ ...data, isDuplicate }]);
+                setCurrentIndex(0);
+                setStep('review');
+                toast.success("Mandado gerado via Comando de Voz!");
+            } catch (err) {
+                toast.error("Não entendi o comando. Tente falar mais pausadamente.");
+                setStep('input');
+            }
+        };
+        recognition.start();
+    };
+
     const startRecording = () => {
         if (!('webkitSpeechRecognition' in window)) {
             toast.error("Reconhecimento de voz não suportado neste navegador.");
@@ -398,21 +429,28 @@ const AIAssistantPage = ({ onAdd, warrants }: AIAssistantPageProps) => {
                         {/* STEP 1: INPUT */}
                         {step === 'input' && (
                             <div className="animate-in fade-in slide-in-from-bottom-4 duration-300 space-y-4">
-                                <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl border border-blue-100 dark:border-blue-900/30">
-                                    <h3 className="font-bold text-blue-800 dark:text-blue-300 text-sm mb-2 flex items-center gap-2">
-                                        <Bot size={18} /> Central de Extração
-                                    </h3>
-                                    <p className="text-xs text-blue-600 dark:text-blue-400">
-                                        Identificação automática de mandados (Prisão ou Busca). Cálculo de datas e extração de endereços.
-                                    </p>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <button
+                                        onClick={handleVoiceAssistant}
+                                        className="col-span-2 py-4 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-xl shadow-lg border border-white/20 flex items-center justify-center gap-3 active:scale-95 transition-all text-sm font-bold"
+                                    >
+                                        {isRecording ? <Mic className="animate-pulse" size={24} /> : <Mic size={24} />}
+                                        {isRecording ? "OUVINDO..." : "CRIAR MANDADO POR VOZ"}
+                                    </button>
+
+                                    <div className="border-2 border-dashed border-border-light dark:border-border-dark rounded-xl p-6 flex flex-col items-center justify-center text-center bg-surface-light dark:bg-surface-dark hover:border-primary transition-colors cursor-pointer relative group">
+                                        <FileUp size={32} className="text-text-secondary-light dark:text-text-secondary-dark mb-2 group-hover:text-primary transition-colors" />
+                                        <p className="font-bold text-text-light dark:text-text-dark text-[11px]">Upload PDF</p>
+                                        <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" accept=".pdf,.jpg,.png,.jpeg" multiple onChange={handleFileUpload} />
+                                    </div>
+
+                                    <div className="border-2 border-dashed border-border-light dark:border-border-dark rounded-xl p-6 flex flex-col items-center justify-center text-center bg-surface-light dark:bg-surface-dark hover:border-primary transition-colors cursor-pointer relative group">
+                                        <Camera size={32} className="text-text-secondary-light dark:text-text-secondary-dark mb-2 group-hover:text-primary transition-colors" />
+                                        <p className="font-bold text-text-light dark:text-text-dark text-[11px]">Tirar Foto</p>
+                                        <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" accept="image/*" capture="environment" onChange={handleFileUpload} />
+                                    </div>
                                 </div>
 
-                                <div className="border-2 border-dashed border-border-light dark:border-border-dark rounded-xl p-8 flex flex-col items-center justify-center text-center bg-surface-light dark:bg-surface-dark hover:border-primary transition-colors cursor-pointer relative group">
-                                    <FileUp size={48} className="text-text-secondary-light dark:text-text-secondary-dark mb-4 group-hover:text-primary transition-colors" />
-                                    <p className="font-bold text-text-light dark:text-text-dark text-sm">Enviar Arquivos (Lote)</p>
-                                    <p className="text-[10px] text-text-secondary-light mt-1">Selecione vários PDFs de uma vez</p>
-                                    <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" accept=".pdf,.jpg,.png,.jpeg" multiple onChange={handleFileUpload} />
-                                </div>
 
                                 <div className="relative flex justify-center text-xs uppercase text-text-secondary-light">
                                     <span>Ou cole o texto</span>

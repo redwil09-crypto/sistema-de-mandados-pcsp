@@ -43,10 +43,15 @@ const WarrantDetail = ({ warrants, onUpdate, onDelete, routeWarrants = [], onRou
 
     const data = useMemo(() => warrants.find(w => w.id === id), [warrants, id]);
 
-    // Neighborhood Intelligence
+    // Neighborhood Intelligence - Refined logic
     const nearbyWarrants = useMemo(() => {
         if (!data || !data.location) return [];
-        const street = data.location.split(',')[0].trim().toLowerCase();
+        // Extract street name more robustly (pre-comma or pre-number)
+        const streetMatch = data.location.match(/^(.*?)(?:,|\s\d)/i);
+        const street = streetMatch ? streetMatch[1].trim().toLowerCase() : data.location.split(' ')[0].trim().toLowerCase();
+
+        if (street.length < 4) return [];
+
         return warrants.filter(w =>
             w.id !== data.id &&
             w.status === 'EM ABERTO' &&
@@ -110,10 +115,10 @@ const WarrantDetail = ({ warrants, onUpdate, onDelete, routeWarrants = [], onRou
     const handleAddDiligence = async () => {
         if (!newDiligence.trim()) return;
 
-        const entry = {
+        const entry: any = {
             id: Date.now().toString(),
             date: new Date().toISOString(),
-            investigator: "Investigador",
+            investigator: "Policial",
             notes: newDiligence,
             type: diligenceType
         };
@@ -123,7 +128,15 @@ const WarrantDetail = ({ warrants, onUpdate, onDelete, routeWarrants = [], onRou
 
         if (success) {
             setNewDiligence('');
-            toast.success("Diligência registrada!");
+            toast.success("Diligência registrada com sucesso!");
+        }
+    };
+
+    const handleDeleteDiligence = async (diligenceId: string) => {
+        const updatedHistory = (data.diligentHistory || []).filter(h => h.id !== diligenceId);
+        const success = await onUpdate(data.id, { diligentHistory: updatedHistory });
+        if (success) {
+            toast.success("Diligência removida.");
         }
     };
 
@@ -557,30 +570,53 @@ Equipe de Capturas - DIG
                 </div>
 
                 <div className="bg-surface-light dark:bg-surface-dark p-4 rounded-xl shadow-sm border border-border-light dark:border-border-dark">
-                    <div className="flex justify-between items-center mb-4">
+                    <div className="flex justify-between items-center mb-4 border-b border-border-light dark:border-border-dark pb-2">
                         <h3 className="font-bold text-text-light dark:text-text-dark flex items-center gap-2">
-                            <History size={18} className="text-primary" /> Linha do Tempo de Diligências
+                            <History size={18} className="text-primary" /> Linha do Tempo e Relatório
                         </h3>
-                        <button
-                            onClick={handleCopyReportDraft}
-                            className="text-[10px] font-bold text-primary flex items-center gap-1 bg-primary/10 px-2 py-1 rounded-lg"
-                        >
-                            <Copy size={12} /> DRAFT RELATÓRIO
-                        </button>
+                        <div className="flex gap-2">
+                            <button
+                                onClick={() => setIsDraftOpen(!isDraftOpen)}
+                                className={`text-[10px] font-bold flex items-center gap-1 transition-all px-3 py-1.5 rounded-lg ${isDraftOpen ? 'bg-primary text-white' : 'bg-primary/10 text-primary'
+                                    }`}
+                            >
+                                <FileText size={14} /> {isDraftOpen ? 'FECHAR DRAFT' : 'GERAR DRAFT'}
+                            </button>
+                        </div>
                     </div>
 
-                    <div className="mb-6 space-y-3">
-                        <div className="flex gap-2">
+                    {isDraftOpen && (
+                        <div className="mb-6 p-4 bg-gray-100 dark:bg-white/5 border border-primary/20 rounded-xl animate-in zoom-in-95 duration-200">
+                            <div className="flex justify-between items-center mb-2 text-primary">
+                                <span className="text-[10px] font-bold uppercase">Pré-visualização do Relatório</span>
+                                <button onClick={handleCopyReportDraft} className="text-[10px] bg-primary text-white px-3 py-1 rounded-md shadow-sm font-bold flex items-center gap-1 active:scale-95 transition-all">
+                                    <Copy size={12} /> COPIAR TEXTO
+                                </button>
+                            </div>
+                            <div className="p-3 bg-white dark:bg-black/40 rounded-lg border border-border-light dark:border-border-dark max-h-60 overflow-y-auto">
+                                <pre className="text-[10px] font-mono whitespace-pre-wrap leading-tight text-text-light dark:text-text-dark">
+                                    {`RELATÓRIO DE DILIGÊNCIA POLICIAL - DIG PCSP\nALVO: ${data.name}\nPROCESSO: ${data.number}\nCRIME: ${data.crime}\nDATA: ${new Date().toLocaleDateString('pt-BR')}\n\nENDEREÇO: ${data.location}\nSTATUS: ${data.status}\n\nHISTÓRICO INVESTIGATIVO:\n${(data.diligentHistory || []).length > 0 ? (data.diligentHistory || []).map(h => `- ${new Date(h.date).toLocaleDateString()}: ${h.notes}`).join('\n') : '- Nenhuma diligência registrada.'}\n\n___________________________________\nEquipe de Capturas - DIG`}
+                                </pre>
+                            </div>
+                        </div>
+                    )}
+
+                    <div className="mb-6 bg-gray-100 dark:bg-white/5 p-4 rounded-xl border border-border-light dark:border-border-dark shadow-inner">
+                        <span className="text-[10px] font-bold text-text-secondary-light uppercase mb-2 block">Nova Diligência / Modus Operandi</span>
+                        <div className="flex gap-2 mb-3">
                             {(['observation', 'attempt', 'intelligence'] as const).map((type) => (
                                 <button
                                     key={type}
                                     onClick={() => setDiligenceType(type)}
-                                    className={`flex-1 py-1.5 rounded-lg text-[10px] font-bold uppercase border-2 transition-all ${diligenceType === type
-                                        ? 'bg-primary border-primary text-white'
-                                        : 'bg-transparent border-border-light text-text-secondary-light'
+                                    className={`flex-1 py-2 rounded-lg text-[10px] font-bold uppercase border-2 transition-all flex items-center justify-center gap-1.5 ${diligenceType === type
+                                            ? 'bg-primary border-primary text-white shadow-md'
+                                            : 'bg-white dark:bg-surface-dark border-border-light text-text-secondary-light hover:border-primary/50'
                                         }`}
                                 >
-                                    {type === 'observation' ? 'Obs' : type === 'attempt' ? 'Tentativa' : 'Intel'}
+                                    {type === 'observation' && <Eye size={12} />}
+                                    {type === 'attempt' && <RotateCcw size={12} />}
+                                    {type === 'intelligence' && <ShieldAlert size={12} />}
+                                    {type === 'observation' ? 'Visita' : type === 'attempt' ? 'Fuga/Insucesso' : 'Intel'}
                                 </button>
                             ))}
                         </div>
@@ -588,40 +624,49 @@ Equipe de Capturas - DIG
                             <textarea
                                 value={newDiligence}
                                 onChange={(e) => setNewDiligence(e.target.value)}
-                                placeholder="Descreva a diligência ou informação nova..."
-                                className="w-full bg-gray-50 dark:bg-white/5 border border-border-light dark:border-border-dark rounded-xl p-3 text-sm min-h-[80px] outline-none focus:ring-2 focus:ring-primary"
+                                placeholder="Relate o que foi observado, pessoas que falaram com a equipe, ou inteligência obtida..."
+                                className="w-full bg-white dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-xl p-3 text-sm min-h-[100px] outline-none focus:ring-2 focus:ring-primary shadow-sm"
                             />
                             <button
                                 onClick={handleAddDiligence}
                                 disabled={!newDiligence.trim()}
-                                className="absolute bottom-3 right-3 p-2 bg-primary text-white rounded-lg shadow-lg active:scale-90 disabled:opacity-50 transition-all font-bold text-xs flex items-center gap-1"
+                                className="w-full mt-2 py-3 bg-primary text-white rounded-xl shadow-lg active:scale-95 disabled:opacity-50 transition-all font-bold text-xs flex items-center justify-center gap-2"
                             >
-                                <Plus size={16} /> REGISTRAR
+                                <PlusCircle size={18} /> INSERIR NA LINHA DO TEMPO
                             </button>
                         </div>
                     </div>
 
-                    <div className="space-y-4 relative before:absolute before:left-[11px] before:top-2 before:bottom-0 before:w-0.5 before:bg-gray-100 dark:before:bg-white/5">
+                    <div className="space-y-4 relative before:absolute before:left-[17px] before:top-2 before:bottom-0 before:w-1 before:bg-primary/10">
                         {data.diligentHistory && data.diligentHistory.length > 0 ? (
                             [...data.diligentHistory].reverse().map((h) => (
-                                <div key={h.id} className="relative pl-8 animate-in slide-in-from-left-2">
-                                    <div className={`absolute left-0 top-1 w-6 h-6 rounded-full border-4 border-surface-light dark:border-surface-dark flex items-center justify-center ${h.type === 'observation' ? 'bg-blue-500' : h.type === 'attempt' ? 'bg-red-500' : 'bg-purple-500'
+                                <div key={h.id} className="relative pl-12 animate-in slide-in-from-left-4">
+                                    <div className={`absolute left-0 top-1 w-9 h-9 rounded-full border-4 border-surface-light dark:border-surface-dark shadow-sm flex items-center justify-center ${h.type === 'observation' ? 'bg-blue-500' : h.type === 'attempt' ? 'bg-amber-500' : 'bg-purple-600'
                                         }`}>
-                                        {h.type === 'observation' ? <Eye size={10} className="text-white" /> : h.type === 'attempt' ? <MapPin size={10} className="text-white" /> : <ShieldAlert size={10} className="text-white" />}
+                                        {h.type === 'observation' ? <Eye size={16} className="text-white" /> : h.type === 'attempt' ? <RotateCcw size={16} className="text-white" /> : <ShieldAlert size={16} className="text-white" />}
                                     </div>
-                                    <div className="bg-gray-50 dark:bg-white/5 p-3 rounded-xl border border-border-light dark:border-border-dark">
-                                        <div className="flex justify-between items-start mb-1">
-                                            <span className="text-[10px] font-bold text-text-secondary-light">{new Date(h.date).toLocaleDateString('pt-BR')} às {new Date(h.date).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>
-                                            <span className="text-[9px] px-1.5 py-0.5 bg-gray-200 dark:bg-white/10 rounded uppercase font-bold text-text-secondary-light">{h.investigator}</span>
+                                    <div className="bg-white dark:bg-surface-dark p-4 rounded-xl border border-border-light dark:border-border-dark shadow-sm group hover:border-primary/30 transition-colors">
+                                        <div className="flex justify-between items-center mb-2">
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-[11px] font-bold text-primary">{new Date(h.date).toLocaleDateString('pt-BR')}</span>
+                                                <span className="text-[10px] text-text-secondary-light">{new Date(h.date).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>
+                                            </div>
+                                            <button
+                                                onClick={() => handleDeleteDiligence(h.id)}
+                                                className="opacity-0 group-hover:opacity-100 p-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-lg transition-all"
+                                            >
+                                                <Trash2 size={14} />
+                                            </button>
                                         </div>
-                                        <p className="text-sm text-text-light dark:text-text-dark">{h.notes}</p>
+                                        <p className="text-sm text-text-light dark:text-text-dark leading-relaxed font-medium">{h.notes}</p>
                                     </div>
                                 </div>
                             ))
                         ) : (
-                            <div className="text-center py-4">
-                                <MessageSquare size={32} className="mx-auto text-gray-300 mb-2" />
-                                <p className="text-xs text-gray-400">Nenhuma diligência registrada ainda.</p>
+                            <div className="text-center py-10 bg-gray-50/50 dark:bg-black/10 rounded-2xl border-2 border-dashed border-border-light dark:border-border-dark">
+                                <MessageSquare size={40} className="mx-auto text-gray-300 dark:text-gray-700 mb-3" />
+                                <p className="text-xs text-text-secondary-light font-bold">Nenhum registro tático disponível para este alvo.</p>
+                                <p className="text-[10px] text-text-secondary-light/60 mt-1">Use o campo acima para registrar diligências.</p>
                             </div>
                         )}
                     </div>

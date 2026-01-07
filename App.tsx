@@ -37,7 +37,10 @@ function App() {
     const [session, setSession] = useState<Session | null>(null);
     const [loading, setLoading] = useState(true);
     const [warrants, setWarrants] = useState<Warrant[]>([]);
-    const [routeWarrants, setRouteWarrants] = useState<string[]>([]);
+    const [routeWarrants, setRouteWarrants] = useState<string[]>(() => {
+        const saved = localStorage.getItem('routeWarrants');
+        return saved ? JSON.parse(saved) : [];
+    });
 
 
     // Check active session on mount
@@ -75,6 +78,11 @@ function App() {
             localStorage.setItem('theme', 'light');
         }
     }, [isDark]);
+
+    // Persist routes
+    useEffect(() => {
+        localStorage.setItem('routeWarrants', JSON.stringify(routeWarrants));
+    }, [routeWarrants]);
 
     const loadWarrants = async () => {
         try {
