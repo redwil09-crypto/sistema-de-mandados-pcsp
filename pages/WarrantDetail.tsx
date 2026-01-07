@@ -154,24 +154,33 @@ const WarrantDetail = ({ warrants, onUpdate, onDelete, routeWarrants = [], onRou
 
     const handleCopyReportDraft = () => {
         const draft = `
-RELATÓRIO DE DILIGÊNCIA POLICIAL - DIG PCSP
-ALVO: ${data.name}
-PROCESSO: ${data.number}
-CRIME: ${data.crime}
-DATA: ${new Date().toLocaleDateString('pt-BR')}
+DELEGACIA DE INVESTIGAÇÕES GERAIS - DIG/PCSP
+RELATÓRIO DE DILIGÊNCIA OPERACIONAL
 
-Diligência realizada no endereço ${data.location}.
-RESULTADO: ${data.fulfillmentResult || 'EM ANDAMENTO'}
-OBSERVAÇÕES: ${data.observation || 'Sem observações adicionais.'}
+DADOS DO ALVO:
+NOME: ${data.name.toUpperCase()}
+RG: ${data.rg || 'Não informado'}
+CPF: ${data.cpf || 'Não informado'}
+PROCESSO: ${data.number}
+CRIME: ${data.crime || 'Não informado'}
+
+LOCAL DA DILIGÊNCIA:
+ENDEREÇO: ${data.location || 'Não informado'}
 
 HISTÓRICO RECENTE:
-${(data.diligentHistory || []).slice(-5).map(h => `- ${new Date(h.date).toLocaleDateString()}: ${h.notes}`).join('\n')}
+${(data.diligentHistory || []).slice(-5).map(h => `- ${new Date(h.date).toLocaleDateString()} [${h.type.toUpperCase()}]: ${h.notes}`).join('\n') || '- Sem diligências anteriores.'}
+
+OBSERVAÇÕES ADICIONAIS:
+${data.observation || 'Nada a declarar.'}
+
+RESULTADO ATUAL: ${data.status}
+DATA DO RELATÓRIO: ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}
 
 ___________________________________
-Equipe de Capturas - DIG
+Equipe de Capturas - DIG / PCSP
         `;
         navigator.clipboard.writeText(draft.trim());
-        toast.success("Draft copiado para a área de transferência!");
+        toast.success("Relatório copiado para a área de transferência!");
     };
 
     const handleDelete = () => {
@@ -597,10 +606,10 @@ Equipe de Capturas - DIG
                         <div className="flex gap-2">
                             <button
                                 onClick={() => setIsDraftOpen(!isDraftOpen)}
-                                className={`text-[10px] font-bold flex items-center gap-1 transition-all px-3 py-1.5 rounded-lg ${isDraftOpen ? 'bg-primary text-white' : 'bg-primary/10 text-primary'
+                                className={`text-[10px] font-bold flex items-center gap-1 transition-all px-3 py-1.5 rounded-lg ${isDraftOpen ? 'bg-indigo-600 text-white' : 'bg-indigo-600/10 text-indigo-600 dark:text-indigo-400'
                                     }`}
                             >
-                                <FileText size={14} /> {isDraftOpen ? 'FECHAR DRAFT' : 'GERAR DRAFT'}
+                                <FileText size={14} /> {isDraftOpen ? 'FECHAR RELATÓRIO' : 'GERAR RELATÓRIO'}
                             </button>
                         </div>
                     </div>
@@ -613,9 +622,9 @@ Equipe de Capturas - DIG
                                     <Copy size={12} /> COPIAR TEXTO
                                 </button>
                             </div>
-                            <div className="p-3 bg-white dark:bg-black/40 rounded-lg border border-border-light dark:border-border-dark max-h-60 overflow-y-auto">
+                            <div className="p-3 bg-white dark:bg-black/40 rounded-lg border border-border-light dark:border-border-dark max-h-80 overflow-y-auto">
                                 <pre className="text-[10px] font-mono whitespace-pre-wrap leading-tight text-text-light dark:text-text-dark">
-                                    {`RELATÓRIO DE DILIGÊNCIA POLICIAL - DIG PCSP\nALVO: ${data.name}\nPROCESSO: ${data.number}\nCRIME: ${data.crime}\nDATA: ${new Date().toLocaleDateString('pt-BR')}\n\nENDEREÇO: ${data.location}\nSTATUS: ${data.status}\n\nHISTÓRICO INVESTIGATIVO:\n${(data.diligentHistory || []).length > 0 ? (data.diligentHistory || []).map(h => `- ${new Date(h.date).toLocaleDateString()}: ${h.notes}`).join('\n') : '- Nenhuma diligência registrada.'}\n\n___________________________________\nEquipe de Capturas - DIG`}
+                                    {`DELEGACIA DE INVESTIGAÇÕES GERAIS - DIG/PCSP\nRELATÓRIO DE DILIGÊNCIA OPERACIONAL\n\nDADOS DO ALVO:\nNOME: ${data.name.toUpperCase()}\nRG: ${data.rg || 'Não informado'}\nCPF: ${data.cpf || 'Não informado'}\nPROCESSO: ${data.number}\nCRIME: ${data.crime || 'Não informado'}\n\nLOCAL DA DILIGÊNCIA:\nENDEREÇO: ${data.location || 'Não informado'}\n\nHISTÓRICO RECENTE:\n${(data.diligentHistory || []).slice(-10).map(h => `- ${new Date(h.date).toLocaleDateString()} [${h.type.toUpperCase()}]: ${h.notes}`).join('\n') || '- Sem diligências anteriores.'}\n\nOBSERVAÇÕES ADICIONAIS:\n${data.observation || 'Nada a declarar.'}\n\nRESULTADO ATUAL: ${data.status}\nDATA DO RELATÓRIO: ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}\n\n___________________________________\nEquipe de Capturas - DIG / PCSP`}
                                 </pre>
                             </div>
                         </div>
@@ -628,15 +637,17 @@ Equipe de Capturas - DIG
                                 <button
                                     key={type}
                                     onClick={() => setDiligenceType(type)}
-                                    className={`flex-1 py-2 rounded-lg text-[10px] font-bold uppercase border-2 transition-all flex items-center justify-center gap-1.5 ${diligenceType === type
-                                        ? 'bg-primary border-primary text-white shadow-md'
-                                        : 'bg-white dark:bg-surface-dark border-border-light text-text-secondary-light hover:border-primary/50'
+                                    className={`flex-1 py-3 rounded-xl text-[10px] font-bold uppercase border-2 transition-all flex flex-col items-center justify-center gap-1.5 ${diligenceType === type
+                                        ? type === 'observation' ? 'bg-blue-600 border-blue-600 text-white shadow-lg' :
+                                            type === 'attempt' ? 'bg-orange-600 border-orange-600 text-white shadow-lg' :
+                                                'bg-purple-600 border-purple-600 text-white shadow-lg'
+                                        : 'bg-white dark:bg-surface-dark border-border-light text-text-secondary-light hover:border-gray-400'
                                         }`}
                                 >
-                                    {type === 'observation' && <Eye size={12} />}
-                                    {type === 'attempt' && <RotateCcw size={12} />}
-                                    {type === 'intelligence' && <ShieldAlert size={12} />}
-                                    {type === 'observation' ? 'Visita' : type === 'attempt' ? 'Fuga/Insucesso' : 'Intel'}
+                                    {type === 'observation' && <Eye size={18} />}
+                                    {type === 'attempt' && <RotateCcw size={18} />}
+                                    {type === 'intelligence' && <ShieldAlert size={18} />}
+                                    <span className="leading-none">{type === 'observation' ? 'Visita' : type === 'attempt' ? 'Insucesso' : 'Intel'}</span>
                                 </button>
                             ))}
                         </div>
