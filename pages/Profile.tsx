@@ -1,5 +1,6 @@
+
 import React from 'react';
-import { supabase } from './supabaseClient';
+import { supabase } from '../supabaseClient';
 import { useNavigate } from 'react-router-dom';
 import { User, Mail, Shield, LogOut, ChevronLeft } from 'lucide-react';
 
@@ -74,7 +75,7 @@ export default function Profile() {
                         className="w-full flex items-center justify-center gap-3 bg-red-600 hover:bg-red-700 text-white font-bold py-4 rounded-lg shadow-sm transition-colors disabled:opacity-70"
                     >
                         <LogOut size={20} />
-                        {loading ? 'Saindo...' : 'Sair do Sistema'}
+                        {loading ? 'Sair do Sistema...' : 'Sair do Sistema'}
                     </button>
 
                     <div className="bg-orange-50 dark:bg-orange-900/20 p-4 rounded-lg border border-orange-100 dark:border-orange-900/30">
