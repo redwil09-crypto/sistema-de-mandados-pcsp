@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Route as RouteIcon, Navigation, Map, Printer, Trash2, X, Check, AlertCircle } from 'lucide-react';
+import { Route as RouteIcon, Navigation, Map, Printer, Trash2, X, CheckCircle, AlertCircle } from 'lucide-react';
 import Header from '../components/Header';
 import WarrantCard from '../components/WarrantCard';
 import ConfirmModal from '../components/ConfirmModal';
@@ -151,7 +151,7 @@ const RoutePlanner = ({ warrants = [], onRouteToggle, onUpdate }: RoutePlannerPr
                                                 className="h-10 w-10 bg-status-completed text-white rounded-full shadow-lg flex items-center justify-center hover:scale-110 active:scale-95 transition-all"
                                                 title="Marcar como Cumprido"
                                             >
-                                                <Check size={20} />
+                                                <CheckCircle size={20} />
                                             </button>
                                         </div>
                                     </div>
