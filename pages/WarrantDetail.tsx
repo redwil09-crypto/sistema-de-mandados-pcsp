@@ -6,7 +6,8 @@ import {
     AlertCircle, User, Gavel, Calendar, MapPin, Map,
     Bike, FileCheck, FileText, Paperclip, Edit,
     Route as RouteIcon, RotateCcw, CheckCircle, Printer,
-    Trash2, Zap, Bell, Eye
+    Zap, Bell, Eye, StreetView, History, Send, Copy,
+    ShieldAlert, MessageSquare, Plus, PlusCircle
 } from 'lucide-react';
 import { toast } from 'sonner';
 import Header from '../components/Header';
@@ -32,10 +33,25 @@ const WarrantDetail = ({ warrants, onUpdate, onDelete, routeWarrants = [], onRou
         result: 'Fechado'
     });
 
-    const [isReopenConfirmOpen, setIsReopenConfirmOpen] = useState(false);
     const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
 
+    // Investigative States
+    const [newDiligence, setNewDiligence] = useState('');
+    const [diligenceType, setDiligenceType] = useState<'observation' | 'attempt' | 'intelligence'>('observation');
+    const [isDraftOpen, setIsDraftOpen] = useState(false);
+
     const data = useMemo(() => warrants.find(w => w.id === id), [warrants, id]);
+
+    // Neighborhood Intelligence
+    const nearbyWarrants = useMemo(() => {
+        if (!data || !data.location) return [];
+        const street = data.location.split(',')[0].trim().toLowerCase();
+        return warrants.filter(w =>
+            w.id !== data.id &&
+            w.status === 'EM ABERTO' &&
+            w.location?.toLowerCase().includes(street)
+        );
+    }, [warrants, data]);
 
     if (!data) {
         return (
@@ -88,6 +104,48 @@ const WarrantDetail = ({ warrants, onUpdate, onDelete, routeWarrants = [], onRou
             toast.error("Erro ao finalizar mandado.");
         }
         setIsFinalizeModalOpen(false);
+    };
+
+    const handleAddDiligence = async () => {
+        if (!newDiligence.trim()) return;
+
+        const entry = {
+            id: Date.now().toString(),
+            date: new Date().toISOString(),
+            investigator: "Investigador",
+            notes: newDiligence,
+            type: diligenceType
+        };
+
+        const updatedHistory = [...(data.diligentHistory || []), entry];
+        const success = await onUpdate(data.id, { diligentHistory: updatedHistory });
+
+        if (success) {
+            setNewDiligence('');
+            toast.success("Diligência registrada!");
+        }
+    };
+
+    const handleCopyReportDraft = () => {
+        const draft = `
+RELATÓRIO DE DILIGÊNCIA POLICIAL - DIG PCSP
+ALVO: ${data.name}
+PROCESSO: ${data.number}
+CRIME: ${data.crime}
+DATA: ${new Date().toLocaleDateString('pt-BR')}
+
+Diligência realizada no endereço ${data.location}.
+RESULTADO: ${data.fulfillmentResult || 'EM ANDAMENTO'}
+OBSERVAÇÕES: ${data.observation || 'Sem observações adicionais.'}
+
+HISTÓRICO RECENTE:
+${(data.diligentHistory || []).slice(-5).map(h => `- ${new Date(h.date).toLocaleDateString()}: ${h.notes}`).join('\n')}
+
+___________________________________
+Equipe de Capturas - DIG
+        `;
+        navigator.clipboard.writeText(draft.trim());
+        toast.success("Draft copiado para a área de transferência!");
     };
 
     const handleDelete = () => {
@@ -397,17 +455,39 @@ const WarrantDetail = ({ warrants, onUpdate, onDelete, routeWarrants = [], onRou
                     <h3 className="font-bold text-text-light dark:text-text-dark mb-3 flex items-center gap-2">
                         <MapPin size={18} className="text-primary" /> Localização
                     </h3>
+
+                    {nearbyWarrants.length > 0 && (
+                        <div className="mb-3 p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg flex items-center gap-3">
+                            <ShieldAlert className="text-amber-600" size={18} />
+                            <div>
+                                <p className="text-[10px] font-bold text-amber-700 uppercase">Inteligência de Vizinhança</p>
+                                <p className="text-[10px] text-amber-600">Existem {nearbyWarrants.length} outro(s) mandado(s) aberto(s) nesta mesma rua/região.</p>
+                            </div>
+                        </div>
+                    )}
+
                     <div className="flex items-start justify-between gap-3 p-3 bg-gray-50 dark:bg-white/5 rounded-lg border border-border-light dark:border-border-dark">
-                        <div className="flex items-start gap-2">
+                        <div className="flex-1">
                             <p className="text-sm text-text-light dark:text-text-dark font-medium">{data.location || "Endereço não informado"}</p>
                         </div>
-                        <button
-                            onClick={() => data.location && window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(data.location)}`, '_blank')}
-                            className="flex flex-col items-center justify-center gap-1 bg-white dark:bg-surface-dark border border-border-light dark:border-border-dark shadow-sm px-3 py-2 rounded-lg text-primary hover:bg-gray-50 dark:hover:bg-white/5 transition-all active:scale-95 shrink-0"
-                        >
-                            <Map size={20} />
-                            <span className="text-[10px] font-bold">Abrir</span>
-                        </button>
+                        <div className="flex gap-2 shrink-0">
+                            <button
+                                title="Abrir Mapa"
+                                onClick={() => data.location && window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(data.location)}`, '_blank')}
+                                className="flex flex-col items-center justify-center gap-1 bg-white dark:bg-surface-dark border border-border-light dark:border-border-dark shadow-sm px-2 py-2 rounded-lg text-primary hover:bg-gray-50 dark:hover:bg-white/5 transition-all active:scale-95"
+                            >
+                                <Map size={18} />
+                                <span className="text-[8px] font-bold">MAPA</span>
+                            </button>
+                            <button
+                                title="Street View (Nível da Rua)"
+                                onClick={() => data.location && window.open(`https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${encodeURIComponent(data.location)}`, '_blank')}
+                                className="flex flex-col items-center justify-center gap-1 bg-white dark:bg-surface-dark border border-border-light dark:border-border-dark shadow-sm px-2 py-2 rounded-lg text-blue-600 hover:bg-gray-50 dark:hover:bg-white/5 transition-all active:scale-95"
+                            >
+                                <Eye size={18} />
+                                <span className="text-[8px] font-bold">STREET</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -476,8 +556,79 @@ const WarrantDetail = ({ warrants, onUpdate, onDelete, routeWarrants = [], onRou
                 </div>
 
                 <div className="bg-surface-light dark:bg-surface-dark p-4 rounded-xl shadow-sm border border-border-light dark:border-border-dark">
+                    <div className="flex justify-between items-center mb-4">
+                        <h3 className="font-bold text-text-light dark:text-text-dark flex items-center gap-2">
+                            <History size={18} className="text-primary" /> Linha do Tempo de Diligências
+                        </h3>
+                        <button
+                            onClick={handleCopyReportDraft}
+                            className="text-[10px] font-bold text-primary flex items-center gap-1 bg-primary/10 px-2 py-1 rounded-lg"
+                        >
+                            <Copy size={12} /> DRAFT RELATÓRIO
+                        </button>
+                    </div>
+
+                    <div className="mb-6 space-y-3">
+                        <div className="flex gap-2">
+                            {(['observation', 'attempt', 'intelligence'] as const).map((type) => (
+                                <button
+                                    key={type}
+                                    onClick={() => setDiligenceType(type)}
+                                    className={`flex-1 py-1.5 rounded-lg text-[10px] font-bold uppercase border-2 transition-all ${diligenceType === type
+                                        ? 'bg-primary border-primary text-white'
+                                        : 'bg-transparent border-border-light text-text-secondary-light'
+                                        }`}
+                                >
+                                    {type === 'observation' ? 'Obs' : type === 'attempt' ? 'Tentativa' : 'Intel'}
+                                </button>
+                            ))}
+                        </div>
+                        <div className="relative">
+                            <textarea
+                                value={newDiligence}
+                                onChange={(e) => setNewDiligence(e.target.value)}
+                                placeholder="Descreva a diligência ou informação nova..."
+                                className="w-full bg-gray-50 dark:bg-white/5 border border-border-light dark:border-border-dark rounded-xl p-3 text-sm min-h-[80px] outline-none focus:ring-2 focus:ring-primary"
+                            />
+                            <button
+                                onClick={handleAddDiligence}
+                                disabled={!newDiligence.trim()}
+                                className="absolute bottom-3 right-3 p-2 bg-primary text-white rounded-lg shadow-lg active:scale-90 disabled:opacity-50 transition-all font-bold text-xs flex items-center gap-1"
+                            >
+                                <Plus size={16} /> REGISTRAR
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="space-y-4 relative before:absolute before:left-[11px] before:top-2 before:bottom-0 before:w-0.5 before:bg-gray-100 dark:before:bg-white/5">
+                        {data.diligentHistory && data.diligentHistory.length > 0 ? (
+                            [...data.diligentHistory].reverse().map((h) => (
+                                <div key={h.id} className="relative pl-8 animate-in slide-in-from-left-2">
+                                    <div className={`absolute left-0 top-1 w-6 h-6 rounded-full border-4 border-surface-light dark:border-surface-dark flex items-center justify-center ${h.type === 'observation' ? 'bg-blue-500' : h.type === 'attempt' ? 'bg-red-500' : 'bg-purple-500'
+                                        }`}>
+                                        {h.type === 'observation' ? <Eye size={10} className="text-white" /> : h.type === 'attempt' ? <MapPin size={10} className="text-white" /> : <ShieldAlert size={10} className="text-white" />}
+                                    </div>
+                                    <div className="bg-gray-50 dark:bg-white/5 p-3 rounded-xl border border-border-light dark:border-border-dark">
+                                        <div className="flex justify-between items-start mb-1">
+                                            <span className="text-[10px] font-bold text-text-secondary-light">{new Date(h.date).toLocaleDateString('pt-BR')} às {new Date(h.date).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>
+                                            <span className="text-[9px] px-1.5 py-0.5 bg-gray-200 dark:bg-white/10 rounded uppercase font-bold text-text-secondary-light">{h.investigator}</span>
+                                        </div>
+                                        <p className="text-sm text-text-light dark:text-text-dark">{h.notes}</p>
+                                    </div>
+                                </div>
+                            ))
+                        ) : (
+                            <div className="text-center py-4">
+                                <MessageSquare size={32} className="mx-auto text-gray-300 mb-2" />
+                                <p className="text-xs text-gray-400">Nenhuma diligência registrada ainda.</p>
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                <div className="bg-surface-light dark:bg-surface-dark p-4 rounded-xl shadow-sm border border-border-light dark:border-border-dark">
                     <h3 className="font-bold text-text-light dark:text-text-dark mb-2 flex items-center gap-2">
-                        <Eye size={18} className="text-primary" /> Observações
+                        <Eye size={18} className="text-primary" /> Observações do PDF
                     </h3>
                     <p className="text-sm text-text-light dark:text-text-dark leading-relaxed">
                         {data.observation || "Sem observações registradas."}

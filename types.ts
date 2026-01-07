@@ -37,6 +37,15 @@ export interface Warrant {
     fulfillmentReport?: string; // Número do relatório
     createdAt?: string;         // Data de criação no banco
     updatedAt?: string;         // Data de atualização no banco
+    diligentHistory?: DiligentEntry[]; // Linha do tempo de investigação
+}
+
+export interface DiligentEntry {
+    id: string;
+    date: string;
+    investigator: string;
+    notes: string;
+    type: 'observation' | 'attempt' | 'intelligence';
 }
 
 export interface StatData {
