@@ -152,8 +152,8 @@ const WarrantDetail = ({ warrants, onUpdate, onDelete, routeWarrants = [], onRou
         }
     };
 
-    const handleCopyReportDraft = () => {
-        const draft = `
+    const getReportText = () => {
+        return `
 DELEGACIA DE INVESTIGAÇÕES GERAIS - DIG/PCSP
 RELATÓRIO DE DILIGÊNCIA OPERACIONAL
 
@@ -168,7 +168,7 @@ LOCAL DA DILIGÊNCIA:
 ENDEREÇO: ${data.location || 'Não informado'}
 
 HISTÓRICO RECENTE:
-${(data.diligentHistory || []).slice(-5).map(h => `- ${new Date(h.date).toLocaleDateString()} [${h.type.toUpperCase()}]: ${h.notes}`).join('\n') || '- Sem diligências anteriores.'}
+${(data.diligentHistory || []).slice(-10).map(h => `- ${new Date(h.date).toLocaleDateString()} [${h.type.toUpperCase()}]: ${h.notes}`).join('\n') || '- Sem diligências anteriores.'}
 
 OBSERVAÇÕES ADICIONAIS:
 ${data.observation || 'Nada a declarar.'}
@@ -178,9 +178,51 @@ DATA DO RELATÓRIO: ${new Date().toLocaleDateString('pt-BR')} às ${new Date().t
 
 ___________________________________
 Equipe de Capturas - DIG / PCSP
-        `;
-        navigator.clipboard.writeText(draft.trim());
+        `.trim();
+    };
+
+    const handleCopyReportDraft = () => {
+        const text = getReportText();
+        navigator.clipboard.writeText(text);
         toast.success("Relatório copiado para a área de transferência!");
+    };
+
+    const handlePrintReport = () => {
+        const text = getReportText();
+        const printWindow = window.open('', '_blank');
+        if (printWindow) {
+            printWindow.document.write(`
+                <html>
+                    <head>
+                        <title>Relatório - ${data.name}</title>
+                        <style>
+                            body { font-family: monospace; white-space: pre-wrap; padding: 40px; font-size: 14px; line-height: 1.5; color: #000; }
+                            @media print {
+                                body { padding: 0; }
+                            }
+                        </style>
+                    </head>
+                    <body>${text}</body>
+                </html>
+            `);
+            printWindow.document.close();
+            setTimeout(() => {
+                printWindow.focus();
+                printWindow.print();
+                printWindow.close();
+            }, 250);
+        }
+    };
+
+    const handleDownloadReportPDF = () => {
+        const doc = new jsPDF();
+        const text = getReportText();
+        const splitText = doc.splitTextToSize(text, 180);
+        doc.setFont('courier', 'normal');
+        doc.setFontSize(10);
+        doc.text(splitText, 15, 20);
+        doc.save(`Relatorio_DIG_${data.name.replace(/\s+/g, '_')}.pdf`);
+        toast.success("PDF do relatório baixado!");
     };
 
     const handleDelete = () => {
@@ -616,15 +658,23 @@ Equipe de Capturas - DIG / PCSP
 
                     {isDraftOpen && (
                         <div className="mb-6 p-4 bg-gray-100 dark:bg-white/5 border border-primary/20 rounded-xl animate-in zoom-in-95 duration-200">
-                            <div className="flex justify-between items-center mb-2 text-primary">
-                                <span className="text-[10px] font-bold uppercase">Pré-visualização do Relatório</span>
-                                <button onClick={handleCopyReportDraft} className="text-[10px] bg-primary text-white px-3 py-1 rounded-md shadow-sm font-bold flex items-center gap-1 active:scale-95 transition-all">
-                                    <Copy size={12} /> COPIAR TEXTO
-                                </button>
+                            <div className="flex flex-wrap justify-between items-center gap-2 mb-3">
+                                <span className="text-[10px] font-bold uppercase text-primary">Pré-visualização do Relatório</span>
+                                <div className="flex gap-2">
+                                    <button onClick={handleCopyReportDraft} className="text-[9px] bg-slate-500 text-white px-2 py-1.5 rounded-lg shadow-sm font-bold flex items-center gap-1 active:scale-95 transition-all">
+                                        <Copy size={12} /> COPIAR
+                                    </button>
+                                    <button onClick={handleDownloadReportPDF} className="text-[9px] bg-indigo-600 text-white px-2 py-1.5 rounded-lg shadow-sm font-bold flex items-center gap-1 active:scale-95 transition-all">
+                                        <FileText size={12} /> BAIXAR PDF
+                                    </button>
+                                    <button onClick={handlePrintReport} className="text-[9px] bg-emerald-600 text-white px-2 py-1.5 rounded-lg shadow-sm font-bold flex items-center gap-1 active:scale-95 transition-all">
+                                        <Printer size={12} /> IMPRIMIR
+                                    </button>
+                                </div>
                             </div>
                             <div className="p-3 bg-white dark:bg-black/40 rounded-lg border border-border-light dark:border-border-dark max-h-80 overflow-y-auto">
                                 <pre className="text-[10px] font-mono whitespace-pre-wrap leading-tight text-text-light dark:text-text-dark">
-                                    {`DELEGACIA DE INVESTIGAÇÕES GERAIS - DIG/PCSP\nRELATÓRIO DE DILIGÊNCIA OPERACIONAL\n\nDADOS DO ALVO:\nNOME: ${data.name.toUpperCase()}\nRG: ${data.rg || 'Não informado'}\nCPF: ${data.cpf || 'Não informado'}\nPROCESSO: ${data.number}\nCRIME: ${data.crime || 'Não informado'}\n\nLOCAL DA DILIGÊNCIA:\nENDEREÇO: ${data.location || 'Não informado'}\n\nHISTÓRICO RECENTE:\n${(data.diligentHistory || []).slice(-10).map(h => `- ${new Date(h.date).toLocaleDateString()} [${h.type.toUpperCase()}]: ${h.notes}`).join('\n') || '- Sem diligências anteriores.'}\n\nOBSERVAÇÕES ADICIONAIS:\n${data.observation || 'Nada a declarar.'}\n\nRESULTADO ATUAL: ${data.status}\nDATA DO RELATÓRIO: ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}\n\n___________________________________\nEquipe de Capturas - DIG / PCSP`}
+                                    {getReportText()}
                                 </pre>
                             </div>
                         </div>
