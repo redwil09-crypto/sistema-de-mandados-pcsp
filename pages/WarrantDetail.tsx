@@ -36,6 +36,7 @@ const WarrantDetail = ({ warrants, onUpdate, onDelete, routeWarrants = [], onRou
     const [isReopenConfirmOpen, setIsReopenConfirmOpen] = useState(false);
     const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
     const [isPhotoModalOpen, setIsPhotoModalOpen] = useState(false);
+    const [tagToRemove, setTagToRemove] = useState<string | null>(null);
 
     // Investigative States
     const [newDiligence, setNewDiligence] = useState('');
@@ -111,6 +112,16 @@ const WarrantDetail = ({ warrants, onUpdate, onDelete, routeWarrants = [], onRou
             toast.error("Erro ao finalizar mandado.");
         }
         setIsFinalizeModalOpen(false);
+    };
+
+    const handleConfirmRemoveTag = async () => {
+        if (!tagToRemove || !data) return;
+        const updatedTags = (data.tags || []).filter(t => t !== tagToRemove);
+        const success = await onUpdate(data.id, { tags: updatedTags });
+        if (success) {
+            toast.success(`A etiqueta "${tagToRemove}" foi removida.`);
+        }
+        setTagToRemove(null);
     };
 
     const handleAddDiligence = async () => {
@@ -391,13 +402,17 @@ Equipe de Capturas - DIG
                             {data.tags && data.tags.length > 0 && (
                                 <div className="flex flex-wrap gap-2 mt-3">
                                     {data.tags.map((tag: string) => (
-                                        <span key={tag} className={`text-[10px] font-bold px-2 py-1 rounded-lg border-2 flex items-center gap-1 ${tag === 'Urgente'
-                                            ? 'bg-red-500 border-red-500 text-white'
-                                            : 'bg-amber-500 border-amber-500 text-white'
-                                            }`}>
+                                        <button
+                                            key={tag}
+                                            onClick={() => setTagToRemove(tag)}
+                                            title="Clique para remover prioridade"
+                                            className={`text-[10px] font-bold px-2 py-1 rounded-lg border-2 flex items-center gap-1 transition-all hover:scale-105 active:scale-95 ${tag === 'Urgente'
+                                                ? 'bg-red-500 border-red-500 text-white shadow-md hover:bg-red-600'
+                                                : 'bg-amber-500 border-amber-500 text-white shadow-md hover:bg-amber-600'
+                                                }`}>
                                             {tag === 'Urgente' ? <Zap size={10} /> : <Bell size={10} />}
                                             {tag}
-                                        </span>
+                                        </button>
                                     ))}
                                 </div>
                             )}
@@ -740,13 +755,26 @@ Equipe de Capturas - DIG
                 <ConfirmModal
                     isOpen={isReopenConfirmOpen}
                     title="Reabrir Mandado"
-                    message="Deseja realmente reabrir este mandado? O status será alterado para 'EM ABERTO'."
+                    message="Deseja alterar o status deste mandado para EM ABERTO?"
                     onConfirm={handleConfirmReopen}
                     onCancel={() => setIsReopenConfirmOpen(false)}
-                    confirmText="Reabrir"
+                    confirmText="reabrir"
+                    cancelText="cancelar"
                 />
             )}
 
+            {tagToRemove && (
+                <ConfirmModal
+                    isOpen={!!tagToRemove}
+                    title="Remover Prioridade"
+                    message={`Deseja remover a prioridade "${tagToRemove}" deste mandado e voltar ao normal?`}
+                    onConfirm={handleConfirmRemoveTag}
+                    onCancel={() => setTagToRemove(null)}
+                    confirmText="Sim, Remover"
+                    cancelText="Não"
+                    variant="danger"
+                />
+            )}
             {isDeleteConfirmOpen && (
                 <ConfirmModal
                     isOpen={isDeleteConfirmOpen}

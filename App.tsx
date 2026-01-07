@@ -150,14 +150,16 @@ function App() {
     const prisonWarrants = useMemo(() => {
         return warrants.filter(w => {
             const type = (w.type || '').toLowerCase();
-            return !type.includes('busca') && !type.includes('apreensão');
+            const status = (w.status || '').toUpperCase();
+            return !type.includes('busca') && !type.includes('apreensão') && status === 'EM ABERTO';
         });
     }, [warrants]);
 
     const searchWarrants = useMemo(() => {
         return warrants.filter(w => {
             const type = (w.type || '').toLowerCase();
-            return type.includes('busca') || type.includes('apreensão');
+            const status = (w.status || '').toUpperCase();
+            return (type.includes('busca') || type.includes('apreensão')) && status === 'EM ABERTO';
         });
     }, [warrants]);
 
