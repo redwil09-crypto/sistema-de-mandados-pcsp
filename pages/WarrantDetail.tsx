@@ -609,7 +609,16 @@ const WarrantDetail = ({ warrants, onUpdate, onDelete, routeWarrants = [], onRou
                                             ? ['Apreendido', 'Fora de Validade', 'Negativo', 'Encaminhado', 'Contra', 'Ofício Localiza', 'Óbito'].map(opt => (
                                                 <option key={opt} value={opt}>{opt}</option>
                                             ))
-                                            : ['Fechado', 'Aberto', 'Civil', 'Semiaberto', 'Preventiva', 'Temporária', 'Of. Cobrança', 'Contramandado', 'Localização', 'Outro'].map(opt => (
+                                            : [
+                                                'PRESO',
+                                                'NEGATIVO',
+                                                'ENCAMINHADO',
+                                                'ÓBITO',
+                                                'CONTRA',
+                                                'LOCALIZADO',
+                                                'OFÍCIO',
+                                                'CUMPRIDO NO FÓRUM'
+                                            ].map(opt => (
                                                 <option key={opt} value={opt}>{opt}</option>
                                             ))
                                         }
