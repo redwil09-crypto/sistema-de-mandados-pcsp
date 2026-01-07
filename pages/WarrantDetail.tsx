@@ -7,7 +7,7 @@ import {
     Bike, FileCheck, FileText, Paperclip, Edit,
     Route as RouteIcon, RotateCcw, CheckCircle, Printer,
     Trash2, Zap, Bell, Eye, History, Send, Copy,
-    ShieldAlert, MessageSquare, Plus, PlusCircle
+    ShieldAlert, MessageSquare, Plus, PlusCircle, X
 } from 'lucide-react';
 import { toast } from 'sonner';
 import Header from '../components/Header';
@@ -35,6 +35,7 @@ const WarrantDetail = ({ warrants, onUpdate, onDelete, routeWarrants = [], onRou
 
     const [isReopenConfirmOpen, setIsReopenConfirmOpen] = useState(false);
     const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+    const [isPhotoModalOpen, setIsPhotoModalOpen] = useState(false);
 
     // Investigative States
     const [newDiligence, setNewDiligence] = useState('');
@@ -374,7 +375,8 @@ Equipe de Capturas - DIG
                             <img
                                 src={data.img || `https://ui-avatars.com/api/?name=${encodeURIComponent(data.name)}&background=random&color=fff`}
                                 alt={data.name}
-                                className="h-20 w-20 rounded-xl object-cover border border-border-light dark:border-border-dark bg-gray-100 dark:bg-gray-800"
+                                onClick={() => setIsPhotoModalOpen(true)}
+                                className="h-40 w-40 rounded-2xl object-cover border-2 border-primary/20 shadow-lg bg-gray-100 dark:bg-gray-800 cursor-zoom-in hover:scale-[1.02] transition-transform active:scale-95"
                             />
                         </div>
                         <div className="flex-1 min-w-0">
@@ -609,8 +611,8 @@ Equipe de Capturas - DIG
                                     key={type}
                                     onClick={() => setDiligenceType(type)}
                                     className={`flex-1 py-2 rounded-lg text-[10px] font-bold uppercase border-2 transition-all flex items-center justify-center gap-1.5 ${diligenceType === type
-                                            ? 'bg-primary border-primary text-white shadow-md'
-                                            : 'bg-white dark:bg-surface-dark border-border-light text-text-secondary-light hover:border-primary/50'
+                                        ? 'bg-primary border-primary text-white shadow-md'
+                                        : 'bg-white dark:bg-surface-dark border-border-light text-text-secondary-light hover:border-primary/50'
                                         }`}
                                 >
                                     {type === 'observation' && <Eye size={12} />}
@@ -838,6 +840,31 @@ Equipe de Capturas - DIG
                                     Confirmar
                                 </button>
                             </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+            {/* Photo Zoom Modal */}
+            {isPhotoModalOpen && (
+                <div
+                    className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200"
+                    onClick={() => setIsPhotoModalOpen(false)}
+                >
+                    <div className="relative max-w-4xl w-full flex flex-col items-center">
+                        <button
+                            className="absolute -top-12 right-0 text-white hover:text-primary transition-colors p-2"
+                            onClick={() => setIsPhotoModalOpen(false)}
+                        >
+                            <X size={32} />
+                        </button>
+                        <img
+                            src={data.img || `https://ui-avatars.com/api/?name=${encodeURIComponent(data.name)}&background=random&color=fff`}
+                            alt={data.name}
+                            className="max-h-[85vh] max-w-full rounded-2xl shadow-2xl border-2 border-white/10 object-contain animate-in zoom-in-95 duration-300"
+                        />
+                        <div className="mt-4 text-center">
+                            <h2 className="text-white font-black text-xl uppercase tracking-widest">{data.name}</h2>
+                            <p className="text-gray-400 text-sm">{data.number}</p>
                         </div>
                     </div>
                 </div>
