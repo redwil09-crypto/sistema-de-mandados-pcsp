@@ -128,6 +128,28 @@ function App() {
         return warrants.filter(w => w && routeWarrants.includes(w.id));
     }, [warrants, routeWarrants]);
 
+    // Filtered lists for specific pages
+    const prisonWarrants = useMemo(() => {
+        return warrants.filter(w => {
+            const type = (w.type || '').toLowerCase();
+            return !type.includes('busca') && !type.includes('apreensão');
+        });
+    }, [warrants]);
+
+    const searchWarrants = useMemo(() => {
+        return warrants.filter(w => {
+            const type = (w.type || '').toLowerCase();
+            return type.includes('busca') || type.includes('apreensão');
+        });
+    }, [warrants]);
+
+    const priorityWarrants = useMemo(() => {
+        return warrants.filter(w => {
+            const tags = w.tags || [];
+            return tags.includes('Urgente') || tags.includes('Ofício de Cobrança');
+        });
+    }, [warrants]);
+
     if (loading) {
         return (
             <div className="flex min-h-screen items-center justify-center bg-background-dark">
@@ -149,11 +171,11 @@ function App() {
                     <Route path="/" element={<HomePage isDark={isDark} toggleTheme={toggleTheme} warrants={warrants} routeCount={routeWarrants.length} />} />
 
                     {/* Main Routes */}
-                    <Route path="/warrant-list" element={<WarrantList warrants={warrants} routeWarrants={routeWarrants} onRouteToggle={toggleRouteWarrant} />} />
+                    <Route path="/warrant-list" element={<WarrantList warrants={prisonWarrants} routeWarrants={routeWarrants} onRouteToggle={toggleRouteWarrant} />} />
                     <Route path="/advanced-search" element={<AdvancedSearch warrants={warrants} routeWarrants={routeWarrants} onRouteToggle={toggleRouteWarrant} />} />
                     <Route path="/recents" element={<RecentActivityPage warrants={warrants} routeWarrants={routeWarrants} onRouteToggle={toggleRouteWarrant} />} />
-                    <Route path="/minor-search" element={<MinorSearch warrants={warrants} routeWarrants={routeWarrants} onRouteToggle={toggleRouteWarrant} />} />
-                    <Route path="/priority-list" element={<PriorityList warrants={warrants} />} />
+                    <Route path="/minor-search" element={<MinorSearch warrants={searchWarrants} routeWarrants={routeWarrants} onRouteToggle={toggleRouteWarrant} />} />
+                    <Route path="/priority-list" element={<PriorityList warrants={priorityWarrants} routeWarrants={routeWarrants} onRouteToggle={toggleRouteWarrant} />} />
 
                     {/* specialized pages */}
                     <Route path="/route-planner" element={<RoutePlanner
