@@ -46,6 +46,7 @@ const dbToWarrant = (dbWarrant: any): Warrant => {
         date: dbWarrant.entry_date || dbWarrant.created_at?.split('T')[0],
         createdAt: dbWarrant.created_at,
         updatedAt: dbWarrant.updated_at,
+        diligentHistory: dbWarrant.diligent_history || [],
     };
 };
 
@@ -82,6 +83,7 @@ const warrantToDb = (warrant: Partial<Warrant>) => {
     if (warrant.tags !== undefined) dbObj.tags = warrant.tags;
     if (warrant.fulfillmentResult !== undefined) dbObj.fulfillment_result = warrant.fulfillmentResult;
     if (warrant.fulfillmentReport !== undefined) dbObj.fulfillment_report = warrant.fulfillmentReport;
+    if (warrant.diligentHistory !== undefined) dbObj.diligent_history = warrant.diligentHistory;
 
     return dbObj;
 };

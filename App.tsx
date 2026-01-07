@@ -109,6 +109,7 @@ function App() {
             await loadWarrants();
             return true;
         }
+        toast.error("Falha ao atualizar dados no servidor.");
         return false;
     };
 
