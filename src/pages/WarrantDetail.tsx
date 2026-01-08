@@ -1132,11 +1132,6 @@ Equipe de Capturas - DIG / PCSP
                                 onChange={e => handleFieldChange('name', e.target.value)}
                                 placeholder="Nome do Procurado"
                             />
-                            {localData.type?.toLowerCase().includes('busca') && (
-                                <p className="text-[10px] font-black text-red-600 dark:text-red-500 tracking-tighter uppercase -mt-1 mb-1">
-                                    Busca e Apreensão
-                                </p>
-                            )}
                             <select
                                 className="text-sm text-primary font-medium mt-1 bg-transparent border-none focus:ring-1 focus:ring-primary/20 rounded px-1 -ml-1 cursor-pointer outline-none"
                                 value={localData.type || ''}

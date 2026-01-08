@@ -193,7 +193,7 @@ const NewWarrant = ({ onAdd, onUpdate, warrants }: NewWarrantProps) => {
 
             const warrantData: Partial<Warrant> = {
                 name: formData.name,
-                type: type === 'prison' ? 'Mandado de Prisão' : 'Mandado de Busca e Apreensão',
+                type: type === 'prison' ? 'MANDADO DE PRISÃO' : 'BUSCA E APREENSÃO',
                 location: formData.location,
                 number: formData.number,
                 rg: formData.rg,

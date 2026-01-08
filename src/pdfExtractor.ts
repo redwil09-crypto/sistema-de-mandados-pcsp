@@ -277,12 +277,12 @@ const determineMandadoType = (text: string): { type: string; category: 'prison' 
     }
 
     if (isUnderage || lowerText.includes('busca e apreensão')) {
-        return { type: 'Mandado de Busca e Apreensão', category: 'search' };
+        return { type: 'BUSCA E APREENSÃO', category: 'search' };
     }
 
-    if (lowerText.includes('preventiva')) return { type: 'Mandado de Prisão Preventiva', category: 'prison' };
-    if (lowerText.includes('temporária')) return { type: 'Mandado de Prisão Temporária', category: 'prison' };
-    return { type: 'Mandado de Prisão', category: 'prison' };
+    if (lowerText.includes('preventiva')) return { type: 'MANDADO DE PRISÃO', category: 'prison' };
+    if (lowerText.includes('temporária')) return { type: 'MANDADO DE PRISÃO', category: 'prison' };
+    return { type: 'MANDADO DE PRISÃO', category: 'prison' };
 };
 
 const extractCrime = (text: string): string => {
