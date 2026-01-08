@@ -120,6 +120,8 @@ const NewWarrant = ({ onAdd, onUpdate, warrants }: NewWarrantProps) => {
         } else {
             setAttachmentsFiles(prev => [...prev, ...files]);
         }
+        // Reset the input value so the same file can be selected again
+        e.target.value = '';
     };
 
     const removeNewFile = (index: number, type: 'reports' | 'attachments') => {
@@ -178,6 +180,8 @@ const NewWarrant = ({ onAdd, onUpdate, warrants }: NewWarrantProps) => {
                 const uploadedPath = await uploadFile(file, path);
                 if (uploadedPath) {
                     newReportsUrls.push(getPublicUrl(uploadedPath));
+                } else {
+                    toast.error(`Falha ao subir relatório: ${file.name}`);
                 }
             }
 
@@ -188,6 +192,8 @@ const NewWarrant = ({ onAdd, onUpdate, warrants }: NewWarrantProps) => {
                 const uploadedPath = await uploadFile(file, path);
                 if (uploadedPath) {
                     newAttachmentsUrls.push(getPublicUrl(uploadedPath));
+                } else {
+                    toast.error(`Falha ao subir anexo: ${file.name}`);
                 }
             }
 
@@ -419,9 +425,9 @@ const NewWarrant = ({ onAdd, onUpdate, warrants }: NewWarrantProps) => {
                                     <button type="button" onClick={() => removeNewFile(idx, 'reports')} className="text-red-500"><X size={14} /></button>
                                 </div>
                             ))}
-                            <label className="flex items-center justify-center gap-2 w-full py-2.5 border-2 border-dashed border-border-light dark:border-border-dark rounded-lg text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark hover:border-primary hover:text-primary transition-colors cursor-pointer">
+                            <label htmlFor="report-upload" className="flex items-center justify-center gap-2 w-full py-2.5 border-2 border-dashed border-border-light dark:border-border-dark rounded-lg text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark hover:border-primary hover:text-primary transition-colors cursor-pointer">
                                 <Plus size={16} /> Adicionar Relatório
-                                <input type="file" onChange={(e) => handleFileAdd(e, 'reports')} className="hidden" multiple />
+                                <input id="report-upload" type="file" onChange={(e) => handleFileAdd(e, 'reports')} className="hidden" multiple />
                             </label>
                         </div>
                     </div>
@@ -443,9 +449,9 @@ const NewWarrant = ({ onAdd, onUpdate, warrants }: NewWarrantProps) => {
                                     <button type="button" onClick={() => removeNewFile(idx, 'attachments')} className="text-red-500"><X size={14} /></button>
                                 </div>
                             ))}
-                            <label className="flex items-center justify-center gap-2 w-full py-2.5 border-2 border-dashed border-border-light dark:border-border-dark rounded-lg text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark hover:border-primary hover:text-primary transition-colors cursor-pointer">
+                            <label htmlFor="attachment-upload" className="flex items-center justify-center gap-2 w-full py-2.5 border-2 border-dashed border-border-light dark:border-border-dark rounded-lg text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark hover:border-primary hover:text-primary transition-colors cursor-pointer">
                                 <Plus size={16} /> Adicionar Anexo
-                                <input type="file" onChange={(e) => handleFileAdd(e, 'attachments')} className="hidden" multiple />
+                                <input id="attachment-upload" type="file" onChange={(e) => handleFileAdd(e, 'attachments')} className="hidden" multiple />
                             </label>
                         </div>
                     </div>

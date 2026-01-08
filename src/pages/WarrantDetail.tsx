@@ -1498,10 +1498,11 @@ Equipe de Capturas - DIG / PCSP
                             <h3 className="font-bold text-text-light dark:text-text-dark flex items-center gap-2">
                                 <Paperclip size={18} className="text-primary" /> Anexos Gerais
                             </h3>
-                            <label className="bg-gray-600 hover:bg-gray-700 text-white text-[10px] font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-all active:scale-95 shadow-lg shadow-gray-500/20 cursor-pointer">
+                            <label htmlFor="detail-attach-upload" className="bg-gray-600 hover:bg-gray-700 text-white text-[10px] font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-all active:scale-95 shadow-lg shadow-gray-500/20 cursor-pointer">
                                 <Plus size={14} />
                                 ANEXAR
                                 <input
+                                    id="detail-attach-upload"
                                     type="file"
                                     className="hidden"
                                     onChange={(e) => handleAttachFile(e, 'attachments')}

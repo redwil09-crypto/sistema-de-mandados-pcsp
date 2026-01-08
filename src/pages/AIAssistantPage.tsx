@@ -86,6 +86,7 @@ const AIAssistantPage = ({ onAdd, warrants }: AIAssistantPageProps) => {
                 setPhotoPreview(reader.result as string);
             };
             reader.readAsDataURL(file);
+            e.target.value = '';
         }
     };
 
@@ -201,6 +202,7 @@ const AIAssistantPage = ({ onAdd, warrants }: AIAssistantPageProps) => {
             } else {
                 setStep('input');
             }
+            e.target.value = '';
         }
     };
 
