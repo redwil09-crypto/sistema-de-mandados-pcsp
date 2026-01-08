@@ -197,7 +197,8 @@ const extractAddresses = (text: string): string[] => {
             const stopWords = [
                 'VARA', 'COMARCA', 'FORO', 'TRIBUNAL', 'JUIZ', 'ESCRIVÃO', 'DELEGADO',
                 'RELATOR', 'PROCESSO', 'CLASSE', 'ASSUNTO', 'NASCIMENTO', 'CPF', 'RG',
-                'FILIAÇÃO', 'NOME', 'QUALIFICAÇÃO', 'ESTADO CIVIL', 'PROFISSÃO'
+                'FILIAÇÃO', 'NOME', 'QUALIFICAÇÃO', 'ESTADO CIVIL', 'PROFISSÃO',
+                'DOCUMENTO ASSINADO DIGITALMENTE', 'ASSINADO DIGITALMENTE'
             ];
             const regexStop = new RegExp(`(${stopWords.join('|')})`, 'i');
             const splitMatch = addr.split(regexStop);
