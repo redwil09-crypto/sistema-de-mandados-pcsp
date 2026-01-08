@@ -275,18 +275,24 @@ const extractCrime = (text: string): string => {
 };
 
 const extractRegime = (text: string, category: 'prison' | 'search', crime: string): string => {
-    if (category === 'search') return 'Localização';
+    const lowerText = text.toLowerCase();
+
+    // Regra para Busca e Apreensão: permite Audiência de Justificativa ou padrão Localização
+    if (category === 'search') {
+        if (lowerText.includes('audiência de justificativa') || lowerText.includes('audiência de justificativa')) {
+            return "Audiência de Justificativa";
+        }
+        return 'Localização';
+    }
 
     // Regra especial: se for Pensão Alimenticia, o regime é Civil
     if (crime === "Pensão alimenticia") return "Civil";
 
     const regimes = [
         "Fechado", "Aberto", "Civil", "Semiaberto", "Preventiva",
-        "Temporária", "Of. Cobrança", "Contramandado", "Localização",
-        "Audiência de Justificativa", "Alfredo De Morais, 17, Bairro Terras Da Conceicao, Jacarei", "Outro"
+        "Temporária", "Of. Cobrança", "Contramandado", "Localização", "Outro"
     ];
 
-    const lowerText = text.toLowerCase();
     for (const regime of regimes) {
         if (lowerText.includes(regime.toLowerCase())) return regime;
     }

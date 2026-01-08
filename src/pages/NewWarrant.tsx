@@ -336,7 +336,10 @@ const NewWarrant = ({ onAdd, onUpdate, warrants }: NewWarrantProps) => {
                         <label className="block text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark mb-1">Regime / Situação</label>
                         <select name="regime" value={formData.regime} onChange={handleChange} className="w-full rounded-lg border border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark p-2.5 text-sm text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none">
                             <option value="">Selecione...</option>
-                            {REGIME_OPTIONS.map(r => <option key={r} value={r}>{r}</option>)}
+                            {REGIME_OPTIONS
+                                .filter(r => type === 'search' || r !== "Audiência de Justificativa")
+                                .map(r => <option key={r} value={r}>{r}</option>)
+                            }
                         </select>
                     </div>
                 </div>
