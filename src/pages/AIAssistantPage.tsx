@@ -253,7 +253,8 @@ const AIAssistantPage = ({ onAdd, warrants }: AIAssistantPageProps) => {
                 const isReport = extractedData.type.toLowerCase().includes('relatorio') || pdfFile.name.toLowerCase().includes('relatorio');
 
                 const typePath = isIfood ? 'ifoodDocs' : (isReport ? 'reports' : 'attachments');
-                const pdfPath = `${typePath}/${warrantId}/${Date.now()}_${pdfFile.name}`;
+                const cleanName = pdfFile.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+                const pdfPath = `${typePath}/${warrantId}/${Date.now()}_${cleanName}`;
 
                 const uploadedPdfPath = await uploadFile(pdfFile, pdfPath);
                 if (uploadedPdfPath) {

@@ -176,11 +176,15 @@ const NewWarrant = ({ onAdd, onUpdate, warrants }: NewWarrantProps) => {
             // 2. Upload Reports
             const newReportsUrls: string[] = [];
             for (const file of reportsFiles) {
-                const path = `reports/${warrantId}/${Date.now()}_${file.name}`;
+                const cleanName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+                const path = `reports/${warrantId}/${Date.now()}_${cleanName}`;
+                console.log(`NewWarrant: Uploading report: ${file.name} to ${path}`);
                 const uploadedPath = await uploadFile(file, path);
                 if (uploadedPath) {
                     newReportsUrls.push(getPublicUrl(uploadedPath));
+                    console.log(`NewWarrant: Report uploaded, url: ${getPublicUrl(uploadedPath)}`);
                 } else {
+                    console.error(`NewWarrant: Failed to upload report: ${file.name}`);
                     toast.error(`Falha ao subir relatório: ${file.name}`);
                 }
             }
@@ -188,11 +192,15 @@ const NewWarrant = ({ onAdd, onUpdate, warrants }: NewWarrantProps) => {
             // 3. Upload Attachments
             const newAttachmentsUrls: string[] = [];
             for (const file of attachmentsFiles) {
-                const path = `attachments/${warrantId}/${Date.now()}_${file.name}`;
+                const cleanName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+                const path = `attachments/${warrantId}/${Date.now()}_${cleanName}`;
+                console.log(`NewWarrant: Uploading attachment: ${file.name} to ${path}`);
                 const uploadedPath = await uploadFile(file, path);
                 if (uploadedPath) {
                     newAttachmentsUrls.push(getPublicUrl(uploadedPath));
+                    console.log(`NewWarrant: Attachment uploaded, url: ${getPublicUrl(uploadedPath)}`);
                 } else {
+                    console.error(`NewWarrant: Failed to upload attachment: ${file.name}`);
                     toast.error(`Falha ao subir anexo: ${file.name}`);
                 }
             }

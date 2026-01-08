@@ -298,19 +298,26 @@ Equipe de Capturas - DIG / PCSP
         setIsUploadingFile(true);
         const toastId = toast.loading(`Subindo arquivo (${file.name})...`);
         try {
-            const path = `${type}/${data.id}/${Date.now()}_${file.name}`;
+            const cleanName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+            const path = `${type}/${data.id}/${Date.now()}_${cleanName}`;
+            console.log(`WarrantDetail: Attempting to upload to path: ${path}`);
             const uploadedPath = await uploadFile(file, path);
+            console.log(`WarrantDetail: Upload result path: ${uploadedPath}`);
+
             if (uploadedPath) {
                 const url = getPublicUrl(uploadedPath);
+                console.log(`WarrantDetail: Public URL generated: ${url}`);
 
                 let currentAttachments = data.attachments || [];
                 const success = await onUpdate(data.id, { attachments: [...currentAttachments, url] });
                 if (success) {
                     toast.success("Arquivo anexado com sucesso!", { id: toastId });
                 } else {
+                    console.error("WarrantDetail: Failed to update database with new attachment");
                     toast.error("Erro ao atualizar dados no banco.", { id: toastId });
                 }
             } else {
+                console.error("WarrantDetail: Upload returned null path");
                 toast.error("Erro ao salvar arquivo no storage.", { id: toastId });
             }
         } catch (error) {

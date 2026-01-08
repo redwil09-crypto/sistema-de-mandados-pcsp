@@ -1,4 +1,5 @@
 import { supabase } from './supabaseClient';
+import { toast } from 'sonner';
 
 const BUCKET_NAME = 'warrants';
 
@@ -10,6 +11,7 @@ const BUCKET_NAME = 'warrants';
  */
 export const uploadFile = async (file: File, path: string): Promise<string | null> => {
     try {
+        console.log(`Starting upload for file: ${file.name} to path: ${path} in bucket: ${BUCKET_NAME}`);
         const { data, error } = await supabase.storage
             .from(BUCKET_NAME)
             .upload(path, file, {
@@ -17,10 +19,20 @@ export const uploadFile = async (file: File, path: string): Promise<string | nul
                 upsert: true
             });
 
-        if (error) throw error;
+        if (error) {
+            console.error('Supabase upload error object:', error);
+            toast.error(`Erro no Upload: ${error.message}`);
+            throw error;
+        }
+
+        console.log('Upload successful, data:', data);
         return data.path;
-    } catch (error) {
-        console.error('Erro no upload de arquivo:', error);
+    } catch (error: any) {
+        console.error('Erro no upload de arquivo (catch block):', error);
+        // Toast already shown if it was a supabase error, but if it came from elsewhere:
+        if (!error.message?.includes('Upload')) {
+            toast.error(`Erro inesperado no upload: ${error.message || 'Erro desconhecido'}`);
+        }
         return null;
     }
 };
