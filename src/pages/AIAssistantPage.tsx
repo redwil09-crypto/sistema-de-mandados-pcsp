@@ -507,6 +507,35 @@ const AIAssistantPage = ({ onAdd, warrants }: AIAssistantPageProps) => {
                         {/* STEP 3: REVIEW */}
                         {step === 'review' && extractedData && (
                             <div className="animate-in slide-in-from-right-8 duration-300 space-y-4">
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={() => {
+                                            handleExtractedDataChange('category', 'prison');
+                                            handleExtractedDataChange('type', 'Mandado de Prisão');
+                                        }}
+                                        className={`flex-1 py-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 border-2 ${extractedData.category === 'prison'
+                                            ? 'bg-red-600 border-red-600 text-white shadow-lg shadow-red-500/20'
+                                            : 'bg-surface-light dark:bg-surface-dark border-border-light dark:border-border-dark text-text-secondary-light'
+                                            }`}
+                                    >
+                                        <Gavel size={18} />
+                                        PRISÃO
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            handleExtractedDataChange('category', 'search');
+                                            handleExtractedDataChange('type', 'BUSCA E APREENSÃO');
+                                        }}
+                                        className={`flex-1 py-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 border-2 ${extractedData.category === 'search'
+                                            ? 'bg-orange-600 border-orange-600 text-white shadow-lg shadow-orange-500/20'
+                                            : 'bg-surface-light dark:bg-surface-dark border-border-light dark:border-border-dark text-text-secondary-light'
+                                            }`}
+                                    >
+                                        <Briefcase size={18} />
+                                        BUSCA E APREENSÃO
+                                    </button>
+                                </div>
+
                                 <div className={`p-3 rounded-xl border flex items-center justify-between gap-3 ${extractedData.category === 'prison'
                                     ? 'bg-red-50 border-red-100 dark:bg-red-900/20 dark:border-red-900/30 text-red-800 dark:text-red-300'
                                     : 'bg-orange-50 border-orange-100 dark:bg-orange-900/20 dark:border-orange-900/30 text-orange-800 dark:text-orange-300'
@@ -514,7 +543,7 @@ const AIAssistantPage = ({ onAdd, warrants }: AIAssistantPageProps) => {
                                     <div className="flex items-center gap-3">
                                         {extractedData.category === 'prison' ? <Gavel size={20} /> : <Briefcase size={20} />}
                                         <div className="flex flex-col">
-                                            <h3 className="font-bold text-sm tracking-tight">TIPO: {extractedData.type.toUpperCase()}</h3>
+                                            <h3 className="font-bold text-sm tracking-tight">{extractedData.type.toUpperCase()}</h3>
                                             <span className="text-[10px] opacity-70">Arquivo {currentIndex + 1} de {batchResults.length}</span>
                                         </div>
                                     </div>
