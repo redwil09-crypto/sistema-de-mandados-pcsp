@@ -32,5 +32,7 @@ export const REGIME_OPTIONS = [
     "Contramandado",
     "Localização",
     "Internação (Menor)",
+    "Audiência de Justificativa",
+    "Alfredo De Morais, 17, Bairro Terras Da Conceicao, Jacarei",
     "Outros"
 ];

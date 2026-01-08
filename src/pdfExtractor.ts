@@ -282,7 +282,8 @@ const extractRegime = (text: string, category: 'prison' | 'search', crime: strin
 
     const regimes = [
         "Fechado", "Aberto", "Civil", "Semiaberto", "Preventiva",
-        "Temporária", "Of. Cobrança", "Contramandado", "Localização", "Outro"
+        "Temporária", "Of. Cobrança", "Contramandado", "Localização",
+        "Audiência de Justificativa", "Alfredo De Morais, 17, Bairro Terras Da Conceicao, Jacarei", "Outro"
     ];
 
     const lowerText = text.toLowerCase();
