@@ -17,7 +17,8 @@ export const CRIME_OPTIONS = [
     "Porte Ilegal de Arma de Fogo",
     "Feminicídio",
     "Crimes Virtuais",
-    "Ato Infracional"
+    "Ato Infracional",
+    "Sequestro/Cárcere Privado"
 ];
 
 export const REGIME_OPTIONS = [

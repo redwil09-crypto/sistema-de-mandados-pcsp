@@ -244,7 +244,8 @@ const extractCrime = (text: string): string => {
         "Ameaça/Injuria/Briga/Lesão", "Armas", "Drogas/Trafico", "Furto", "Roubo",
         "Lesão corporal", "Homicídio", "Crimes Sexuais (Estupro)", "Pensão alimenticia",
         "Receptação", "Corrupção", "Violencia domestica", "Estelionato", "Crimes de Trânsito",
-        "Porte Ilegal de Arma de Fogo", "Feminicídio", "Crimes Virtuais", "Ato Infracional"
+        "Porte Ilegal de Arma de Fogo", "Feminicídio", "Crimes Virtuais", "Ato Infracional",
+        "Sequestro/Cárcere Privado"
     ];
 
     const lowerText = text.toLowerCase();
