@@ -42,7 +42,6 @@ const WarrantDetail = ({ warrants, onUpdate, onDelete, routeWarrants = [], onRou
     const [newDiligence, setNewDiligence] = useState('');
     const [diligenceType, setDiligenceType] = useState<'observation' | 'attempt' | 'intelligence'>('observation');
     const [isDraftOpen, setIsDraftOpen] = useState(false);
-    const [isReportModalOpen, setIsReportModalOpen] = useState(false);
 
     const data = useMemo(() => warrants.find(w => w.id === id), [warrants, id]);
 
@@ -252,9 +251,9 @@ Equipe de Capturas - DIG / PCSP
             // --- HEADER ---
             try {
                 const badgePC = new Image();
-                badgePC.src = '/brasao_pcsp_colorido.png';
+                badgePC.src = './brasao_pcsp_colorido.png';
                 const badgeSP = new Image();
-                badgeSP.src = '/brasao_sp.png';
+                badgeSP.src = './brasao_sp.png';
 
                 const loadImg = (img: HTMLImageElement) => new Promise((resolve) => {
                     img.onload = () => resolve(true);
@@ -283,7 +282,7 @@ Equipe de Capturas - DIG / PCSP
             doc.text("DELEGACIA DE INVESTIGAÇÕES GERAIS - DIG", pageWidth / 2, 26, { align: 'center' });
 
             doc.setFontSize(12);
-            doc.text("RELATÓRIO DE INTELIGÊNCIA POLICIAL", pageWidth / 2, 35, { align: 'center' });
+            doc.text("RELATÓRIO OPERACIONAL UNIFICADO", pageWidth / 2, 35, { align: 'center' });
 
             // Horizontal Line
             y = 42;
@@ -367,6 +366,10 @@ Equipe de Capturas - DIG / PCSP
 
             // --- SECTIONS ---
             const drawSection = (title: string, fields: [string, string][]) => {
+                if (y > 250) {
+                    doc.addPage();
+                    y = 20;
+                }
                 doc.setFillColor(240, 240, 240);
                 doc.rect(margin, y, pageWidth - (margin * 2), 6, 'F');
                 doc.setFont('helvetica', 'bold');
@@ -375,7 +378,10 @@ Equipe de Capturas - DIG / PCSP
                 y += 10;
 
                 fields.forEach(([label, val]) => {
-                    if (y > 270) {
+                    const value = val || "-";
+                    const splitVal = doc.splitTextToSize(value, 130);
+
+                    if (y + (splitVal.length * 5) > 280) {
                         doc.addPage();
                         y = 20;
                     }
@@ -384,9 +390,7 @@ Equipe de Capturas - DIG / PCSP
                     doc.setFontSize(10);
                     doc.text(label, margin, y);
 
-                    const value = val || "-";
                     doc.setFont('helvetica', 'normal');
-                    const splitVal = doc.splitTextToSize(value, 130);
                     doc.text(splitVal, margin + 40, y);
                     y += (splitVal.length * 5) + 3;
                 });
@@ -402,21 +406,80 @@ Equipe de Capturas - DIG / PCSP
                 ["Localização:", data.location || "-"],
             ]);
 
-            drawSection("Investigação e Observações", [
+            drawSection("Informações de Inteligência", [
                 ["Ofício iFood:", data.ifoodNumber || "-"],
                 ["Resultado iFood:", data.ifoodResult || "-"],
                 ["Ofício DIG:", data.digOffice || "-"],
                 ["Observações:", data.observation || "-"]
             ]);
 
-            doc.setFontSize(8);
-            doc.setTextColor(100, 100, 100);
-            const today = new Date().toLocaleDateString('pt-BR');
-            doc.text(`Gerado em: ${today} pelo Sistema de Mandados DIG/PCSP`, margin, 285);
-            doc.text(`Página ${doc.getNumberOfPages()}`, pageWidth - margin, 285, { align: 'right' });
+            // --- DILIGENCE HISTORY SECTION ---
+            if (data.diligentHistory && data.diligentHistory.length > 0) {
+                if (y > 250) {
+                    doc.addPage();
+                    y = 20;
+                }
+                doc.setFillColor(230, 230, 255);
+                doc.rect(margin, y, pageWidth - (margin * 2), 6, 'F');
+                doc.setFont('helvetica', 'bold');
+                doc.setFontSize(9);
+                doc.text("HISTÓRICO DE DILIGÊNCIAS OPERACIONAIS", margin + 2, y + 4.5);
+                y += 10;
 
-            toast.success(`Ficha de ${data.name} gerada com sucesso!`);
-            doc.save(`Ficha_DIG_${data.name.replace(/\s+/g, '_')}.pdf`);
+                data.diligentHistory.forEach((h: any) => {
+                    const dateStr = new Date(h.date).toLocaleDateString('pt-BR');
+                    const header = `${dateStr} - [${h.type.toUpperCase()}]`;
+                    const notes = h.notes || "-";
+
+                    const splitNotes = doc.splitTextToSize(notes, 170);
+                    if (y + (splitNotes.length * 5) + 10 > 280) {
+                        doc.addPage();
+                        y = 20;
+                    }
+
+                    doc.setFont('helvetica', 'bold');
+                    doc.setFontSize(9);
+                    doc.text(header, margin, y);
+                    y += 5;
+
+                    doc.setFont('helvetica', 'normal');
+                    doc.setFontSize(9);
+                    doc.text(splitNotes, margin + 5, y);
+                    y += (splitNotes.length * 5) + 5;
+                });
+            }
+
+            // --- SIGNATURE SECTION ---
+            if (y > 250) {
+                doc.addPage();
+                y = 50;
+            } else {
+                y += 20;
+            }
+
+            doc.setLineWidth(0.2);
+            doc.line(pageWidth / 2 - 40, y, pageWidth / 2 + 40, y);
+            doc.setFontSize(10);
+            doc.setFont('helvetica', 'bold');
+            doc.text("Equipe de Capturas - DIG", pageWidth / 2, y + 5, { align: 'center' });
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(8);
+            doc.text("Polícia Civil do Estado de São Paulo", pageWidth / 2, y + 9, { align: 'center' });
+
+            // Page numbers and footer timestamp
+            const totalPages = (doc as any).internal.getNumberOfPages();
+            for (let i = 1; i <= totalPages; i++) {
+                doc.setPage(i);
+                doc.setFontSize(8);
+                doc.setTextColor(150, 150, 150);
+                const today = new Date().toLocaleDateString('pt-BR');
+                const time = new Date().toLocaleTimeString('pt-BR');
+                doc.text(`Gerado em: ${today} às ${time} | Sistema DIG/PCSP`, margin, 287);
+                doc.text(`Página ${i} de ${totalPages}`, pageWidth - margin, 287, { align: 'right' });
+            }
+
+            toast.success(`Relatório Unificado de ${data.name} gerado com sucesso!`);
+            doc.save(`Relatorio_Unificado_DIG_${data.name.replace(/\s+/g, '_')}.pdf`);
         } catch (error) {
             console.error("Erro ao gerar PDF:", error);
             toast.error("Erro ao montar PDF. Verifique se a foto está acessível.");
@@ -785,11 +848,11 @@ Equipe de Capturas - DIG / PCSP
                     </button>
 
                     <button
-                        onClick={() => setIsReportModalOpen(true)}
-                        className="flex flex-col items-center justify-center gap-1 p-1.5 sm:p-2 rounded-xl bg-indigo-600/10 text-indigo-600 transition-all active:scale-90 touch-manipulation"
+                        onClick={handleDownloadPDF}
+                        className="flex flex-col items-center justify-center gap-1 p-1.5 sm:p-2 rounded-xl bg-indigo-600 text-white shadow-lg shadow-indigo-500/20 transition-all active:scale-95 touch-manipulation hover:bg-indigo-700"
                     >
-                        <FileText size={18} />
-                        <span className="text-[8px] sm:text-[9px] font-bold uppercase truncate w-full text-center">Relatório</span>
+                        <Printer size={18} />
+                        <span className="text-[8px] sm:text-[9px] font-bold uppercase truncate w-full text-center">FICHA COMPLETA</span>
                     </button>
 
                     <button
@@ -920,90 +983,6 @@ Equipe de Capturas - DIG / PCSP
                                     FECHAR
                                 </button>
                             </div>
-                        </div>
-                    </div>
-                </div>
-            )}
-            {/* Photo Zoom Modal */}
-            {isReportModalOpen && (
-                <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200">
-                    <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsReportModalOpen(false)}></div>
-                    <div className="relative w-full max-w-lg bg-surface-light dark:bg-surface-dark rounded-t-3xl sm:rounded-3xl shadow-2xl border-t sm:border border-border-light dark:border-border-dark overflow-hidden animate-in slide-in-from-bottom-full sm:slide-in-from-bottom-4 duration-300">
-                        {/* Header */}
-                        <div className="p-4 border-b border-border-light dark:border-border-dark flex justify-between items-center bg-gray-50 dark:bg-black/20">
-                            <div>
-                                <h3 className="font-black text-text-light dark:text-text-dark text-lg uppercase tracking-tight">Centro de Relatórios</h3>
-                                <p className="text-[10px] text-text-secondary-light font-bold flex items-center gap-1">
-                                    <ShieldAlert size={10} /> SELECIONE O DOCUMENTO PARA GERAR
-                                </p>
-                            </div>
-                            <button onClick={() => setIsReportModalOpen(false)} className="p-2 hover:bg-red-100 text-red-500 rounded-full transition-colors">
-                                <X size={24} />
-                            </button>
-                        </div>
-
-                        {/* Content */}
-                        <div className="p-4 space-y-4">
-                            {/* Option 1: Full Qualification PDF */}
-                            <button
-                                onClick={() => {
-                                    handleDownloadPDF();
-                                    setIsReportModalOpen(false);
-                                }}
-                                className="w-full flex items-center gap-4 p-4 rounded-2xl bg-orange-500/10 border-2 border-orange-500/20 hover:border-orange-500/40 transition-all group active:scale-[0.98]"
-                            >
-                                <div className="h-12 w-12 rounded-xl bg-orange-500 text-white flex items-center justify-center shadow-lg transform group-hover:rotate-6 transition-transform">
-                                    <Printer size={24} />
-                                </div>
-                                <div className="text-left flex-1">
-                                    <h4 className="font-bold text-text-light dark:text-text-dark">Ficha Operacional PDF</h4>
-                                    <p className="text-[10px] text-text-secondary-light leading-tight">Qualificação completa, foto do réu, mandado e dados processuais formatados.</p>
-                                </div>
-                                <ChevronRight className="text-orange-500" size={20} />
-                            </button>
-
-                            {/* Option 2: Investigative Report (Draft/Print/PDF) */}
-                            <div className="space-y-3">
-                                <button
-                                    onClick={() => setIsDraftOpen(!isDraftOpen)}
-                                    className={`w-full flex items-center gap-4 p-4 rounded-2xl border-2 transition-all group active:scale-[0.98] ${isDraftOpen ? 'bg-indigo-600 border-indigo-600 text-white' : 'bg-indigo-600/10 border-indigo-600/20 hover:border-indigo-600/40'}`}
-                                >
-                                    <div className={`h-12 w-12 rounded-xl flex items-center justify-center shadow-lg transform group-hover:rotate-6 transition-transform ${isDraftOpen ? 'bg-white text-indigo-600' : 'bg-indigo-600 text-white'}`}>
-                                        <FileText size={24} />
-                                    </div>
-                                    <div className="text-left flex-1">
-                                        <h4 className={`font-bold ${isDraftOpen ? 'text-white' : 'text-text-light dark:text-text-dark'}`}>Relatório de Investigação</h4>
-                                        <p className={`text-[10px] leading-tight ${isDraftOpen ? 'text-indigo-100' : 'text-text-secondary-light'}`}>Histórico de diligências, visitas ao local e modus operandi para relatório de expediente.</p>
-                                    </div>
-                                    <ChevronRight className={isDraftOpen ? 'text-white' : 'text-indigo-600'} size={20} />
-                                </button>
-
-                                {isDraftOpen && (
-                                    <div className="p-4 bg-white dark:bg-black/20 rounded-2xl border border-indigo-500/30 animate-in zoom-in-95 duration-200">
-                                        <div className="flex flex-wrap gap-2 mb-4">
-                                            <button onClick={handleCopyReportDraft} className="flex-1 py-2.5 bg-slate-500 text-white rounded-xl text-[10px] font-bold flex items-center justify-center gap-1 shadow-md active:scale-95 transition-all">
-                                                <Copy size={14} /> COPIAR
-                                            </button>
-                                            <button onClick={handleDownloadReportPDF} className="flex-1 py-2.5 bg-indigo-600 text-white rounded-xl text-[10px] font-bold flex items-center justify-center gap-1 shadow-md active:scale-95 transition-all">
-                                                <FileText size={14} /> BAIXAR PDF
-                                            </button>
-                                            <button onClick={handlePrintReport} className="flex-1 py-2.5 bg-emerald-600 text-white rounded-xl text-[10px] font-bold flex items-center justify-center gap-1 shadow-md active:scale-95 transition-all">
-                                                <Printer size={14} /> IMPRIMIR
-                                            </button>
-                                        </div>
-                                        <div className="p-3 bg-gray-50 dark:bg-black/40 rounded-xl border border-border-light dark:border-border-dark max-h-40 overflow-y-auto">
-                                            <pre className="text-[9px] font-mono whitespace-pre-wrap leading-tight text-text-light dark:text-text-dark">
-                                                {getReportText()}
-                                            </pre>
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-
-                        {/* Footer Disclaimer */}
-                        <div className="p-4 bg-red-500/5 text-center">
-                            <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest">Documento Interno - Uso Exclusivo Policial</p>
                         </div>
                     </div>
                 </div>
