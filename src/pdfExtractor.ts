@@ -91,28 +91,45 @@ const extractProcessNumber = (text: string): string => {
 const extractDates = (text: string): { issueDate: string; expirationDate: string } => {
     // 1. Tenta extrair Data de Expedição
     const issuePatterns = [
-        /(?:expedi[çc][ãa]o|emiss[ãa]o|data do documento)[:\s]*([0-9]{1,2}[\/\-][0-9]{1,2}[\/\-][0-9]{4})/i,
-        /dado e passado.*([0-9]{1,2})\s+de\s+(janeiro|fevereiro|março|abril|maio|junho|julho|agosto|setembro|outubro|novembro|dezembro)\s+de\s+([0-9]{4})/i,
-        /([0-9]{1,2})\s+de\s+(janeiro|fevereiro|março|abril|maio|junho|julho|agosto|setembro|outubro|novembro|dezembro)\s+de\s+([0-9]{4})/i,
+        // Padrões mais específicos primeiro (com rótulos)
+        /(?:data\s+de\s+expedi[çc][ãa]o|data\s+de\s+emiss[ãa]o|data\s+do\s+documento|assinado\s+em)[:\s]*([0-9]{1,2}[\/\-][0-9]{1,2}[\/\-][0-9]{4})/i,
+        /(?:data\s+de\s+expedi[çc][ãa]o|data\s+de\s+emiss[ãa]o|data\s+do\s+documento)[:\s]*([0-9]{1,2})\s+de\s+(janeiro|fevereiro|março|abril|maio|junho|julho|agosto|setembro|outubro|novembro|dezembro)\s+de\s+([0-9]{4})/i,
+        // Frase de encerramento
+        /Dado\s+e\s+passado.*?[,\s]+([0-9]{1,2})\s+de\s+(janeiro|fevereiro|março|abril|maio|junho|julho|agosto|setembro|outubro|novembro|dezembro)\s+de\s+([0-9]{4})/i,
+        // Local e Data (geralmente ao final)
+        /(?:SÃO\s+PAULO|COMARCA|FORO).*?[,\s]+([0-9]{1,2})\s+de\s+(janeiro|fevereiro|março|abril|maio|junho|julho|agosto|setembro|outubro|novembro|dezembro)\s+de\s+([0-9]{4})/i,
+        // Formato DD/MM/AAAA genérico (evitando pegar nascimento se possível, buscando o último no texto)
+        /([0-9]{1,2}[\/\-][0-9]{1,2}[\/\-][0-9]{4})/g,
     ];
 
     let issueDate = new Date().toISOString().split('T')[0];
 
     for (const pattern of issuePatterns) {
-        const match = text.match(pattern);
-        if (match) {
-            if (match[1] && match[1].includes('/')) {
-                const [day, month, year] = match[1].split('/');
+        if (pattern.global) {
+            const matches = Array.from(text.matchAll(pattern));
+            if (matches.length > 0) {
+                // Para padrões genéricos, pega a ULTIMA data (provavelmente expedição, não nascimento)
+                const lastMatch = matches[matches.length - 1];
+                const [day, month, year] = lastMatch[1].split(/[\/\-]/);
                 issueDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
                 break;
-            } else if (match[1] && match[2] && match[3]) {
-                const months: any = {
-                    'janeiro': '01', 'fevereiro': '02', 'março': '03', 'abril': '04',
-                    'maio': '05', 'junho': '06', 'julho': '07', 'agosto': '08',
-                    'setembro': '09', 'outubro': '10', 'novembro': '11', 'dezembro': '12'
-                };
-                issueDate = `${match[3]}-${months[match[2].toLowerCase()]}-${match[1].padStart(2, '0')}`;
-                break;
+            }
+        } else {
+            const match = text.match(pattern);
+            if (match) {
+                if (match[1] && (match[1].includes('/') || match[1].includes('-'))) {
+                    const [day, month, year] = match[1].split(/[\/\-]/);
+                    issueDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+                    break;
+                } else if (match[1] && match[2] && match[3]) {
+                    const months: any = {
+                        'janeiro': '01', 'fevereiro': '02', 'março': '03', 'abril': '04',
+                        'maio': '05', 'junho': '06', 'julho': '07', 'agosto': '08',
+                        'setembro': '09', 'outubro': '10', 'novembro': '11', 'dezembro': '12'
+                    };
+                    issueDate = `${match[3]}-${months[match[2].toLowerCase()]}-${match[1].padStart(2, '0')}`;
+                    break;
+                }
             }
         }
     }
@@ -177,23 +194,40 @@ const extractAddresses = (text: string): string[] => {
             addr = addr.replace(/\r\n/g, ' ').replace(/\n/g, ' ').replace(/\s{2,}/g, ' ');
 
             // Corta se encontrar palavras chave que indicam fim do campo de endereço no formulário
-            const stopWords = ['VARA', 'COMARCA', 'FORO', 'TRIBUNAL', 'JUIZ', 'ESCRIVÃO', 'DELEGADO', 'RELATOR', 'PROCESSO', 'CLASSE', 'ASSUNTO'];
+            const stopWords = [
+                'VARA', 'COMARCA', 'FORO', 'TRIBUNAL', 'JUIZ', 'ESCRIVÃO', 'DELEGADO',
+                'RELATOR', 'PROCESSO', 'CLASSE', 'ASSUNTO', 'NASCIMENTO', 'CPF', 'RG',
+                'FILIAÇÃO', 'NOME', 'QUALIFICAÇÃO', 'ESTADO CIVIL', 'PROFISSÃO'
+            ];
             const regexStop = new RegExp(`(${stopWords.join('|')})`, 'i');
             const splitMatch = addr.split(regexStop);
             if (splitMatch.length > 1) {
                 addr = splitMatch[0];
             }
 
-            // Remove pontuação final solta
+            // Limpeza final
             addr = addr.replace(/[.;,]+$/, '').trim();
 
-            if (addr.length > 5) {
+            const upperAddr = addr.toUpperCase();
+            if (upperAddr.includes('NÃO INFORMADO') || upperAddr.includes('NÃO CONSTA') || upperAddr === 'SEM ENDEREÇO') {
+                addresses.push('Não informado');
+            } else if (addr.length > 5) {
                 addresses.push(addr);
             }
         }
     }
 
-    return addresses.length > 0 ? Array.from(new Set(addresses)) : ['Endereço não consta no mandado'];
+    // Se não houver nada ou se os endereços capturados forem inválidos
+    if (addresses.length === 0) return ['Não informado'];
+
+    // Remove duplicatas e retira placeholders se houver endereços reais
+    const uniqueAddresses = Array.from(new Set(addresses));
+    if (uniqueAddresses.length > 1) {
+        const filtered = uniqueAddresses.filter(a => a !== 'Não informado');
+        return filtered.length > 0 ? filtered : ['Não informado'];
+    }
+
+    return uniqueAddresses;
 };
 
 const determineMandadoType = (text: string): { type: string; category: 'prison' | 'search' } => {
