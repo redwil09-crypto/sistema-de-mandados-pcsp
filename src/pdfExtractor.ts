@@ -340,11 +340,11 @@ const extractTacticalSummary = (text: string): string[] => {
         if (m.regex.test(text)) summary.push(m.label);
     });
 
-    // Nova regra: Se houver mais de uma ocorrência de rótulos de pessoas (réus/investigados), 
+    // Nova regra: Se houver três ou mais ocorrências de rótulos de pessoas (réus/investigados), 
     // sugere organização criminosa/concurso de pessoas
     const personMarkers = /(?:RÉU\(A\)|RÉU|INVESTIGADO|INDICIADO|QUALIFICADO)[:\s]+/gi;
     const matches = text.match(personMarkers);
-    if (matches && matches.length >= 2 && !summary.includes('Organização Criminosa')) {
+    if (matches && matches.length >= 3 && !summary.includes('Organização Criminosa')) {
         summary.push('Organização Criminosa');
     }
 
