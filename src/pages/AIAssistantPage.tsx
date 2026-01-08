@@ -137,7 +137,7 @@ const AIAssistantPage = ({ onAdd, warrants }: AIAssistantPageProps) => {
             const text = event.results[0][0].transcript;
             setStep('processing');
             try {
-                const data = await extractFromText(text);
+                const data = extractFromText(text, "Comando de Voz");
                 const isDuplicate = warrants.some(w => w.number === data.processNumber);
                 setBatchResults([{ ...data, isDuplicate }]);
                 setCurrentIndex(0);
@@ -240,6 +240,26 @@ const AIAssistantPage = ({ onAdd, warrants }: AIAssistantPageProps) => {
                 }
             }
 
+            // Upload extracted PDF if it was from a file
+            let attachments = [...(extractedData.attachments || [])];
+            let ifoodDocs: string[] = [];
+            let reports: string[] = [];
+
+            if (files && files[currentIndex]) {
+                const pdfFile = files[currentIndex];
+                const isIfood = extractedData.type.toLowerCase().includes('ifood') || pdfFile.name.toLowerCase().includes('ifood');
+                const isReport = extractedData.type.toLowerCase().includes('relatorio') || pdfFile.name.toLowerCase().includes('relatorio');
+
+                const typePath = isIfood ? 'ifoodDocs' : (isReport ? 'reports' : 'attachments');
+                const pdfPath = `${typePath}/${warrantId}/${Date.now()}_${pdfFile.name}`;
+
+                const uploadedPdfPath = await uploadFile(pdfFile, pdfPath);
+                if (uploadedPdfPath) {
+                    const pdfUrl = getPublicUrl(uploadedPdfPath);
+                    attachments.push(pdfUrl);
+                }
+            }
+
             const newWarrant: Warrant = {
                 id: extractedData.id || warrantId,
                 name: extractedData.name,
@@ -253,11 +273,12 @@ const AIAssistantPage = ({ onAdd, warrants }: AIAssistantPageProps) => {
                 regime: extractedData.regime,
                 observation: extractedData.observations || '',
                 issueDate: extractedData.issueDate,
+                entryDate: new Date().toLocaleDateString('pt-BR'),
                 expirationDate: extractedData.expirationDate,
                 img: photoUrl,
-                reports: [],
-                attachments: extractedData.attachments || [],
-                tags: extractedData.tags || []
+                attachments: attachments,
+                tags: extractedData.tags || [],
+                tacticalSummary: extractedData.tacticalSummary || []
             };
 
             const result = await onAdd(newWarrant);
@@ -402,7 +423,7 @@ const AIAssistantPage = ({ onAdd, warrants }: AIAssistantPageProps) => {
     };
 
     return (
-        <div className="min-h-screen pb-safe bg-background-light dark:bg-background-dark">
+        <div className="min-h-screen pb-4 bg-background-light dark:bg-background-dark">
             <Header title="Assistente IA - DIG" back />
 
             {/* Tabs */}
@@ -743,7 +764,7 @@ const AIAssistantPage = ({ onAdd, warrants }: AIAssistantPageProps) => {
                                     <CheckCircle size={32} />
                                 </div>
                                 <h3 className="text-xl font-bold text-text-light dark:text-text-dark mb-2">Salvo com Sucesso!</h3>
-                                <p className="text-sm text-text-secondary-light mb-6 max-w-xs">
+                                <p className="text-sm text-text-secondary-light mb-6 max-w-xs text-justify">
                                     Registro adicionado à lista {extractedData.category === 'prison' ? 'de Prisão' : 'de Busca'} e anexo vinculado ao CPF.
                                 </p>
 
@@ -761,7 +782,7 @@ const AIAssistantPage = ({ onAdd, warrants }: AIAssistantPageProps) => {
                 )}
 
                 {activeTab === 'database' && (
-                    <div className="space-y-4 animate-in fade-in pb-32">
+                    <div className="space-y-4 animate-in fade-in pb-4">
                         {/* Filters Section */}
                         <div className="flex gap-2">
                             <div className="relative flex-1">
@@ -843,15 +864,6 @@ const AIAssistantPage = ({ onAdd, warrants }: AIAssistantPageProps) => {
                                             <p className="truncate"><span className="font-bold">Crime:</span> {w.crime || '-'}</p>
                                             <p className="truncate"><span className="font-bold">Regime:</span> {w.regime || '-'}</p>
                                         </div>
-
-                                        <div className="flex justify-end border-t border-border-light dark:border-border-dark pt-1">
-                                            <button
-                                                onClick={(e) => { e.stopPropagation(); handleGeneratePDF(w); }}
-                                                className="flex items-center gap-1 text-primary text-[10px] font-bold hover:bg-primary/5 px-2 py-1 rounded-lg transition-colors"
-                                            >
-                                                <Printer size={12} /> Imprimir
-                                            </button>
-                                        </div>
                                     </div>
                                 ))
                             )}
@@ -859,36 +871,85 @@ const AIAssistantPage = ({ onAdd, warrants }: AIAssistantPageProps) => {
                     </div>
                 )}
 
-                {/* Bottom Floating Action Bar for Database */}
-                {activeTab === 'database' && (
-                    <div className="fixed bottom-0 left-0 right-0 p-4 pb-8 bg-surface-light/95 dark:bg-surface-dark/95 backdrop-blur-md border-t border-border-light dark:border-border-dark z-50 shadow-[0_-10px_25px_rgba(0,0,0,0.1)]">
-                        <div className="max-w-md mx-auto grid grid-cols-3 gap-3">
-                            <button
-                                onClick={handlePrintList}
-                                className="flex flex-col items-center justify-center gap-1 p-2 rounded-xl bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 active:scale-95 transition-transform"
-                            >
-                                <Printer size={20} />
-                                <span className="text-[10px] font-bold text-center leading-tight">Lista<br />Buscada</span>
-                            </button>
+            </div>
 
+            {/* Bottom Action Bar (Non-fixed) */}
+            <div className="mt-8 mb-4 p-2 sm:p-4 bg-surface-light/50 dark:bg-surface-dark/50 rounded-2xl border border-border-light dark:border-border-dark">
+                <div className="max-w-md mx-auto flex items-stretch gap-2">
+                    <Link
+                        to="/"
+                        className="flex-1 min-w-0 flex flex-col items-center justify-center gap-1 p-2 rounded-xl bg-gray-500/10 text-gray-600 dark:text-gray-400 transition-all active:scale-95 touch-manipulation hover:bg-gray-500/20"
+                    >
+                        <Home size={20} />
+                        <span className="text-[9px] font-bold uppercase truncate w-full text-center">Início</span>
+                    </Link>
+
+                    {activeTab === 'extraction' && step === 'review' && (
+                        <>
                             <button
-                                onClick={handlePrintDatabaseSplit}
-                                className="flex flex-col items-center justify-center gap-1 p-2 rounded-xl bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 active:scale-95 transition-transform"
+                                onClick={backToInput}
+                                className="flex-1 min-w-0 flex flex-col items-center justify-center gap-1 p-2 rounded-xl bg-amber-500/10 text-amber-600 transition-all active:scale-95 touch-manipulation hover:bg-amber-500/20"
+                            >
+                                <RefreshCw size={20} />
+                                <span className="text-[9px] font-bold uppercase truncate w-full text-center">Pular</span>
+                            </button>
+                            <button
+                                onClick={handleSave}
+                                disabled={isSaving}
+                                className="flex-[2] min-w-0 flex flex-col items-center justify-center gap-1 p-2 rounded-xl bg-primary text-white shadow-lg shadow-indigo-500/20 transition-all active:scale-95 touch-manipulation hover:bg-primary/90"
+                            >
+                                {isSaving ? <RefreshCw className="animate-spin" size={20} /> : <Save size={20} />}
+                                <span className="text-[9px] font-bold uppercase truncate w-full text-center">{currentIndex < batchResults.length - 1 ? 'Salvar e Próximo' : 'Finalizar Lote'}</span>
+                            </button>
+                        </>
+                    )}
+
+                    {activeTab === 'extraction' && step === 'saved' && (
+                        <>
+                            <button
+                                onClick={reset}
+                                className="flex-1 min-w-0 flex flex-col items-center justify-center gap-1 p-2 rounded-xl bg-primary/10 text-primary transition-all active:scale-95 touch-manipulation hover:bg-primary/20"
+                            >
+                                <Cpu size={20} />
+                                <span className="text-[9px] font-bold uppercase truncate w-full text-center">Novo</span>
+                            </button>
+                            <button
+                                onClick={() => navigate('/warrant-list')}
+                                className="flex-[2] min-w-0 flex flex-col items-center justify-center gap-1 p-2 rounded-xl bg-indigo-600 text-white shadow-lg shadow-indigo-500/20 transition-all active:scale-95 touch-manipulation hover:bg-indigo-700"
                             >
                                 <Database size={20} />
-                                <span className="text-[10px] font-bold text-center leading-tight">Banco<br />Completo</span>
+                                <span className="text-[9px] font-bold uppercase truncate w-full text-center">Ver Banco</span>
                             </button>
+                        </>
+                    )}
 
+                    {activeTab === 'database' && (
+                        <>
                             <button
-                                onClick={() => navigate('/')}
-                                className="flex flex-col items-center justify-center gap-1 p-2 rounded-xl bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400 active:scale-95 transition-transform"
+                                onClick={handlePrintList}
+                                className="flex-1 min-w-0 flex flex-col items-center justify-center gap-1 p-2 rounded-xl bg-gray-500/10 text-gray-600 dark:text-gray-400 transition-all active:scale-95 touch-manipulation hover:bg-gray-500/20"
                             >
-                                <Home size={20} />
-                                <span className="text-[10px] font-bold text-center leading-tight">Voltar<br />Início</span>
+                                <ListTodo size={20} />
+                                <span className="text-[9px] font-bold uppercase truncate w-full text-center">Lista</span>
                             </button>
-                        </div>
-                    </div>
-                )}
+                            <button
+                                onClick={handlePrintDatabaseSplit}
+                                className="flex-[2] min-w-0 flex flex-col items-center justify-center gap-1 p-2 rounded-xl bg-indigo-600 text-white shadow-lg shadow-indigo-500/20 transition-all active:scale-95 touch-manipulation hover:bg-indigo-700"
+                            >
+                                <Printer size={20} />
+                                <span className="text-[9px] font-bold uppercase truncate w-full text-center">Imprimir Tudo</span>
+                            </button>
+                        </>
+                    )}
+
+                    {/* Spacer for alignment when single button */}
+                    {activeTab === 'extraction' && (step === 'input' || step === 'processing') && (
+                        <>
+                            <div className="flex-1"></div>
+                            <div className="flex-[2]"></div>
+                        </>
+                    )}
+                </div>
             </div>
             {isSaveConfirmOpen && (
                 <ConfirmModal

@@ -38,6 +38,7 @@ export interface Warrant {
     createdAt?: string;         // Data de criação no banco
     updatedAt?: string;         // Data de atualização no banco
     diligentHistory?: DiligentEntry[]; // Linha do tempo de investigação
+    tacticalSummary?: string[]; // Sumário Tático extraído (IA)
 }
 
 export interface DiligentEntry {

@@ -89,14 +89,16 @@ const extractProcessNumber = (text: string): string => {
 };
 
 const extractDates = (text: string): { issueDate: string; expirationDate: string } => {
-    const datePatterns = [
-        /(?:expedi[çc][ãa]o|emiss[ãa]o|data)[:\s]*([0-9]{1,2}[\/\-][0-9]{1,2}[\/\-][0-9]{4})/i,
+    // 1. Tenta extrair Data de Expedição
+    const issuePatterns = [
+        /(?:expedi[çc][ãa]o|emiss[ãa]o|data do documento)[:\s]*([0-9]{1,2}[\/\-][0-9]{1,2}[\/\-][0-9]{4})/i,
+        /dado e passado.*([0-9]{1,2})\s+de\s+(janeiro|fevereiro|março|abril|maio|junho|julho|agosto|setembro|outubro|novembro|dezembro)\s+de\s+([0-9]{4})/i,
         /([0-9]{1,2})\s+de\s+(janeiro|fevereiro|março|abril|maio|junho|julho|agosto|setembro|outubro|novembro|dezembro)\s+de\s+([0-9]{4})/i,
     ];
 
     let issueDate = new Date().toISOString().split('T')[0];
 
-    for (const pattern of datePatterns) {
+    for (const pattern of issuePatterns) {
         const match = text.match(pattern);
         if (match) {
             if (match[1] && match[1].includes('/')) {
@@ -115,46 +117,83 @@ const extractDates = (text: string): { issueDate: string; expirationDate: string
         }
     }
 
-    const date = new Date(issueDate);
-    const isBusca = text.toLowerCase().includes('busca e apreensão');
+    // 2. Tenta extrair Data de Validade / Prescrição explicitamente
+    let expirationDate = '';
+    const expirationPatterns = [
+        /(?:validade|vencimento|prescreve em|prescri[çc][ãa]o)[:\s]*([0-9]{1,2}[\/\-][0-9]{1,2}[\/\-][0-9]{4})/i,
+        /(?:validade|vencimento)[:\s]*([0-9]{1,2})\s+de\s+([a-zç]+)\s+de\s+([0-9]{4})/i
+    ];
 
-    if (isBusca) {
-        date.setDate(date.getDate() + 180);
-    } else {
-        date.setFullYear(date.getFullYear() + 20);
+    for (const pattern of expirationPatterns) {
+        const match = text.match(pattern);
+        if (match) {
+            if (match[1] && (match[1].includes('/') || match[1].includes('-'))) {
+                const [day, month, year] = match[1].split(/[\/\-]/);
+                expirationDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+                break;
+            } else if (match[1] && match[2] && match[3]) {
+                const months: any = {
+                    'janeiro': '01', 'fevereiro': '02', 'março': '03', 'abril': '04',
+                    'maio': '05', 'junho': '06', 'julho': '07', 'agosto': '08',
+                    'setembro': '09', 'outubro': '10', 'novembro': '11', 'dezembro': '12'
+                };
+                if (months[match[2].toLowerCase()]) {
+                    expirationDate = `${match[3]}-${months[match[2].toLowerCase()]}-${match[1].padStart(2, '0')}`;
+                    break;
+                }
+            }
+        }
     }
 
-    return { issueDate, expirationDate: date.toISOString().split('T')[0] };
+    // Fallback: Se não encontrou validade explícita, calcula
+    if (!expirationDate) {
+        const date = new Date(issueDate);
+        const isBusca = text.toLowerCase().includes('busca e apreensão');
+
+        if (isBusca) {
+            date.setDate(date.getDate() + 180);
+        } else {
+            date.setFullYear(date.getFullYear() + 20); // Regra geral padrão 20 anos se não especificado
+        }
+        expirationDate = date.toISOString().split('T')[0];
+    }
+
+    return { issueDate, expirationDate };
 };
 
 const extractAddresses = (text: string): string[] => {
     const addresses: string[] = [];
-    // Tenta encontrar o endereço do procurado com diversos rótulos
-    const pattern = /(?:ENDERE[ÇC]O(?:S)? DO PROCURADO|Endere[çc]o(?:s)? de Dilig[êe]ncia|Resid[êe]ncia|Endere[çc]o(?:s)?(?:\s+do\s+Réu)?|Logradouro)[:\s]+([^;\n]+)/gi;
+    // Regex ajustada para capturar múltiplas linhas permitindo quebras de linha até encontrar um padrão de parada (ex: duplo enter ou palavras chave)
+    // ([^;\n]+(?:[\r\n]+(?![A-ZÀ-Ú][a-zà-ú]+:)[^;\n]+)*) -> Tenta pegar linhas subsequentes que não pareçam ser um novo rótulo "Label:"
+    const pattern = /(?:ENDERE[ÇC]O(?:S)? DO PROCURADO|Endere[çc]o(?:s)? de Dilig[êe]ncia|Resid[êe]ncia|Endere[çc]o(?:s)?(?:\s+do\s+Réu)?|Logradouro)[:\s]+((?:(?![A-ZÀ-Ú][A-ZÀ-Ú\s]+:).)+)/gim;
 
     const matches = text.matchAll(pattern);
     for (const match of matches) {
         if (match[1]) {
             let addr = match[1].trim();
-            // Corta APÓS Cidade-Estado (ex: "Cajamar - SP", "São Paulo - SP", etc.)
-            // Procura por hífens seguidos de siglas de estados (2 letras maiúsculas)
-            const cityStatePattern = /[\s,]+[A-Z][a-záéíóúâêîôûãõç]+\s*-\s*[A-Z]{2}\b|[\s,]+[A-Z]{2}\b/i;
-            const cityMatch = addr.match(cityStatePattern);
-            if (cityMatch) {
-                // Inclui a sigla do estado no endereço final (posição do match + tamanho do match)
-                addr = addr.substring(0, cityMatch.index + cityMatch[0].length).trim();
+
+            // Pega apenas a primeira linha relevante ou até o padrão de Cidade-UF se existir e ser finalizador
+            // Mas cuidado para não cortar cedo demais. Vamos tentar limpar quebras de linha excessivas.
+            addr = addr.replace(/\r\n/g, ' ').replace(/\n/g, ' ').replace(/\s{2,}/g, ' ');
+
+            // Corta se encontrar palavras chave que indicam fim do campo de endereço no formulário
+            const stopWords = ['VARA', 'COMARCA', 'FORO', 'TRIBUNAL', 'JUIZ', 'ESCRIVÃO', 'DELEGADO', 'RELATOR', 'PROCESSO', 'CLASSE', 'ASSUNTO'];
+            const regexStop = new RegExp(`(${stopWords.join('|')})`, 'i');
+            const splitMatch = addr.split(regexStop);
+            if (splitMatch.length > 1) {
+                addr = splitMatch[0];
             }
 
-            // Limpeza adicional (quebra de linha dupla ou ponto final de parágrafo)
-            addr = addr.split(/\n\n|\.\s[A-Z]/)[0].trim();
+            // Remove pontuação final solta
+            addr = addr.replace(/[.;,]+$/, '').trim();
 
-            if (addr.length > 5 && !['VARA', 'COMARCA', 'FORO', 'TRIBUNAL'].some(word => addr.toUpperCase().includes(word))) {
+            if (addr.length > 5) {
                 addresses.push(addr);
             }
         }
     }
 
-    return addresses.length > 0 ? Array.from(new Set(addresses)) : ['Não identificado'];
+    return addresses.length > 0 ? Array.from(new Set(addresses)) : ['Endereço não consta no mandado'];
 };
 
 const determineMandadoType = (text: string): { type: string; category: 'prison' | 'search' } => {
@@ -254,10 +293,10 @@ const extractObservations = (text: string): string => {
 const extractTacticalSummary = (text: string): string[] => {
     const markers = [
         { label: 'Histórico de Resistência', regex: /(resistencia|desobediencia|fuga|evadiu)/gi },
-        { label: 'Uso de Arma de Fogo', regex: /(arma|fogo|pistola|revolver|munica[oc]o)/gi },
-        { label: 'Organização Criminosa', regex: /(pcc|comando|fac[çc][ãa]o|organiza[çc][ãa]o)/gi },
+        { label: 'Uso de Arma de Fogo', regex: /(arma de fogo|pistola|revolver|fuzil)/gi },
+        { label: 'Organização Criminosa', regex: /(pcc\b|comando vermelho|fac[çc][ãa]o criminosa|integrante de organiza[çc][ãa]o)/gi },
         { label: 'Violência Extrema', regex: /(tortura|crueldade|grave amea[çc]a|violencia)/gi },
-        { label: 'Tráfico de Grande Porte', regex: /(quilos|laborat[óo]rio|refino|balan[çc]a)/gi }
+        { label: 'Tráfico de Grande Porte', regex: /(quilos|laborat[óo]rio|refino|balan[çc]a de precis)/gi }
     ];
 
     const summary: string[] = [];
@@ -328,6 +367,14 @@ export const extractPdfData = async (file: File): Promise<ExtractedData> => {
         const crime = extractCrime(fullText);
         const regime = extractRegime(fullText, category, crime);
 
+        const tacticalSummary = extractTacticalSummary(fullText);
+        const observations = extractObservations(fullText);
+
+        // Append tactical summary to observations
+        const fullObservations = tacticalSummary.length > 0
+            ? `${observations} | Atenção: ${tacticalSummary.join(', ')}`
+            : observations;
+
         return {
             id: Date.now().toString(),
             name,
@@ -344,8 +391,8 @@ export const extractPdfData = async (file: File): Promise<ExtractedData> => {
             sourceFile: file.name,
             status: 'EM ABERTO',
             attachments: [file.name],
-            observations: extractObservations(fullText),
-            tacticalSummary: extractTacticalSummary(fullText),
+            observations: fullObservations,
+            tacticalSummary,
             searchChecklist: extractSearchChecklist(fullText, category),
             autoPriority: determineAutoPriority(fullText, crime)
         };

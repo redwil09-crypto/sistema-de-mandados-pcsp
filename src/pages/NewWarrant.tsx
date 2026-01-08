@@ -40,7 +40,7 @@ const NewWarrant = ({ onAdd, onUpdate, warrants }: NewWarrantProps) => {
         crime: '',
         regime: '',
         issueDate: '',
-        entryDate: '',
+        entryDate: new Date().toLocaleDateString('pt-BR'),
         expirationDate: '',
         dischargeDate: '',
         location: '',
