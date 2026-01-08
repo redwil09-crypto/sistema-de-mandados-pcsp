@@ -340,12 +340,19 @@ const extractTacticalSummary = (text: string): string[] => {
         if (m.regex.test(text)) summary.push(m.label);
     });
 
-    // Nova regra: Se houver três ou mais ocorrências de rótulos de pessoas (réus/investigados), 
-    // sugere organização criminosa/concurso de pessoas
-    const personMarkers = /(?:RÉU\(A\)|RÉU|INVESTIGADO|INDICIADO|QUALIFICADO)[:\s]+/gi;
-    const matches = text.match(personMarkers);
-    if (matches && matches.length >= 3 && !summary.includes('Organização Criminosa')) {
-        summary.push('Organização Criminosa');
+    // Nova regra: Se houver três ou mais ocorrências de pessoas dentro da "SÍNTESE DA DECISÃO" ou "TEOR DO DOCUMENTO"
+    const decisionSectionPattern = /(?:S[ÍI]NTESE\s+DA\s+DECIS[ÃA]O|TEOR\s+DO\s+DOCUMENTO)[:\s]+([\s\S]+?)(?:\n\s*\n|MANDADO|NOME:|$)/i;
+    const decisionMatch = text.match(decisionSectionPattern);
+
+    if (decisionMatch && decisionMatch[1]) {
+        const decisionText = decisionMatch[1];
+        // Conta quantas vezes aparecem palavras que indicam novos réus na lista da decisão
+        const personInDecisionMarkers = /(?:R[ÉE]U\(A\)|R[ÉE]U|INVESTIGADO|INDICIADO|QUALIFICADO)[:\s]+/gi;
+        const matchesInDecision = decisionText.match(personInDecisionMarkers);
+
+        if (matchesInDecision && matchesInDecision.length >= 3 && !summary.includes('Organização Criminosa')) {
+            summary.push('Organização Criminosa');
+        }
     }
 
     return summary;
