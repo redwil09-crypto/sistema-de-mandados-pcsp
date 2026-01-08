@@ -39,8 +39,9 @@ const extractName = (text: string): string => {
 
     // Padrões específicos para nomes em mandados
     const patterns = [
-        /(?:Nome da Pessoa|RÉU\(A\)|RÉU|INVESTIGADO|INDICIADO|QUALIFICADO)[:\s]+([A-ZÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑ\s]{5,})/i,
+        /(?:Nome da Pessoa|RÉU\(A\)|RÉU|INVESTIGADO|INDICIADO|QUALIFICADO|AUTOR|REQUERIDO|SENTENCIADO|NOME)[:\s]+([A-ZÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑ\s]{5,})/i,
         /MANDADO DE PRISÃO CONTRA\s+([A-ZÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑ\s]{5,})/i,
+        /(?:NOME|NOME DO RÉU|NOME DO INVESTIGADO)[:\s]+([a-zA-ZÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑáàâãéèêíïóôõöúçñ\s]{5,})/i,
     ];
 
     for (const pattern of patterns) {
@@ -71,13 +72,13 @@ const extractName = (text: string): string => {
 };
 
 const extractRG = (text: string): string => {
-    const rgPattern = /(?:RG|R\.G\.|Identidade)[:\s]*([0-9]{1,2}\.?[0-9]{3}\.?[0-9]{3}[-\s]?[0-9X])/i;
+    const rgPattern = /(?:RG|R\.G\.|Identidade|REGISTRO GERAL)[:\s]*([0-9]{1,2}\.?[0-9]{3}\.?[0-9]{3}[-\s]?[0-9X])/i;
     const match = text.match(rgPattern);
     return match ? match[1].trim() : '';
 };
 
 const extractCPF = (text: string): string => {
-    const cpfPattern = /(?:CPF|C\.P\.F\.)[:\s]*([0-9]{3}\.?[0-9]{3}\.?[0-9]{3}[-\s]?[0-9]{2})/i;
+    const cpfPattern = /(?:CPF|C\.P\.F\.|CADASTRO DE PESSOA FISICA)[:\s]*([0-9]{3}\.?[0-9]{3}\.?[0-9]{3}[-\s]?[0-9]{2})/i;
     const match = text.match(cpfPattern);
     return match ? match[1].trim() : '';
 };
@@ -233,7 +234,52 @@ const extractAddresses = (text: string): string[] => {
 
 const determineMandadoType = (text: string): { type: string; category: 'prison' | 'search' } => {
     const lowerText = text.toLowerCase();
-    if (lowerText.includes('busca e apreensão')) return { type: 'Mandado de Busca e Apreensão', category: 'search' };
+
+    // Verificação de menor de idade (Data de Nascimento ou palavras-chave)
+    const birthPatterns = [
+        /(?:nascimento|nascido em|data de nascimento)[:\s]*([0-9]{1,2}[\/\-][0-9]{1,2}[\/\-][0-9]{4})/i,
+        /(?:nascimento|nascido em|data de nascimento)[:\s]*([0-9]{1,2})\s+de\s+([a-zç]+)\s+de\s+([0-9]{4})/i
+    ];
+
+    let isUnderage = lowerText.includes('ato infracional') || lowerText.includes('adolescente') || lowerText.includes('menor de idade');
+
+    if (!isUnderage) {
+        for (const pattern of birthPatterns) {
+            const match = text.match(pattern);
+            if (match) {
+                let birthDate: Date | null = null;
+                if (match[1] && (match[1].includes('/') || match[1].includes('-'))) {
+                    const [day, month, year] = match[1].split(/[\/\-]/);
+                    birthDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+                } else if (match[1] && match[2] && match[3]) {
+                    const months: any = {
+                        'janeiro': 0, 'fevereiro': 1, 'março': 2, 'abril': 3,
+                        'maio': 4, 'junho': 5, 'julho': 6, 'agosto': 7,
+                        'setembro': 8, 'outubro': 9, 'novembro': 10, 'dezembro': 11
+                    };
+                    if (months[match[2].toLowerCase()] !== undefined) {
+                        birthDate = new Date(parseInt(match[3]), months[match[2].toLowerCase()], parseInt(match[1]));
+                    }
+                }
+
+                if (birthDate && !isNaN(birthDate.getTime())) {
+                    const today = new Date();
+                    let age = today.getFullYear() - birthDate.getFullYear();
+                    const m = today.getMonth() - birthDate.getMonth();
+                    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+                        age--;
+                    }
+                    if (age < 18) isUnderage = true;
+                    break;
+                }
+            }
+        }
+    }
+
+    if (isUnderage || lowerText.includes('busca e apreensão')) {
+        return { type: 'Mandado de Busca e Apreensão', category: 'search' };
+    }
+
     if (lowerText.includes('preventiva')) return { type: 'Mandado de Prisão Preventiva', category: 'prison' };
     if (lowerText.includes('temporária')) return { type: 'Mandado de Prisão Temporária', category: 'prison' };
     return { type: 'Mandado de Prisão', category: 'prison' };
@@ -472,6 +518,13 @@ export const extractFromText = (text: string, sourceName: string): ExtractedData
     const { type, category } = determineMandadoType(text);
     const crime = extractCrime(text);
     const regime = extractRegime(text, category, crime);
+    const tacticalSummary = extractTacticalSummary(text);
+    const observations = extractObservations(text);
+
+    // Append tactical summary to observations
+    const fullObservations = tacticalSummary.length > 0
+        ? `${observations} | Atenção: ${tacticalSummary.join(', ')}`
+        : observations;
 
     return {
         id: Date.now().toString(),
@@ -489,8 +542,8 @@ export const extractFromText = (text: string, sourceName: string): ExtractedData
         sourceFile: sourceName,
         status: 'EM ABERTO',
         attachments: [],
-        observations: extractObservations(text),
-        tacticalSummary: extractTacticalSummary(text),
+        observations: fullObservations,
+        tacticalSummary,
         searchChecklist: extractSearchChecklist(text, category),
         autoPriority: determineAutoPriority(text, crime)
     };
