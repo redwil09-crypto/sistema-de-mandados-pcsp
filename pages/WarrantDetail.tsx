@@ -7,7 +7,7 @@ import {
     Bike, FileCheck, FileText, Paperclip, Edit,
     Route as RouteIcon, RotateCcw, CheckCircle, Printer,
     Trash2, Zap, Bell, Eye, History, Send, Copy,
-    ShieldAlert, MessageSquare, Plus, PlusCircle, X
+    ShieldAlert, MessageSquare, Plus, PlusCircle, X, ChevronRight
 } from 'lucide-react';
 import { toast } from 'sonner';
 import Header from '../components/Header';
@@ -42,6 +42,7 @@ const WarrantDetail = ({ warrants, onUpdate, onDelete, routeWarrants = [], onRou
     const [newDiligence, setNewDiligence] = useState('');
     const [diligenceType, setDiligenceType] = useState<'observation' | 'attempt' | 'intelligence'>('observation');
     const [isDraftOpen, setIsDraftOpen] = useState(false);
+    const [isReportModalOpen, setIsReportModalOpen] = useState(false);
 
     const data = useMemo(() => warrants.find(w => w.id === id), [warrants, id]);
 
@@ -641,20 +642,9 @@ Equipe de Capturas - DIG / PCSP
                 </div>
 
                 <div className="bg-surface-light dark:bg-surface-dark p-4 rounded-xl shadow-sm border border-border-light dark:border-border-dark">
-                    <div className="flex justify-between items-center mb-4 border-b border-border-light dark:border-border-dark pb-2">
-                        <h3 className="font-bold text-text-light dark:text-text-dark flex items-center gap-2">
-                            <History size={18} className="text-primary" /> Linha do Tempo e Relatório
-                        </h3>
-                        <div className="flex gap-2">
-                            <button
-                                onClick={() => setIsDraftOpen(!isDraftOpen)}
-                                className={`text-[10px] font-bold flex items-center gap-1 transition-all px-3 py-1.5 rounded-lg ${isDraftOpen ? 'bg-indigo-600 text-white' : 'bg-indigo-600/10 text-indigo-600 dark:text-indigo-400'
-                                    }`}
-                            >
-                                <FileText size={14} /> {isDraftOpen ? 'FECHAR RELATÓRIO' : 'GERAR RELATÓRIO'}
-                            </button>
-                        </div>
-                    </div>
+                    <h3 className="font-bold text-text-light dark:text-text-dark flex items-center gap-2">
+                        <History size={18} className="text-primary" /> Linha do Tempo e Relatório
+                    </h3>
 
                     {isDraftOpen && (
                         <div className="mb-6 p-4 bg-gray-100 dark:bg-white/5 border border-primary/20 rounded-xl animate-in zoom-in-95 duration-200">
@@ -795,11 +785,11 @@ Equipe de Capturas - DIG / PCSP
                     </button>
 
                     <button
-                        onClick={handleDownloadPDF}
-                        className="flex flex-col items-center justify-center gap-1 p-1.5 sm:p-2 rounded-xl bg-orange-500/10 text-orange-600 transition-all active:scale-90 touch-manipulation"
+                        onClick={() => setIsReportModalOpen(true)}
+                        className="flex flex-col items-center justify-center gap-1 p-1.5 sm:p-2 rounded-xl bg-indigo-600/10 text-indigo-600 transition-all active:scale-90 touch-manipulation"
                     >
-                        <Printer size={18} />
-                        <span className="text-[8px] sm:text-[9px] font-bold uppercase truncate w-full text-center">PDF</span>
+                        <FileText size={18} />
+                        <span className="text-[8px] sm:text-[9px] font-bold uppercase truncate w-full text-center">Relatório</span>
                     </button>
 
                     <button
@@ -935,9 +925,93 @@ Equipe de Capturas - DIG / PCSP
                 </div>
             )}
             {/* Photo Zoom Modal */}
+            {isReportModalOpen && (
+                <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200">
+                    <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsReportModalOpen(false)}></div>
+                    <div className="relative w-full max-w-lg bg-surface-light dark:bg-surface-dark rounded-t-3xl sm:rounded-3xl shadow-2xl border-t sm:border border-border-light dark:border-border-dark overflow-hidden animate-in slide-in-from-bottom-full sm:slide-in-from-bottom-4 duration-300">
+                        {/* Header */}
+                        <div className="p-4 border-b border-border-light dark:border-border-dark flex justify-between items-center bg-gray-50 dark:bg-black/20">
+                            <div>
+                                <h3 className="font-black text-text-light dark:text-text-dark text-lg uppercase tracking-tight">Centro de Relatórios</h3>
+                                <p className="text-[10px] text-text-secondary-light font-bold flex items-center gap-1">
+                                    <ShieldAlert size={10} /> SELECIONE O DOCUMENTO PARA GERAR
+                                </p>
+                            </div>
+                            <button onClick={() => setIsReportModalOpen(false)} className="p-2 hover:bg-red-100 text-red-500 rounded-full transition-colors">
+                                <X size={24} />
+                            </button>
+                        </div>
+
+                        {/* Content */}
+                        <div className="p-4 space-y-4">
+                            {/* Option 1: Full Qualification PDF */}
+                            <button
+                                onClick={() => {
+                                    handleDownloadPDF();
+                                    setIsReportModalOpen(false);
+                                }}
+                                className="w-full flex items-center gap-4 p-4 rounded-2xl bg-orange-500/10 border-2 border-orange-500/20 hover:border-orange-500/40 transition-all group active:scale-[0.98]"
+                            >
+                                <div className="h-12 w-12 rounded-xl bg-orange-500 text-white flex items-center justify-center shadow-lg transform group-hover:rotate-6 transition-transform">
+                                    <Printer size={24} />
+                                </div>
+                                <div className="text-left flex-1">
+                                    <h4 className="font-bold text-text-light dark:text-text-dark">Ficha Operacional PDF</h4>
+                                    <p className="text-[10px] text-text-secondary-light leading-tight">Qualificação completa, foto do réu, mandado e dados processuais formatados.</p>
+                                </div>
+                                <ChevronRight className="text-orange-500" size={20} />
+                            </button>
+
+                            {/* Option 2: Investigative Report (Draft/Print/PDF) */}
+                            <div className="space-y-3">
+                                <button
+                                    onClick={() => setIsDraftOpen(!isDraftOpen)}
+                                    className={`w-full flex items-center gap-4 p-4 rounded-2xl border-2 transition-all group active:scale-[0.98] ${isDraftOpen ? 'bg-indigo-600 border-indigo-600 text-white' : 'bg-indigo-600/10 border-indigo-600/20 hover:border-indigo-600/40'}`}
+                                >
+                                    <div className={`h-12 w-12 rounded-xl flex items-center justify-center shadow-lg transform group-hover:rotate-6 transition-transform ${isDraftOpen ? 'bg-white text-indigo-600' : 'bg-indigo-600 text-white'}`}>
+                                        <FileText size={24} />
+                                    </div>
+                                    <div className="text-left flex-1">
+                                        <h4 className={`font-bold ${isDraftOpen ? 'text-white' : 'text-text-light dark:text-text-dark'}`}>Relatório de Investigação</h4>
+                                        <p className={`text-[10px] leading-tight ${isDraftOpen ? 'text-indigo-100' : 'text-text-secondary-light'}`}>Histórico de diligências, visitas ao local e modus operandi para relatório de expediente.</p>
+                                    </div>
+                                    <ChevronRight className={isDraftOpen ? 'text-white' : 'text-indigo-600'} size={20} />
+                                </button>
+
+                                {isDraftOpen && (
+                                    <div className="p-4 bg-white dark:bg-black/20 rounded-2xl border border-indigo-500/30 animate-in zoom-in-95 duration-200">
+                                        <div className="flex flex-wrap gap-2 mb-4">
+                                            <button onClick={handleCopyReportDraft} className="flex-1 py-2.5 bg-slate-500 text-white rounded-xl text-[10px] font-bold flex items-center justify-center gap-1 shadow-md active:scale-95 transition-all">
+                                                <Copy size={14} /> COPIAR
+                                            </button>
+                                            <button onClick={handleDownloadReportPDF} className="flex-1 py-2.5 bg-indigo-600 text-white rounded-xl text-[10px] font-bold flex items-center justify-center gap-1 shadow-md active:scale-95 transition-all">
+                                                <FileText size={14} /> BAIXAR PDF
+                                            </button>
+                                            <button onClick={handlePrintReport} className="flex-1 py-2.5 bg-emerald-600 text-white rounded-xl text-[10px] font-bold flex items-center justify-center gap-1 shadow-md active:scale-95 transition-all">
+                                                <Printer size={14} /> IMPRIMIR
+                                            </button>
+                                        </div>
+                                        <div className="p-3 bg-gray-50 dark:bg-black/40 rounded-xl border border-border-light dark:border-border-dark max-h-40 overflow-y-auto">
+                                            <pre className="text-[9px] font-mono whitespace-pre-wrap leading-tight text-text-light dark:text-text-dark">
+                                                {getReportText()}
+                                            </pre>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Footer Disclaimer */}
+                        <div className="p-4 bg-red-500/5 text-center">
+                            <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest">Documento Interno - Uso Exclusivo Policial</p>
+                        </div>
+                    </div>
+                </div>
+            )}
+            {/* Photo Zoom Modal */}
             {isPhotoModalOpen && (
                 <div
-                    className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200"
+                    className="fixed inset-0 z-[110] bg-black/95 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200"
                     onClick={() => setIsPhotoModalOpen(false)}
                 >
                     <div className="relative max-w-4xl w-full flex flex-col items-center">
