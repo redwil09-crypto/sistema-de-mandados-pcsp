@@ -140,7 +140,7 @@ const AIAssistantPage = ({ onAdd, warrants }: AIAssistantPageProps) => {
             try {
                 const data = extractFromText(text, "Comando de Voz");
                 const isDuplicate = warrants.some(w => w.number === data.processNumber);
-                setBatchResults([{ ...data, isDuplicate }]);
+                setBatchResults([{ ...data, isDuplicate, tags: data.autoPriority || [] }]);
                 setCurrentIndex(0);
                 setStep('review');
                 toast.success("Mandado gerado via Comando de Voz!");
@@ -188,7 +188,7 @@ const AIAssistantPage = ({ onAdd, warrants }: AIAssistantPageProps) => {
                     const data = await extractPdfData(f);
                     // Anti-duplicity check
                     const isDuplicate = warrants.some(w => w.number === data.processNumber);
-                    results.push({ ...data, isDuplicate });
+                    results.push({ ...data, isDuplicate, tags: data.autoPriority || [] });
                 } catch (error: any) {
                     toast.error(`Erro no arquivo ${f.name}`);
                 }
@@ -212,7 +212,7 @@ const AIAssistantPage = ({ onAdd, warrants }: AIAssistantPageProps) => {
         try {
             const data = extractFromText(inputText, "Texto via Transferência");
             const isDuplicate = warrants.some(w => w.number === data.processNumber);
-            setBatchResults([{ ...data, isDuplicate }]);
+            setBatchResults([{ ...data, isDuplicate, tags: data.autoPriority || [] }]);
             setCurrentIndex(0);
             toast.success("Texto processado!");
             setStep('review');
@@ -268,7 +268,7 @@ const AIAssistantPage = ({ onAdd, warrants }: AIAssistantPageProps) => {
                 name: extractedData.name,
                 type: extractedData.type,
                 status: 'EM ABERTO',
-                location: extractedData.addresses[0] || '',
+
                 number: extractedData.processNumber,
                 rg: extractedData.rg,
                 cpf: extractedData.cpf,
@@ -281,7 +281,8 @@ const AIAssistantPage = ({ onAdd, warrants }: AIAssistantPageProps) => {
                 img: photoUrl,
                 attachments: attachments,
                 tags: extractedData.tags || [],
-                tacticalSummary: extractedData.tacticalSummary || []
+                tacticalSummary: extractedData.tacticalSummary || [],
+                location: extractedData.addresses && extractedData.addresses.length > 0 ? extractedData.addresses.join(' | ') : ''
             };
 
             const result = await onAdd(newWarrant);

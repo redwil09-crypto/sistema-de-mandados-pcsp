@@ -55,7 +55,8 @@ const NewWarrant = ({ onAdd, onUpdate, warrants }: NewWarrantProps) => {
         attachments: [] as string[],
         tags: [] as string[],
         latitude: undefined as number | undefined,
-        longitude: undefined as number | undefined
+        longitude: undefined as number | undefined,
+        tacticalSummary: ''
     });
 
     useEffect(() => {
@@ -105,7 +106,8 @@ const NewWarrant = ({ onAdd, onUpdate, warrants }: NewWarrantProps) => {
                     attachments: existing.attachments || [],
                     tags: existing.tags || [],
                     latitude: existing.latitude,
-                    longitude: existing.longitude
+                    longitude: existing.longitude,
+                    tacticalSummary: existing.tacticalSummary ? existing.tacticalSummary.join('\n') : ''
                 });
 
                 if (existing.img) {
@@ -144,6 +146,17 @@ const NewWarrant = ({ onAdd, onUpdate, warrants }: NewWarrantProps) => {
         } else {
             setAttachmentsFiles(prev => prev.filter((_, i) => i !== index));
         }
+    };
+
+    const handleRemoveOldFile = (index: number, type: 'reports' | 'attachments') => {
+        setFormData(prev => {
+            const list = type === 'reports' ? [...(prev.reports || [])] : [...(prev.attachments || [])];
+            list.splice(index, 1);
+            return {
+                ...prev,
+                [type]: list
+            };
+        });
     };
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -189,33 +202,39 @@ const NewWarrant = ({ onAdd, onUpdate, warrants }: NewWarrantProps) => {
 
             // 2. Upload Reports
             const newReportsUrls: string[] = [];
-            for (const file of reportsFiles) {
-                const cleanName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
-                const path = `reports/${warrantId}/${Date.now()}_${cleanName}`;
-                console.log(`NewWarrant: Uploading report: ${file.name} to ${path}`);
-                const uploadedPath = await uploadFile(file, path);
-                if (uploadedPath) {
-                    newReportsUrls.push(getPublicUrl(uploadedPath));
-                    console.log(`NewWarrant: Report uploaded, url: ${getPublicUrl(uploadedPath)}`);
-                } else {
-                    console.error(`NewWarrant: Failed to upload report: ${file.name}`);
-                    toast.error(`Falha ao subir relatório: ${file.name}`);
+            if (reportsFiles.length > 0) {
+                toast.info(`Enviando ${reportsFiles.length} relatórios...`);
+                for (const file of reportsFiles) {
+                    const cleanName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+                    const path = `reports/${warrantId}/${Date.now()}_${cleanName}`;
+                    console.log(`NewWarrant: Uploading report: ${file.name} to ${path}`);
+                    const uploadedPath = await uploadFile(file, path);
+                    if (uploadedPath) {
+                        newReportsUrls.push(getPublicUrl(uploadedPath));
+                        console.log(`NewWarrant: Report uploaded, url: ${getPublicUrl(uploadedPath)}`);
+                    } else {
+                        console.error(`NewWarrant: Failed to upload report: ${file.name}`);
+                        toast.error(`Falha ao subir relatório: ${file.name}`);
+                    }
                 }
             }
 
             // 3. Upload Attachments
             const newAttachmentsUrls: string[] = [];
-            for (const file of attachmentsFiles) {
-                const cleanName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
-                const path = `attachments/${warrantId}/${Date.now()}_${cleanName}`;
-                console.log(`NewWarrant: Uploading attachment: ${file.name} to ${path}`);
-                const uploadedPath = await uploadFile(file, path);
-                if (uploadedPath) {
-                    newAttachmentsUrls.push(getPublicUrl(uploadedPath));
-                    console.log(`NewWarrant: Attachment uploaded, url: ${getPublicUrl(uploadedPath)}`);
-                } else {
-                    console.error(`NewWarrant: Failed to upload attachment: ${file.name}`);
-                    toast.error(`Falha ao subir anexo: ${file.name}`);
+            if (attachmentsFiles.length > 0) {
+                toast.info(`Enviando ${attachmentsFiles.length} anexos...`);
+                for (const file of attachmentsFiles) {
+                    const cleanName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+                    const path = `attachments/${warrantId}/${Date.now()}_${cleanName}`;
+                    console.log(`NewWarrant: Uploading attachment: ${file.name} to ${path}`);
+                    const uploadedPath = await uploadFile(file, path);
+                    if (uploadedPath) {
+                        newAttachmentsUrls.push(getPublicUrl(uploadedPath));
+                        console.log(`NewWarrant: Attachment uploaded, url: ${getPublicUrl(uploadedPath)}`);
+                    } else {
+                        console.error(`NewWarrant: Failed to upload attachment: ${file.name}`);
+                        toast.error(`Falha ao subir anexo: ${file.name}`);
+                    }
                 }
             }
 
@@ -257,7 +276,8 @@ const NewWarrant = ({ onAdd, onUpdate, warrants }: NewWarrantProps) => {
                 reports: [...(formData.reports || []), ...newReportsUrls],
                 attachments: [...(formData.attachments || []), ...newAttachmentsUrls],
                 latitude: lat || formData.latitude,
-                longitude: lng || formData.longitude
+                longitude: lng || formData.longitude,
+                tacticalSummary: formData.tacticalSummary ? formData.tacticalSummary.split('\n').filter(line => line.trim() !== '') : []
             };
 
             if (editId && onUpdate) {
@@ -373,20 +393,34 @@ const NewWarrant = ({ onAdd, onUpdate, warrants }: NewWarrantProps) => {
                     </div>
                     <div>
                         <label className="block text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark mb-1">Crime / Infração</label>
-                        <select name="crime" value={formData.crime} onChange={handleChange} className="w-full rounded-lg border border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark p-2.5 text-sm text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none">
-                            <option value="">Selecione...</option>
-                            {CRIME_OPTIONS.map(c => <option key={c} value={c}>{c}</option>)}
-                        </select>
+                        <input
+                            list="crime-options"
+                            name="crime"
+                            value={formData.crime}
+                            onChange={handleChange}
+                            className="w-full rounded-lg border border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark p-2.5 text-sm text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none"
+                            placeholder="Selecione ou digite..."
+                        />
+                        <datalist id="crime-options">
+                            {CRIME_OPTIONS.map(c => <option key={c} value={c} />)}
+                        </datalist>
                     </div>
                     <div>
                         <label className="block text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark mb-1">Regime / Situação</label>
-                        <select name="regime" value={formData.regime} onChange={handleChange} className="w-full rounded-lg border border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark p-2.5 text-sm text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none">
-                            <option value="">Selecione...</option>
+                        <input
+                            list="regime-options"
+                            name="regime"
+                            value={formData.regime}
+                            onChange={handleChange}
+                            className="w-full rounded-lg border border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark p-2.5 text-sm text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none"
+                            placeholder="Selecione ou digite..."
+                        />
+                        <datalist id="regime-options">
                             {REGIME_OPTIONS
                                 .filter(r => type === 'search' || r !== "Audiência de Justificativa")
-                                .map(r => <option key={r} value={r}>{r}</option>)
+                                .map(r => <option key={r} value={r} />)
                             }
-                        </select>
+                        </datalist>
                     </div>
                 </div>
 
@@ -456,7 +490,17 @@ const NewWarrant = ({ onAdd, onUpdate, warrants }: NewWarrantProps) => {
                             {formData.reports?.map((url, idx) => (
                                 <div key={`old-${idx}`} className="flex items-center justify-between p-2 bg-gray-50 dark:bg-white/5 rounded-lg text-xs">
                                     <span className="truncate flex-1">Relatório {idx + 1}</span>
-                                    <Link to={url} target="_blank" className="text-primary font-bold">Ver</Link>
+                                    <div className="flex items-center gap-2">
+                                        <Link to={url} target="_blank" className="text-primary font-bold">Ver</Link>
+                                        <button
+                                            type="button"
+                                            onClick={() => handleRemoveOldFile(idx, 'reports')}
+                                            className="text-red-500 hover:text-red-700 p-1"
+                                            title="Remover anexo existente"
+                                        >
+                                            <X size={14} />
+                                        </button>
+                                    </div>
                                 </div>
                             ))}
                             {reportsFiles.map((f, idx) => (
@@ -480,7 +524,17 @@ const NewWarrant = ({ onAdd, onUpdate, warrants }: NewWarrantProps) => {
                             {formData.attachments?.map((url, idx) => (
                                 <div key={`old-att-${idx}`} className="flex items-center justify-between p-2 bg-gray-50 dark:bg-white/5 rounded-lg text-xs">
                                     <span className="truncate flex-1">Anexo {idx + 1}</span>
-                                    <Link to={url} target="_blank" className="text-primary font-bold">Ver</Link>
+                                    <div className="flex items-center gap-2">
+                                        <Link to={url} target="_blank" className="text-primary font-bold">Ver</Link>
+                                        <button
+                                            type="button"
+                                            onClick={() => handleRemoveOldFile(idx, 'attachments')}
+                                            className="text-red-500 hover:text-red-700 p-1"
+                                            title="Remover anexo existente"
+                                        >
+                                            <X size={14} />
+                                        </button>
+                                    </div>
                                 </div>
                             ))}
                             {attachmentsFiles.map((f, idx) => (
@@ -495,6 +549,21 @@ const NewWarrant = ({ onAdd, onUpdate, warrants }: NewWarrantProps) => {
                             </label>
                         </div>
                     </div>
+                </div>
+
+                {/* Tactical Summary (AI) */}
+                <div className="bg-surface-light dark:bg-surface-dark p-4 rounded-xl shadow-sm border border-border-light dark:border-border-dark space-y-3">
+                    <h3 className="font-bold text-text-light dark:text-text-dark text-sm flex items-center gap-2">
+                        <Bot size={16} className="text-primary" /> Sumário Tático (IA)
+                    </h3>
+                    <textarea
+                        name="tacticalSummary"
+                        value={formData.tacticalSummary}
+                        onChange={handleChange}
+                        rows={6}
+                        className="w-full rounded-lg border border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark p-2.5 text-sm font-mono text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none"
+                        placeholder="Informações extraídas pela IA..."
+                    />
                 </div>
 
                 {/* Observations */}

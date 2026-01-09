@@ -51,7 +51,7 @@ const WarrantCard = ({ data, onPrint, isPlanned, onRouteToggle, onFinalize, ...p
                                     <CheckCircle size={14} />
                                 </button>
                             )}
-                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded ml-2 whitespace-nowrap ${data.status === 'EM ABERTO' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' :
+                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded whitespace-nowrap ${data.status === 'EM ABERTO' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' :
                                 data.status === 'CUMPRIDO' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
                                     'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400'
                                 }`}>{data.status}</span>

@@ -8,7 +8,7 @@ const toISODate = (dateStr: string | undefined): string | null => {
     const parts = dateStr.split('/');
     if (parts.length === 3) {
         const [day, month, year] = parts;
-        return `${year}-${month}-${day}`;
+        return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
     }
     return null;
 };
@@ -47,6 +47,7 @@ const dbToWarrant = (dbWarrant: any): Warrant => {
         createdAt: dbWarrant.created_at,
         updatedAt: dbWarrant.updated_at,
         diligentHistory: dbWarrant.diligent_history || [],
+        tacticalSummary: dbWarrant.tactical_summary || [],
         latitude: dbWarrant.latitude,
         longitude: dbWarrant.longitude,
     };
@@ -88,6 +89,7 @@ const warrantToDb = (warrant: Partial<Warrant>) => {
     if (warrant.fulfillmentResult !== undefined) dbObj.fulfillment_result = warrant.fulfillmentResult;
     if (warrant.fulfillmentReport !== undefined) dbObj.fulfillment_report = warrant.fulfillmentReport;
     if (warrant.diligentHistory !== undefined) dbObj.diligent_history = warrant.diligentHistory;
+    if (warrant.tacticalSummary !== undefined) dbObj.tactical_summary = warrant.tacticalSummary;
 
     return dbObj;
 };

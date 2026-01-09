@@ -121,7 +121,7 @@ const WarrantDetail = ({ warrants, onUpdate, onDelete, routeWarrants = [], onRou
         const toastId = toast.loading("Salvando alterações...");
 
         // Automatic Geocoding if location changed OR original data is missing coordinates
-        const locationToGeocode = (updates.location && updates.location !== data.location) ||
+        const locationToGeocode = (updates.location && updates.location !== data.location ? updates.location : null) ||
             (data.location && (!localData.latitude || !localData.longitude) ? data.location : null);
 
         if (locationToGeocode && !updates.latitude) {
@@ -145,6 +145,31 @@ const WarrantDetail = ({ warrants, onUpdate, onDelete, routeWarrants = [], onRou
             toast.error("Erro ao salvar alterações.", { id: toastId });
         }
     };
+
+    const handleCancelEdits = () => {
+        if (data) {
+            setLocalData(data);
+            toast.info("Edições descartadas.");
+        }
+    };
+
+    // Warn on unsaved changes when closing/reloading tab
+    useEffect(() => {
+        const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+            if (hasChanges) {
+                e.preventDefault();
+                e.returnValue = '';
+            }
+        };
+
+        if (hasChanges) {
+            window.addEventListener('beforeunload', handleBeforeUnload);
+        }
+
+        return () => {
+            window.removeEventListener('beforeunload', handleBeforeUnload);
+        };
+    }, [hasChanges]);
 
     // Neighborhood Intelligence - Refined logic
     const nearbyWarrants = useMemo(() => {
@@ -1143,10 +1168,7 @@ Equipe de Capturas - DIG / PCSP
         }
     };
 
-    const handleCancelEdits = () => {
-        if (data) setLocalData(data);
-        setIsConfirmSaveOpen(false);
-    };
+
 
     return (
         <div className="min-h-screen pb-safe bg-background-light dark:bg-background-dark">
