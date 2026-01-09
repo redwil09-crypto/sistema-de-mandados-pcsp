@@ -3,6 +3,7 @@ import React from 'react';
 import { supabase } from '../supabaseClient';
 import { useNavigate } from 'react-router-dom';
 import { User, Mail, Shield, LogOut, ChevronLeft } from 'lucide-react';
+import { toast } from 'sonner';
 
 export default function Profile() {
     const navigate = useNavigate();
@@ -53,8 +54,27 @@ export default function Profile() {
                             <Shield size={20} className="text-primary" />
                             <div className="flex-1">
                                 <p className="text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark uppercase">Função</p>
-                                <p className="text-sm font-bold text-text-light dark:text-text-dark">Administrador</p>
+                                <p className="text-sm font-bold text-text-light dark:text-text-dark">
+                                    {user?.user_metadata?.role === 'admin' ? 'Administrador' : 'Agente (Sem acesso Admin)'}
+                                </p>
                             </div>
+                            {user?.user_metadata?.role !== 'admin' && (
+                                <button
+                                    onClick={async () => {
+                                        const { error } = await supabase.auth.updateUser({
+                                            data: { role: 'admin' }
+                                        });
+                                        if (error) toast.error("Erro ao definir admin");
+                                        else {
+                                            toast.success("Agora você é Administrador!");
+                                            window.location.reload();
+                                        }
+                                    }}
+                                    className="text-[10px] bg-primary text-white px-2 py-1 rounded font-bold"
+                                >
+                                    LIBERAR ADMIN
+                                </button>
+                            )}
                         </div>
 
                         <div className="flex items-center gap-3 p-3 rounded-lg bg-background-light dark:bg-background-dark">
