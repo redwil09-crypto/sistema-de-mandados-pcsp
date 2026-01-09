@@ -228,6 +228,12 @@ const AIAssistantPage = ({ onAdd, warrants }: AIAssistantPageProps) => {
     };
 
     const handleConfirmSave = async () => {
+        if (!extractedData.name || !extractedData.processNumber) {
+            toast.error("Nome e Número do Processo são campos obrigatórios.");
+            setIsSaveConfirmOpen(false);
+            return;
+        }
+
         setIsSaving(true);
         try {
             const warrantId = Date.now().toString();
@@ -243,7 +249,7 @@ const AIAssistantPage = ({ onAdd, warrants }: AIAssistantPageProps) => {
             }
 
             // Upload extracted PDF if it was from a file
-            let attachments = [...(extractedData.attachments || [])];
+            let attachments = []; // Clear local filenames, only store URLs
             let ifoodDocs: string[] = [];
             let reports: string[] = [];
 
@@ -264,16 +270,16 @@ const AIAssistantPage = ({ onAdd, warrants }: AIAssistantPageProps) => {
             }
 
             const newWarrant: Warrant = {
-                id: extractedData.id || warrantId,
+                id: warrantId, // This string ID will be ignored by warrantToDb, DB generates UUID
                 name: extractedData.name,
                 type: extractedData.type,
                 status: 'EM ABERTO',
 
                 number: extractedData.processNumber,
-                rg: extractedData.rg,
-                cpf: extractedData.cpf,
-                crime: extractedData.crime,
-                regime: extractedData.regime,
+                rg: extractedData.rg || '',
+                cpf: extractedData.cpf || '',
+                crime: extractedData.crime || 'Não informado',
+                regime: extractedData.regime || 'Não informado',
                 observation: extractedData.observations || '',
                 issueDate: extractedData.issueDate,
                 entryDate: new Date().toLocaleDateString('pt-BR'),
@@ -296,10 +302,12 @@ const AIAssistantPage = ({ onAdd, warrants }: AIAssistantPageProps) => {
                 } else {
                     setStep('saved');
                 }
+            } else {
+                toast.error("Erro ao salvar no banco de dados. Verifique a conexão.");
             }
         } catch (error) {
             console.error("Erro ao salvar via Assistente IA:", error);
-            toast.error("Erro ao salvar mandado.");
+            toast.error("Erro inesperado ao salvar mandado.");
         } finally {
             setIsSaving(false);
             setIsSaveConfirmOpen(false);

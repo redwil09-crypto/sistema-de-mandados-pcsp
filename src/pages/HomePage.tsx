@@ -185,7 +185,7 @@ const HomePage = ({ isDark, toggleTheme, warrants, routeCount = 0 }: HomePagePro
                             <Shield size={22} />
                         </div>
                         <div>
-                            <h3 className="font-bold text-white">Intel Center</h3>
+                            <h3 className="font-bold text-white">Centro de Inteligência</h3>
                             <p className="text-[10px] text-indigo-300 font-bold uppercase tracking-tight">Radar & Vínculos</p>
                         </div>
                     </Link>

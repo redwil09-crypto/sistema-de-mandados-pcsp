@@ -1196,7 +1196,7 @@ Equipe de Capturas - DIG / PCSP
 
 
     return (
-        <div className="min-h-screen pb-safe bg-background-light dark:bg-background-dark">
+        <div className="min-h-screen pb-32 bg-background-light dark:bg-background-dark">
             <Header
                 title="Detalhes do Mandado"
                 back
@@ -1850,16 +1850,16 @@ Equipe de Capturas - DIG / PCSP
             {/* Sticky Save Changes Bar */}
             {
                 hasChanges && (
-                    <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/80 dark:bg-background-dark/80 backdrop-blur-lg border-t border-border-light dark:border-border-dark z-40 flex gap-3 animate-in slide-in-from-bottom duration-300">
+                    <div className="fixed bottom-[100px] left-4 right-4 p-4 bg-primary/95 dark:bg-primary/90 backdrop-blur-md rounded-2xl z-[60] flex gap-3 animate-in slide-in-from-bottom duration-300 shadow-2xl">
                         <button
                             onClick={handleCancelEdits}
-                            className="flex-1 py-3 px-4 rounded-xl font-bold bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:opacity-90 transition-opacity"
+                            className="flex-1 py-3 px-4 rounded-xl font-bold bg-white/20 text-white hover:bg-white/30 transition-colors"
                         >
                             Descartar
                         </button>
                         <button
                             onClick={() => setIsConfirmSaveOpen(true)}
-                            className="flex-1 py-3 px-4 rounded-xl font-bold bg-primary text-white shadow-lg shadow-primary/20 hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
+                            className="flex-1 py-3 px-4 rounded-xl font-bold bg-white text-primary shadow-lg hover:bg-gray-100 transition-colors flex items-center justify-center gap-2"
                         >
                             <CheckCircle size={20} />
                             SALVAR ALTERAÇÕES
@@ -1889,8 +1889,8 @@ Equipe de Capturas - DIG / PCSP
                 variant="primary"
             />
 
-            {/* Bottom Action Bar (Non-fixed) */}
-            <div className="mt-8 mb-4 p-2 sm:p-4 bg-surface-light/50 dark:bg-surface-dark/50 rounded-2xl border border-border-light dark:border-border-dark">
+            {/* Fixed Bottom Action Bar */}
+            <div className="fixed bottom-0 left-0 right-0 p-4 pb-6 bg-white/80 dark:bg-background-dark/80 backdrop-blur-lg border-t border-border-light dark:border-border-dark z-50 animate-in slide-in-from-bottom duration-300 shadow-[0_-4px_10px_rgba(0,0,0,0.05)]">
                 <div className="max-w-md mx-auto flex items-stretch gap-2">
                     <Link
                         to="/"
@@ -1936,7 +1936,7 @@ Equipe de Capturas - DIG / PCSP
                         <span className="text-[9px] font-bold uppercase truncate w-full text-center">APAGAR</span>
                     </button>
                 </div>
-            </div >
+            </div>
 
             {
                 isReopenConfirmOpen && (
