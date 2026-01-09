@@ -10,6 +10,7 @@ import {
     ShieldAlert, MessageSquare, Plus, PlusCircle, X, ChevronRight
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { supabase } from '../supabaseClient';
 import { uploadFile, getPublicUrl } from '../supabaseStorage';
 import Header from '../components/Header';
 import ConfirmModal from '../components/ConfirmModal';
@@ -62,6 +63,17 @@ const WarrantDetail = ({ warrants, onUpdate, onDelete, routeWarrants = [], onRou
 
     const [localData, setLocalData] = useState<Partial<Warrant>>({});
     const [isConfirmSaveOpen, setIsConfirmSaveOpen] = useState(false);
+    const [isAdmin, setIsAdmin] = useState(false);
+
+    useEffect(() => {
+        const checkAdmin = async () => {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user?.user_metadata?.role === 'admin') {
+                setIsAdmin(true);
+            }
+        };
+        checkAdmin();
+    }, []);
 
     useEffect(() => {
         if (data) {
@@ -1777,12 +1789,14 @@ Equipe de Capturas - DIG / PCSP
                 )
             }
 
-            <div className="bg-surface-light dark:bg-surface-dark p-4 rounded-xl shadow-sm border border-border-light dark:border-border-dark">
-                <h3 className="font-bold text-text-light dark:text-text-dark mb-3 flex items-center gap-2">
-                    <History size={18} className="text-primary" /> Histórico de Alterações
-                </h3>
-                <WarrantAuditLog warrantId={data.id} />
-            </div>
+            {isAdmin && (
+                <div className="bg-surface-light dark:bg-surface-dark p-4 rounded-xl shadow-sm border border-border-light dark:border-border-dark mt-4">
+                    <h3 className="font-bold text-text-light dark:text-text-dark mb-3 flex items-center gap-2">
+                        <History size={18} className="text-primary" /> Histórico de Alterações (Admin)
+                    </h3>
+                    <WarrantAuditLog warrantId={data.id} />
+                </div>
+            )}
 
             {/* Modals */}
             <ConfirmModal
