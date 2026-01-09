@@ -4,7 +4,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import {
     Search, Sun, Moon, Bell, Gavel, Baby, FilePlus,
     BarChart2, Route as RouteIcon, Siren, ChevronRight,
-    Activity, CalendarClock, X, CheckCircle, Bot
+    Activity, CalendarClock, X, CheckCircle, Bot, Shield
 } from 'lucide-react';
 import { Warrant } from '../types';
 import WarrantCard from '../components/WarrantCard';
@@ -179,13 +179,24 @@ const HomePage = ({ isDark, toggleTheme, warrants, routeCount = 0 }: HomePagePro
                         </div>
                     </Link>
 
+                    <Link to="/intel" className="group flex flex-col gap-3 rounded-2xl bg-slate-900 p-4 shadow-xl transition-all active:scale-[0.98] border border-indigo-500/30 hover:border-indigo-500 relative overflow-hidden">
+                        <div className="absolute -top-4 -right-4 w-12 h-12 bg-indigo-500/20 rounded-full blur-xl group-hover:bg-indigo-500/40 transition-all" />
+                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-lg shadow-indigo-500/20">
+                            <Shield size={22} />
+                        </div>
+                        <div>
+                            <h3 className="font-bold text-white">Intel Center</h3>
+                            <p className="text-[10px] text-indigo-300 font-bold uppercase tracking-tight">Radar & Vínculos</p>
+                        </div>
+                    </Link>
+
                     <Link to="/stats" className="group flex flex-col gap-3 rounded-2xl bg-surface-light p-4 shadow-sm transition-all active:scale-[0.98] dark:bg-surface-dark border border-transparent hover:border-purple-500/20">
                         <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-50 text-purple-600 dark:bg-purple-500/10 dark:text-purple-500">
                             <BarChart2 size={24} />
                         </div>
                         <div>
                             <h3 className="font-bold text-text-light dark:text-text-dark">Estatística</h3>
-                            <p className="text-xs text-text-secondary-light dark:text-text-secondary-dark">Análises de dados</p>
+                            <p className="text-xs text-text-secondary-light dark:text-text-secondary-dark">Análise de BI</p>
                         </div>
                     </Link>
 

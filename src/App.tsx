@@ -19,6 +19,7 @@ import NewWarrant from './pages/NewWarrant';
 import AIAssistantPage from './pages/AIAssistantPage';
 import RoutePlanner from './pages/RoutePlanner';
 import OperationalMap from './pages/OperationalMap';
+import IntelCenter from './pages/IntelCenter';
 
 // Components
 import BottomNav from './components/BottomNav';
@@ -210,6 +211,7 @@ function App() {
                     />} />
 
                     <Route path="/stats" element={<Stats warrants={warrants} />} />
+                    <Route path="/intel" element={<IntelCenter warrants={warrants} />} />
                     <Route path="/profile" element={<Profile />} />
                     <Route path="/ai-assistant" element={<AIAssistantPage onAdd={handleAddWarrant} warrants={warrants} />} />
                     <Route path="/map" element={<OperationalMap warrants={warrants} onUpdate={handleUpdateWarrant} />} />

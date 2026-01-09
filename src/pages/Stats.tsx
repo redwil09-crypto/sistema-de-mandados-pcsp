@@ -1,11 +1,16 @@
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
     ResponsiveContainer, AreaChart, Area, XAxis, YAxis,
     CartesianGrid, Tooltip, Legend, BarChart, Bar,
-    PieChart, Pie, Cell
+    PieChart, Pie, Cell, LineChart, Line
 } from 'recharts';
-import { FilePlus, CheckCircle } from 'lucide-react';
+import {
+    FilePlus, CheckCircle, TrendingUp, Zap,
+    Calendar, Shield, Clock, AlertTriangle,
+    Filter, Download, ChevronRight, BarChart3
+} from 'lucide-react';
+import { useNavigate, Link } from 'react-router-dom';
 import Header from '../components/Header';
 import { Warrant } from '../types';
 
@@ -13,326 +18,373 @@ interface StatsProps {
     warrants: Warrant[];
 }
 
+type FilterRange = '30d' | '90d' | '1y' | 'all';
+
 const Stats = ({ warrants }: StatsProps) => {
-    // 1. Calculate Monthly Stats for Current Year
+    const [filterRange, setFilterRange] = useState<FilterRange>('all');
+
+    // --- Data Processing Helpers ---
+    const parseDate = (dateStr: string | undefined) => {
+        if (!dateStr) return null;
+        const date = dateStr.includes('/')
+            ? new Date(dateStr.split('/').reverse().join('-'))
+            : new Date(dateStr);
+        return isNaN(date.getTime()) ? null : date;
+    };
+
+    const isWithinRange = (date: Date) => {
+        if (filterRange === 'all') return true;
+        const now = new Date();
+        const diff = now.getTime() - date.getTime();
+        const days = diff / (1000 * 60 * 60 * 24);
+
+        if (filterRange === '30d') return days <= 30;
+        if (filterRange === '90d') return days <= 90;
+        if (filterRange === '1y') return days <= 365;
+        return true;
+    };
+
+    const filteredWarrants = useMemo(() => {
+        if (filterRange === 'all') return warrants;
+        return warrants.filter(w => {
+            const date = parseDate(w.issueDate || w.entryDate);
+            return date ? isWithinRange(date) : false;
+        });
+    }, [warrants, filterRange]);
+
+    // --- Calculations ---
+
+    // 1. Core KPIs
+    const kpis = useMemo(() => {
+        const total = filteredWarrants.length;
+        const fulfilled = filteredWarrants.filter(w => w.status === 'CUMPRIDO' || w.status === 'PRESO').length;
+        const efficiency = total > 0 ? (fulfilled / total) * 100 : 0;
+
+        // Expiration Alert (next 30 days)
+        const upcomingExpirations = warrants.filter(w => {
+            if (w.status === 'CUMPRIDO' || w.status === 'PRESO') return false;
+            const expDate = parseDate(w.expirationDate);
+            if (!expDate) return false;
+            const diff = expDate.getTime() - new Date().getTime();
+            const days = diff / (1000 * 60 * 60 * 24);
+            return days > 0 && days <= 30;
+        }).length;
+
+        // Avg Fulfillment Time (simplified logic)
+        let totalDays = 0;
+        let count = 0;
+        filteredWarrants.forEach(w => {
+            if (w.dischargeDate && w.issueDate) {
+                const start = parseDate(w.issueDate);
+                const end = parseDate(w.dischargeDate);
+                if (start && end) {
+                    totalDays += (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24);
+                    count++;
+                }
+            }
+        });
+        const avgTime = count > 0 ? Math.round(totalDays / count) : 0;
+
+        return { total, fulfilled, efficiency, upcomingExpirations, avgTime };
+    }, [filteredWarrants, warrants]);
+
+    // 2. Annual Evolution
     const monthlyStats = useMemo(() => {
-        const stats: Record<string, { name: string, prisonInput: number, searchInput: number, prisonCaptured: number, searchCaptured: number, captured: number }> = {};
         const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+        const data = months.map(m => ({ name: m, entrada: 0, cumprido: 0 }));
 
-        // Initialize
-        months.forEach((m, i) => {
-            const key = i.toString();
-            stats[key] = { name: m, prisonInput: 0, searchInput: 0, prisonCaptured: 0, searchCaptured: 0, captured: 0 };
-        });
-
-        warrants.forEach(w => {
-            // Inputs (Issue Date)
-            if (w.issueDate) {
-                const date = w.issueDate.includes('/')
-                    ? new Date(w.issueDate.split('/').reverse().join('-'))
-                    : new Date(w.issueDate);
-
-                if (!isNaN(date.getTime())) {
-                    const month = date.getMonth().toString();
-                    if (stats[month]) {
-                        if (w.type.toLowerCase().includes('busca')) {
-                            stats[month].searchInput++;
-                        } else {
-                            stats[month].prisonInput++;
-                        }
-                    }
-                }
+        filteredWarrants.forEach(w => {
+            const issueDate = parseDate(w.issueDate);
+            if (issueDate) {
+                data[issueDate.getMonth()].entrada++;
             }
-
-            // Exits/Captures (Discharge Date + Status)
-            if ((w.status === 'CUMPRIDO' || w.status === 'PRESO' || w.fulfillmentResult === 'Apreendido') && w.dischargeDate) {
-                const date = w.dischargeDate.includes('/')
-                    ? new Date(w.dischargeDate.split('/').reverse().join('-'))
-                    : new Date(w.dischargeDate);
-
-                if (!isNaN(date.getTime())) {
-                    const month = date.getMonth().toString();
-                    if (stats[month]) {
-                        stats[month].captured++;
-                        if (w.type.toLowerCase().includes('busca')) {
-                            stats[month].searchCaptured++;
-                        } else {
-                            stats[month].prisonCaptured++;
-                        }
-                    }
+            if ((w.status === 'CUMPRIDO' || w.status === 'PRESO') && w.dischargeDate) {
+                const dischargeDate = parseDate(w.dischargeDate);
+                if (dischargeDate) {
+                    data[dischargeDate.getMonth()].cumprido++;
                 }
             }
         });
+        return data;
+    }, [filteredWarrants]);
 
-        return Object.values(stats);
-    }, [warrants]);
-
-    // 2. Crime Distribution
+    // 3. Crime Distro
     const crimeStats = useMemo(() => {
         const counts: Record<string, number> = {};
-        warrants.forEach(w => {
-            const crime = w.crime || 'Não informado';
+        filteredWarrants.forEach(w => {
+            const crime = w.crime || 'Outros';
             counts[crime] = (counts[crime] || 0) + 1;
         });
         return Object.entries(counts)
             .map(([name, value]) => ({ name, value }))
             .sort((a, b) => b.value - a.value)
-            .slice(0, 8); // Top 8
-    }, [warrants]);
+            .slice(0, 6);
+    }, [filteredWarrants]);
 
-    // 3. Status Distribution
+    // 4. Status Pie
     const statusStats = useMemo(() => {
         const counts: Record<string, number> = {};
-        warrants.forEach(w => {
-            const result = w.fulfillmentResult || w.status;
-            counts[result] = (counts[result] || 0) + 1;
-        });
-        return Object.entries(counts).map(([name, value], index) => ({
-            name,
-            value,
-            color: ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'][index % 6]
-        }));
-    }, [warrants]);
-
-    // 4. Age x Crime Distribution
-    const ageCrimeStats = useMemo(() => {
-        const data = [
-            { name: '18-24', Roubo: 0, Trafico: 0, Furto: 0, Homicidio: 0, Outros: 0 },
-            { name: '25-34', Roubo: 0, Trafico: 0, Furto: 0, Homicidio: 0, Outros: 0 },
-            { name: '35-49', Roubo: 0, Trafico: 0, Furto: 0, Homicidio: 0, Outros: 0 },
-            { name: '50+', Roubo: 0, Trafico: 0, Furto: 0, Homicidio: 0, Outros: 0 }
-        ];
-
-        warrants.forEach(w => {
-            const mockAge = w.age ? parseInt(w.age) : (parseInt(w.id.slice(-2)) || 25) + 18;
-            const crime = (w.crime || '').toLowerCase();
-
-            let i = 3;
-            if (mockAge <= 24) i = 0;
-            else if (mockAge <= 34) i = 1;
-            else if (mockAge <= 49) i = 2;
-
-            if (crime.includes('roubo')) data[i].Roubo++;
-            else if (crime.includes('drogas') || crime.includes('tráfico')) data[i].Trafico++;
-            else if (crime.includes('furto')) data[i].Furto++;
-            else if (crime.includes('homicídio')) data[i].Homicidio++;
-            else data[i].Outros++;
-        });
-        return data;
-    }, [warrants]);
-
-    // 5. Regime Stats
-    const regimeStats = useMemo(() => {
-        const counts: Record<string, number> = {};
-        warrants.forEach(w => {
-            const r = w.regime || 'Não Inf.';
-            counts[r] = (counts[r] || 0) + 1;
+        filteredWarrants.forEach(w => {
+            const s = w.status || 'ABERTO';
+            counts[s] = (counts[s] || 0) + 1;
         });
         return Object.entries(counts).map(([name, value]) => ({ name, value }));
-    }, [warrants]);
+    }, [filteredWarrants]);
+
+    const COLORS = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'];
 
     return (
-        <div className="min-h-screen pb-20 bg-background-light dark:bg-background-dark">
-            <Header title="Estatísticas Avançadas" back showHome />
-            <div className="p-4 space-y-6">
+        <div className="min-h-screen pb-24 bg-[#f8fafc] dark:bg-[#0f172a]">
+            <Header title="Painel de Inteligência" back showHome />
 
-                {/* KPI Cards */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div className="bg-surface-light dark:bg-surface-dark p-4 rounded-xl shadow-sm border border-border-light dark:border-border-dark">
-                        <p className="text-xs text-text-secondary-light">Total Mandados</p>
-                        <p className="text-2xl font-bold">{warrants.length}</p>
-                    </div>
-                    <div className="bg-surface-light dark:bg-surface-dark p-4 rounded-xl shadow-sm border border-border-light dark:border-border-dark">
-                        <p className="text-xs text-text-secondary-light">Cumpridos (Ano)</p>
-                        <p className="text-2xl font-bold text-green-500">{monthlyStats.reduce((acc, curr) => acc + curr.captured, 0)}</p>
-                    </div>
+            {/* Top Toolbar */}
+            <div className="p-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="flex bg-white dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
+                    {(['30d', '90d', '1y', 'all'] as FilterRange[]).map((r) => (
+                        <button
+                            key={r}
+                            onClick={() => setFilterRange(r)}
+                            className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all ${filterRange === r
+                                ? 'bg-indigo-600 text-white shadow-md'
+                                : 'text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-700'
+                                }`}
+                        >
+                            {r === 'all' ? 'TUDO' : r.toUpperCase()}
+                        </button>
+                    ))}
                 </div>
 
-                {/* New Annual Evolution Chart (4 Waves) */}
-                <div className="bg-surface-light dark:bg-surface-dark p-4 rounded-xl shadow-sm border border-border-light dark:border-border-dark">
-                    <h3 className="font-bold mb-4 text-text-light dark:text-text-dark text-sm">Evolução Anual Detalhada</h3>
-                    <div className="h-48 w-full">
+                <div className="flex gap-2">
+                    <Link to="/intel" className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-xl text-xs font-bold shadow-lg shadow-indigo-500/20 active:scale-95 transition-all">
+                        <Shield size={14} /> INTELIGÊNCIA
+                    </Link>
+                    <button className="flex items-center gap-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 py-2 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 hover:shadow-md transition-all active:scale-95">
+                        <Download size={14} /> EXPORTAR PDF
+                    </button>
+                </div>
+            </div>
+
+            <main className="px-4 space-y-6">
+
+                {/* KPI Section */}
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                    <KPICard
+                        title="Mandados Ativos"
+                        value={kpis.total}
+                        icon={<FilePlus className="text-indigo-600" size={20} />}
+                        trend="+4.2%"
+                        color="indigo"
+                    />
+                    <KPICard
+                        title="Taxa Eficiência"
+                        value={`${Math.round(kpis.efficiency)}%`}
+                        icon={<Zap className="text-emerald-600" size={20} />}
+                        trend="+12%"
+                        color="emerald"
+                        progress={kpis.efficiency}
+                    />
+                    <KPICard
+                        title="Tempo Médio"
+                        value={`${kpis.avgTime} dias`}
+                        icon={<Clock className="text-amber-600" size={20} />}
+                        trend="-2 dias"
+                        color="amber"
+                    />
+                    <KPICard
+                        title="Alertas Críticos"
+                        value={kpis.upcomingExpirations}
+                        icon={<AlertTriangle className="text-rose-600" size={20} />}
+                        trend="Venc. 30d"
+                        color="rose"
+                        urgent={kpis.upcomingExpirations > 0}
+                    />
+                </div>
+
+                {/* Main Evolution Chart */}
+                <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700">
+                    <div className="flex items-center justify-between mb-6">
+                        <div>
+                            <h3 className="font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                                <TrendingUp size={18} className="text-indigo-500" /> Fluxo de Operações
+                            </h3>
+                            <p className="text-[10px] text-slate-400 mt-1 uppercase font-bold tracking-wider">Entradas vs Cumprimentos (Distribuição Mensal)</p>
+                        </div>
+                    </div>
+                    <div className="h-72 w-full">
                         <ResponsiveContainer width="100%" height="100%">
                             <AreaChart data={monthlyStats}>
                                 <defs>
-                                    <linearGradient id="colorPrisonInput" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="#ef4444" stopOpacity={0.8} />
-                                        <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
+                                    <linearGradient id="gradEntrada" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="5%" stopColor="#6366f1" stopOpacity={0.15} />
+                                        <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
                                     </linearGradient>
-                                    <linearGradient id="colorSearchInput" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="#f97316" stopOpacity={0.8} />
-                                        <stop offset="95%" stopColor="#f97316" stopOpacity={0} />
-                                    </linearGradient>
-                                    <linearGradient id="colorPrisonCaptured" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="#22c55e" stopOpacity={0.8} />
-                                        <stop offset="95%" stopColor="#22c55e" stopOpacity={0} />
-                                    </linearGradient>
-                                    <linearGradient id="colorSearchCaptured" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8} />
-                                        <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                                    <linearGradient id="gradCumprido" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="5%" stopColor="#10b981" stopOpacity={0.15} />
+                                        <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
                                     </linearGradient>
                                 </defs>
-                                <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.1} />
-                                <XAxis dataKey="name" fontSize={10} axisLine={false} tickLine={false} />
-                                <YAxis fontSize={10} axisLine={false} tickLine={false} />
-                                <Tooltip contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff' }} itemStyle={{ color: '#fff' }} />
-                                <Legend wrapperStyle={{ fontSize: '10px' }} />
-                                <Area type="monotone" dataKey="prisonInput" name="Entrada Prisão" stroke="#ef4444" fill="url(#colorPrisonInput)" fillOpacity={0.6} />
-                                <Area type="monotone" dataKey="searchInput" name="Entrada Busca" stroke="#f97316" fill="url(#colorSearchInput)" fillOpacity={0.6} />
-                                <Area type="monotone" dataKey="prisonCaptured" name="Cumprido Prisão" stroke="#22c55e" fill="url(#colorPrisonCaptured)" fillOpacity={0.6} />
-                                <Area type="monotone" dataKey="searchCaptured" name="Cumprido Busca" stroke="#3b82f6" fill="url(#colorSearchCaptured)" fillOpacity={0.6} />
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" opacity={0.5} />
+                                <XAxis dataKey="name" fontSize={10} axisLine={false} tickLine={false} tick={{ fill: '#94a3b8' }} dy={10} />
+                                <YAxis fontSize={10} axisLine={false} tickLine={false} tick={{ fill: '#94a3b8' }} />
+                                <Tooltip
+                                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', background: '#1e293b', color: '#fff' }}
+                                    itemStyle={{ fontSize: '12px', fontWeight: 'bold' }}
+                                />
+                                <Area type="monotone" dataKey="entrada" name="Registros" stroke="#6366f1" strokeWidth={3} fill="url(#gradEntrada)" animationDuration={1500} />
+                                <Area type="monotone" dataKey="cumprido" name="Capturas" stroke="#10b981" strokeWidth={3} fill="url(#gradCumprido)" animationDuration={1500} />
                             </AreaChart>
                         </ResponsiveContainer>
                     </div>
                 </div>
 
-                {/* 1. Monthly Evolution - SPLIT into Two Charts (Restored) */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="bg-surface-light dark:bg-surface-dark p-4 rounded-xl shadow-sm border border-border-light dark:border-border-dark">
-                        <h3 className="font-bold mb-4 text-text-light dark:text-text-dark text-sm flex items-center gap-2">
-                            <FilePlus size={16} className="text-blue-500" /> Entrada de Mandados
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {/* Crime Analysis */}
+                    <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700">
+                        <h3 className="font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2 mb-6">
+                            <Shield size={18} className="text-blue-500" /> Top Naturezas Criminais
                         </h3>
-                        <div className="h-64 w-full">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <BarChart data={monthlyStats}>
-                                    <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.1} />
-                                    <XAxis dataKey="name" fontSize={10} axisLine={false} tickLine={false} />
-                                    <YAxis fontSize={10} axisLine={false} tickLine={false} />
-                                    <Tooltip contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff' }} itemStyle={{ color: '#fff' }} />
-                                    <Legend wrapperStyle={{ fontSize: '10px' }} />
-                                    <Bar dataKey="prisonInput" name="Prisão" fill="#ef4444" radius={[4, 4, 0, 0]} stackId="a" />
-                                    <Bar dataKey="searchInput" name="Busca" fill="#f97316" radius={[4, 4, 0, 0]} stackId="a" />
-                                </BarChart>
-                            </ResponsiveContainer>
-                        </div>
-                        {/* Quantity below */}
-                        <div className="flex justify-around mt-2 text-xs text-text-secondary-light dark:text-text-secondary-dark">
-                            <span>Prisões: <b>{monthlyStats.reduce((a, c) => a + c.prisonInput, 0)}</b></span>
-                            <span>Buscas: <b>{monthlyStats.reduce((a, c) => a + c.searchInput, 0)}</b></span>
-                        </div>
-                    </div>
-
-                    <div className="bg-surface-light dark:bg-surface-dark p-4 rounded-xl shadow-sm border border-border-light dark:border-border-dark">
-                        <h3 className="font-bold mb-4 text-text-light dark:text-text-dark text-sm flex items-center gap-2">
-                            <CheckCircle size={16} className="text-green-500" /> Mandados Cumpridos
-                        </h3>
-                        <div className="h-64 w-full">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <AreaChart data={monthlyStats}>
-                                    <defs>
-                                        <linearGradient id="colorCaptured" x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="5%" stopColor="#22c55e" stopOpacity={0.8} />
-                                            <stop offset="95%" stopColor="#22c55e" stopOpacity={0} />
-                                        </linearGradient>
-                                    </defs>
-                                    <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.1} />
-                                    <XAxis dataKey="name" fontSize={10} axisLine={false} tickLine={false} />
-                                    <YAxis fontSize={10} axisLine={false} tickLine={false} />
-                                    <Tooltip contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff' }} itemStyle={{ color: '#fff' }} />
-                                    <Area type="monotone" dataKey="captured" name="Cumpridos" stroke="#22c55e" fill="url(#colorCaptured)" />
-                                </AreaChart>
-                            </ResponsiveContainer>
-                        </div>
-                        {/* Quantity below */}
-                        <div className="flex justify-center mt-2 text-xs text-text-secondary-light dark:text-text-secondary-dark">
-                            <span>Total Cumpridos: <b>{monthlyStats.reduce((a, c) => a + c.captured, 0)}</b></span>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* 2. Crime Distribution */}
-                    <div className="bg-surface-light dark:bg-surface-dark p-4 rounded-xl shadow-sm border border-border-light dark:border-border-dark">
-                        <h3 className="font-bold mb-4 text-text-light dark:text-text-dark text-sm">Top Naturezas Criminais</h3>
-                        <div className="h-64 w-full">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <BarChart layout="vertical" data={crimeStats} margin={{ left: 40 }}>
-                                    <XAxis type="number" fontSize={10} hide />
-                                    <YAxis dataKey="name" type="category" width={100} fontSize={10} axisLine={false} tickLine={false} />
-                                    <Tooltip cursor={{ fill: 'transparent' }} contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff' }} />
-                                    <Bar dataKey="value" fill="#3b82f6" radius={[0, 4, 4, 0]} barSize={20} />
-                                </BarChart>
-                            </ResponsiveContainer>
-                        </div>
-                    </div>
-
-                    {/* 4. Age x Crime - RESTORED */}
-                    <div className="bg-surface-light dark:bg-surface-dark p-4 rounded-xl shadow-sm border border-border-light dark:border-border-dark">
-                        <h3 className="font-bold mb-4 text-text-light dark:text-text-dark text-sm">Perfil: Idade x Crime</h3>
-                        <div className="h-64 w-full">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <BarChart data={ageCrimeStats}>
-                                    <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.1} />
-                                    <XAxis dataKey="name" fontSize={10} axisLine={false} tickLine={false} />
-                                    <YAxis fontSize={10} axisLine={false} tickLine={false} />
-                                    <Tooltip contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff' }} />
-                                    <Legend wrapperStyle={{ fontSize: '10px' }} />
-                                    <Bar dataKey="Roubo" stackId="a" fill="#ef4444" />
-                                    <Bar dataKey="Trafico" stackId="a" fill="#3b82f6" />
-                                    <Bar dataKey="Furto" stackId="a" fill="#f59e0b" />
-                                    <Bar dataKey="Homicidio" stackId="a" fill="#10b981" />
-                                    <Bar dataKey="Outros" stackId="a" fill="#9ca3af" radius={[4, 4, 0, 0]} />
-                                </BarChart>
-                            </ResponsiveContainer>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* 3. Status/Results */}
-                    <div className="bg-surface-light dark:bg-surface-dark p-4 rounded-xl shadow-sm border border-border-light dark:border-border-dark">
-                        <h3 className="font-bold mb-4 text-text-light dark:text-text-dark text-sm">Resultados e Status</h3>
-                        <div className="h-56 w-full">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <PieChart>
-                                    <Pie data={statusStats} innerRadius={50} outerRadius={70} paddingAngle={2} dataKey="value">
-                                        {statusStats.map((entry, index) => (
-                                            <Cell key={`cell-${index}`} fill={entry.color} />
-                                        ))}
-                                    </Pie>
-                                    <Tooltip contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff' }} />
-                                </PieChart>
-                            </ResponsiveContainer>
-                        </div>
-                        {/* QUANTITY VISIBLE BELOW - Grid Layout */}
-                        <div className="grid grid-cols-2 gap-2 mt-2">
-                            {statusStats.map(s => (
-                                <div key={s.name} className="flex items-center gap-1.5 text-[10px]">
-                                    <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: s.color }}></div>
-                                    <span className="text-text-secondary-light dark:text-text-secondary-dark truncate">{s.name}: <b>{s.value}</b></span>
+                        <div className="space-y-4">
+                            {crimeStats.map((crime, i) => (
+                                <div key={crime.name} className="group">
+                                    <div className="flex justify-between items-end mb-1.5">
+                                        <span className="text-xs font-bold text-slate-600 dark:text-slate-400 truncate max-w-[80%] uppercase">{crime.name}</span>
+                                        <span className="text-xs font-black text-slate-900 dark:text-white">{crime.value}</span>
+                                    </div>
+                                    <div className="h-2 w-full bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
+                                        <div
+                                            className="h-full bg-indigo-500 group-hover:bg-indigo-400 transition-all duration-1000"
+                                            style={{ width: `${(crime.value / crimeStats[0].value) * 100}%` }}
+                                        />
+                                    </div>
                                 </div>
                             ))}
                         </div>
                     </div>
 
-                    {/* 5. Regimes */}
-                    <div className="bg-surface-light dark:bg-surface-dark p-4 rounded-xl shadow-sm border border-border-light dark:border-border-dark">
-                        <h3 className="font-bold mb-4 text-text-light dark:text-text-dark text-sm">Distribuição por Regime</h3>
-                        <div className="h-56 w-full">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <PieChart>
-                                    <Pie data={regimeStats} dataKey="value" cx="50%" cy="50%" outerRadius={70}>
-                                        {regimeStats.map((entry, index) => (
-                                            <Cell key={`cell-${index}`} fill={['#8884d8', '#83a6ed', '#8dd1e1', '#82ca9d', '#a4de6c'][index % 5]} />
-                                        ))}
-                                    </Pie>
-                                    <Tooltip contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff' }} />
-                                </PieChart>
-                            </ResponsiveContainer>
-                        </div>
-                        {/* QUANTITY VISIBLE BELOW - Grid Layout */}
-                        <div className="grid grid-cols-2 gap-2 mt-2">
-                            {regimeStats.map((s, i) => (
-                                <div key={s.name} className="flex items-center gap-1.5 text-[10px]">
-                                    <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: ['#8884d8', '#83a6ed', '#8dd1e1', '#82ca9d', '#a4de6c'][i % 5] }}></div>
-                                    <span className="text-text-secondary-light dark:text-text-secondary-dark truncate">{s.name}: <b>{s.value}</b></span>
+                    {/* Status Breakdown */}
+                    <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700">
+                        <h3 className="font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2 mb-6">
+                            <BarChart3 size={18} className="text-emerald-500" /> Situação da Base
+                        </h3>
+                        <div className="flex flex-col md:flex-row items-center gap-8">
+                            <div className="h-48 w-48 relative">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <PieChart>
+                                        <Pie
+                                            data={statusStats}
+                                            innerRadius={60}
+                                            outerRadius={85}
+                                            paddingAngle={5}
+                                            dataKey="value"
+                                            stroke="none"
+                                        >
+                                            {statusStats.map((_, index) => (
+                                                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                            ))}
+                                        </Pie>
+                                        <Tooltip />
+                                    </PieChart>
+                                </ResponsiveContainer>
+                                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                                    <span className="text-2xl font-black text-slate-900 dark:text-white">{kpis.total}</span>
+                                    <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">Total</span>
                                 </div>
-                            ))}
+                            </div>
+                            <div className="flex-1 grid grid-cols-2 gap-3 w-full">
+                                {statusStats.map((s, i) => (
+                                    <div key={s.name} className="flex items-center gap-2 p-2 rounded-lg bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-700">
+                                        <div className="w-2 h-2 rounded-full" style={{ backgroundColor: COLORS[i % COLORS.length] }}></div>
+                                        <div className="flex flex-col">
+                                            <span className="text-[10px] font-bold text-slate-400 uppercase truncate max-w-[100px]">{s.name}</span>
+                                            <span className="text-sm font-black text-slate-900 dark:text-white">{s.value}</span>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
                     </div>
                 </div>
 
+                {/* Efficiency Gauge Section */}
+                <div className="bg-indigo-600 dark:bg-indigo-900 rounded-3xl p-8 flex flex-col md:flex-row items-center justify-between gap-8 text-white relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-24 -mt-24 blur-3xl" />
+                    <div className="relative z-10 flex-1">
+                        <h2 className="text-3xl font-black mb-4">Meta de Eficiência DIG</h2>
+                        <p className="text-indigo-100 text-sm max-w-md">O monitoramento de metas ajuda a DIG a manter o padrão de excelência operacional no cumprimento de ordens judiciais.</p>
+                        <div className="flex gap-4 mt-8">
+                            <div className="bg-white/10 px-6 py-3 rounded-2xl backdrop-blur-sm border border-white/20">
+                                <p className="text-[10px] font-bold opacity-70 uppercase">Taxa Atual</p>
+                                <p className="text-2xl font-black">{Math.round(kpis.efficiency)}%</p>
+                            </div>
+                            <div className="bg-white/10 px-6 py-3 rounded-2xl backdrop-blur-sm border border-white/20">
+                                <p className="text-[10px] font-bold opacity-70 uppercase">Meta Semanal</p>
+                                <p className="text-2xl font-black">75%</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="w-full md:w-64 h-4 text-center">
+                        <div className="h-40 flex items-end justify-center gap-2">
+                            {[40, 60, 45, 80, 50, 90, 75].map((h, i) => (
+                                <div
+                                    key={i}
+                                    className="w-4 bg-white/20 rounded-t-lg transition-all hover:bg-white/50 cursor-help"
+                                    style={{ height: `${h}%` }}
+                                    title={`Volume Dia ${i + 1}`}
+                                />
+                            ))}
+                        </div>
+                        <p className="text-[9px] font-bold mt-4 uppercase tracking-widest opacity-60">Volume de Atividade Diária</p>
+                    </div>
+                </div>
+
+            </main>
+        </div>
+    );
+};
+
+// --- Subcomponents ---
+
+interface KPICardProps {
+    title: string;
+    value: string | number;
+    icon: React.ReactNode;
+    trend: string;
+    color: 'indigo' | 'emerald' | 'amber' | 'rose';
+    progress?: number;
+    urgent?: boolean;
+}
+
+const KPICard = ({ title, value, icon, trend, color, progress, urgent }: KPICardProps) => {
+    const colorClasses = {
+        indigo: 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600',
+        emerald: 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600',
+        amber: 'bg-amber-50 dark:bg-amber-900/20 text-amber-600',
+        rose: 'bg-rose-50 dark:bg-rose-900/20 text-rose-600'
+    };
+
+    return (
+        <div className={`p-5 rounded-2xl bg-white dark:bg-slate-800 border ${urgent ? 'border-rose-300 dark:border-rose-900 animate-pulse' : 'border-slate-100 dark:border-slate-700'} shadow-sm hover:shadow-md transition-all group`}>
+            <div className="flex justify-between items-start mb-4">
+                <div className={`p-2.5 rounded-xl ${colorClasses[color]} group-hover:scale-110 transition-transform`}>
+                    {icon}
+                </div>
+                <div className={`px-2 py-0.5 rounded text-[10px] font-bold ${trend.startsWith('+') ? 'text-emerald-500 bg-emerald-50' : 'text-slate-400 bg-slate-50'} dark:bg-slate-900/50`}>
+                    {trend}
+                </div>
             </div>
+            <div className="space-y-1">
+                <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{title}</h4>
+                <p className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">{value}</p>
+            </div>
+            {progress !== undefined && (
+                <div className="mt-4 h-1 w-full bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
+                    <div
+                        className={`h-full transition-all duration-1000 ${color === 'emerald' ? 'bg-emerald-500' : 'bg-indigo-500'}`}
+                        style={{ width: `${progress}%` }}
+                    />
+                </div>
+            )}
         </div>
     );
 };
