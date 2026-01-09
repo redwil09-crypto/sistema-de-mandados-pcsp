@@ -136,8 +136,8 @@ const RoutePlanner = ({ warrants = [], onRouteToggle, onUpdate }: RoutePlannerPr
                                             />
                                         </div>
 
-                                        {/* Simple Quick Actions Overlaying Card Right Side */}
-                                        <div className="absolute top-4 right-4 flex flex-col gap-2 z-30">
+                                        {/* Simple Quick Actions - Shifted left to avoid overlap with status badge */}
+                                        <div className="absolute top-4 right-14 flex flex-col gap-2 z-30">
                                             <button
                                                 onClick={(e) => {
                                                     e.preventDefault();
