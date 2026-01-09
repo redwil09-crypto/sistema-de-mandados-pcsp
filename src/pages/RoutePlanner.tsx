@@ -122,13 +122,13 @@ const RoutePlanner = ({ warrants = [], onRouteToggle, onUpdate }: RoutePlannerPr
                             {warrants.map((w, index) => {
                                 if (!w) return null;
                                 return (
-                                    <div key={w.id || `route-item-${index}`} className="relative group">
+                                    <div key={w.id || `route-item-${index}`} className="flex items-center gap-2 relative group">
                                         {/* Counter Badge */}
                                         <div className="absolute -left-2 -top-2 w-7 h-7 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold text-xs ring-4 ring-background-light dark:ring-background-dark z-20 shadow-md transform group-hover:scale-110 transition-transform">
                                             {index + 1}
                                         </div>
 
-                                        <div className="transition-transform duration-200 group-hover:translate-x-1">
+                                        <div className="flex-1 min-w-0 transition-transform duration-200 group-hover:translate-x-1">
                                             <WarrantCard
                                                 data={w}
                                                 onRouteToggle={onRouteToggle}
@@ -136,8 +136,8 @@ const RoutePlanner = ({ warrants = [], onRouteToggle, onUpdate }: RoutePlannerPr
                                             />
                                         </div>
 
-                                        {/* Simple Quick Actions - Shifted left to avoid overlap with status badge */}
-                                        <div className="absolute top-4 right-14 flex flex-col gap-2 z-30">
+                                        {/* Finalize Button - Placed outside the card to avoid overlap */}
+                                        <div className="shrink-0 flex items-center justify-center">
                                             <button
                                                 onClick={(e) => {
                                                     e.preventDefault();
@@ -148,7 +148,7 @@ const RoutePlanner = ({ warrants = [], onRouteToggle, onUpdate }: RoutePlannerPr
                                                         () => handleFinalizeWarrant(w)
                                                     );
                                                 }}
-                                                className="h-10 w-10 bg-status-completed text-white rounded-full shadow-lg flex items-center justify-center hover:scale-110 active:scale-95 transition-all"
+                                                className="h-10 w-10 bg-status-completed text-white rounded-xl shadow-lg flex items-center justify-center hover:scale-110 active:scale-95 transition-all shadow-green-500/20"
                                                 title="Marcar como Cumprido"
                                             >
                                                 <CheckCircle size={20} />
