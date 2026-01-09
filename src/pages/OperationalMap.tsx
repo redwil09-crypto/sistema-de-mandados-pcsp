@@ -11,18 +11,26 @@ import { geocodeAddress } from '../services/geocodingService';
 import { toast } from 'sonner';
 import { RefreshCw, User, MapPin } from 'lucide-react';
 
-// Fix Leaflet Default Icon issue in React
-import icon from 'leaflet/dist/images/marker-icon.png';
-import iconShadow from 'leaflet/dist/images/marker-shadow.png';
-
-let DefaultIcon = L.icon({
-    iconUrl: icon,
-    shadowUrl: iconShadow,
+// Custom Icons for different warrant types
+const createIcon = (color: string) => new L.Icon({
+    iconUrl: `https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-${color}.png`,
+    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
     iconSize: [25, 41],
-    iconAnchor: [12, 41]
+    iconAnchor: [12, 41],
+    popupAnchor: [1, -34],
+    shadowSize: [41, 41]
 });
 
-L.Marker.prototype.options.icon = DefaultIcon;
+const prisonIcon = createIcon('blue');
+const searchIcon = createIcon('orange');
+
+const getMarkerIcon = (type: string) => {
+    const t = type.toLowerCase();
+    if (t.includes('busca') || t.includes('apreensão')) {
+        return searchIcon;
+    }
+    return prisonIcon;
+};
 
 interface OperationalMapProps {
     warrants?: Warrant[];
@@ -92,7 +100,11 @@ const OperationalMap = ({ warrants: initialWarrants, onUpdate }: OperationalMapP
                             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                         />
                         {warrants.map(w => (
-                            <Marker key={w.id} position={[w.latitude!, w.longitude!]}>
+                            <Marker
+                                key={w.id}
+                                position={[w.latitude!, w.longitude!]}
+                                icon={getMarkerIcon(w.type)}
+                            >
                                 <Popup>
                                     <div className="min-w-[200px]">
                                         <h3 className="font-bold text-sm mb-1">{w.name}</h3>
@@ -122,12 +134,23 @@ const OperationalMap = ({ warrants: initialWarrants, onUpdate }: OperationalMapP
                     <p className="text-2xl font-bold text-center">{warrants.length}</p>
                     <p className="text-[10px] text-gray-500 text-center mt-1 mb-3">Mandados com geolocalização</p>
 
+                    <div className="space-y-1.5 mb-3 border-t border-border-light dark:border-border-dark pt-3 text-[10px]">
+                        <div className="flex items-center gap-2">
+                            <div className="w-3 h-3 rounded-full bg-blue-500 shadow-sm shadow-blue-500/50"></div>
+                            <span className="font-bold text-gray-600 dark:text-gray-400 uppercase">Prisão</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <div className="w-3 h-3 rounded-full bg-orange-500 shadow-sm shadow-orange-500/50"></div>
+                            <span className="font-bold text-gray-600 dark:text-gray-400 uppercase">Busca e Apr.</span>
+                        </div>
+                    </div>
+
                     <button
                         onClick={handleBulkSync}
                         disabled={isSyncing}
                         className={`w-full flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-[10px] font-bold transition-all active:scale-95 ${isSyncing
-                                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                                : 'bg-amber-600 text-white shadow-lg shadow-amber-500/20 hover:bg-amber-700'
+                            ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                            : 'bg-amber-600 text-white shadow-lg shadow-amber-500/20 hover:bg-amber-700'
                             }`}
                     >
                         <RefreshCw size={14} className={isSyncing ? 'animate-spin' : ''} />
