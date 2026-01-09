@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import { getWarrants } from '../supabaseService';
 import { Warrant } from '../types';
@@ -86,7 +86,13 @@ const OperationalMap = ({ warrants: initialWarrants, onUpdate }: OperationalMapP
         toast.success(`${count} endereços mapeados com sucesso!`, { id: tid });
     };
 
-    const center: [number, number] = [-23.55052, -46.633309]; // São Paulo Center
+    const center = useMemo(() => {
+        if (warrants.length === 0) return [-23.55052, -46.633309]; // Default SP Center
+
+        const avgLat = warrants.reduce((sum, w) => sum + w.latitude!, 0) / warrants.length;
+        const avgLng = warrants.reduce((sum, w) => sum + w.longitude!, 0) / warrants.length;
+        return [avgLat, avgLng] as any;
+    }, [warrants]);
 
     return (
         <div className="min-h-screen bg-background-light dark:bg-background-dark pb-20 flex flex-col">
@@ -153,7 +159,7 @@ const OperationalMap = ({ warrants: initialWarrants, onUpdate }: OperationalMapP
                             : 'bg-amber-600 text-white shadow-lg shadow-amber-500/20 hover:bg-amber-700'
                             }`}
                     >
-                        <RefreshCw size={14} className={isSyncing ? 'animate-spin' : ''} />
+                        <RefreshCw size={10} className={isSyncing ? 'animate-spin' : ''} />
                         {isSyncing ? 'SINCRONIZANDO...' : 'SINCRONIZAR ALVOS'}
                     </button>
                 </div>

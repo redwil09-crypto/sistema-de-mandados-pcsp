@@ -157,14 +157,14 @@ const RoutePlanner = ({ warrants = [], onRouteToggle, onUpdate }: RoutePlannerPr
                                     className="flex flex-col items-center justify-center gap-1 py-2 bg-indigo-600 text-white font-bold rounded-xl shadow-lg active:scale-95 transition-all hover:bg-indigo-700"
                                 >
                                     <Map size={18} />
-                                    <span className="text-[10px] uppercase">Mapa</span>
+                                    <span className="text-[10px] uppercase">Navegar</span>
                                 </button>
                                 <button
-                                    onClick={() => window.print()}
+                                    onClick={() => navigate('/map')}
                                     className="flex flex-col items-center justify-center gap-1 py-2 bg-gray-100 dark:bg-gray-800 text-text-light dark:text-text-dark font-bold rounded-xl active:scale-95 transition-all"
                                 >
-                                    <Printer size={18} />
-                                    <span className="text-[10px] uppercase">PDF</span>
+                                    <Map size={18} className="text-primary" />
+                                    <span className="text-[10px] uppercase">Mapa Ops</span>
                                 </button>
 
                                 <button

@@ -28,10 +28,7 @@ const BottomNav = ({ routeCount = 0 }: BottomNavProps) => {
                     <span className="text-[10px] font-bold">Busca</span>
                 </Link>
 
-                <Link to="/map" className={`flex flex-col items-center gap-1 min-w-[50px] ${isActive('/map') ? 'text-primary' : 'text-text-secondary-light dark:text-text-secondary-dark'}`}>
-                    <Map size={24} strokeWidth={isActive('/map') ? 2.5 : 2} />
-                    <span className="text-[10px] font-bold">Mapa</span>
-                </Link>
+
 
                 <a
                     href="https://portalbnmp.cnj.jus.br/#/pesquisa-peca"
