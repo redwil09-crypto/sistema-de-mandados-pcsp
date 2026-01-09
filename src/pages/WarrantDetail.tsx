@@ -107,17 +107,19 @@ const WarrantDetail = ({ warrants, onUpdate, onDelete, routeWarrants = [], onRou
 
         const toastId = toast.loading("Salvando alterações...");
 
-        // Automatic Geocoding if location changed and no manual lat/lng provided
-        if (updates.location) {
+        // Automatic Geocoding if location changed OR original data is missing coordinates
+        const locationToGeocode = updates.location || (data.location && (!data.latitude || !data.longitude) ? data.location : null);
+
+        if (locationToGeocode) {
             try {
-                const geoResult = await geocodeAddress(updates.location);
+                const geoResult = await geocodeAddress(locationToGeocode);
                 if (geoResult) {
                     updates.latitude = geoResult.lat;
                     updates.longitude = geoResult.lng;
-                    toast.success(`Coordenadas atualizadas para: ${geoResult.displayName}`, { duration: 3000 });
+                    toast.success(`Geolocalização capturada: ${geoResult.displayName}`, { duration: 3000 });
                 }
             } catch (error) {
-                console.error("Erro ao geocodificar automaticaente:", error);
+                console.error("Erro ao geocodificar automaticamente:", error);
             }
         }
 
@@ -1321,9 +1323,16 @@ Equipe de Capturas - DIG / PCSP
                 </div>
 
                 <div className="bg-surface-light dark:bg-surface-dark p-4 rounded-xl shadow-sm border border-border-light dark:border-border-dark">
-                    <h3 className="font-bold text-text-light dark:text-text-dark mb-3 flex items-center gap-2">
-                        <MapPin size={18} className="text-primary" /> Localização
-                    </h3>
+                    <div className="flex items-center justify-between mb-3">
+                        <h3 className="font-bold text-text-light dark:text-text-dark flex items-center gap-2">
+                            <MapPin size={18} className="text-primary" /> Localização
+                        </h3>
+                        {data.latitude && data.longitude ? (
+                            <span className="text-[10px] bg-green-500/20 text-green-600 px-2 py-0.5 rounded-full font-bold">MAPEADO</span>
+                        ) : (
+                            <span className="text-[10px] bg-red-500/20 text-red-600 px-2 py-0.5 rounded-full font-bold">NÃO MAPEADO</span>
+                        )}
+                    </div>
 
                     {nearbyWarrants.length > 0 && (
                         <div className="mb-3 p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg flex items-center gap-3">
@@ -1346,6 +1355,25 @@ Equipe de Capturas - DIG / PCSP
                             />
                         </div>
                         <div className="flex gap-2 shrink-0">
+                            <button
+                                title="Recalcular Geolocalização"
+                                onClick={async () => {
+                                    const addr = localData.location || data.location;
+                                    if (!addr) return toast.error("Informe um endereço primeiro");
+                                    const tid = toast.loading("Buscando coordenadas...");
+                                    const res = await geocodeAddress(addr);
+                                    if (res) {
+                                        await onUpdate(data.id, { latitude: res.lat, longitude: res.lng });
+                                        toast.success("Mapa atualizado!", { id: tid });
+                                    } else {
+                                        toast.error("Endereço não encontrado no mapa", { id: tid });
+                                    }
+                                }}
+                                className="flex flex-col items-center justify-center gap-1 bg-white dark:bg-surface-dark border border-border-light dark:border-border-dark shadow-sm px-2 py-2 rounded-lg text-amber-600 hover:bg-gray-50 dark:hover:bg-white/5 transition-all active:scale-95"
+                            >
+                                <RotateCcw size={18} />
+                                <span className="text-[8px] font-bold">ATUALIZAR</span>
+                            </button>
                             <button
                                 title="Abrir Mapa"
                                 onClick={() => data.location && window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(data.location)}`, '_blank')}
@@ -1729,23 +1757,25 @@ Equipe de Capturas - DIG / PCSP
             </div>
 
             {/* Sticky Save Changes Bar */}
-            {hasChanges && (
-                <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/80 dark:bg-background-dark/80 backdrop-blur-lg border-t border-border-light dark:border-border-dark z-40 flex gap-3 animate-in slide-in-from-bottom duration-300">
-                    <button
-                        onClick={handleCancelEdits}
-                        className="flex-1 py-3 px-4 rounded-xl font-bold bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:opacity-90 transition-opacity"
-                    >
-                        Descartar
-                    </button>
-                    <button
-                        onClick={() => setIsConfirmSaveOpen(true)}
-                        className="flex-1 py-3 px-4 rounded-xl font-bold bg-primary text-white shadow-lg shadow-primary/20 hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
-                    >
-                        <CheckCircle size={20} />
-                        SALVAR ALTERAÇÕES
-                    </button>
-                </div>
-            )}
+            {
+                hasChanges && (
+                    <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/80 dark:bg-background-dark/80 backdrop-blur-lg border-t border-border-light dark:border-border-dark z-40 flex gap-3 animate-in slide-in-from-bottom duration-300">
+                        <button
+                            onClick={handleCancelEdits}
+                            className="flex-1 py-3 px-4 rounded-xl font-bold bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:opacity-90 transition-opacity"
+                        >
+                            Descartar
+                        </button>
+                        <button
+                            onClick={() => setIsConfirmSaveOpen(true)}
+                            className="flex-1 py-3 px-4 rounded-xl font-bold bg-primary text-white shadow-lg shadow-primary/20 hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
+                        >
+                            <CheckCircle size={20} />
+                            SALVAR ALTERAÇÕES
+                        </button>
+                    </div>
+                )
+            }
 
             <div className="bg-surface-light dark:bg-surface-dark p-4 rounded-xl shadow-sm border border-border-light dark:border-border-dark">
                 <h3 className="font-bold text-text-light dark:text-text-dark mb-3 flex items-center gap-2">
@@ -2054,8 +2084,9 @@ Equipe de Capturas - DIG / PCSP
                             </div>
                         </div>
                     </div>
-                )}
-        </div>
+                )
+            }
+        </div >
     );
 };
 
