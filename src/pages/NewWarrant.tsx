@@ -12,6 +12,7 @@ import { Warrant } from '../types';
 import { CRIME_OPTIONS, REGIME_OPTIONS } from '../data/constants';
 import { uploadFile, getPublicUrl } from '../supabaseStorage';
 import VoiceInput from '../components/VoiceInput';
+import { geocodeAddress } from '../services/geocodingService';
 
 interface NewWarrantProps {
     onAdd: (w: Warrant) => Promise<boolean>;
@@ -206,10 +207,28 @@ const NewWarrant = ({ onAdd, onUpdate, warrants }: NewWarrantProps) => {
                 }
             }
 
+            // 4. Automatic Geocoding
+            let lat: number | undefined = undefined;
+            let lng: number | undefined = undefined;
+            if (formData.location && formData.location.trim().length > 5) {
+                try {
+                    const geoResult = await geocodeAddress(formData.location);
+                    if (geoResult) {
+                        lat = geoResult.lat;
+                        lng = geoResult.lng;
+                        toast.success(`Coordenadas obtidas: ${geoResult.displayName}`, { duration: 3000 });
+                    }
+                } catch (err) {
+                    console.error("Erro geocodificação:", err);
+                }
+            }
+
             const warrantData: Partial<Warrant> = {
                 name: formData.name,
                 type: type === 'prison' ? 'MANDADO DE PRISÃO' : 'BUSCA E APREENSÃO',
                 location: formData.location,
+                latitude: lat,
+                longitude: lng,
                 number: formData.number,
                 rg: formData.rg,
                 cpf: formData.cpf,
