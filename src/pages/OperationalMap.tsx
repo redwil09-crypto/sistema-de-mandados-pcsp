@@ -6,8 +6,10 @@ import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import Header from '../components/Header';
 import BottomNav from '../components/BottomNav';
-import { User, MapPin } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { geocodeAddress } from '../services/geocodingService';
+import { toast } from 'sonner';
+import { RefreshCw, User, MapPin } from 'lucide-react';
 
 // Fix Leaflet Default Icon issue in React
 import icon from 'leaflet/dist/images/marker-icon.png';
@@ -22,19 +24,22 @@ let DefaultIcon = L.icon({
 
 L.Marker.prototype.options.icon = DefaultIcon;
 
-const OperationalMap = () => {
+interface OperationalMapProps {
+    warrants?: Warrant[];
+    onUpdate?: (id: string, updates: Partial<Warrant>) => Promise<boolean>;
+}
+
+const OperationalMap = ({ warrants: initialWarrants, onUpdate }: OperationalMapProps) => {
     const [warrants, setWarrants] = useState<Warrant[]>([]);
     const [loading, setLoading] = useState(true);
+    const [isSyncing, setIsSyncing] = useState(false);
     const navigate = useNavigate();
 
     useEffect(() => {
         const loadData = async () => {
             try {
-                const data = await getWarrants();
-                // Filter warrants that have valid lat/long (placeholder logic as we don't have lat/long populated yet)
-                // For demo purposes, if no lat/long, we won't show them.
-                // Or I can add a mock location for testing if the user wants.
-                // Let's filter strict for now.
+                const data = initialWarrants || await getWarrants();
+                // Show only mapped ones
                 setWarrants(data.filter(w => w.latitude && w.longitude));
             } catch (error) {
                 console.error(error);
@@ -43,7 +48,35 @@ const OperationalMap = () => {
             }
         };
         loadData();
-    }, []);
+    }, [initialWarrants]);
+
+    const handleBulkSync = async () => {
+        if (!onUpdate) return;
+        const all = initialWarrants || await getWarrants();
+        const unmapped = all.filter(w => w.status === 'EM ABERTO' && (!w.latitude || !w.longitude) && w.location);
+
+        if (unmapped.length === 0) {
+            toast.info("Todos os mandados em aberto já estão mapeados.");
+            return;
+        }
+
+        setIsSyncing(true);
+        const tid = toast.loading(`Sincronizando ${unmapped.length} endereços...`);
+        let count = 0;
+
+        for (const w of unmapped) {
+            const res = await geocodeAddress(w.location!);
+            if (res) {
+                await onUpdate(w.id, { latitude: res.lat, longitude: res.lng });
+                count++;
+            }
+            // Small delay to respect Nominatim usage policy
+            await new Promise(r => setTimeout(r, 1000));
+        }
+
+        setIsSyncing(false);
+        toast.success(`${count} endereços mapeados com sucesso!`, { id: tid });
+    };
 
     const center: [number, number] = [-23.55052, -46.633309]; // São Paulo Center
 
@@ -87,7 +120,19 @@ const OperationalMap = () => {
                         <span className="text-xs font-bold">Alvos Plotados</span>
                     </div>
                     <p className="text-2xl font-bold text-center">{warrants.length}</p>
-                    <p className="text-[10px] text-gray-500 text-center mt-1">Mandados com geolocalização</p>
+                    <p className="text-[10px] text-gray-500 text-center mt-1 mb-3">Mandados com geolocalização</p>
+
+                    <button
+                        onClick={handleBulkSync}
+                        disabled={isSyncing}
+                        className={`w-full flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-[10px] font-bold transition-all active:scale-95 ${isSyncing
+                                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                : 'bg-amber-600 text-white shadow-lg shadow-amber-500/20 hover:bg-amber-700'
+                            }`}
+                    >
+                        <RefreshCw size={14} className={isSyncing ? 'animate-spin' : ''} />
+                        {isSyncing ? 'SINCRONIZANDO...' : 'SINCRONIZAR ALVOS'}
+                    </button>
                 </div>
             </div>
 

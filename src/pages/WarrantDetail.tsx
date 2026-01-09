@@ -96,7 +96,7 @@ const WarrantDetail = ({ warrants, onUpdate, onDelete, routeWarrants = [], onRou
 
         fields.forEach(key => {
             if (localData[key] !== data[key]) {
-                updates[key] = localData[key] as any;
+                (updates as any)[key] = localData[key];
             }
         });
 
@@ -1369,10 +1369,10 @@ Equipe de Capturas - DIG / PCSP
                                         toast.error("Endereço não encontrado no mapa", { id: tid });
                                     }
                                 }}
-                                className="flex flex-col items-center justify-center gap-1 bg-white dark:bg-surface-dark border border-border-light dark:border-border-dark shadow-sm px-2 py-2 rounded-lg text-amber-600 hover:bg-gray-50 dark:hover:bg-white/5 transition-all active:scale-95"
+                                className="flex flex-col items-center justify-center gap-0.5 bg-white dark:bg-surface-dark border border-border-light dark:border-border-dark shadow-sm px-1.5 py-1.5 rounded-lg text-amber-600 hover:bg-gray-50 dark:hover:bg-white/5 transition-all active:scale-95"
                             >
-                                <RotateCcw size={18} />
-                                <span className="text-[8px] font-bold">ATUALIZAR</span>
+                                <RotateCcw size={14} />
+                                <span className="text-[7px] font-bold">ATUALIZAR</span>
                             </button>
                             <button
                                 title="Abrir Mapa"

@@ -212,7 +212,7 @@ function App() {
                     <Route path="/stats" element={<Stats warrants={warrants} />} />
                     <Route path="/profile" element={<Profile />} />
                     <Route path="/ai-assistant" element={<AIAssistantPage onAdd={handleAddWarrant} warrants={warrants} />} />
-                    <Route path="/map" element={<OperationalMap />} />
+                    <Route path="/map" element={<OperationalMap warrants={warrants} onUpdate={handleUpdateWarrant} />} />
 
                     {/* Detail and Creation */}
                     <Route path="/warrant-detail/:id" element={<WarrantDetail
