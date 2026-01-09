@@ -103,7 +103,8 @@ const WarrantDetail = ({ warrants, onUpdate, onDelete, routeWarrants = [], onRou
         const fields: (keyof Warrant)[] = [
             'name', 'type', 'rg', 'cpf', 'number', 'crime', 'regime',
             'location', 'ifoodNumber', 'ifoodResult', 'digOffice',
-            'issueDate', 'entryDate', 'expirationDate', 'dischargeDate', 'observation'
+            'issueDate', 'entryDate', 'expirationDate', 'dischargeDate', 'observation',
+            'status', 'fulfillmentResult', 'fulfillmentReport', 'latitude', 'longitude'
         ];
 
         fields.forEach(key => {
@@ -120,9 +121,10 @@ const WarrantDetail = ({ warrants, onUpdate, onDelete, routeWarrants = [], onRou
         const toastId = toast.loading("Salvando alterações...");
 
         // Automatic Geocoding if location changed OR original data is missing coordinates
-        const locationToGeocode = updates.location || (data.location && (!data.latitude || !data.longitude) ? data.location : null);
+        const locationToGeocode = (updates.location && updates.location !== data.location) ||
+            (data.location && (!localData.latitude || !localData.longitude) ? data.location : null);
 
-        if (locationToGeocode) {
+        if (locationToGeocode && !updates.latitude) {
             try {
                 const geoResult = await geocodeAddress(locationToGeocode);
                 if (geoResult) {

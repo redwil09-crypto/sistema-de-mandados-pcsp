@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Briefcase, Gavel, MapPin, Calendar, Route as RouteIcon, Printer } from 'lucide-react';
+import { Briefcase, Gavel, MapPin, Calendar, Route as RouteIcon, Printer, CheckCircle } from 'lucide-react';
 import { Warrant } from '../types';
 import { formatDate } from '../utils/helpers';
 
@@ -10,10 +10,11 @@ interface WarrantCardProps {
     onPrint?: (e: React.MouseEvent) => void;
     isPlanned?: boolean;
     onRouteToggle?: (id: string) => void;
+    onFinalize?: (e: React.MouseEvent, data: Warrant) => void;
     [key: string]: any;
 }
 
-const WarrantCard = ({ data, onPrint, isPlanned, onRouteToggle, ...props }: WarrantCardProps) => {
+const WarrantCard = ({ data, onPrint, isPlanned, onRouteToggle, onFinalize, ...props }: WarrantCardProps) => {
     // Determine stripe color based on search/seizure vs arrest
     const isSearch = data.type ? (data.type.toLowerCase().includes('busca') || data.type.toLowerCase().includes('apreensão')) : false;
 
@@ -36,10 +37,25 @@ const WarrantCard = ({ data, onPrint, isPlanned, onRouteToggle, ...props }: Warr
                     {/* Header: Name and Status */}
                     <div className="flex justify-between items-start mb-1">
                         <h3 className="font-bold text-text-light dark:text-text-dark text-sm leading-tight whitespace-normal break-words pr-2">{data.name}</h3>
-                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded ml-2 whitespace-nowrap shrink-0 ${data.status === 'EM ABERTO' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' :
-                            data.status === 'CUMPRIDO' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
-                                'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400'
-                            }`}>{data.status}</span>
+                        <div className="flex items-center gap-2 shrink-0">
+                            {onFinalize && (
+                                <button
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        onFinalize(e, data);
+                                    }}
+                                    className="p-1.5 bg-status-completed text-white rounded-lg shadow-sm hover:scale-110 active:scale-95 transition-all"
+                                    title="Marcar como Cumprido"
+                                >
+                                    <CheckCircle size={14} />
+                                </button>
+                            )}
+                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded ml-2 whitespace-nowrap ${data.status === 'EM ABERTO' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' :
+                                data.status === 'CUMPRIDO' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
+                                    'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400'
+                                }`}>{data.status}</span>
+                        </div>
                     </div>
 
                     {/* Body: Type, Crime, Regime, Priority */}

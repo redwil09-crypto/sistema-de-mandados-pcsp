@@ -80,10 +80,10 @@ const RoutePlanner = ({ warrants = [], onRouteToggle, onUpdate }: RoutePlannerPr
     }
 
     return (
-        <div className="min-h-screen pb-32 bg-background-light dark:bg-background-dark overflow-x-hidden">
+        <div className="min-h-screen pb-40 bg-background-light dark:bg-background-dark overflow-x-hidden">
             <Header title="Roteiro de Diligências" back onBack={() => navigate('/')} />
 
-            <div className="p-4 space-y-4 max-w-2xl mx-auto">
+            <div className="p-4 space-y-5 max-w-md mx-auto">
                 {warrants.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-20 text-center space-y-4">
                         <div className="p-6 rounded-full bg-gray-100 dark:bg-white/5">
@@ -122,37 +122,27 @@ const RoutePlanner = ({ warrants = [], onRouteToggle, onUpdate }: RoutePlannerPr
                             {warrants.map((w, index) => {
                                 if (!w) return null;
                                 return (
-                                    <div key={w.id || `route-item-${index}`} className="flex items-center gap-2 relative group">
+                                    <div key={w.id || `route-item-${index}`} className="relative group">
                                         {/* Counter Badge */}
                                         <div className="absolute -left-2 -top-2 w-7 h-7 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold text-xs ring-4 ring-background-light dark:ring-background-dark z-20 shadow-md transform group-hover:scale-110 transition-transform">
                                             {index + 1}
                                         </div>
 
-                                        <div className="flex-1 min-w-0 transition-transform duration-200 group-hover:translate-x-1">
+                                        <div className="transition-transform duration-200 group-hover:translate-x-1">
                                             <WarrantCard
                                                 data={w}
                                                 onRouteToggle={onRouteToggle}
                                                 isPlanned={true}
-                                            />
-                                        </div>
-
-                                        {/* Finalize Button - Placed outside the card to avoid overlap */}
-                                        <div className="shrink-0 flex items-center justify-center">
-                                            <button
-                                                onClick={(e) => {
+                                                onFinalize={(e, data) => {
                                                     e.preventDefault();
                                                     e.stopPropagation();
                                                     openConfirm(
                                                         "Finalizar Mandado",
                                                         "Deseja marcar este mandado como CUMPRIDO?",
-                                                        () => handleFinalizeWarrant(w)
+                                                        () => handleFinalizeWarrant(data)
                                                     );
                                                 }}
-                                                className="h-10 w-10 bg-status-completed text-white rounded-xl shadow-lg flex items-center justify-center hover:scale-110 active:scale-95 transition-all shadow-green-500/20"
-                                                title="Marcar como Cumprido"
-                                            >
-                                                <CheckCircle size={20} />
-                                            </button>
+                                            />
                                         </div>
                                     </div>
                                 );

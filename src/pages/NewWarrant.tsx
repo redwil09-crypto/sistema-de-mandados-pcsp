@@ -53,7 +53,9 @@ const NewWarrant = ({ onAdd, onUpdate, warrants }: NewWarrantProps) => {
         img: '',
         reports: [] as string[],
         attachments: [] as string[],
-        tags: [] as string[]
+        tags: [] as string[],
+        latitude: undefined as number | undefined,
+        longitude: undefined as number | undefined
     });
 
     useEffect(() => {
@@ -65,12 +67,20 @@ const NewWarrant = ({ onAdd, onUpdate, warrants }: NewWarrantProps) => {
                 setType(isSearch ? 'search' : 'prison');
 
                 // Helper to format DD/MM/YYYY to YYYY-MM-DD for input[type="date"]
-                const parseDate = (d: string | undefined) => {
-                    if (!d || d === '-') return '';
+                const parseDate = (d: string | undefined): string => {
+                    if (!d || d === '-' || d.trim() === '') return '';
+                    // If it's already YYYY-MM-DD
+                    if (d.match(/^\d{4}-\d{2}-\d{2}$/)) return d;
+                    // If it's DD/MM/YYYY
                     if (d.includes('/')) {
-                        const [day, month, year] = d.split('/');
-                        return `${year}-${month}-${day}`;
+                        const parts = d.split('/');
+                        if (parts.length === 3) {
+                            const [day, month, year] = parts;
+                            return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+                        }
                     }
+                    // Handle ISO strings with time
+                    if (d.includes('T')) return d.split('T')[0];
                     return d;
                 };
 
@@ -93,7 +103,9 @@ const NewWarrant = ({ onAdd, onUpdate, warrants }: NewWarrantProps) => {
                     img: existing.img || '',
                     reports: existing.reports || [],
                     attachments: existing.attachments || [],
-                    tags: existing.tags || []
+                    tags: existing.tags || [],
+                    latitude: existing.latitude,
+                    longitude: existing.longitude
                 });
 
                 if (existing.img) {
@@ -227,8 +239,6 @@ const NewWarrant = ({ onAdd, onUpdate, warrants }: NewWarrantProps) => {
                 name: formData.name,
                 type: type === 'prison' ? 'MANDADO DE PRISÃO' : 'BUSCA E APREENSÃO',
                 location: formData.location,
-                latitude: lat,
-                longitude: lng,
                 number: formData.number,
                 rg: formData.rg,
                 cpf: formData.cpf,
@@ -245,7 +255,9 @@ const NewWarrant = ({ onAdd, onUpdate, warrants }: NewWarrantProps) => {
                 tags: formData.tags,
                 img: photoUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(formData.name)}&background=random&color=fff`,
                 reports: [...(formData.reports || []), ...newReportsUrls],
-                attachments: [...(formData.attachments || []), ...newAttachmentsUrls]
+                attachments: [...(formData.attachments || []), ...newAttachmentsUrls],
+                latitude: lat || formData.latitude,
+                longitude: lng || formData.longitude
             };
 
             if (editId && onUpdate) {
