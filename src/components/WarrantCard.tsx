@@ -35,7 +35,7 @@ const WarrantCard = ({ data, onPrint, isPlanned, onRouteToggle, ...props }: Warr
                 <div className="flex-1 min-w-0">
                     {/* Header: Name and Status */}
                     <div className="flex justify-between items-start mb-1">
-                        <h3 className="font-bold text-text-light dark:text-text-dark text-sm leading-tight line-clamp-2 pr-2">{data.name}</h3>
+                        <h3 className="font-bold text-text-light dark:text-text-dark text-sm leading-tight whitespace-normal break-words pr-2">{data.name}</h3>
                         <span className={`text-[10px] font-bold px-2 py-0.5 rounded ml-2 whitespace-nowrap shrink-0 ${data.status === 'EM ABERTO' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' :
                             data.status === 'CUMPRIDO' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
                                 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400'
@@ -46,11 +46,11 @@ const WarrantCard = ({ data, onPrint, isPlanned, onRouteToggle, ...props }: Warr
                     <div className="flex flex-col gap-0.5 mb-2">
                         <div className="flex items-center gap-1.5">
                             {isSearch ? (
-                                <Briefcase size={12} className="text-orange-500" />
+                                <Briefcase size={12} className="text-orange-500 shrink-0" />
                             ) : (
-                                <Gavel size={12} className="text-blue-500" />
+                                <Gavel size={12} className="text-blue-500 shrink-0" />
                             )}
-                            <p className="text-xs font-medium text-text-secondary-light dark:text-text-secondary-dark">{data.type}</p>
+                            <p className="text-xs font-medium text-text-secondary-light dark:text-text-secondary-dark flex-1 whitespace-normal leading-tight">{data.type}</p>
                         </div>
                         {data.crime && <p className="text-[10px] text-text-secondary-light dark:text-text-secondary-dark ml-4.5">Crime: {data.crime}</p>}
                         {data.regime && <p className="text-[10px] text-text-secondary-light dark:text-text-secondary-dark ml-4.5">Regime: {data.regime}</p>}

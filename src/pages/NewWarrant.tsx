@@ -11,6 +11,7 @@ import Header from '../components/Header';
 import { Warrant } from '../types';
 import { CRIME_OPTIONS, REGIME_OPTIONS } from '../data/constants';
 import { uploadFile, getPublicUrl } from '../supabaseStorage';
+import VoiceInput from '../components/VoiceInput';
 
 interface NewWarrantProps {
     onAdd: (w: Warrant) => Promise<boolean>;
@@ -470,7 +471,12 @@ const NewWarrant = ({ onAdd, onUpdate, warrants }: NewWarrantProps) => {
                     <h3 className="font-bold text-text-light dark:text-text-dark text-sm flex items-center gap-2">
                         <Eye size={16} className="text-primary" /> Observações
                     </h3>
-                    <textarea name="observation" value={formData.observation} onChange={handleChange} rows={4} className="w-full rounded-lg border border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark p-2.5 text-sm text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none" placeholder="Informações adicionais, tatuagens, rotina..." />
+                    <div className="relative">
+                        <textarea name="observation" value={formData.observation} onChange={handleChange} rows={4} className="w-full rounded-lg border border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark p-2.5 text-sm text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none" placeholder="Informações adicionais, tatuagens, rotina..." />
+                        <div className="absolute right-2 bottom-2">
+                            <VoiceInput onTranscript={(text) => setFormData(prev => ({ ...prev, observation: text }))} currentValue={formData.observation} />
+                        </div>
+                    </div>
                 </div>
 
                 {/* Priority Selection */}

@@ -13,6 +13,7 @@ import { toast } from 'sonner';
 import { uploadFile, getPublicUrl } from '../supabaseStorage';
 import Header from '../components/Header';
 import ConfirmModal from '../components/ConfirmModal';
+import VoiceInput from '../components/VoiceInput';
 import { Warrant } from '../types';
 
 interface WarrantDetailProps {
@@ -1133,10 +1134,15 @@ Equipe de Capturas - DIG / PCSP
                             />
                         </div>
                         <div className="flex-1 min-w-0">
-                            <input
-                                className="text-lg font-bold bg-transparent border-none text-text-light dark:text-text-dark leading-tight w-full focus:ring-1 focus:ring-primary/20 rounded-md px-1 -ml-1"
+                            <textarea
+                                className="text-lg font-bold bg-transparent border-none text-text-light dark:text-text-dark leading-tight w-full focus:ring-1 focus:ring-primary/20 rounded-md px-1 -ml-1 resize-none h-auto overflow-hidden whitespace-normal break-words"
                                 value={localData.name || ''}
-                                onChange={e => handleFieldChange('name', e.target.value)}
+                                onChange={e => {
+                                    handleFieldChange('name', e.target.value);
+                                    e.target.style.height = 'auto';
+                                    e.target.style.height = e.target.scrollHeight + 'px';
+                                }}
+                                rows={2}
                                 placeholder="Nome do Procurado"
                             />
                             <select
@@ -1386,13 +1392,18 @@ Equipe de Capturas - DIG / PCSP
                         </div>
                         <div>
                             <p className="text-xs text-text-secondary-light dark:text-text-secondary-dark uppercase font-bold">Resultado iFood</p>
-                            <textarea
-                                className="text-sm text-text-light dark:text-text-dark bg-gray-50 dark:bg-white/5 p-2 rounded mt-1 border border-border-light dark:border-border-dark w-full focus:ring-1 focus:ring-primary/20 outline-none resize-none"
-                                rows={2}
-                                value={localData.ifoodResult || ''}
-                                onChange={e => handleFieldChange('ifoodResult', e.target.value)}
-                                placeholder="Sem resultado"
-                            />
+                            <div className="relative">
+                                <textarea
+                                    className="text-sm text-text-light dark:text-text-dark bg-gray-50 dark:bg-white/5 p-2 rounded mt-1 border border-border-light dark:border-border-dark w-full focus:ring-1 focus:ring-primary/20 outline-none resize-none"
+                                    rows={2}
+                                    value={localData.ifoodResult || ''}
+                                    onChange={e => handleFieldChange('ifoodResult', e.target.value)}
+                                    placeholder="Sem resultado"
+                                />
+                                <div className="absolute right-2 bottom-2">
+                                    <VoiceInput onTranscript={(text) => handleFieldChange('ifoodResult', text)} currentValue={localData.ifoodResult || ''} className="scale-75" />
+                                </div>
+                            </div>
                         </div>
                         <div>
                             <p className="text-xs text-text-secondary-light dark:text-text-secondary-dark uppercase font-bold">Ofício DIG</p>
@@ -1636,6 +1647,9 @@ Equipe de Capturas - DIG / PCSP
                                 placeholder="Relate o que foi observado, pessoas que falaram com a equipe, ou inteligência obtida..."
                                 className="w-full bg-white dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-xl p-3 text-sm min-h-[100px] outline-none focus:ring-2 focus:ring-primary shadow-sm"
                             />
+                            <div className="absolute right-3 bottom-0.5">
+                                <VoiceInput onTranscript={(text) => setNewDiligence(text)} currentValue={newDiligence} />
+                            </div>
                             <button
                                 onClick={handleAddDiligence}
                                 disabled={!newDiligence.trim()}
