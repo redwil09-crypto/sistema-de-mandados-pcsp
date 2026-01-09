@@ -12,11 +12,18 @@ export interface GeocodingResult {
 export async function geocodeAddress(address: string): Promise<GeocodingResult | null> {
     if (!address || address.trim().length < 5) return null;
 
+    // Clean address of common noise found in warrants
+    let cleanAddress = address
+        .replace(/\b(MANDADO DE PRISÃO|BUSCA E APREENSÃO|PROC\.|VARA|FORUM|COMARCA)\b/gi, '')
+        .replace(/ - \d+.*$/, '') // Remove everything after a dash that looks like a description
+        .replace(/\s+/g, ' ')
+        .trim();
+
     try {
         // Nominatim usage policy requires a User-Agent and a limit of 1 request per second
         const response = await fetch(
             `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
-                address
+                cleanAddress
             )}&limit=1`,
             {
                 headers: {

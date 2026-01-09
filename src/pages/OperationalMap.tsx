@@ -89,9 +89,24 @@ const OperationalMap = ({ warrants: initialWarrants, onUpdate }: OperationalMapP
     const center = useMemo(() => {
         if (warrants.length === 0) return [-23.55052, -46.633309]; // Default SP Center
 
-        const avgLat = warrants.reduce((sum, w) => sum + w.latitude!, 0) / warrants.length;
-        const avgLng = warrants.reduce((sum, w) => sum + w.longitude!, 0) / warrants.length;
-        return [avgLat, avgLng] as any;
+        // Simple clustering: finding the warrant that has more neighbors within ~2km
+        let bestWarrant = warrants[0];
+        let maxNeighbors = -1;
+
+        warrants.forEach(w1 => {
+            let neighbors = 0;
+            warrants.forEach(w2 => {
+                const dLat = Math.abs(w1.latitude! - w2.latitude!);
+                const dLng = Math.abs(w1.longitude! - w2.longitude!);
+                if (dLat < 0.02 && dLng < 0.02) neighbors++; // approx 2km
+            });
+            if (neighbors > maxNeighbors) {
+                maxNeighbors = neighbors;
+                bestWarrant = w1;
+            }
+        });
+
+        return [bestWarrant.latitude!, bestWarrant.longitude!] as any;
     }, [warrants]);
 
     return (
@@ -131,36 +146,36 @@ const OperationalMap = ({ warrants: initialWarrants, onUpdate }: OperationalMapP
                     </MapContainer>
                 )}
 
-                {/* Floating Info Card */}
-                <div className="absolute top-4 right-4 z-[500] bg-white dark:bg-surface-dark p-3 rounded-xl shadow-lg border border-border-light dark:border-border-dark max-w-[200px]">
-                    <div className="flex items-center gap-2 mb-2">
-                        <MapPin size={16} className="text-primary" />
-                        <span className="text-xs font-bold">Alvos Plotados</span>
+                {/* Floating Info Card - Compact */}
+                <div className="absolute top-4 right-4 z-[500] bg-white dark:bg-surface-dark p-2 rounded-lg shadow-xl border border-border-light dark:border-border-dark max-w-[140px]">
+                    <div className="flex items-center gap-1.5 mb-1">
+                        <MapPin size={12} className="text-primary" />
+                        <span className="text-[10px] font-black uppercase">Alvos</span>
                     </div>
-                    <p className="text-2xl font-bold text-center">{warrants.length}</p>
-                    <p className="text-[10px] text-gray-500 text-center mt-1 mb-3">Mandados com geolocalização</p>
+                    <p className="text-xl font-black text-center leading-none">{warrants.length}</p>
+                    <p className="text-[8px] text-gray-500 text-center mt-1 mb-2">Monitorados</p>
 
-                    <div className="space-y-1.5 mb-3 border-t border-border-light dark:border-border-dark pt-3 text-[10px]">
+                    <div className="space-y-1 mb-2 border-t border-border-light dark:border-border-dark pt-2 text-[8px] flex flex-col items-center">
                         <div className="flex items-center gap-2">
-                            <div className="w-3 h-3 rounded-full bg-blue-500 shadow-sm shadow-blue-500/50"></div>
-                            <span className="font-bold text-gray-600 dark:text-gray-400 uppercase">Prisão</span>
+                            <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                            <span className="font-bold text-gray-500 uppercase">Prisão</span>
                         </div>
                         <div className="flex items-center gap-2">
-                            <div className="w-3 h-3 rounded-full bg-orange-500 shadow-sm shadow-orange-500/50"></div>
-                            <span className="font-bold text-gray-600 dark:text-gray-400 uppercase">Busca e Apr.</span>
+                            <div className="w-2 h-2 rounded-full bg-orange-500"></div>
+                            <span className="font-bold text-gray-500 uppercase">Busca</span>
                         </div>
                     </div>
 
                     <button
                         onClick={handleBulkSync}
                         disabled={isSyncing}
-                        className={`w-full flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-[10px] font-bold transition-all active:scale-95 ${isSyncing
+                        className={`w-full flex items-center justify-center gap-1.5 py-1.5 px-2 rounded text-[9px] font-black tracking-tight transition-all active:scale-95 ${isSyncing
                             ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                            : 'bg-amber-600 text-white shadow-lg shadow-amber-500/20 hover:bg-amber-700'
+                            : 'bg-indigo-600 text-white shadow-md hover:bg-indigo-700'
                             }`}
                     >
                         <RefreshCw size={10} className={isSyncing ? 'animate-spin' : ''} />
-                        {isSyncing ? 'SINCRONIZANDO...' : 'SINCRONIZAR ALVOS'}
+                        {isSyncing ? 'SYC...' : 'ATUALIZAR'}
                     </button>
                 </div>
             </div>
