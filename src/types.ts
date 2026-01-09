@@ -38,7 +38,20 @@ export interface Warrant {
     createdAt?: string;         // Data de criação no banco
     updatedAt?: string;         // Data de atualização no banco
     diligentHistory?: DiligentEntry[]; // Linha do tempo de investigação
+    latitude?: number;
+    longitude?: number;
     tacticalSummary?: string[]; // Sumário Tático extraído (IA)
+}
+
+export interface AuditLog {
+    id: string;
+    warrant_id: string;
+    user_id: string;
+    action: 'CREATE' | 'UPDATE' | 'DELETE';
+    details?: string;
+    changes?: any;
+    created_at: string;
+    user_email?: string;
 }
 
 export interface DiligentEntry {
