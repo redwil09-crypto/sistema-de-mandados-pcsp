@@ -15,6 +15,8 @@ import { Warrant } from '../types';
 import { CRIME_OPTIONS } from '../data/constants';
 import { extractPdfData, extractFromText } from '../pdfExtractor';
 import { uploadFile, getPublicUrl } from '../supabaseStorage';
+import { analyzeWarrantData, isGeminiEnabled } from '../services/geminiService';
+import { Sparkles } from 'lucide-react';
 
 interface AIAssistantPageProps {
     onAdd: (w: Warrant) => Promise<boolean>;
@@ -582,8 +584,31 @@ const AIAssistantPage = ({ onAdd, warrants }: AIAssistantPageProps) => {
                                 )}
 
                                 <div className="bg-surface-light dark:bg-surface-dark rounded-xl border border-border-light dark:border-border-dark overflow-hidden">
-                                    <div className="p-3 border-b border-border-light dark:border-border-dark bg-gray-50 dark:bg-white/5">
+                                    <div className="p-3 border-b border-border-light dark:border-border-dark bg-gray-50 dark:bg-white/5 flex items-center justify-between">
                                         <h3 className="font-bold text-xs uppercase">Dados Extraídos</h3>
+                                        {isGeminiEnabled() && (
+                                            <button
+                                                onClick={async () => {
+                                                    toast.info("Aprimorando extração com Gemini Pro...");
+                                                    const fullText = `Mandado: ${extractedData.processNumber}. Nome: ${extractedData.name}. Crime: ${extractedData.crime}. Texto: ${extractedData.observations}`;
+                                                    const analysis = await analyzeWarrantData(fullText);
+                                                    if (analysis) {
+                                                        const results = [...batchResults];
+                                                        results[currentIndex] = {
+                                                            ...results[currentIndex],
+                                                            tacticalSummary: [analysis.summary],
+                                                            observations: `[ANÁLISE IA]: ${analysis.summary}\n\n${results[currentIndex].observations || ''}`,
+                                                            tags: [...new Set([...(results[currentIndex].tags || []), ...analysis.warnings])]
+                                                        };
+                                                        setBatchResults(results);
+                                                        toast.success("Dados aprimorados com sucesso!");
+                                                    }
+                                                }}
+                                                className="text-[10px] font-black uppercase text-blue-600 flex items-center gap-1 bg-blue-50 dark:bg-blue-950 px-2 py-1 rounded-lg border border-blue-200"
+                                            >
+                                                <Sparkles size={12} /> Aprimorar com IA Pro
+                                            </button>
+                                        )}
                                     </div>
                                     <div className="p-4 grid grid-cols-2 gap-4">
                                         <div className="col-span-2">

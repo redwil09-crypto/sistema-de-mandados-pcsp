@@ -13,9 +13,10 @@ import {
     AlertTriangle, TrendingUp,
     Navigation, Microscope, FileText,
     Brain, FileSearch, Sparkles, ScanSearch, X,
-    Upload, FileUp, Link
+    Upload, FileUp, Link, Key
 } from 'lucide-react';
 import L from 'leaflet';
+import { analyzeWarrantData, findIntelligenceLinks, isGeminiEnabled } from '../services/geminiService';
 
 // Fix for default marker icons in Leaflet
 import icon from 'leaflet/dist/images/marker-icon.png';
@@ -72,26 +73,46 @@ const IntelCenter = ({ warrants }: IntelCenterProps) => {
 
         setRaioXFile(file);
         setIsUploadingPdf(true);
-        setIsScanningRaioX(true); // Start scanning UI immediately
+        setIsScanningRaioX(true);
 
         try {
             const extracted = await extractPdfData(file);
+
+            // IF GEMINI IS ENABLED: Do a deep analysis of all text content
+            let geminiAnalysis = null;
+            if (isGeminiEnabled()) {
+                // Combine all text found for Gemini
+                const fullText = `Mandado: ${extracted.processNumber}. Nome: ${extracted.name}. Crime: ${extracted.crime}. Observações: ${extracted.observation}.`;
+                geminiAnalysis = await analyzeWarrantData(fullText);
+            }
+
             // Create a virtual warrant from the PDF data for analysis
             const virtualTarget: Warrant = {
                 ...extracted,
                 id: 'virtual-' + Date.now(),
                 location: extracted.addresses[0],
                 number: extracted.processNumber,
-                status: 'ANÁLISE PDF'
-            } as any; // Cast to any to allow partial Warrant type
+                status: 'ANÁLISE PDF',
+                observation: geminiAnalysis
+                    ? `[ANÁLISE IA]: ${geminiAnalysis.summary}\n\n${extracted.observation}`
+                    : extracted.observation,
+                tacticalSummary: geminiAnalysis?.summary || extracted.tacticalSummary,
+                tags: geminiAnalysis?.warnings || []
+            } as any;
 
             setRaioXTarget(virtualTarget);
+
+            // If Gemini found links, we could use them later in getEliteProfile
+            if (geminiAnalysis?.possible_relatives?.length > 0) {
+                (virtualTarget as any).ai_relationships = geminiAnalysis.possible_relatives;
+            }
+
         } catch (error) {
             console.error("Error extracting PDF data:", error);
-            // Optionally, show an error message to the user
+            toast.error("Erro ao analisar PDF");
         } finally {
             setIsUploadingPdf(false);
-            setIsScanningRaioX(false); // Stop scanning UI after processing
+            setIsScanningRaioX(false);
         }
     };
 
@@ -151,6 +172,22 @@ const IntelCenter = ({ warrants }: IntelCenterProps) => {
                             isFromBanco: true
                         });
                     }
+                }
+            });
+        }
+
+
+        // 4. AIS-detected links if available
+        if ((target as any).ai_relationships) {
+            (target as any).ai_relationships.forEach((name: string) => {
+                const bancoMatch = warrants.find(w => w.name.toUpperCase().includes(name.toUpperCase()));
+                if (!relationships.some(r => r.name.toUpperCase() === name.toUpperCase())) {
+                    relationships.push({
+                        name: name,
+                        type: 'Vínculo Detectado (IA Pro)',
+                        source: 'Inteligência Artificial',
+                        isFromBanco: !!bancoMatch
+                    });
                 }
             });
         }
@@ -220,61 +257,67 @@ const IntelCenter = ({ warrants }: IntelCenterProps) => {
     }, [openWarrants]);
 
     // --- Lab Analysis Logic ---
-    const handleLabAnalyze = () => {
+    const handleLabAnalyze = async () => {
         if (!labInput.trim()) return;
         setIsAnalyzing(true);
         setLabResult(null);
 
-        // Simulated AI/Confrontation Logic
-        setTimeout(() => {
-            const results: typeof labResult = {
-                entities: [],
-                intelligence: [],
-                riskLevel: 'LOW'
-            };
+        try {
+            // IF GEMINI IS ENABLED: Use IA
+            if (isGeminiEnabled()) {
+                const analysis = await analyzeWarrantData(labInput);
+                if (analysis) {
+                    const results: any = {
+                        entities: [],
+                        intelligence: [analysis.summary, `Rotina: ${analysis.routine_hints}`],
+                        riskLevel: analysis.periculosidade === 'Crítico' || analysis.periculosidade === 'Alto' ? 'HIGH' : 'MEDIUM'
+                    };
 
-            // 1. Simple Entity Extraction (Regex based sim)
-            const cpfMatch = labInput.match(/\d{3}\.\d{3}\.\d{3}-\d{2}/g);
-            if (cpfMatch) {
-                cpfMatch.forEach(cpf => {
-                    const match = warrants.find(w => w.cpf === cpf);
-                    results.entities.push({ type: 'CPF', value: cpf, match: match ? match.name : undefined });
-                });
-            }
+                    analysis.warnings.forEach((w: string) => results.intelligence.push(`⚠️ ${w}`));
+                    analysis.possible_relatives.forEach((r: string) => results.entities.push({ type: 'RELACIONADO', value: r }));
 
-            const plateMatch = labInput.match(/[A-Z]{3}[0-9][A-Z0-9][0-9]{2}/g); // Mercosul/Old sim
-            if (plateMatch) {
-                plateMatch.forEach(p => results.entities.push({ type: 'PLACA', value: p }));
-            }
+                    // Add manual entity extraction results too
+                    const cpfMatch = labInput.match(/\d{3}\.\d{3}\.\d{3}-\d{2}/g);
+                    if (cpfMatch) cpfMatch.forEach(cpf => results.entities.push({ type: 'CPF', value: cpf }));
 
-            // 2. Cross Check against existing targets names
-            warrants.forEach(w => {
-                if (labInput.toLowerCase().includes(w.name.toLowerCase().split(' ')[0])) {
-                    if (!results.entities.some(e => e.value === w.name)) {
-                        results.entities.push({ type: 'ALVO', value: w.name, match: 'Detectado no Banco' });
-                    }
+                    setLabResult(results);
+                    setIsAnalyzing(false);
+                    return;
                 }
-            });
-
-            // 3. Generate Intelligence Points
-            if (results.entities.length > 0) {
-                results.intelligence.push(`Identificado(s) ${results.entities.length} item(ns) de interesse jurídico no texto.`);
-            }
-            if (results.entities.some(e => e.match)) {
-                results.intelligence.push("ALERTA: O texto menciona alvos que já possuem mandados ativos no banco.");
-                results.riskLevel = 'HIGH';
-            } else {
-                results.riskLevel = labInput.length > 500 ? 'MEDIUM' : 'LOW';
             }
 
-            if (labInput.toLowerCase().includes('tiro') || labInput.toLowerCase().includes('arma')) {
-                results.intelligence.push("Nota: Menção a armamento ou violência detectada.");
-                results.riskLevel = 'HIGH';
-            }
+            // Fallback to basic logic
+            setTimeout(() => {
+                const results: typeof labResult = {
+                    entities: [],
+                    intelligence: [],
+                    riskLevel: 'LOW'
+                };
 
-            setLabResult(results);
+                const cpfMatch = labInput.match(/\d{3}\.\d{3}\.\d{3}-\d{2}/g);
+                if (cpfMatch) {
+                    cpfMatch.forEach(cpf => {
+                        const match = warrants.find(w => w.cpf === cpf);
+                        results.entities.push({ type: 'CPF', value: cpf, match: match ? match.name : undefined });
+                    });
+                }
+
+                const plateMatch = labInput.match(/[A-Z]{3}[0-9][A-Z0-9][0-9]{2}/g);
+                if (plateMatch) {
+                    plateMatch.forEach(p => results.entities.push({ type: 'PLACA', value: p }));
+                }
+
+                if (results.entities.length > 0) {
+                    results.intelligence.push(`Identificado(s) ${results.entities.length} item(ns) de interesse no texto.`);
+                }
+
+                setLabResult(results);
+                setIsAnalyzing(false);
+            }, 2000);
+        } catch (err) {
             setIsAnalyzing(false);
-        }, 2000);
+            toast.error("Erro na análise");
+        }
     };
 
     return (
@@ -410,6 +453,29 @@ const IntelCenter = ({ warrants }: IntelCenterProps) => {
                                             {raioXTarget.tags?.map(t => (
                                                 <span key={t} className="px-3 py-1 bg-white/5 border border-white/10 rounded-full text-[10px] font-black uppercase text-slate-400">{t}</span>
                                             ))}
+
+                                            {isGeminiEnabled() && !raioXTarget.id.startsWith('virtual-') && (
+                                                <button
+                                                    onClick={async () => {
+                                                        setIsScanningRaioX(true);
+                                                        const fullText = `Mandado: ${raioXTarget.number}. Nome: ${raioXTarget.name}. Crime: ${raioXTarget.crime}. Observações: ${raioXTarget.observation}.`;
+                                                        const analysis = await analyzeWarrantData(fullText);
+                                                        if (analysis) {
+                                                            setRaioXTarget({
+                                                                ...raioXTarget,
+                                                                tacticalSummary: analysis.summary,
+                                                                tags: [...(raioXTarget.tags || []), ...analysis.warnings],
+                                                                ai_relationships: analysis.possible_relatives
+                                                            } as any);
+                                                            toast.success("Análise profunda concluída!");
+                                                        }
+                                                        setIsScanningRaioX(false);
+                                                    }}
+                                                    className="px-3 py-1 bg-blue-600/20 border border-blue-500/30 rounded-full text-[10px] font-black uppercase text-blue-400 flex items-center gap-1 hover:bg-blue-600/40"
+                                                >
+                                                    <Sparkles size={12} /> Análise Profunda IA
+                                                </button>
+                                            )}
                                         </div>
                                     </div>
                                 </div>
@@ -495,7 +561,10 @@ const IntelCenter = ({ warrants }: IntelCenterProps) => {
                                             </div>
                                             <h4 className="text-[10px] font-black uppercase tracking-[0.2em] mb-4">Relatório Tático Profundo</h4>
                                             <p className="text-sm font-medium leading-relaxed opacity-90 italic">
-                                                "A análise do Protocolo Raio-X sugere que o alvo possui vínculos de residência com outros 2 alvos do banco. Recomenda-se vigilância compartilhada no endereço central. O uso de pseudônimos detectados no texto sugere alta evasividade."
+                                                {raioXTarget.tacticalSummary
+                                                    ? `"${raioXTarget.tacticalSummary}"`
+                                                    : `"A análise do Protocolo Raio-X sugere que o alvo possui vínculos de residência com outros 2 alvos do banco. Recomenda-se vigilância compartilhada no endereço central. O uso de pseudônimos detectados no texto sugere alta evasividade."`
+                                                }
                                             </p>
                                         </div>
                                     </div>

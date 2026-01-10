@@ -4,7 +4,7 @@ import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import {
     User, Gavel, Calendar, MapPin, Bike, FileCheck,
     Paperclip, X, Plus, Bot, ChevronRight, Camera,
-    AlertTriangle, Zap, Bell, RefreshCw, Eye
+    AlertTriangle, Zap, Bell, RefreshCw, Eye, Sparkles
 } from 'lucide-react';
 import { toast } from 'sonner';
 import Header from '../components/Header';
@@ -13,6 +13,7 @@ import { CRIME_OPTIONS, REGIME_OPTIONS } from '../data/constants';
 import { uploadFile, getPublicUrl } from '../supabaseStorage';
 import VoiceInput from '../components/VoiceInput';
 import { geocodeAddress } from '../services/geocodingService';
+import { analyzeWarrantData, isGeminiEnabled } from '../services/geminiService';
 
 interface NewWarrantProps {
     onAdd: (w: Warrant) => Promise<boolean>;
@@ -554,9 +555,36 @@ const NewWarrant = ({ onAdd, onUpdate, warrants }: NewWarrantProps) => {
 
                 {/* Tactical Summary (AI) */}
                 <div className="bg-surface-light dark:bg-surface-dark p-4 rounded-xl shadow-sm border border-border-light dark:border-border-dark space-y-3">
-                    <h3 className="font-bold text-text-light dark:text-text-dark text-sm flex items-center gap-2">
-                        <Bot size={16} className="text-primary" /> Sumário Tático (IA)
-                    </h3>
+                    <div className="flex items-center justify-between">
+                        <h3 className="font-bold text-text-light dark:text-text-dark text-sm flex items-center gap-2">
+                            <Bot size={16} className="text-primary" /> Sumário Tático (IA)
+                        </h3>
+                        {isGeminiEnabled() && (
+                            <button
+                                type="button"
+                                onClick={async () => {
+                                    if (!formData.name || !formData.observation) {
+                                        toast.error("Preencha ao menos o nome e as observações para a IA analisar.");
+                                        return;
+                                    }
+                                    toast.info("Analisando dados com Gemini Pro...");
+                                    const fullText = `Alvo: ${formData.name}. Crime: ${formData.crime}. Processo: ${formData.number}. Observações: ${formData.observation}. iFood: ${formData.ifoodResult}`;
+                                    const analysis = await analyzeWarrantData(fullText);
+                                    if (analysis) {
+                                        setFormData(prev => ({
+                                            ...prev,
+                                            tacticalSummary: analysis.summary,
+                                            tags: [...new Set([...prev.tags, ...analysis.warnings])]
+                                        }));
+                                        toast.success("Sumário gerado com sucesso!");
+                                    }
+                                }}
+                                className="text-[10px] font-black uppercase text-primary flex items-center gap-1 bg-primary/10 px-2 py-1 rounded-lg hover:bg-primary/20"
+                            >
+                                <Sparkles size={12} /> Melhorar com IA
+                            </button>
+                        )}
+                    </div>
                     <textarea
                         name="tacticalSummary"
                         value={formData.tacticalSummary}

@@ -87,6 +87,53 @@ export default function Profile() {
                     </div>
                 </div>
 
+                {/* AI Settings Card */}
+                <div className="bg-surface-light dark:bg-surface-dark rounded-lg p-6 shadow-sm border border-border-light dark:border-border-dark">
+                    <div className="flex items-center gap-2 mb-4">
+                        <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center">
+                            <Shield size={18} className="text-blue-500" />
+                        </div>
+                        <h3 className="font-bold text-text-light dark:text-text-dark">Inteligência Artificial (Google Gemini)</h3>
+                    </div>
+
+                    <p className="text-xs text-text-secondary-light dark:text-text-secondary-dark mb-4">
+                        Configure sua chave API do Google AI Pro para liberar as análises profundas no Protocolo Raio-X.
+                    </p>
+
+                    <div className="space-y-3">
+                        <div>
+                            <label className="text-[10px] font-bold text-text-secondary-light dark:text-text-secondary-dark uppercase mb-1 block">
+                                Chave API Gemini
+                            </label>
+                            <div className="flex gap-2">
+                                <input
+                                    type="password"
+                                    placeholder="Cole aqui sua chave (começa com AIza...)"
+                                    className="flex-1 bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded px-3 py-2 text-sm text-text-light dark:text-text-dark focus:border-primary outline-none transition-colors"
+                                    value={localStorage.getItem('gemini_api_key') || ''}
+                                    onChange={(e) => {
+                                        localStorage.setItem('gemini_api_key', e.target.value);
+                                        toast.success("Chave salva localmente!");
+                                    }}
+                                />
+                                <button
+                                    onClick={() => {
+                                        localStorage.removeItem('gemini_api_key');
+                                        window.location.reload();
+                                    }}
+                                    className="text-[10px] text-red-500 font-bold hover:underline"
+                                >
+                                    LIMPAR
+                                </button>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-2 p-2 rounded bg-blue-50 dark:bg-blue-900/20 text-[10px] text-blue-700 dark:text-blue-300">
+                            <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
+                            {localStorage.getItem('gemini_api_key') ? 'IA Ativa com Google Pro' : 'IA em modo Offline (Básico)'}
+                        </div>
+                    </div>
+                </div>
+
                 {/* Actions */}
                 <div className="space-y-3">
                     <button
