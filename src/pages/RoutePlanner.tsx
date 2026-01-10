@@ -53,18 +53,73 @@ const RoutePlanner = ({ warrants = [], onRouteToggle, onUpdate }: RoutePlannerPr
         }
     };
 
+    const [userCoords, setUserCoords] = useState<{ lat: number, lng: number } | null>(null);
+
+    useEffect(() => {
+        if ("geolocation" in navigator) {
+            navigator.geolocation.getCurrentPosition(
+                (pos) => setUserCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+                (err) => console.log("Geolocation error:", err)
+            );
+        }
+    }, []);
+
+    const calculateDistance = (lat1: number, lng1: number, lat2: number, lng2: number) => {
+        return Math.sqrt(Math.pow(lat1 - lat2, 2) + Math.pow(lng1 - lng2, 2));
+    };
+
     const handleOpenMap = () => {
-        const locations = warrants
+        if (warrants.length === 0) {
+            toast.error("Roteiro vazio.");
+            return;
+        }
+
+        // 1. Separate warrants with and without coordinates
+        let withCoords = warrants.filter(w => w.latitude && w.longitude);
+        const withoutCoords = warrants.filter(w => !w.latitude || !w.longitude);
+
+        // 2. Sort by closeness (Greedy Nearest Neighbor)
+        let sortedTargets: Warrant[] = [];
+        let currentLocation = userCoords || { lat: -23.5505, lng: -46.6333 }; // Fallback to SP Center if no GPS
+
+        let remaining = [...withCoords];
+        while (remaining.length > 0) {
+            let closestIdx = 0;
+            let minDistance = calculateDistance(currentLocation.lat, currentLocation.lng, remaining[0].latitude!, remaining[0].longitude!);
+
+            for (let i = 1; i < remaining.length; i++) {
+                const dist = calculateDistance(currentLocation.lat, currentLocation.lng, remaining[i].latitude!, remaining[i].longitude!);
+                if (dist < minDistance) {
+                    minDistance = dist;
+                    closestIdx = i;
+                }
+            }
+
+            const next = remaining.splice(closestIdx, 1)[0];
+            sortedTargets.push(next);
+            currentLocation = { lat: next.latitude!, lng: next.longitude! };
+        }
+
+        // Add those without coords to the end
+        const finalOrder = [...sortedTargets, ...withoutCoords];
+
+        const locations = finalOrder
             .filter(w => w && w.location && w.location.trim().length > 0)
             .map(w => w.location as string);
 
         if (locations.length === 0) {
-            toast.error("Nenhum endereço válido encontrado no roteiro.");
+            toast.error("Nenhum endereço válido encontrado.");
             return;
         }
 
-        const path = locations.map(loc => encodeURIComponent(loc)).join('/');
-        window.open(`https://www.google.com/maps/dir/${path}`, '_blank');
+        // Google Maps URL with "My Location" as origin
+        const origin = "My+Location";
+        const destination = encodeURIComponent(locations[locations.length - 1]);
+        const waypoints = locations.slice(0, -1).map(loc => encodeURIComponent(loc)).join('|');
+
+        // Use the Google Maps Directions URL format: origin/destination/waypoints
+        const url = `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}&waypoints=${waypoints}&travelmode=driving`;
+        window.open(url, '_blank');
     };
 
     // Safety fallback
