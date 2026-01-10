@@ -169,8 +169,8 @@ function App() {
 
     const priorityWarrants = useMemo(() => {
         return warrants.filter(w => {
-            const tags = w.tags || [];
-            return tags.includes('Urgente') || tags.includes('Ofício de Cobrança');
+            const tags = w.tags;
+            return Array.isArray(tags) && (tags.includes('Urgente') || tags.includes('Ofício de Cobrança'));
         });
     }, [warrants]);
 

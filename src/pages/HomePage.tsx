@@ -31,9 +31,12 @@ const HomePage = ({ isDark, toggleTheme, warrants, onUpdate, routeCount = 0 }: H
     };
 
     // Calculate priority warrants from all warrants
-    const priorityWarrants = warrants.filter(w => (w as any).tags?.includes('Urgente') || (w as any).tags?.includes('Ofício de Cobrança'));
-    const urgentCount = priorityWarrants.filter(w => (w as any).tags?.includes('Urgente')).length;
-    const oficioCount = priorityWarrants.filter(w => (w as any).tags?.includes('Ofício de Cobrança')).length;
+    const priorityWarrants = warrants.filter(w => {
+        const tags = (w as any).tags;
+        return Array.isArray(tags) && (tags.includes('Urgente') || tags.includes('Ofício de Cobrança'));
+    });
+    const urgentCount = priorityWarrants.filter(w => Array.isArray((w as any).tags) && (w as any).tags.includes('Urgente')).length;
+    const oficioCount = priorityWarrants.filter(w => Array.isArray((w as any).tags) && (w as any).tags.includes('Ofício de Cobrança')).length;
 
     // Real Notification Logic (Expiring warrants)
     const urgentNotifications = useMemo(() => {

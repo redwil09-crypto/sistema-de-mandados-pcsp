@@ -71,7 +71,7 @@ const WarrantCard = ({ data, onPrint, isPlanned, onRouteToggle, onFinalize, ...p
                         {data.crime && <p className="text-[10px] text-text-secondary-light dark:text-text-secondary-dark ml-4.5">Crime: {data.crime}</p>}
                         {data.regime && <p className="text-[10px] text-text-secondary-light dark:text-text-secondary-dark ml-4.5">Regime: {data.regime}</p>}
                         {data.priority && <p className="text-[10px] font-bold text-red-500 ml-4.5">Prioridade: {data.priority}</p>}
-                        {data.tags && data.tags.length > 0 && (
+                        {Array.isArray(data.tags) && data.tags.length > 0 && (
                             <div className="flex flex-wrap gap-1 ml-4.5 mt-0.5">
                                 {data.tags.map(tag => (
                                     <span key={tag} className={`text-[9px] font-bold px-1.5 py-0.5 rounded border ${tag === 'Urgente'

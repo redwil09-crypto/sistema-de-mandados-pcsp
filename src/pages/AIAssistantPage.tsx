@@ -731,7 +731,7 @@ const AIAssistantPage = ({ onAdd, warrants }: AIAssistantPageProps) => {
                                                         <span className="text-[10px] uppercase font-bold text-blue-600">Sumário Tático (IA)</span>
                                                     </div>
                                                     <div className="flex flex-wrap gap-1.5">
-                                                        {extractedData.tacticalSummary.map((tag: string) => (
+                                                        {Array.isArray(extractedData.tacticalSummary) && extractedData.tacticalSummary.map((tag: string) => (
                                                             <span key={tag} className="text-[9px] px-2 py-0.5 bg-blue-500 text-white rounded-full font-bold">
                                                                 {tag}
                                                             </span>
@@ -747,7 +747,7 @@ const AIAssistantPage = ({ onAdd, warrants }: AIAssistantPageProps) => {
                                                         <span className="text-[10px] uppercase font-bold text-orange-600">Checklist de Busca (IA)</span>
                                                     </div>
                                                     <div className="space-y-1">
-                                                        {extractedData.searchChecklist.map((item: string) => (
+                                                        {Array.isArray(extractedData.searchChecklist) && extractedData.searchChecklist.map((item: string) => (
                                                             <div key={item} className="flex items-center gap-2 text-[10px] text-orange-700 dark:text-orange-400">
                                                                 <div className="w-1.5 h-1.5 bg-orange-400 rounded-full" />
                                                                 {item}
