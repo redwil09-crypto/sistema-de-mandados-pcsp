@@ -367,15 +367,36 @@ Equipe de Capturas - DIG / PCSP
         }
     };
 
-    const handleDownloadReportPDF = () => {
+    const handleDownloadReportPDF = async () => {
         const doc = new jsPDF();
         const text = getReportText();
         const splitText = doc.splitTextToSize(text, 180);
         doc.setFont('courier', 'normal');
         doc.setFontSize(10);
         doc.text(splitText, 15, 20);
+
+        // Save locally
         doc.save(`Relatorio_DIG_${data.name.replace(/\s+/g, '_')}.pdf`);
         toast.success("PDF do relatório baixado!");
+
+        // Auto-save to attachments
+        const pdfBlob = doc.output('blob');
+        const pdfFile = new File([pdfBlob], `Relatorio_Diligencia_${Date.now()}.pdf`, { type: 'application/pdf' });
+
+        const toastId = toast.loading("Salvando relatório no prontuário...");
+        try {
+            const path = `reports/${data.id}/${Date.now()}_Relatorio_Diligencia.pdf`;
+            const uploadedPath = await uploadFile(pdfFile, path);
+            if (uploadedPath) {
+                const url = getPublicUrl(uploadedPath);
+                const currentAttachments = data.attachments || [];
+                await onUpdate(data.id, { attachments: [...currentAttachments, url] });
+                toast.success("Relatório anexado ao histórico!", { id: toastId });
+            }
+        } catch (err) {
+            console.error("Erro ao auto-salvar relatório:", err);
+            toast.error("Erro ao salvar relatório no banco.", { id: toastId });
+        }
     };
 
     const handleAttachFile = async (e: React.ChangeEvent<HTMLInputElement>, type: 'reports' | 'attachments' | 'ifoodDocs') => {
@@ -687,6 +708,26 @@ Equipe de Capturas - DIG / PCSP
 
             toast.success(`Relatório Unificado de ${data.name} gerado com sucesso!`);
             doc.save(`Relatorio_Unificado_DIG_${data.name.replace(/\s+/g, '_')}.pdf`);
+
+            // Auto-save to attachments
+            const pdfBlob = doc.output('blob');
+            const pdfFile = new File([pdfBlob], `Ficha_Completa_${Date.now()}.pdf`, { type: 'application/pdf' });
+
+            const toastId = toast.loading("Sincronizando ficha no banco de dados...");
+            try {
+                const path = `reports/${data.id}/${Date.now()}_Ficha_Completa.pdf`;
+                const uploadedPath = await uploadFile(pdfFile, path);
+                if (uploadedPath) {
+                    const url = getPublicUrl(uploadedPath);
+                    const currentAttachments = data.attachments || [];
+                    await onUpdate(data.id, { attachments: [...currentAttachments, url] });
+                    toast.success("Ficha Operacional salva no prontuário!", { id: toastId });
+                }
+            } catch (err) {
+                console.error("Erro ao auto-salvar ficha:", err);
+                toast.error("Não foi possível salvar a ficha no banco.", { id: toastId });
+            }
+
         } catch (error) {
             console.error("Erro ao gerar PDF:", error);
             toast.error("Erro ao montar PDF. Verifique se a foto está acessível.");
@@ -1462,6 +1503,80 @@ Equipe de Capturas - DIG / PCSP
                     </div>
                 </div>
 
+                {/* Dossiê Técnico Section */}
+                <div className="bg-surface-light dark:bg-surface-dark p-4 rounded-xl shadow-sm border border-border-light dark:border-border-dark">
+                    <div className="flex flex-wrap justify-between items-center gap-3 mb-4">
+                        <div>
+                            <h3 className="font-bold text-text-light dark:text-text-dark flex items-center gap-2">
+                                <FileCheck size={18} className="text-indigo-600" /> Dossiê Técnico de Inteligência
+                            </h3>
+                            <p className="text-[10px] text-text-secondary-light dark:text-text-secondary-dark uppercase tracking-wider font-bold">
+                                Documentos Gerados e Sincronizados
+                            </p>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                            <label className="bg-amber-600 hover:bg-amber-700 text-white text-[9px] font-bold px-2 py-1.5 rounded-lg flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer shadow-sm">
+                                <Plus size={12} /> IFOOD
+                                <input type="file" className="hidden" onChange={(e) => handleAttachFile(e, 'ifoodDocs')} disabled={isUploadingFile} />
+                            </label>
+                            <label className="bg-blue-600 hover:bg-blue-700 text-white text-[9px] font-bold px-2 py-1.5 rounded-lg flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer shadow-sm">
+                                <Plus size={12} /> RELATÓRIO
+                                <input type="file" className="hidden" onChange={(e) => handleAttachFile(e, 'reports')} disabled={isUploadingFile} />
+                            </label>
+                            <label className="bg-gray-600 hover:bg-gray-700 text-white text-[9px] font-bold px-2 py-1.5 rounded-lg flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer shadow-sm">
+                                <Plus size={12} /> ANEXO
+                                <input type="file" className="hidden" onChange={(e) => handleAttachFile(e, 'attachments')} disabled={isUploadingFile} />
+                            </label>
+                        </div>
+                    </div>
+
+                    {data.attachments && data.attachments.length > 0 ? (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            {data.attachments.map((doc, idx) => {
+                                const isUrl = doc.startsWith('http');
+                                const isIfood = doc.includes('/ifoodDocs/');
+                                const isReport = doc.includes('/reports/');
+                                const fileName = doc.split('/').pop()?.split('_').slice(1).join('_') || `Documento_${idx + 1}.pdf`;
+
+                                return (
+                                    <div
+                                        key={idx}
+                                        onClick={() => isUrl ? window.open(doc, '_blank') : null}
+                                        className={`flex items-center gap-3 p-3 rounded-xl border transition-all cursor-pointer active:scale-95 hover:border-primary/50 group ${isIfood ? 'bg-amber-50/50 border-amber-200 dark:bg-amber-900/10 dark:border-amber-900/30' :
+                                            isReport ? 'bg-indigo-50/50 border-indigo-200 dark:bg-indigo-900/10 dark:border-indigo-900/30' :
+                                                'bg-gray-50 border-gray-100 dark:bg-white/5 dark:border-white/10'
+                                            }`}
+                                    >
+                                        <div className={`p-2 rounded-lg ${isIfood ? 'bg-amber-500 text-white' :
+                                            isReport ? 'bg-indigo-500 text-white' :
+                                                'bg-gray-400 text-white'
+                                            }`}>
+                                            {isIfood ? <Zap size={16} /> : <FileText size={16} />}
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <p className={`text-[11px] font-bold truncate ${isIfood ? 'text-amber-900 dark:text-amber-200' :
+                                                isReport ? 'text-indigo-900 dark:text-indigo-200' :
+                                                    'text-text-light dark:text-text-dark'
+                                                }`}>
+                                                {isIfood ? 'OFÍCIO IFOOD' : isReport ? 'RELATÓRIO PDF' : 'ANEXO'}
+                                            </p>
+                                            <p className="text-[9px] text-text-secondary-light dark:text-text-secondary-dark truncate opacity-70">
+                                                {fileName}
+                                            </p>
+                                        </div>
+                                        <ChevronRight size={14} className="opacity-30 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    ) : (
+                        <div className="text-center py-6 border-2 border-dashed border-border-light dark:border-border-dark rounded-xl">
+                            <Paperclip size={24} className="mx-auto text-gray-300 mb-2" />
+                            <p className="text-xs text-text-secondary-light">Nenhum documento gerado para este alvo.</p>
+                        </div>
+                    )}
+                </div>
+
                 <div className="bg-surface-light dark:bg-surface-dark p-4 rounded-xl shadow-sm border border-border-light dark:border-border-dark">
                     <div className="flex justify-between items-center mb-3">
                         <h3 className="font-bold text-text-light dark:text-text-dark flex items-center gap-2">
@@ -1526,666 +1641,514 @@ Equipe de Capturas - DIG / PCSP
                             />
                         </div>
 
-                        {data.attachments && data.attachments.some(doc => doc.includes('/ifoodDocs/')) && (
-                            <div className="mt-4 pt-4 border-t border-border-light dark:border-border-dark">
-                                <p className="text-[10px] text-text-secondary-light dark:text-text-secondary-dark uppercase font-bold mb-2">Ofícios iFood Anexados</p>
-                                <ul className="space-y-2">
-                                    {data.attachments
-                                        .filter(doc => doc.includes('/ifoodDocs/'))
-                                        .map((doc, idx) => {
-                                            const isUrl = doc.startsWith('http');
-                                            return (
-                                                <li key={idx} className="flex items-center justify-between p-2 bg-amber-50 dark:bg-amber-900/10 rounded-lg border border-amber-200 dark:border-amber-900/30 group hover:border-amber-500/50 transition-colors">
-                                                    <div className="flex items-center gap-2 overflow-hidden flex-1 cursor-pointer"
-                                                        onClick={() => isUrl ? window.open(doc, '_blank') : toast.info(`Referência: ${doc}`)}>
-                                                        <Paperclip size={14} className="text-amber-600 shrink-0" />
-                                                        <span className="text-xs font-medium text-amber-800 dark:text-amber-300 truncate">
-                                                            {doc.split('/').pop()?.split('_').slice(1).join('_') || `Ofício iFood ${idx + 1}`}
-                                                        </span>
-                                                    </div>
-                                                    {isUrl && (
-                                                        <a href={doc} target="_blank" rel="noopener noreferrer" className="text-[10px] font-bold text-amber-700 dark:text-amber-400 hover:underline bg-amber-100 dark:bg-amber-900/30 px-2 py-1 rounded">
-                                                            ABRIR
-                                                        </a>
-                                                    )}
-                                                </li>
-                                            );
-                                        })}
-                                </ul>
+                        {/* Document links were here, now moved and handled by Dossier Técnico */}
+                    </div>
+                </div>
+
+            </div>
+
+            {data.tacticalSummary && data.tacticalSummary.length > 0 && (
+                <div className="bg-red-50 dark:bg-slate-900 border border-red-100 dark:border-indigo-500/30 p-4 rounded-xl shadow-sm overflow-hidden relative">
+                    <div className="absolute top-0 right-0 p-2 opacity-10">
+                        <ShieldAlert size={60} />
+                    </div>
+                    <h3 className="font-bold text-red-700 dark:text-indigo-400 mb-3 flex items-center gap-2 relative z-10">
+                        <Bot size={18} className="text-indigo-500" /> Inteligência Analítica (IA)
+                    </h3>
+
+                    <div className="space-y-4 relative z-10">
+                        <div>
+                            <p className="text-[10px] font-black uppercase text-slate-500 mb-2 tracking-widest">Sinais Táticos Coletados</p>
+                            <div className="flex flex-wrap gap-2">
+                                {data.tacticalSummary.map((tag, idx) => (
+                                    <span key={idx} className="bg-red-100 text-red-700 dark:bg-indigo-500/10 dark:text-indigo-300 px-3 py-1 rounded-full text-xs font-bold border border-red-200 dark:border-indigo-500/20">
+                                        {tag}
+                                    </span>
+                                ))}
+                            </div>
+                        </div>
+
+                        {aiTimeSuggestion && (
+                            <div className="bg-white/50 dark:bg-white/5 p-3 rounded-xl border border-white/10">
+                                <div className="flex justify-between items-center mb-1">
+                                    <span className="text-[10px] font-bold text-slate-400 uppercase">Sugestão de Janela Operacional</span>
+                                    <span className={`text-[9px] font-black px-1.5 py-0.5 rounded ${aiTimeSuggestion.confidence === 'Muito Alta' ? 'bg-emerald-500 text-white' : 'bg-indigo-500 text-white'}`}>
+                                        CONFIANÇA: {aiTimeSuggestion.confidence.toUpperCase()}
+                                    </span>
+                                </div>
+                                <p className="text-lg font-black text-indigo-600 dark:text-indigo-400">{aiTimeSuggestion.suggestion}</p>
+                                <p className="text-[10px] text-slate-500 mt-1"><b>RACIOCÍNIO:</b> {aiTimeSuggestion.reason}</p>
                             </div>
                         )}
-                    </div>
-                </div>
 
-                <div className="grid grid-cols-1 gap-4">
-                    <div className="bg-surface-light dark:bg-surface-dark p-4 rounded-xl shadow-sm border border-border-light dark:border-border-dark">
-                        <h3 className="font-bold text-text-light dark:text-text-dark mb-3 flex items-center gap-2">
-                            <FileCheck size={18} className="text-primary" /> Relatórios
-                        </h3>
-                        <div className="flex flex-wrap gap-2 justify-end mb-3">
-                            <label className="bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-all active:scale-95 shadow-lg shadow-blue-500/20 cursor-pointer">
-                                <Plus size={14} />
-                                ANEXAR RELATÓRIO
-                                <input
-                                    type="file"
-                                    className="hidden"
-                                    onChange={(e) => handleAttachFile(e, 'reports')}
-                                    disabled={isUploadingFile}
-                                />
-                            </label>
-                            <button
-                                onClick={handleOpenCapturasModal}
-                                className="bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-all active:scale-95 shadow-lg shadow-indigo-500/20"
-                            >
-                                <FileText size={14} />
-                                GERAR RELATÓRIO CAPTURAS
-                            </button>
-                        </div>
-                        {data.attachments && data.attachments.some(report => report.includes('/reports/')) ? (
-                            <ul className="space-y-2">
-                                {data.attachments
-                                    .filter(report => report.includes('/reports/'))
-                                    .map((report, idx) => {
-                                        const isUrl = report.startsWith('http');
-                                        return (
-                                            <li key={idx}
-                                                className="flex items-center justify-between p-2 bg-gray-50 dark:bg-white/5 rounded-lg border border-border-light dark:border-border-dark group hover:border-primary/50 transition-colors"
-                                            >
-                                                <div className="flex items-center gap-2 overflow-hidden flex-1 cursor-pointer"
-                                                    onClick={() => isUrl ? window.open(report, '_blank') : toast.info(`Arquivo de referência: ${report}. Anexe o PDF para visualizar.`)}>
-                                                    <FileText size={14} className="text-primary shrink-0" />
-                                                    <div className="flex flex-col truncate">
-                                                        <span className="text-xs font-bold text-text-light dark:text-text-dark whitespace-nowrap">Relatório #{idx + 1}</span>
-                                                        <span className="text-[9px] text-text-secondary-light truncate">
-                                                            {report.split('/').pop()?.split('_').pop() || report}
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                                {isUrl ? (
-                                                    <a
-                                                        href={report}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        className="text-[10px] font-bold text-primary hover:underline bg-primary/10 px-2 py-1 rounded shrink-0"
-                                                    >
-                                                        VER PDF
-                                                    </a>
-                                                ) : (
-                                                    <span className="text-[9px] text-gray-400 font-medium">REFERÊNCIA</span>
-                                                )}
-                                            </li>
-                                        );
-                                    })}
-                            </ul>
-                        ) : (
-                            <p className="text-xs text-gray-400">Nenhum relatório.</p>
-                        )}
-                    </div>
-
-                    <div className="bg-surface-light dark:bg-surface-dark p-4 rounded-xl shadow-sm border border-border-light dark:border-border-dark">
-                        <div className="flex justify-between items-center mb-3">
-                            <h3 className="font-bold text-text-light dark:text-text-dark flex items-center gap-2">
-                                <Paperclip size={18} className="text-primary" /> Anexos Gerais
-                            </h3>
-                            <label htmlFor="detail-attach-upload" className="bg-gray-600 hover:bg-gray-700 text-white text-[10px] font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-all active:scale-95 shadow-lg shadow-gray-500/20 cursor-pointer">
-                                <Plus size={14} />
-                                ANEXAR
-                                <input
-                                    id="detail-attach-upload"
-                                    type="file"
-                                    className="hidden"
-                                    onChange={(e) => handleAttachFile(e, 'attachments')}
-                                    disabled={isUploadingFile}
-                                />
-                            </label>
-                        </div>
-                        {data.attachments && data.attachments.filter(att =>
-                            !(data.reports || []).includes(att) &&
-                            !att.includes('/ifoodDocs/')
-                        ).length > 0 ? (
-                            <ul className="space-y-2">
-                                {data.attachments
-                                    .filter(att =>
-                                        !(data.reports || []).includes(att) &&
-                                        !att.includes('/ifoodDocs/')
-                                    )
-                                    .map((att, idx) => {
-                                        const isUrl = att.startsWith('http');
-                                        return (
-                                            <li key={idx}
-                                                className="flex items-center justify-between p-2 bg-gray-50 dark:bg-white/5 rounded-lg border border-border-light dark:border-border-dark group hover:border-primary/50 transition-colors"
-                                            >
-                                                <div className="flex items-center gap-2 overflow-hidden flex-1 cursor-pointer"
-                                                    onClick={() => isUrl ? window.open(att, '_blank') : toast.info(`Arquivo de referência: ${att}. Anexe o PDF para visualizar.`)}>
-                                                    <Paperclip size={14} className="text-primary shrink-0" />
-                                                    <div className="flex flex-col truncate">
-                                                        <span className="text-xs font-medium text-text-light dark:text-text-dark truncate">
-                                                            {att.split('/').pop()?.split('_').slice(1).join('_') || att}
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                                {isUrl ? (
-                                                    <a
-                                                        href={att}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        className="text-[10px] font-bold text-primary hover:underline bg-primary/10 px-2 py-1 rounded shrink-0"
-                                                    >
-                                                        ABRIR
-                                                    </a>
-                                                ) : (
-                                                    <span className="text-[9px] text-gray-400 font-medium">REFERÊNCIA</span>
-                                                )}
-                                            </li>
-                                        );
-                                    })}
-                            </ul>
-                        ) : (
-                            <p className="text-xs text-gray-400">Nenhum anexo geral.</p>
-                        )}
-                    </div>
-                </div>
-
-                {data.tacticalSummary && data.tacticalSummary.length > 0 && (
-                    <div className="bg-red-50 dark:bg-slate-900 border border-red-100 dark:border-indigo-500/30 p-4 rounded-xl shadow-sm overflow-hidden relative">
-                        <div className="absolute top-0 right-0 p-2 opacity-10">
-                            <ShieldAlert size={60} />
-                        </div>
-                        <h3 className="font-bold text-red-700 dark:text-indigo-400 mb-3 flex items-center gap-2 relative z-10">
-                            <Bot size={18} className="text-indigo-500" /> Inteligência Analítica (IA)
-                        </h3>
-
-                        <div className="space-y-4 relative z-10">
+                        <Link
+                            to="/intel"
+                            className="flex items-center justify-between bg-indigo-600 hover:bg-indigo-700 text-white p-3 rounded-xl transition-all active:scale-[0.98] group"
+                        >
                             <div>
-                                <p className="text-[10px] font-black uppercase text-slate-500 mb-2 tracking-widest">Sinais Táticos Coletados</p>
-                                <div className="flex flex-wrap gap-2">
-                                    {data.tacticalSummary.map((tag, idx) => (
-                                        <span key={idx} className="bg-red-100 text-red-700 dark:bg-indigo-500/10 dark:text-indigo-300 px-3 py-1 rounded-full text-xs font-bold border border-red-200 dark:border-indigo-500/20">
-                                            {tag}
-                                        </span>
-                                    ))}
-                                </div>
+                                <p className="font-bold text-sm">Ver no Radar de Inteligência</p>
+                                <p className="text-[10px] opacity-80 uppercase font-bold">Análise de Vínculos e Mapa de Calor</p>
                             </div>
+                            <ChevronRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                        </Link>
+                    </div>
+                </div>
+            )}
 
-                            {aiTimeSuggestion && (
-                                <div className="bg-white/50 dark:bg-white/5 p-3 rounded-xl border border-white/10">
-                                    <div className="flex justify-between items-center mb-1">
-                                        <span className="text-[10px] font-bold text-slate-400 uppercase">Sugestão de Janela Operacional</span>
-                                        <span className={`text-[9px] font-black px-1.5 py-0.5 rounded ${aiTimeSuggestion.confidence === 'Muito Alta' ? 'bg-emerald-500 text-white' : 'bg-indigo-500 text-white'}`}>
-                                            CONFIANÇA: {aiTimeSuggestion.confidence.toUpperCase()}
-                                        </span>
-                                    </div>
-                                    <p className="text-lg font-black text-indigo-600 dark:text-indigo-400">{aiTimeSuggestion.suggestion}</p>
-                                    <p className="text-[10px] text-slate-500 mt-1"><b>RACIOCÍNIO:</b> {aiTimeSuggestion.reason}</p>
-                                </div>
-                            )}
+            <div className="bg-surface-light dark:bg-surface-dark p-4 rounded-xl shadow-sm border border-border-light dark:border-border-dark">
+                <h3 className="font-bold text-text-light dark:text-text-dark flex items-center gap-2">
+                    <History size={18} className="text-primary" /> Linha do Tempo e Relatório
+                </h3>
 
-                            <Link
-                                to="/intel"
-                                className="flex items-center justify-between bg-indigo-600 hover:bg-indigo-700 text-white p-3 rounded-xl transition-all active:scale-[0.98] group"
-                            >
-                                <div>
-                                    <p className="font-bold text-sm">Ver no Radar de Inteligência</p>
-                                    <p className="text-[10px] opacity-80 uppercase font-bold">Análise de Vínculos e Mapa de Calor</p>
-                                </div>
-                                <ChevronRight size={18} className="group-hover:translate-x-1 transition-transform" />
-                            </Link>
+                {isDraftOpen && (
+                    <div className="mb-6 p-4 bg-gray-100 dark:bg-white/5 border border-primary/20 rounded-xl animate-in zoom-in-95 duration-200">
+                        <div className="flex flex-wrap justify-between items-center gap-2 mb-3">
+                            <span className="text-[10px] font-bold uppercase text-primary">Pré-visualização do Relatório</span>
+                            <div className="flex gap-2">
+                                <button onClick={handleCopyReportDraft} className="text-[9px] bg-slate-500 text-white px-2 py-1.5 rounded-lg shadow-sm font-bold flex items-center gap-1 active:scale-95 transition-all">
+                                    <Copy size={12} /> COPIAR
+                                </button>
+                                <button onClick={handleDownloadReportPDF} className="text-[9px] bg-indigo-600 text-white px-2 py-1.5 rounded-lg shadow-sm font-bold flex items-center gap-1 active:scale-95 transition-all">
+                                    <FileText size={12} /> BAIXAR PDF
+                                </button>
+                                <button onClick={handlePrintReport} className="text-[9px] bg-emerald-600 text-white px-2 py-1.5 rounded-lg shadow-sm font-bold flex items-center gap-1 active:scale-95 transition-all">
+                                    <Printer size={12} /> IMPRIMIR
+                                </button>
+                            </div>
+                        </div>
+                        <div className="p-3 bg-white dark:bg-black/40 rounded-lg border border-border-light dark:border-border-dark max-h-80 overflow-y-auto">
+                            <pre className="text-[10px] font-mono whitespace-pre-wrap leading-tight text-text-light dark:text-text-dark">
+                                {getReportText()}
+                            </pre>
                         </div>
                     </div>
                 )}
 
-                <div className="bg-surface-light dark:bg-surface-dark p-4 rounded-xl shadow-sm border border-border-light dark:border-border-dark">
-                    <h3 className="font-bold text-text-light dark:text-text-dark flex items-center gap-2">
-                        <History size={18} className="text-primary" /> Linha do Tempo e Relatório
-                    </h3>
+                <div className="mb-6 bg-gray-100 dark:bg-white/5 p-4 rounded-xl border border-border-light dark:border-border-dark shadow-inner">
+                    <span className="text-[10px] font-bold text-text-secondary-light uppercase mb-2 block">Nova Diligência / Modus Operandi</span>
+                    <div className="flex gap-2 mb-3">
+                        {(['observation', 'attempt', 'intelligence'] as const).map((type) => (
+                            <button
+                                key={type}
+                                onClick={() => setDiligenceType(type)}
+                                className={`flex-1 py-3 rounded-xl text-[10px] font-bold uppercase border-2 transition-all flex flex-col items-center justify-center gap-1.5 ${diligenceType === type
+                                    ? type === 'observation' ? 'bg-blue-600 border-blue-600 text-white shadow-lg' :
+                                        type === 'attempt' ? 'bg-orange-600 border-orange-600 text-white shadow-lg' :
+                                            'bg-purple-600 border-purple-600 text-white shadow-lg'
+                                    : 'bg-white dark:bg-surface-dark border-border-light text-text-secondary-light hover:border-gray-400'
+                                    }`}
+                            >
+                                {type === 'observation' && <Eye size={18} />}
+                                {type === 'attempt' && <RotateCcw size={18} />}
+                                {type === 'intelligence' && <ShieldAlert size={18} />}
+                                <span className="leading-none">{type === 'observation' ? 'Visita' : type === 'attempt' ? 'Insucesso' : 'Intel'}</span>
+                            </button>
+                        ))}
+                    </div>
+                    <div>
+                        <div className="relative">
+                            <textarea
+                                value={newDiligence}
+                                onChange={(e) => setNewDiligence(e.target.value)}
+                                placeholder="Relate o que foi observado, pessoas que falaram com a equipe, ou inteligência obtida..."
+                                className="w-full bg-white dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-xl p-3 pr-12 text-sm min-h-[100px] outline-none focus:ring-2 focus:ring-primary shadow-sm"
+                            />
+                            <div className="absolute right-3 top-3">
+                                <VoiceInput onTranscript={(text) => setNewDiligence(text)} currentValue={newDiligence} />
+                            </div>
+                        </div>
+                        <button
+                            onClick={handleAddDiligence}
+                            disabled={!newDiligence.trim()}
+                            className="w-full mt-2 py-3 bg-primary text-white rounded-xl shadow-lg active:scale-95 disabled:opacity-50 transition-all font-bold text-xs flex items-center justify-center gap-2"
+                        >
+                            <PlusCircle size={18} /> INSERIR NA LINHA DO TEMPO
+                        </button>
+                    </div>
+                </div>
 
-                    {isDraftOpen && (
-                        <div className="mb-6 p-4 bg-gray-100 dark:bg-white/5 border border-primary/20 rounded-xl animate-in zoom-in-95 duration-200">
-                            <div className="flex flex-wrap justify-between items-center gap-2 mb-3">
-                                <span className="text-[10px] font-bold uppercase text-primary">Pré-visualização do Relatório</span>
-                                <div className="flex gap-2">
-                                    <button onClick={handleCopyReportDraft} className="text-[9px] bg-slate-500 text-white px-2 py-1.5 rounded-lg shadow-sm font-bold flex items-center gap-1 active:scale-95 transition-all">
-                                        <Copy size={12} /> COPIAR
-                                    </button>
-                                    <button onClick={handleDownloadReportPDF} className="text-[9px] bg-indigo-600 text-white px-2 py-1.5 rounded-lg shadow-sm font-bold flex items-center gap-1 active:scale-95 transition-all">
-                                        <FileText size={12} /> BAIXAR PDF
-                                    </button>
-                                    <button onClick={handlePrintReport} className="text-[9px] bg-emerald-600 text-white px-2 py-1.5 rounded-lg shadow-sm font-bold flex items-center gap-1 active:scale-95 transition-all">
-                                        <Printer size={12} /> IMPRIMIR
-                                    </button>
+                <div className="space-y-4 relative before:absolute before:left-[17px] before:top-2 before:bottom-0 before:w-1 before:bg-primary/10">
+                    {data.diligentHistory && data.diligentHistory.length > 0 ? (
+                        [...data.diligentHistory].reverse().map((h) => (
+                            <div key={h.id} className="relative pl-12 animate-in slide-in-from-left-4">
+                                <div className={`absolute left-0 top-1 w-9 h-9 rounded-full border-4 border-surface-light dark:border-surface-dark shadow-sm flex items-center justify-center ${h.type === 'observation' ? 'bg-blue-500' : h.type === 'attempt' ? 'bg-amber-500' : 'bg-purple-600'
+                                    }`}>
+                                    {h.type === 'observation' ? <Eye size={16} className="text-white" /> : h.type === 'attempt' ? <RotateCcw size={16} className="text-white" /> : <ShieldAlert size={16} className="text-white" />}
+                                </div>
+                                <div className="bg-white dark:bg-surface-dark p-4 rounded-xl border border-border-light dark:border-border-dark shadow-sm group hover:border-primary/30 transition-colors">
+                                    <div className="flex justify-between items-center mb-2">
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-[11px] font-bold text-primary">{new Date(h.date).toLocaleDateString('pt-BR')}</span>
+                                            <span className="text-[10px] text-text-secondary-light">{new Date(h.date).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>
+                                        </div>
+                                        <button
+                                            onClick={() => handleDeleteDiligence(h.id)}
+                                            className="opacity-0 group-hover:opacity-100 p-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-lg transition-all"
+                                        >
+                                            <Trash2 size={14} />
+                                        </button>
+                                    </div>
+                                    <p className="text-sm text-text-light dark:text-text-dark leading-relaxed font-medium">{h.notes}</p>
                                 </div>
                             </div>
-                            <div className="p-3 bg-white dark:bg-black/40 rounded-lg border border-border-light dark:border-border-dark max-h-80 overflow-y-auto">
-                                <pre className="text-[10px] font-mono whitespace-pre-wrap leading-tight text-text-light dark:text-text-dark">
-                                    {getReportText()}
-                                </pre>
-                            </div>
+                        ))
+                    ) : (
+                        <div className="text-center py-10 bg-gray-50/50 dark:bg-black/10 rounded-2xl border-2 border-dashed border-border-light dark:border-border-dark">
+                            <MessageSquare size={40} className="mx-auto text-gray-300 dark:text-gray-700 mb-3" />
+                            <p className="text-xs text-text-secondary-light font-bold">Nenhum registro tático disponível para este alvo.</p>
+                            <p className="text-[10px] text-text-secondary-light/60 mt-1">Use o campo acima para registrar diligências.</p>
                         </div>
                     )}
+                </div>
+            </div>
 
-                    <div className="mb-6 bg-gray-100 dark:bg-white/5 p-4 rounded-xl border border-border-light dark:border-border-dark shadow-inner">
-                        <span className="text-[10px] font-bold text-text-secondary-light uppercase mb-2 block">Nova Diligência / Modus Operandi</span>
-                        <div className="flex gap-2 mb-3">
-                            {(['observation', 'attempt', 'intelligence'] as const).map((type) => (
-                                <button
-                                    key={type}
-                                    onClick={() => setDiligenceType(type)}
-                                    className={`flex-1 py-3 rounded-xl text-[10px] font-bold uppercase border-2 transition-all flex flex-col items-center justify-center gap-1.5 ${diligenceType === type
-                                        ? type === 'observation' ? 'bg-blue-600 border-blue-600 text-white shadow-lg' :
-                                            type === 'attempt' ? 'bg-orange-600 border-orange-600 text-white shadow-lg' :
-                                                'bg-purple-600 border-purple-600 text-white shadow-lg'
-                                        : 'bg-white dark:bg-surface-dark border-border-light text-text-secondary-light hover:border-gray-400'
-                                        }`}
-                                >
-                                    {type === 'observation' && <Eye size={18} />}
-                                    {type === 'attempt' && <RotateCcw size={18} />}
-                                    {type === 'intelligence' && <ShieldAlert size={18} />}
-                                    <span className="leading-none">{type === 'observation' ? 'Visita' : type === 'attempt' ? 'Insucesso' : 'Intel'}</span>
-                                </button>
-                            ))}
-                        </div>
-                        <div>
-                            <div className="relative">
-                                <textarea
-                                    value={newDiligence}
-                                    onChange={(e) => setNewDiligence(e.target.value)}
-                                    placeholder="Relate o que foi observado, pessoas que falaram com a equipe, ou inteligência obtida..."
-                                    className="w-full bg-white dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-xl p-3 pr-12 text-sm min-h-[100px] outline-none focus:ring-2 focus:ring-primary shadow-sm"
+            <div className="bg-surface-light dark:bg-surface-dark p-4 rounded-xl shadow-sm border border-border-light dark:border-border-dark">
+                <h3 className="font-bold text-text-light dark:text-text-dark mb-3 flex items-center gap-2">
+                    <MessageSquare size={18} className="text-primary" /> Observações
+                </h3>
+                <textarea
+                    className="w-full bg-gray-50 dark:bg-white/5 border border-border-light dark:border-border-dark rounded-lg p-3 text-sm text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none resize-none min-h-[120px]"
+                    value={localData.observation || ''}
+                    onChange={e => handleFieldChange('observation', e.target.value)}
+                    placeholder="Adicione observações importantes aqui..."
+                />
+            </div>
+        </div>
+
+            {/* Sticky Save Changes Bar */ }
+    {
+        hasChanges && (
+            <div className="fixed bottom-[100px] left-4 right-4 p-4 bg-primary/95 dark:bg-primary/90 backdrop-blur-md rounded-2xl z-[60] flex gap-3 animate-in slide-in-from-bottom duration-300 shadow-2xl">
+                <button
+                    onClick={handleCancelEdits}
+                    className="flex-1 py-3 px-4 rounded-xl font-bold bg-white/20 text-white hover:bg-white/30 transition-colors"
+                >
+                    Descartar
+                </button>
+                <button
+                    onClick={() => setIsConfirmSaveOpen(true)}
+                    className="flex-1 py-3 px-4 rounded-xl font-bold bg-white text-primary shadow-lg hover:bg-gray-100 transition-colors flex items-center justify-center gap-2"
+                >
+                    <CheckCircle size={20} />
+                    SALVAR ALTERAÇÕES
+                </button>
+            </div>
+        )
+    }
+
+    {
+        isAdmin && (
+            <div className="bg-surface-light dark:bg-surface-dark p-4 rounded-xl shadow-sm border border-border-light dark:border-border-dark mt-4">
+                <h3 className="font-bold text-text-light dark:text-text-dark mb-3 flex items-center gap-2">
+                    <History size={18} className="text-primary" /> Histórico de Alterações (Admin)
+                </h3>
+                <WarrantAuditLog warrantId={data.id} />
+            </div>
+        )
+    }
+
+    {/* Modals */ }
+    <ConfirmModal
+        isOpen={isConfirmSaveOpen}
+        onCancel={() => setIsConfirmSaveOpen(false)}
+        onConfirm={handleSaveChanges}
+        title="Salvar Alterações"
+        message="Deseja salvar todas as modificações feitas nos detalhes deste mandado?"
+        confirmText="SALVAR AGORA"
+        cancelText="CANCELAR"
+        variant="primary"
+    />
+
+    {/* Fixed Bottom Action Bar */ }
+    <div className="fixed bottom-0 left-0 right-0 p-4 pb-6 bg-white/80 dark:bg-background-dark/80 backdrop-blur-lg border-t border-border-light dark:border-border-dark z-50 animate-in slide-in-from-bottom duration-300 shadow-[0_-4px_10px_rgba(0,0,0,0.05)]">
+        <div className="max-w-md mx-auto flex items-stretch gap-2">
+            <Link
+                to="/"
+                className="flex-1 min-w-0 flex flex-col items-center justify-center gap-1 p-2 rounded-xl bg-gray-500/10 text-gray-600 dark:text-gray-400 transition-all active:scale-95 touch-manipulation hover:bg-gray-500/20"
+            >
+                <Home size={18} />
+                <span className="text-[9px] font-bold uppercase truncate w-full text-center">Início</span>
+            </Link>
+
+            <Link
+                to={`/new-warrant?edit=${data.id}`}
+                className="flex-1 min-w-0 flex flex-col items-center justify-center gap-1 p-2 rounded-xl bg-primary/10 text-primary transition-all active:scale-95 touch-manipulation hover:bg-primary/20"
+            >
+                <Edit size={18} />
+                <span className="text-[9px] font-bold uppercase truncate w-full text-center">Editar</span>
+            </Link>
+
+
+            <button
+                onClick={data.status === 'CUMPRIDO' ? handleReopen : handleFinalize}
+                className={`flex-1 min-w-0 flex flex-col items-center justify-center gap-1 p-2 rounded-xl transition-all active:scale-95 touch-manipulation ${data.status === 'CUMPRIDO'
+                    ? 'bg-blue-600/10 text-blue-600 hover:bg-blue-600/20'
+                    : 'bg-green-600/10 text-green-600 hover:bg-green-600/20'
+                    }`}
+            >
+                {data.status === 'CUMPRIDO' ? <RotateCcw size={18} /> : <CheckCircle size={18} />}
+                <span className="text-[9px] font-bold uppercase truncate w-full text-center">{data.status === 'CUMPRIDO' ? 'REABRIR' : 'FECHAR'}</span>
+            </button>
+
+            <button
+                onClick={handleDownloadPDF}
+                className="flex-[2] min-w-0 flex flex-col items-center justify-center gap-1 p-2 rounded-xl bg-indigo-600 text-white shadow-lg shadow-indigo-500/20 transition-all active:scale-95 touch-manipulation hover:bg-indigo-700"
+            >
+                <Printer size={18} />
+                <span className="text-[9px] font-bold uppercase truncate w-full text-center">FICHA COMPLETA</span>
+            </button>
+
+            <button
+                onClick={handleDelete}
+                className="flex-1 min-w-0 flex flex-col items-center justify-center gap-1 p-2 rounded-xl bg-red-500/10 text-red-500 transition-all active:scale-95 touch-manipulation hover:bg-red-500/20"
+            >
+                <Trash2 size={18} />
+                <span className="text-[9px] font-bold uppercase truncate w-full text-center">APAGAR</span>
+            </button>
+        </div>
+    </div>
+
+    {
+        isReopenConfirmOpen && (
+            <ConfirmModal
+                isOpen={isReopenConfirmOpen}
+                title="Reabrir Mandado"
+                message="Deseja alterar o status deste mandado para EM ABERTO?"
+                onConfirm={handleConfirmReopen}
+                onCancel={() => setIsReopenConfirmOpen(false)}
+                confirmText="reabrir"
+                cancelText="cancelar"
+            />
+        )
+    }
+
+    {
+        tagToRemove && (
+            <ConfirmModal
+                isOpen={!!tagToRemove}
+                title="Remover Prioridade"
+                message={`Deseja remover a prioridade "${tagToRemove}" deste mandado e voltar ao normal?`}
+                onConfirm={handleConfirmRemoveTag}
+                onCancel={() => setTagToRemove(null)}
+                confirmText="Sim, Remover"
+                cancelText="Não"
+                variant="danger"
+            />
+        )
+    }
+    {
+        isDeleteConfirmOpen && (
+            <ConfirmModal
+                isOpen={isDeleteConfirmOpen}
+                title="Excluir Permanentemente"
+                message="TEM CERTEZA que deseja EXCLUIR este mandado permanentemente? Esta ação não pode ser desfeita."
+                onConfirm={handleConfirmDelete}
+                onCancel={() => setIsDeleteConfirmOpen(false)}
+                confirmText="Excluir"
+                variant="danger"
+            />
+        )
+    }
+
+    {
+        isFinalizeModalOpen && (
+            <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                <div className="bg-surface-light dark:bg-surface-dark rounded-xl w-full max-w-md shadow-2xl border border-border-light dark:border-border-dark animate-in fade-in zoom-in duration-200">
+                    <div className="p-6">
+                        <h3 className="text-xl font-bold text-text-light dark:text-text-dark mb-4">Finalizar Mandado</h3>
+
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark uppercase mb-1">Data do Cumprimento</label>
+                                <input
+                                    type="date"
+                                    value={finalizeFormData.date}
+                                    onChange={e => setFinalizeFormData({ ...finalizeFormData, date: e.target.value })}
+                                    className="w-full bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg p-3 text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none"
                                 />
-                                <div className="absolute right-3 top-3">
-                                    <VoiceInput onTranscript={(text) => setNewDiligence(text)} currentValue={newDiligence} />
-                                </div>
                             </div>
+
+                            <div>
+                                <label className="block text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark uppercase mb-1">Número do Relatório</label>
+                                <input
+                                    type="text"
+                                    value={finalizeFormData.reportNumber}
+                                    onChange={e => setFinalizeFormData({ ...finalizeFormData, reportNumber: e.target.value })}
+                                    placeholder="Ex: REL-2024/001"
+                                    className="w-full bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg p-3 text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark uppercase mb-1">Número de Ofício DIG</label>
+                                <input
+                                    type="text"
+                                    value={finalizeFormData.digOffice}
+                                    onChange={e => setFinalizeFormData({ ...finalizeFormData, digOffice: e.target.value })}
+                                    placeholder="Ex: 123/2024"
+                                    className="w-full bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg p-3 text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark uppercase mb-1">Resultado</label>
+                                <select
+                                    value={finalizeFormData.result}
+                                    onChange={e => setFinalizeFormData({ ...finalizeFormData, result: e.target.value })}
+                                    className="w-full bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg p-3 text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none"
+                                >
+                                    {(data.type?.toLowerCase().includes('busca') || data.type?.toLowerCase().includes('apreensão'))
+                                        ? ['Apreendido', 'Fora de Validade', 'Negativo', 'Encaminhado', 'Contra', 'Ofício Localiza', 'Óbito'].map(opt => (
+                                            <option key={opt} value={opt}>{opt}</option>
+                                        ))
+                                        : [
+                                            'PRESO',
+                                            'NEGATIVO',
+                                            'ENCAMINHADO',
+                                            'ÓBITO',
+                                            'CONTRA',
+                                            'LOCALIZADO',
+                                            'OFÍCIO',
+                                            'CUMPRIDO NO FÓRUM'
+                                        ].map(opt => (
+                                            <option key={opt} value={opt}>{opt}</option>
+                                        ))
+                                    }
+                                </select>
+                            </div>
+                        </div>
+
+                        <div className="flex gap-3 mt-8">
                             <button
-                                onClick={handleAddDiligence}
-                                disabled={!newDiligence.trim()}
-                                className="w-full mt-2 py-3 bg-primary text-white rounded-xl shadow-lg active:scale-95 disabled:opacity-50 transition-all font-bold text-xs flex items-center justify-center gap-2"
+                                onClick={() => setIsFinalizeModalOpen(false)}
+                                className="flex-1 py-3 px-4 rounded-xl font-bold bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:opacity-90 transition-opacity"
                             >
-                                <PlusCircle size={18} /> INSERIR NA LINHA DO TEMPO
+                                Cancelar
+                            </button>
+                            <button
+                                onClick={handleConfirmFinalize}
+                                className="flex-1 py-3 px-4 rounded-xl font-bold bg-green-600 text-white shadow-lg hover:bg-green-700 transition-colors flex items-center justify-center gap-2"
+                            >
+                                <CheckCircle size={20} />
+                                FECHAR
                             </button>
                         </div>
                     </div>
-
-                    <div className="space-y-4 relative before:absolute before:left-[17px] before:top-2 before:bottom-0 before:w-1 before:bg-primary/10">
-                        {data.diligentHistory && data.diligentHistory.length > 0 ? (
-                            [...data.diligentHistory].reverse().map((h) => (
-                                <div key={h.id} className="relative pl-12 animate-in slide-in-from-left-4">
-                                    <div className={`absolute left-0 top-1 w-9 h-9 rounded-full border-4 border-surface-light dark:border-surface-dark shadow-sm flex items-center justify-center ${h.type === 'observation' ? 'bg-blue-500' : h.type === 'attempt' ? 'bg-amber-500' : 'bg-purple-600'
-                                        }`}>
-                                        {h.type === 'observation' ? <Eye size={16} className="text-white" /> : h.type === 'attempt' ? <RotateCcw size={16} className="text-white" /> : <ShieldAlert size={16} className="text-white" />}
-                                    </div>
-                                    <div className="bg-white dark:bg-surface-dark p-4 rounded-xl border border-border-light dark:border-border-dark shadow-sm group hover:border-primary/30 transition-colors">
-                                        <div className="flex justify-between items-center mb-2">
-                                            <div className="flex items-center gap-2">
-                                                <span className="text-[11px] font-bold text-primary">{new Date(h.date).toLocaleDateString('pt-BR')}</span>
-                                                <span className="text-[10px] text-text-secondary-light">{new Date(h.date).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>
-                                            </div>
-                                            <button
-                                                onClick={() => handleDeleteDiligence(h.id)}
-                                                className="opacity-0 group-hover:opacity-100 p-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-lg transition-all"
-                                            >
-                                                <Trash2 size={14} />
-                                            </button>
-                                        </div>
-                                        <p className="text-sm text-text-light dark:text-text-dark leading-relaxed font-medium">{h.notes}</p>
-                                    </div>
-                                </div>
-                            ))
-                        ) : (
-                            <div className="text-center py-10 bg-gray-50/50 dark:bg-black/10 rounded-2xl border-2 border-dashed border-border-light dark:border-border-dark">
-                                <MessageSquare size={40} className="mx-auto text-gray-300 dark:text-gray-700 mb-3" />
-                                <p className="text-xs text-text-secondary-light font-bold">Nenhum registro tático disponível para este alvo.</p>
-                                <p className="text-[10px] text-text-secondary-light/60 mt-1">Use o campo acima para registrar diligências.</p>
-                            </div>
-                        )}
-                    </div>
-                </div>
-
-                <div className="bg-surface-light dark:bg-surface-dark p-4 rounded-xl shadow-sm border border-border-light dark:border-border-dark">
-                    <h3 className="font-bold text-text-light dark:text-text-dark mb-3 flex items-center gap-2">
-                        <MessageSquare size={18} className="text-primary" /> Observações
-                    </h3>
-                    <textarea
-                        className="w-full bg-gray-50 dark:bg-white/5 border border-border-light dark:border-border-dark rounded-lg p-3 text-sm text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none resize-none min-h-[120px]"
-                        value={localData.observation || ''}
-                        onChange={e => handleFieldChange('observation', e.target.value)}
-                        placeholder="Adicione observações importantes aqui..."
-                    />
                 </div>
             </div>
-
-            {/* Sticky Save Changes Bar */}
-            {
-                hasChanges && (
-                    <div className="fixed bottom-[100px] left-4 right-4 p-4 bg-primary/95 dark:bg-primary/90 backdrop-blur-md rounded-2xl z-[60] flex gap-3 animate-in slide-in-from-bottom duration-300 shadow-2xl">
-                        <button
-                            onClick={handleCancelEdits}
-                            className="flex-1 py-3 px-4 rounded-xl font-bold bg-white/20 text-white hover:bg-white/30 transition-colors"
-                        >
-                            Descartar
-                        </button>
-                        <button
-                            onClick={() => setIsConfirmSaveOpen(true)}
-                            className="flex-1 py-3 px-4 rounded-xl font-bold bg-white text-primary shadow-lg hover:bg-gray-100 transition-colors flex items-center justify-center gap-2"
-                        >
-                            <CheckCircle size={20} />
-                            SALVAR ALTERAÇÕES
-                        </button>
-                    </div>
-                )
-            }
-
-            {isAdmin && (
-                <div className="bg-surface-light dark:bg-surface-dark p-4 rounded-xl shadow-sm border border-border-light dark:border-border-dark mt-4">
-                    <h3 className="font-bold text-text-light dark:text-text-dark mb-3 flex items-center gap-2">
-                        <History size={18} className="text-primary" /> Histórico de Alterações (Admin)
-                    </h3>
-                    <WarrantAuditLog warrantId={data.id} />
-                </div>
-            )}
-
-            {/* Modals */}
-            <ConfirmModal
-                isOpen={isConfirmSaveOpen}
-                onCancel={() => setIsConfirmSaveOpen(false)}
-                onConfirm={handleSaveChanges}
-                title="Salvar Alterações"
-                message="Deseja salvar todas as modificações feitas nos detalhes deste mandado?"
-                confirmText="SALVAR AGORA"
-                cancelText="CANCELAR"
-                variant="primary"
-            />
-
-            {/* Fixed Bottom Action Bar */}
-            <div className="fixed bottom-0 left-0 right-0 p-4 pb-6 bg-white/80 dark:bg-background-dark/80 backdrop-blur-lg border-t border-border-light dark:border-border-dark z-50 animate-in slide-in-from-bottom duration-300 shadow-[0_-4px_10px_rgba(0,0,0,0.05)]">
-                <div className="max-w-md mx-auto flex items-stretch gap-2">
-                    <Link
-                        to="/"
-                        className="flex-1 min-w-0 flex flex-col items-center justify-center gap-1 p-2 rounded-xl bg-gray-500/10 text-gray-600 dark:text-gray-400 transition-all active:scale-95 touch-manipulation hover:bg-gray-500/20"
-                    >
-                        <Home size={18} />
-                        <span className="text-[9px] font-bold uppercase truncate w-full text-center">Início</span>
-                    </Link>
-
-                    <Link
-                        to={`/new-warrant?edit=${data.id}`}
-                        className="flex-1 min-w-0 flex flex-col items-center justify-center gap-1 p-2 rounded-xl bg-primary/10 text-primary transition-all active:scale-95 touch-manipulation hover:bg-primary/20"
-                    >
-                        <Edit size={18} />
-                        <span className="text-[9px] font-bold uppercase truncate w-full text-center">Editar</span>
-                    </Link>
-
-
+        )
+    }
+    {
+        isPhotoModalOpen && (
+            <div
+                className="fixed inset-0 z-[110] bg-black/95 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200"
+                onClick={() => setIsPhotoModalOpen(false)}
+            >
+                <div className="relative max-w-4xl w-full flex flex-col items-center">
                     <button
-                        onClick={data.status === 'CUMPRIDO' ? handleReopen : handleFinalize}
-                        className={`flex-1 min-w-0 flex flex-col items-center justify-center gap-1 p-2 rounded-xl transition-all active:scale-95 touch-manipulation ${data.status === 'CUMPRIDO'
-                            ? 'bg-blue-600/10 text-blue-600 hover:bg-blue-600/20'
-                            : 'bg-green-600/10 text-green-600 hover:bg-green-600/20'
-                            }`}
-                    >
-                        {data.status === 'CUMPRIDO' ? <RotateCcw size={18} /> : <CheckCircle size={18} />}
-                        <span className="text-[9px] font-bold uppercase truncate w-full text-center">{data.status === 'CUMPRIDO' ? 'REABRIR' : 'FECHAR'}</span>
-                    </button>
-
-                    <button
-                        onClick={handleDownloadPDF}
-                        className="flex-[2] min-w-0 flex flex-col items-center justify-center gap-1 p-2 rounded-xl bg-indigo-600 text-white shadow-lg shadow-indigo-500/20 transition-all active:scale-95 touch-manipulation hover:bg-indigo-700"
-                    >
-                        <Printer size={18} />
-                        <span className="text-[9px] font-bold uppercase truncate w-full text-center">FICHA COMPLETA</span>
-                    </button>
-
-                    <button
-                        onClick={handleDelete}
-                        className="flex-1 min-w-0 flex flex-col items-center justify-center gap-1 p-2 rounded-xl bg-red-500/10 text-red-500 transition-all active:scale-95 touch-manipulation hover:bg-red-500/20"
-                    >
-                        <Trash2 size={18} />
-                        <span className="text-[9px] font-bold uppercase truncate w-full text-center">APAGAR</span>
-                    </button>
-                </div>
-            </div>
-
-            {
-                isReopenConfirmOpen && (
-                    <ConfirmModal
-                        isOpen={isReopenConfirmOpen}
-                        title="Reabrir Mandado"
-                        message="Deseja alterar o status deste mandado para EM ABERTO?"
-                        onConfirm={handleConfirmReopen}
-                        onCancel={() => setIsReopenConfirmOpen(false)}
-                        confirmText="reabrir"
-                        cancelText="cancelar"
-                    />
-                )
-            }
-
-            {
-                tagToRemove && (
-                    <ConfirmModal
-                        isOpen={!!tagToRemove}
-                        title="Remover Prioridade"
-                        message={`Deseja remover a prioridade "${tagToRemove}" deste mandado e voltar ao normal?`}
-                        onConfirm={handleConfirmRemoveTag}
-                        onCancel={() => setTagToRemove(null)}
-                        confirmText="Sim, Remover"
-                        cancelText="Não"
-                        variant="danger"
-                    />
-                )
-            }
-            {
-                isDeleteConfirmOpen && (
-                    <ConfirmModal
-                        isOpen={isDeleteConfirmOpen}
-                        title="Excluir Permanentemente"
-                        message="TEM CERTEZA que deseja EXCLUIR este mandado permanentemente? Esta ação não pode ser desfeita."
-                        onConfirm={handleConfirmDelete}
-                        onCancel={() => setIsDeleteConfirmOpen(false)}
-                        confirmText="Excluir"
-                        variant="danger"
-                    />
-                )
-            }
-
-            {
-                isFinalizeModalOpen && (
-                    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                        <div className="bg-surface-light dark:bg-surface-dark rounded-xl w-full max-w-md shadow-2xl border border-border-light dark:border-border-dark animate-in fade-in zoom-in duration-200">
-                            <div className="p-6">
-                                <h3 className="text-xl font-bold text-text-light dark:text-text-dark mb-4">Finalizar Mandado</h3>
-
-                                <div className="space-y-4">
-                                    <div>
-                                        <label className="block text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark uppercase mb-1">Data do Cumprimento</label>
-                                        <input
-                                            type="date"
-                                            value={finalizeFormData.date}
-                                            onChange={e => setFinalizeFormData({ ...finalizeFormData, date: e.target.value })}
-                                            className="w-full bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg p-3 text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none"
-                                        />
-                                    </div>
-
-                                    <div>
-                                        <label className="block text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark uppercase mb-1">Número do Relatório</label>
-                                        <input
-                                            type="text"
-                                            value={finalizeFormData.reportNumber}
-                                            onChange={e => setFinalizeFormData({ ...finalizeFormData, reportNumber: e.target.value })}
-                                            placeholder="Ex: REL-2024/001"
-                                            className="w-full bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg p-3 text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none"
-                                        />
-                                    </div>
-
-                                    <div>
-                                        <label className="block text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark uppercase mb-1">Número de Ofício DIG</label>
-                                        <input
-                                            type="text"
-                                            value={finalizeFormData.digOffice}
-                                            onChange={e => setFinalizeFormData({ ...finalizeFormData, digOffice: e.target.value })}
-                                            placeholder="Ex: 123/2024"
-                                            className="w-full bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg p-3 text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none"
-                                        />
-                                    </div>
-
-                                    <div>
-                                        <label className="block text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark uppercase mb-1">Resultado</label>
-                                        <select
-                                            value={finalizeFormData.result}
-                                            onChange={e => setFinalizeFormData({ ...finalizeFormData, result: e.target.value })}
-                                            className="w-full bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg p-3 text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none"
-                                        >
-                                            {(data.type?.toLowerCase().includes('busca') || data.type?.toLowerCase().includes('apreensão'))
-                                                ? ['Apreendido', 'Fora de Validade', 'Negativo', 'Encaminhado', 'Contra', 'Ofício Localiza', 'Óbito'].map(opt => (
-                                                    <option key={opt} value={opt}>{opt}</option>
-                                                ))
-                                                : [
-                                                    'PRESO',
-                                                    'NEGATIVO',
-                                                    'ENCAMINHADO',
-                                                    'ÓBITO',
-                                                    'CONTRA',
-                                                    'LOCALIZADO',
-                                                    'OFÍCIO',
-                                                    'CUMPRIDO NO FÓRUM'
-                                                ].map(opt => (
-                                                    <option key={opt} value={opt}>{opt}</option>
-                                                ))
-                                            }
-                                        </select>
-                                    </div>
-                                </div>
-
-                                <div className="flex gap-3 mt-8">
-                                    <button
-                                        onClick={() => setIsFinalizeModalOpen(false)}
-                                        className="flex-1 py-3 px-4 rounded-xl font-bold bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:opacity-90 transition-opacity"
-                                    >
-                                        Cancelar
-                                    </button>
-                                    <button
-                                        onClick={handleConfirmFinalize}
-                                        className="flex-1 py-3 px-4 rounded-xl font-bold bg-green-600 text-white shadow-lg hover:bg-green-700 transition-colors flex items-center justify-center gap-2"
-                                    >
-                                        <CheckCircle size={20} />
-                                        FECHAR
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                )
-            }
-            {
-                isPhotoModalOpen && (
-                    <div
-                        className="fixed inset-0 z-[110] bg-black/95 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200"
+                        className="absolute -top-12 right-0 text-white hover:text-primary transition-colors p-2"
                         onClick={() => setIsPhotoModalOpen(false)}
                     >
-                        <div className="relative max-w-4xl w-full flex flex-col items-center">
+                        <X size={32} />
+                    </button>
+                    <img
+                        src={data.img || `https://ui-avatars.com/api/?name=${encodeURIComponent(data.name)}&background=random&color=fff`}
+                        alt={data.name}
+                        className="max-h-[85vh] max-w-full rounded-2xl shadow-2xl border-2 border-white/10 object-contain animate-in zoom-in-95 duration-300"
+                    />
+                    <div className="mt-4 text-center">
+                        <h2 className="text-white font-black text-xl uppercase tracking-widest">{data.name}</h2>
+                        <p className="text-gray-400 text-sm">{data.number}</p>
+                    </div>
+                </div>
+            </div>
+        )
+    }
+
+    {
+        isCapturasModalOpen && (
+            <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                <div className="bg-surface-light dark:bg-surface-dark rounded-xl w-full max-w-2xl shadow-2xl border border-border-light dark:border-border-dark animate-in fade-in zoom-in duration-200">
+                    <div className="p-6">
+                        <h3 className="text-xl font-bold text-text-light dark:text-text-dark mb-4 flex items-center gap-2">
+                            <FileText size={24} className="text-primary" />
+                            Gerar Relatório de Capturas
+                        </h3>
+
+                        <div className="space-y-4">
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark uppercase mb-1">Número do Relatório</label>
+                                    <input
+                                        type="text"
+                                        value={capturasData.reportNumber}
+                                        onChange={e => setCapturasData({ ...capturasData, reportNumber: e.target.value })}
+                                        className="w-full bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg p-3 text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark uppercase mb-1">Juízo de Direito</label>
+                                    <input
+                                        type="text"
+                                        value={capturasData.court}
+                                        onChange={e => setCapturasData({ ...capturasData, court: e.target.value })}
+                                        className="w-full bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg p-3 text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none"
+                                    />
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark uppercase mb-1">Corpo do Relatório</label>
+                                <textarea
+                                    value={capturasData.body}
+                                    onChange={e => setCapturasData({ ...capturasData, body: e.target.value })}
+                                    rows={8}
+                                    className="w-full bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg p-3 text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none resize-none text-sm leading-relaxed"
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark uppercase mb-1">Policial Responsável</label>
+                                    <input
+                                        type="text"
+                                        value={capturasData.signer}
+                                        onChange={e => setCapturasData({ ...capturasData, signer: e.target.value })}
+                                        className="w-full bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg p-3 text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark uppercase mb-1">Delegado Titular</label>
+                                    <input
+                                        type="text"
+                                        value={capturasData.delegate}
+                                        onChange={e => setCapturasData({ ...capturasData, delegate: e.target.value })}
+                                        className="w-full bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg p-3 text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="flex gap-3 mt-8">
                             <button
-                                className="absolute -top-12 right-0 text-white hover:text-primary transition-colors p-2"
-                                onClick={() => setIsPhotoModalOpen(false)}
+                                onClick={() => setIsCapturasModalOpen(false)}
+                                className="flex-1 py-3 px-4 rounded-xl font-bold bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:opacity-90 transition-opacity"
                             >
-                                <X size={32} />
+                                Cancelar
                             </button>
-                            <img
-                                src={data.img || `https://ui-avatars.com/api/?name=${encodeURIComponent(data.name)}&background=random&color=fff`}
-                                alt={data.name}
-                                className="max-h-[85vh] max-w-full rounded-2xl shadow-2xl border-2 border-white/10 object-contain animate-in zoom-in-95 duration-300"
-                            />
-                            <div className="mt-4 text-center">
-                                <h2 className="text-white font-black text-xl uppercase tracking-widest">{data.name}</h2>
-                                <p className="text-gray-400 text-sm">{data.number}</p>
-                            </div>
+                            <button
+                                onClick={handleGenerateCapturasPDF}
+                                className="flex-1 py-3 px-4 rounded-xl font-bold bg-indigo-600 text-white shadow-lg hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2"
+                            >
+                                <FileCheck size={20} />
+                                GERAR PDF
+                            </button>
                         </div>
                     </div>
-                )
-            }
-
-            {
-                isCapturasModalOpen && (
-                    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                        <div className="bg-surface-light dark:bg-surface-dark rounded-xl w-full max-w-2xl shadow-2xl border border-border-light dark:border-border-dark animate-in fade-in zoom-in duration-200">
-                            <div className="p-6">
-                                <h3 className="text-xl font-bold text-text-light dark:text-text-dark mb-4 flex items-center gap-2">
-                                    <FileText size={24} className="text-primary" />
-                                    Gerar Relatório de Capturas
-                                </h3>
-
-                                <div className="space-y-4">
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="block text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark uppercase mb-1">Número do Relatório</label>
-                                            <input
-                                                type="text"
-                                                value={capturasData.reportNumber}
-                                                onChange={e => setCapturasData({ ...capturasData, reportNumber: e.target.value })}
-                                                className="w-full bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg p-3 text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark uppercase mb-1">Juízo de Direito</label>
-                                            <input
-                                                type="text"
-                                                value={capturasData.court}
-                                                onChange={e => setCapturasData({ ...capturasData, court: e.target.value })}
-                                                className="w-full bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg p-3 text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none"
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <div>
-                                        <label className="block text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark uppercase mb-1">Corpo do Relatório</label>
-                                        <textarea
-                                            value={capturasData.body}
-                                            onChange={e => setCapturasData({ ...capturasData, body: e.target.value })}
-                                            rows={8}
-                                            className="w-full bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg p-3 text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none resize-none text-sm leading-relaxed"
-                                        />
-                                    </div>
-
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="block text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark uppercase mb-1">Policial Responsável</label>
-                                            <input
-                                                type="text"
-                                                value={capturasData.signer}
-                                                onChange={e => setCapturasData({ ...capturasData, signer: e.target.value })}
-                                                className="w-full bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg p-3 text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark uppercase mb-1">Delegado Titular</label>
-                                            <input
-                                                type="text"
-                                                value={capturasData.delegate}
-                                                onChange={e => setCapturasData({ ...capturasData, delegate: e.target.value })}
-                                                className="w-full bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg p-3 text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none"
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="flex gap-3 mt-8">
-                                    <button
-                                        onClick={() => setIsCapturasModalOpen(false)}
-                                        className="flex-1 py-3 px-4 rounded-xl font-bold bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:opacity-90 transition-opacity"
-                                    >
-                                        Cancelar
-                                    </button>
-                                    <button
-                                        onClick={handleGenerateCapturasPDF}
-                                        className="flex-1 py-3 px-4 rounded-xl font-bold bg-indigo-600 text-white shadow-lg hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2"
-                                    >
-                                        <FileCheck size={20} />
-                                        GERAR PDF
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                )
-            }
+                </div>
+            </div>
+        )
+    }
         </div >
     );
 };
