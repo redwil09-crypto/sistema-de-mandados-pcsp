@@ -56,10 +56,11 @@ const IntelCenter = ({ warrants }: IntelCenterProps) => {
 
     // --- Helper: Get Surname ---
     const getSurnames = (name: string) => {
+        if (!name) return [];
         const parts = name.trim().toUpperCase().split(/\s+/);
         if (parts.length < 2) return [];
         // Common surnames to ignore for broad matching
-        const ignored = ['SILVA', 'SANTOS', 'OLIVEIRA', 'SOUZA', 'PEREIRA', 'COSTAS', 'RODRIGUES', 'ALVES', 'NASCIMENTO'];
+        const ignored = ['SILVA', 'SANTOS', 'OLIVEIRA', 'SOUZA', 'PEREIRA', 'COSTAS', 'RODRIGUES', 'ALVES', 'NASCIMENTO', 'DA', 'DE', 'DOS', 'DAS', 'DO'];
         return parts.slice(1).filter(p => p.length > 3 && !ignored.includes(p));
     };
 
@@ -124,16 +125,16 @@ const IntelCenter = ({ warrants }: IntelCenterProps) => {
 
     const getEliteProfile = (target: Warrant) => {
         // 1. Find all warrants that mention this target's name or CPF in their observations or history
-        const mentions = warrants.filter(w =>
+        const mentions = (warrants || []).filter(w =>
             w.id !== target.id && (
-                w.name.toLowerCase().includes(target.name.toLowerCase()) ||
-                (w.observation || '').toLowerCase().includes(target.name.toLowerCase()) ||
-                (w.diligentHistory || []).some(d => d.notes.toLowerCase().includes(target.name.toLowerCase()))
+                (w.name || '').toLowerCase().includes((target.name || '').toLowerCase()) ||
+                (w.observation || '').toLowerCase().includes((target.name || '').toLowerCase()) ||
+                (w.diligentHistory || []).some(d => (d.notes || '').toLowerCase().includes((target.name || '').toLowerCase()))
             )
         );
 
         // 2. Extract potential family/friends from text
-        const textToScan = `${target.observation} ${target.description} ${target.diligentHistory?.map(d => d.notes).join(' ')}`;
+        const textToScan = `${target.observation || ''} ${target.description || ''} ${target.diligentHistory?.map(d => d.notes || '').join(' ') || ''}`;
         const relationships: { name: string, type: string, source: string, isFromBanco?: boolean }[] = [];
 
         const familyKeywords = [
@@ -202,8 +203,8 @@ const IntelCenter = ({ warrants }: IntelCenterProps) => {
     };
 
     // Only show open warrants with location
-    const openWarrants = useMemo(() => warrants.filter(w => w.status === 'EM ABERTO'), [warrants]);
-    const geocodedWarrants = useMemo(() => openWarrants.filter(w => w.latitude && w.longitude), [openWarrants]);
+    const openWarrants = useMemo(() => (warrants || []).filter(w => w.status === 'EM ABERTO'), [warrants]);
+    const geocodedWarrants = useMemo(() => openWarrants.filter(w => typeof w.latitude === 'number' && typeof w.longitude === 'number'), [openWarrants]);
 
     // --- Tactical Advisor Logic ---
     const tacticalInsights = useMemo(() => {
@@ -279,8 +280,8 @@ const IntelCenter = ({ warrants }: IntelCenterProps) => {
                         riskLevel: analysis.periculosidade === 'Crítico' || analysis.periculosidade === 'Alto' ? 'HIGH' : 'MEDIUM'
                     };
 
-                    analysis.warnings.forEach((w: string) => results.intelligence.push(`⚠️ ${w}`));
-                    analysis.possible_relatives.forEach((r: string) => results.entities.push({ type: 'RELACIONADO', value: r }));
+                    analysis.warnings?.forEach((w: string) => results.intelligence.push(`⚠️ ${w}`));
+                    analysis.possible_relatives?.forEach((r: string) => results.entities.push({ type: 'RELACIONADO', value: r }));
 
                     // Add manual entity extraction results too
                     const cpfMatch = labInput.match(/\d{3}\.\d{3}\.\d{3}-\d{2}/g);
@@ -730,7 +731,19 @@ const IntelCenter = ({ warrants }: IntelCenterProps) => {
                             <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution='&copy; OpenStreetMap' />
                             {geocodedWarrants.map(w => (
                                 <Marker key={w.id} position={[w.latitude!, w.longitude!]}>
-                                    <Popup><div className="p-1 min-w-[150px] font-bold">{w.name}</div></Popup>
+                                    <Popup>
+                                        <div className="p-2 min-w-[200px]">
+                                            <p className="text-[10px] font-black text-primary uppercase mb-1">{w.type}</p>
+                                            <p className="font-bold text-slate-900 dark:text-white mb-1">{w.name}</p>
+                                            <p className="text-[10px] text-slate-500 mb-2">{w.location}</p>
+                                            <button
+                                                onClick={() => setRaioXTarget(w)}
+                                                className="w-full py-1.5 bg-slate-900 dark:bg-primary text-white text-[9px] font-black uppercase rounded-lg"
+                                            >
+                                                Ver Raio-X
+                                            </button>
+                                        </div>
+                                    </Popup>
                                 </Marker>
                             ))}
                         </MapContainer>
