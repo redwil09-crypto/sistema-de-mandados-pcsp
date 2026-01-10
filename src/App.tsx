@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState, useMemo } from 'react';
-import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { supabase } from './supabaseClient';
 import type { Session } from '@supabase/supabase-js';
 
@@ -24,17 +24,15 @@ const IntelCenter = React.lazy(() => import('./pages/IntelCenter'));
 
 // Components
 import BottomNav from './components/BottomNav';
-import { useLocation } from 'react-router-dom';
 
 // Services & Utils
 import { createWarrant, getWarrants, updateWarrant as updateWarrantDb, deleteWarrant as deleteWarrantDb } from './supabaseService';
 import { Warrant } from './types';
 
 import { Toaster, toast } from 'sonner';
-import { useLocation as useRouteLocation } from 'react-router-dom';
 
 function ScrollToTop() {
-    const { pathname } = useRouteLocation();
+    const { pathname } = useLocation();
     useEffect(() => {
         window.scrollTo(0, 0);
     }, [pathname]);
@@ -51,8 +49,13 @@ function App() {
     const [loading, setLoading] = useState(true);
     const [warrants, setWarrants] = useState<Warrant[]>([]);
     const [routeWarrants, setRouteWarrants] = useState<string[]>(() => {
-        const saved = localStorage.getItem('routeWarrants');
-        return saved ? JSON.parse(saved) : [];
+        try {
+            const saved = localStorage.getItem('routeWarrants');
+            return saved ? JSON.parse(saved) : [];
+        } catch (e) {
+            console.error("Failed to parse routeWarrants", e);
+            return [];
+        }
     });
 
 
@@ -175,6 +178,7 @@ function App() {
     }, [warrants]);
 
     // Determine if BottomNav should be hidden
+    const location = useLocation();
     const hideNav = ['/warrant-detail', '/new-warrant', '/ai-assistant'].some(p => location.pathname.startsWith(p));
 
     if (loading) {
@@ -190,7 +194,7 @@ function App() {
     }
 
     return (
-        <HashRouter>
+        <>
             <ScrollToTop />
             <Toaster richColors position="top-right" />
             <div className="min-h-screen bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark transition-colors duration-200">
@@ -246,7 +250,7 @@ function App() {
 
                 {!hideNav && <BottomNav routeCount={routeWarrants.length} />}
             </div>
-        </HashRouter>
+        </>
     );
 }
 
