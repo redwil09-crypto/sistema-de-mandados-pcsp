@@ -4,6 +4,7 @@ import { MapContainer, TileLayer, Marker, Popup, Circle } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Warrant } from '../types';
 import Header from '../components/Header';
+import { extractPdfData } from '../pdfExtractor';
 import {
     Map as MapIcon, Share2,
     Target, Users, Search,
@@ -11,7 +12,8 @@ import {
     Zap, Lightbulb, MapPin,
     AlertTriangle, TrendingUp,
     Navigation, Microscope, FileText,
-    Brain, FileSearch, Sparkles, ScanSearch, X
+    Brain, FileSearch, Sparkles, ScanSearch, X,
+    Upload, FileUp, Link
 } from 'lucide-react';
 import L from 'leaflet';
 
@@ -42,6 +44,17 @@ const IntelCenter = ({ warrants }: IntelCenterProps) => {
     } | null>(null);
     const [raioXTarget, setRaioXTarget] = useState<Warrant | null>(null);
     const [isScanningRaioX, setIsScanningRaioX] = useState(false);
+    const [raioXFile, setRaioXFile] = useState<File | null>(null);
+    const [isUploadingPdf, setIsUploadingPdf] = useState(false);
+
+    // --- Helper: Get Surname ---
+    const getSurnames = (name: string) => {
+        const parts = name.trim().toUpperCase().split(/\s+/);
+        if (parts.length < 2) return [];
+        // Common surnames to ignore for broad matching
+        const ignored = ['SILVA', 'SANTOS', 'OLIVEIRA', 'SOUZA', 'PEREIRA', 'COSTAS', 'RODRIGUES', 'ALVES', 'NASCIMENTO'];
+        return parts.slice(1).filter(p => p.length > 3 && !ignored.includes(p));
+    };
 
     // --- Raio-X Elite Analysis Logic ---
     const runRaioXAnalysis = (target: Warrant) => {
@@ -50,21 +63,51 @@ const IntelCenter = ({ warrants }: IntelCenterProps) => {
         // Simulate deep data harvesting from all app documents and reports
         setTimeout(() => {
             setIsScanningRaioX(false);
-        }, 2500);
+        }, 2000);
+    };
+
+    const handleRaioXFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        setRaioXFile(file);
+        setIsUploadingPdf(true);
+        setIsScanningRaioX(true); // Start scanning UI immediately
+
+        try {
+            const extracted = await extractPdfData(file);
+            // Create a virtual warrant from the PDF data for analysis
+            const virtualTarget: Warrant = {
+                ...extracted,
+                id: 'virtual-' + Date.now(),
+                location: extracted.addresses[0],
+                number: extracted.processNumber,
+                status: 'ANÁLISE PDF'
+            } as any; // Cast to any to allow partial Warrant type
+
+            setRaioXTarget(virtualTarget);
+        } catch (error) {
+            console.error("Error extracting PDF data:", error);
+            // Optionally, show an error message to the user
+        } finally {
+            setIsUploadingPdf(false);
+            setIsScanningRaioX(false); // Stop scanning UI after processing
+        }
     };
 
     const getEliteProfile = (target: Warrant) => {
         // 1. Find all warrants that mention this target's name or CPF in their observations or history
         const mentions = warrants.filter(w =>
             w.id !== target.id && (
+                w.name.toLowerCase().includes(target.name.toLowerCase()) ||
                 (w.observation || '').toLowerCase().includes(target.name.toLowerCase()) ||
                 (w.diligentHistory || []).some(d => d.notes.toLowerCase().includes(target.name.toLowerCase()))
             )
         );
 
         // 2. Extract potential family/friends from text
-        const textToScan = `${target.observation} ${target.diligentHistory?.map(d => d.notes).join(' ')}`;
-        const relationships: { name: string, type: string, source: string }[] = [];
+        const textToScan = `${target.observation} ${target.description} ${target.diligentHistory?.map(d => d.notes).join(' ')}`;
+        const relationships: { name: string, type: string, source: string, isFromBanco?: boolean }[] = [];
 
         const familyKeywords = [
             { key: 'mãe', type: 'Genitora' },
@@ -79,9 +122,38 @@ const IntelCenter = ({ warrants }: IntelCenterProps) => {
             const regex = new RegExp(`${k.key}\\s*:?\\s*([^,.;\\n]+)`, 'gi');
             let match;
             while ((match = regex.exec(textToScan)) !== null) {
-                relationships.push({ name: match[1].trim(), type: k.type, source: 'Análise de Texto' });
+                const foundName = match[1].trim();
+                const bancoMatch = warrants.find(w => w.name.toUpperCase().includes(foundName.toUpperCase()));
+                relationships.push({
+                    name: foundName,
+                    type: k.type,
+                    source: 'Análise de Texto',
+                    isFromBanco: !!bancoMatch
+                });
             }
         });
+
+        // 3. Surname Confrontation (The "Elite" logic)
+        const targetSurnames = getSurnames(target.name);
+        if (targetSurnames.length > 0) {
+            warrants.forEach(w => {
+                if (w.id === target.id) return; // Don't compare target with itself
+                const otherSurnames = getSurnames(w.name);
+                const hasMatch = targetSurnames.some(s => otherSurnames.includes(s));
+
+                if (hasMatch) {
+                    // Add only if not already present from text analysis
+                    if (!relationships.some(r => r.name === w.name)) {
+                        relationships.push({
+                            name: w.name,
+                            type: 'Possível Parente (Sobrenome)',
+                            source: 'Confronto de Banco',
+                            isFromBanco: true
+                        });
+                    }
+                }
+            });
+        }
 
         return { mentions, relationships };
     };
@@ -249,22 +321,33 @@ const IntelCenter = ({ warrants }: IntelCenterProps) => {
                 {view === 'raioX' && (
                     <div className="p-4 md:p-6 max-w-6xl mx-auto space-y-6">
                         {!raioXTarget ? (
-                            <div className="flex flex-col items-center justify-center py-20 bg-white dark:bg-slate-900 rounded-[40px] border border-dashed border-slate-200 dark:border-slate-800">
+                            <div className="flex flex-col items-center justify-center py-20 bg-white dark:bg-slate-900 rounded-[40px] border border-dashed border-slate-200 dark:border-slate-800 relative overflow-hidden">
                                 <ScanSearch size={64} className="text-slate-200 dark:text-slate-800 mb-4" />
-                                <h3 className="text-xl font-black text-slate-400 mb-6">Selecione um alvo para escaneamento de elo</h3>
+                                <h3 className="text-xl font-black text-slate-400 mb-4">Selecione um alvo ou envie um PDF</h3>
+
+                                <div className="flex flex-wrap justify-center gap-4 mb-10 px-6">
+                                    <label className="flex items-center gap-3 px-6 py-3 bg-indigo-600 text-white rounded-2xl cursor-pointer hover:bg-indigo-700 transition-all font-black text-sm uppercase shadow-lg shadow-indigo-600/20">
+                                        <FileUp size={18} />
+                                        Escanear Novo PDF
+                                        <input type="file" className="hidden" accept="application/pdf" onChange={handleRaioXFileUpload} />
+                                    </label>
+                                    <div className="w-px h-10 bg-slate-200 dark:bg-slate-800 hidden md:block" />
+                                    <p className="w-full text-center text-[10px] font-black uppercase text-slate-300 tracking-[0.3em]">Ou escolha no banco</p>
+                                </div>
+
                                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 w-full max-w-4xl px-6">
                                     {warrants.slice(0, 12).map(w => (
                                         <button
                                             key={w.id}
                                             onClick={() => runRaioXAnalysis(w)}
-                                            className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-2xl hover:bg-primary/5 hover:border-primary/50 border border-transparent transition-all text-left"
+                                            className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-2xl hover:bg-primary/5 hover:border-primary/50 border border-transparent transition-all text-left group"
                                         >
                                             <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden shrink-0">
-                                                <img src={w.img || `https://ui-avatars.com/api/?name=${w.name}&background=random`} alt="" className="w-full h-full object-cover" />
+                                                <img src={w.img || `https://ui-avatars.com/api/?name=${w.name}&background=random`} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform" />
                                             </div>
                                             <div className="min-w-0">
                                                 <p className="text-xs font-black truncate">{w.name}</p>
-                                                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">Analizar Perfil</p>
+                                                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">Acionar Protocolo</p>
                                             </div>
                                         </button>
                                     ))}
@@ -336,20 +419,29 @@ const IntelCenter = ({ warrants }: IntelCenterProps) => {
                                     <div className="space-y-6">
                                         <div className="bg-white dark:bg-slate-900 p-6 rounded-[32px] border border-slate-200 dark:border-slate-800 shadow-sm h-full">
                                             <h4 className="text-xs font-black uppercase text-slate-400 mb-6 flex items-center gap-2">
-                                                <Users size={16} /> Mapa de Relacionamentos
+                                                <Users size={16} /> Mapa de Relacionamentos & Parentescos
                                             </h4>
                                             {getEliteProfile(raioXTarget).relationships.length > 0 ? (
                                                 <div className="space-y-4">
                                                     {getEliteProfile(raioXTarget).relationships.map((r, i) => (
-                                                        <div key={i} className="flex items-start gap-4 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-transparent hover:border-primary/20 transition-all">
-                                                            <div className="w-8 h-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                                                        <div key={i} className={`flex items-start gap-4 p-3 rounded-2xl border transition-all ${r.isFromBanco
+                                                            ? 'bg-primary/10 border-primary/20 hover:bg-primary/20'
+                                                            : 'bg-slate-50 dark:bg-slate-800/50 border-transparent hover:border-slate-300'
+                                                            }`}>
+                                                            <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${r.isFromBanco ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'bg-slate-200 dark:bg-slate-700 text-slate-500'
+                                                                }`}>
                                                                 <Users size={16} />
                                                             </div>
-                                                            <div>
-                                                                <p className="text-[10px] font-black text-primary uppercase">{r.type}</p>
-                                                                <p className="text-xs font-bold text-slate-900 dark:text-white uppercase">{r.name}</p>
-                                                                <p className="text-[9px] text-slate-400 mt-1 italic">Fonte: {r.source}</p>
+                                                            <div className="flex-1 min-w-0">
+                                                                <p className={`text-[10px] font-black uppercase ${r.isFromBanco ? 'text-primary' : 'text-slate-400'}`}>{r.type}</p>
+                                                                <p className="text-xs font-bold text-slate-900 dark:text-white uppercase truncate">{r.name}</p>
+                                                                <p className="text-[9px] text-slate-400 mt-1 italic">Vínculo: {r.source}</p>
                                                             </div>
+                                                            {r.isFromBanco && (
+                                                                <div className="px-2 py-0.5 bg-emerald-500/10 text-emerald-500 rounded text-[8px] font-black uppercase">
+                                                                    Detectado no Banco
+                                                                </div>
+                                                            )}
                                                         </div>
                                                     ))}
                                                 </div>
