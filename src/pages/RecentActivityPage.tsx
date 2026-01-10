@@ -4,13 +4,16 @@ import Header from '../components/Header';
 import WarrantCard from '../components/WarrantCard';
 import { Warrant } from '../types';
 
+import { generateWarrantPDF } from '../services/pdfReportService';
+
 interface RecentActivityPageProps {
     warrants: Warrant[];
+    onUpdate: (id: string, updates: Partial<Warrant>) => Promise<boolean>;
     routeWarrants?: string[];
     onRouteToggle?: (id: string) => void;
 }
 
-const RecentActivityPage = ({ warrants, routeWarrants = [], onRouteToggle }: RecentActivityPageProps) => {
+const RecentActivityPage = ({ warrants, onUpdate, routeWarrants = [], onRouteToggle }: RecentActivityPageProps) => {
     const sortedWarrants = useMemo(() => {
         return [...warrants].sort((a, b) => {
             const dateA = a.updatedAt || a.createdAt || '';
@@ -29,6 +32,11 @@ const RecentActivityPage = ({ warrants, routeWarrants = [], onRouteToggle }: Rec
                         data={warrant}
                         isPlanned={routeWarrants.includes(warrant.id)}
                         onRouteToggle={onRouteToggle}
+                        onPrint={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            generateWarrantPDF(warrant, onUpdate);
+                        }}
                     />
                 ))}
             </div>

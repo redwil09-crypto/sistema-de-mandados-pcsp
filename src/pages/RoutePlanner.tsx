@@ -8,6 +8,7 @@ import ConfirmModal from '../components/ConfirmModal';
 import { toast } from 'sonner';
 import { Warrant } from '../types';
 import PatrolMode from '../components/PatrolMode';
+import { generateWarrantPDF } from '../services/pdfReportService';
 
 interface RoutePlannerProps {
     warrants: Warrant[];
@@ -197,6 +198,11 @@ const RoutePlanner = ({ warrants = [], onRouteToggle, onUpdate }: RoutePlannerPr
                                                         "Deseja marcar este mandado como CUMPRIDO?",
                                                         () => handleFinalizeWarrant(data)
                                                     );
+                                                }}
+                                                onPrint={(e) => {
+                                                    e.preventDefault();
+                                                    e.stopPropagation();
+                                                    generateWarrantPDF(w, onUpdate);
                                                 }}
                                             />
                                         </div>

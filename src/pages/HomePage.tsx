@@ -6,6 +6,7 @@ import {
     BarChart2, Route as RouteIcon, Siren, ChevronRight,
     Activity, CalendarClock, X, CheckCircle, Bot, Shield
 } from 'lucide-react';
+import { generateWarrantPDF } from '../services/pdfReportService';
 import { Warrant } from '../types';
 import WarrantCard from '../components/WarrantCard';
 import { EXPIRING_WARRANTS } from '../data/mockData';
@@ -14,10 +15,11 @@ interface HomePageProps {
     isDark: boolean;
     toggleTheme: () => void;
     warrants: Warrant[];
+    onUpdate: (id: string, updates: Partial<Warrant>) => Promise<boolean>;
     routeCount?: number;
 }
 
-const HomePage = ({ isDark, toggleTheme, warrants, routeCount = 0 }: HomePageProps) => {
+const HomePage = ({ isDark, toggleTheme, warrants, onUpdate, routeCount = 0 }: HomePageProps) => {
     const navigate = useNavigate();
     const [showNotifications, setShowNotifications] = useState(false);
     const [showAllNotifications, setShowAllNotifications] = useState(false);
@@ -268,7 +270,15 @@ const HomePage = ({ isDark, toggleTheme, warrants, routeCount = 0 }: HomePagePro
                             })
                             .slice(0, 3)
                             .map((warrant) => (
-                                <WarrantCard key={warrant.id} data={warrant} />
+                                <WarrantCard
+                                    key={warrant.id}
+                                    data={warrant}
+                                    onPrint={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        generateWarrantPDF(warrant, onUpdate);
+                                    }}
+                                />
                             ))}
                     </div>
                 </div>

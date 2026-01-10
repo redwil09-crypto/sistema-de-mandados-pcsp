@@ -7,13 +7,16 @@ import WarrantCard from '../components/WarrantCard';
 import { Warrant } from '../types';
 import { CRIME_OPTIONS, REGIME_OPTIONS } from '../data/constants';
 
+import { generateWarrantPDF } from '../services/pdfReportService';
+
 interface WarrantListProps {
     warrants: Warrant[];
+    onUpdate: (id: string, updates: Partial<Warrant>) => Promise<boolean>;
     routeWarrants?: string[];
     onRouteToggle?: (id: string) => void;
 }
 
-const WarrantList = ({ warrants, routeWarrants = [], onRouteToggle }: WarrantListProps) => {
+const WarrantList = ({ warrants, onUpdate, routeWarrants = [], onRouteToggle }: WarrantListProps) => {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const query = searchParams.get('q') || '';
@@ -183,6 +186,11 @@ const WarrantList = ({ warrants, routeWarrants = [], onRouteToggle }: WarrantLis
                             data={w}
                             isPlanned={routeWarrants.includes(w.id)}
                             onRouteToggle={onRouteToggle}
+                            onPrint={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                generateWarrantPDF(w, onUpdate);
+                            }}
                         />
                     )) : (
                         <div className="flex flex-col items-center justify-center py-10 opacity-50">

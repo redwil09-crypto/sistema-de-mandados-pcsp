@@ -4,13 +4,16 @@ import Header from '../components/Header';
 import WarrantCard from '../components/WarrantCard';
 import { Warrant } from '../types';
 
+import { generateWarrantPDF } from '../services/pdfReportService';
+
 interface PriorityListProps {
     warrants: Warrant[];
+    onUpdate: (id: string, updates: Partial<Warrant>) => Promise<boolean>;
     routeWarrants?: string[];
     onRouteToggle?: (id: string) => void;
 }
 
-const PriorityList = ({ warrants, routeWarrants = [], onRouteToggle }: PriorityListProps) => (
+const PriorityList = ({ warrants, onUpdate, routeWarrants = [], onRouteToggle }: PriorityListProps) => (
     <div className="min-h-screen pb-20 bg-background-light dark:bg-background-dark">
         <Header title="Prioridades" back />
         <div className="p-4 space-y-4">
@@ -20,6 +23,11 @@ const PriorityList = ({ warrants, routeWarrants = [], onRouteToggle }: PriorityL
                     data={w}
                     isPlanned={routeWarrants.includes(w.id)}
                     onRouteToggle={onRouteToggle}
+                    onPrint={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        generateWarrantPDF(w, onUpdate);
+                    }}
                 />
             ))}
             {warrants.length === 0 && (
