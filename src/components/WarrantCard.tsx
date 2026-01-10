@@ -19,7 +19,7 @@ const WarrantCard = ({ data, onPrint, isPlanned, onRouteToggle, onFinalize, ...p
     const isSearch = data.type ? (data.type.toLowerCase().includes('busca') || data.type.toLowerCase().includes('apreensão')) : false;
 
     return (
-        <Link to={`/warrant-detail/${data.id}`} className="block bg-surface-light dark:bg-surface-dark p-4 rounded-xl shadow-sm border border-border-light dark:border-border-dark relative overflow-hidden transition-all active:scale-[0.99]" {...props}>
+        <Link to={`/warrant-detail/${data.id}`} className="block bg-surface-light dark:bg-surface-dark p-4 rounded-xl shadow-md border border-border-light dark:border-border-dark relative overflow-hidden transition-all active:scale-[0.99]" {...props}>
             {/* Type Indicator Strip */}
             <div className={`absolute left-0 top-0 bottom-0 w-1 ${isSearch ? 'bg-orange-400' : 'bg-blue-500'}`}></div>
 

@@ -78,7 +78,7 @@ const HomePage = ({ isDark, toggleTheme, warrants, routeCount = 0 }: HomePagePro
                                         {showAllNotifications ? "Próximos 10 Vencimentos" : "Urgente (Menos de 7 dias)"}
                                     </div>
                                     {displayedNotifications.map(item => (
-                                        <Link to={`/warrant-detail/${item.id}`} key={item.id} className="flex items-center gap-3 p-3 hover:bg-gray-50 dark:hover:bg-white/5 rounded-lg transition-colors border border-transparent hover:border-border-light dark:hover:border-border-dark">
+                                        <Link to={`/warrant-detail/${item.id}`} key={item.id} className="flex items-center gap-3 p-3 hover:bg-background-light dark:hover:bg-white/5 rounded-lg transition-colors border border-transparent hover:border-border-light dark:hover:border-border-dark">
                                             <div className="h-10 w-10 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center text-red-600 font-bold text-xs shrink-0">
                                                 {item.daysLeft}d
                                             </div>
@@ -100,7 +100,7 @@ const HomePage = ({ isDark, toggleTheme, warrants, routeCount = 0 }: HomePagePro
                                 </div>
                             )}
                         </div>
-                        <div className="p-3 border-t border-border-light dark:border-border-dark bg-gray-50 dark:bg-white/5 rounded-b-xl">
+                        <div className="p-3 border-t border-border-light dark:border-border-dark bg-background-light dark:bg-white/5 rounded-b-xl">
                             <button
                                 onClick={() => setShowAllNotifications(!showAllNotifications)}
                                 className="w-full py-2 text-xs font-bold text-primary hover:underline"
@@ -142,14 +142,14 @@ const HomePage = ({ isDark, toggleTheme, warrants, routeCount = 0 }: HomePagePro
                         type="text"
                         placeholder="Nome, RG, endereço, crime, nº mandado..."
                         onKeyDown={handleSearch}
-                        className="w-full rounded-xl border-none bg-white py-3.5 pl-10 pr-4 text-sm shadow-sm placeholder:text-text-secondary-light focus:ring-2 focus:ring-primary dark:bg-surface-dark dark:text-white"
+                        className="w-full rounded-xl border-none bg-surface-light py-3.5 pl-10 pr-4 text-sm shadow-md placeholder:text-text-secondary-light focus:ring-2 focus:ring-primary dark:bg-surface-dark dark:text-white"
                     />
                 </div>
             </header>
 
             <main className="px-4 py-2 space-y-6">
                 <div className="grid grid-cols-2 gap-3">
-                    <Link to="/warrant-list" className="group flex flex-col gap-3 rounded-2xl bg-surface-light p-4 shadow-sm transition-all active:scale-[0.98] dark:bg-surface-dark border border-transparent hover:border-primary/20">
+                    <Link to="/warrant-list" className="group flex flex-col gap-3 rounded-2xl bg-surface-light p-4 shadow-md transition-all active:scale-[0.98] dark:bg-surface-dark border border-transparent hover:border-primary/20">
                         <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-primary dark:bg-primary/10">
                             <Gavel size={24} />
                         </div>
@@ -159,7 +159,7 @@ const HomePage = ({ isDark, toggleTheme, warrants, routeCount = 0 }: HomePagePro
                         </div>
                     </Link>
 
-                    <Link to="/minor-search" className="group flex flex-col gap-3 rounded-2xl bg-surface-light p-4 shadow-sm transition-all active:scale-[0.98] dark:bg-surface-dark border border-transparent hover:border-orange-500/20">
+                    <Link to="/minor-search" className="group flex flex-col gap-3 rounded-2xl bg-surface-light p-4 shadow-md transition-all active:scale-[0.98] dark:bg-surface-dark border border-transparent hover:border-orange-500/20">
                         <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-50 text-orange-600 dark:bg-orange-500/10 dark:text-orange-500">
                             <Baby size={24} />
                         </div>
@@ -169,7 +169,7 @@ const HomePage = ({ isDark, toggleTheme, warrants, routeCount = 0 }: HomePagePro
                         </div>
                     </Link>
 
-                    <Link to="/new-warrant" className="group flex flex-col gap-3 rounded-2xl bg-surface-light p-4 shadow-sm transition-all active:scale-[0.98] dark:bg-surface-dark border border-transparent hover:border-green-500/20">
+                    <Link to="/new-warrant" className="group flex flex-col gap-3 rounded-2xl bg-surface-light p-4 shadow-md transition-all active:scale-[0.98] dark:bg-surface-dark border border-transparent hover:border-green-500/20">
                         <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-green-50 text-green-600 dark:bg-green-500/10 dark:text-green-500">
                             <FilePlus size={24} />
                         </div>
@@ -190,7 +190,7 @@ const HomePage = ({ isDark, toggleTheme, warrants, routeCount = 0 }: HomePagePro
                         </div>
                     </Link>
 
-                    <Link to="/stats" className="group flex flex-col gap-3 rounded-2xl bg-surface-light p-4 shadow-sm transition-all active:scale-[0.98] dark:bg-surface-dark border border-transparent hover:border-purple-500/20">
+                    <Link to="/stats" className="group flex flex-col gap-3 rounded-2xl bg-surface-light p-4 shadow-md transition-all active:scale-[0.98] dark:bg-surface-dark border border-transparent hover:border-purple-500/20">
                         <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-50 text-purple-600 dark:bg-purple-500/10 dark:text-purple-500">
                             <BarChart2 size={24} />
                         </div>
@@ -200,7 +200,7 @@ const HomePage = ({ isDark, toggleTheme, warrants, routeCount = 0 }: HomePagePro
                         </div>
                     </Link>
 
-                    <Link to="/route-planner" className="group flex flex-col gap-3 rounded-2xl bg-surface-light p-4 shadow-sm transition-all active:scale-[0.98] dark:bg-surface-dark border border-transparent hover:border-indigo-500/20 relative">
+                    <Link to="/route-planner" className="group flex flex-col gap-3 rounded-2xl bg-surface-light p-4 shadow-md transition-all active:scale-[0.98] dark:bg-surface-dark border border-transparent hover:border-indigo-500/20 relative">
                         {routeCount > 0 && (
                             <span className="absolute top-3 right-3 flex h-5 w-5 items-center justify-center rounded-full bg-indigo-600 text-[10px] font-bold text-white shadow-lg animate-bounce">
                                 {routeCount}

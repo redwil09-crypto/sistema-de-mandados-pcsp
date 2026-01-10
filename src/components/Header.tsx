@@ -23,7 +23,7 @@ const Header = ({ title, back = false, onBack, action, showHome = false }: Heade
     };
 
     return (
-        <header className="sticky top-0 z-40 flex items-center justify-between bg-surface-light/80 px-4 py-3 backdrop-blur-md dark:bg-surface-dark/80 border-b border-border-light dark:border-border-dark">
+        <header className="sticky top-0 z-40 flex items-center justify-between bg-surface-light/95 px-4 py-3 backdrop-blur-md dark:bg-surface-dark/90 border-b border-border-light dark:border-border-dark shadow-sm">
             <div className="flex items-center gap-3">
                 {back && (
                     <button onClick={handleBack} type="button" className="rounded-full p-1 hover:bg-black/5 dark:hover:bg-white/10">

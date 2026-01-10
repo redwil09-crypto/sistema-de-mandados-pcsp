@@ -447,7 +447,7 @@ const AIAssistantPage = ({ onAdd, warrants }: AIAssistantPageProps) => {
 
             {/* Tabs */}
             <div className="px-4 pt-4">
-                <div className="flex bg-surface-light dark:bg-surface-dark p-1 rounded-xl border border-border-light dark:border-border-dark">
+                <div className="flex bg-surface-light dark:bg-surface-dark p-1 rounded-xl border border-border-light dark:border-border-dark shadow-md">
                     <button
                         onClick={() => setActiveTab('extraction')}
                         className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${activeTab === 'extraction' ? 'bg-primary text-white shadow-sm' : 'text-text-secondary-light dark:text-text-secondary-dark'}`}
@@ -566,7 +566,7 @@ const AIAssistantPage = ({ onAdd, warrants }: AIAssistantPageProps) => {
                                             <span className="text-[10px] opacity-70">Arquivo {currentIndex + 1} de {batchResults.length}</span>
                                         </div>
                                     </div>
-                                    <div className="relative w-12 h-12 rounded-full border-2 border-dashed border-primary/30 overflow-hidden group cursor-pointer bg-white dark:bg-black/20">
+                                    <div className="relative w-12 h-12 rounded-full border-2 border-dashed border-primary/30 overflow-hidden group cursor-pointer bg-surface-light dark:bg-black/20">
                                         {photoPreview ? (
                                             <img src={photoPreview} alt="Target" className="w-full h-full object-cover" />
                                         ) : (
@@ -589,7 +589,7 @@ const AIAssistantPage = ({ onAdd, warrants }: AIAssistantPageProps) => {
                                 )}
 
                                 <div className="bg-surface-light dark:bg-surface-dark rounded-xl border border-border-light dark:border-border-dark overflow-hidden">
-                                    <div className="p-3 border-b border-border-light dark:border-border-dark bg-gray-50 dark:bg-white/5 flex items-center justify-between">
+                                    <div className="p-3 border-b border-border-light dark:border-border-dark bg-background-light dark:bg-white/5 flex items-center justify-between">
                                         <h3 className="font-bold text-xs uppercase">Dados Extraídos</h3>
                                         {hasAi && (
                                             <button

@@ -370,7 +370,7 @@ const IntelCenter = ({ warrants }: IntelCenterProps) => {
                 {view === 'raioX' && (
                     <div className="p-4 md:p-6 max-w-6xl mx-auto space-y-6">
                         {!raioXTarget ? (
-                            <div className="flex flex-col items-center justify-center py-20 bg-white dark:bg-slate-900 rounded-[40px] border border-dashed border-slate-200 dark:border-slate-800 relative overflow-hidden">
+                            <div className="flex flex-col items-center justify-center py-20 bg-surface-light dark:bg-slate-900 rounded-[40px] border border-dashed border-border-light dark:border-slate-800 relative overflow-hidden shadow-md">
                                 <ScanSearch size={64} className="text-slate-200 dark:text-slate-800 mb-4" />
                                 <h3 className="text-xl font-black text-slate-400 mb-4">Selecione um alvo ou envie um PDF</h3>
 
@@ -389,7 +389,7 @@ const IntelCenter = ({ warrants }: IntelCenterProps) => {
                                         <button
                                             key={w.id}
                                             onClick={() => runRaioXAnalysis(w)}
-                                            className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-2xl hover:bg-primary/5 hover:border-primary/50 border border-transparent transition-all text-left group"
+                                            className="flex items-center gap-3 p-3 bg-background-light dark:bg-slate-800/50 rounded-2xl hover:bg-primary/5 hover:border-primary/50 border border-transparent transition-all text-left group"
                                         >
                                             <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden shrink-0">
                                                 <img src={w.img || `https://ui-avatars.com/api/?name=${w.name}&background=random`} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform" />

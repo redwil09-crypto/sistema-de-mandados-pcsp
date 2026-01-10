@@ -74,12 +74,12 @@ const MinorSearch = ({ warrants, routeWarrants = [], onRouteToggle }: MinorSearc
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             placeholder="Pesquisar menores..."
-                            className="w-full rounded-xl border-none bg-surface-light py-3 pl-10 pr-4 text-sm shadow-sm dark:bg-surface-dark dark:text-white placeholder:text-text-secondary-light dark:placeholder:text-text-secondary-dark outline-none"
+                            className="w-full rounded-xl border-none bg-surface-light py-3 pl-10 pr-4 text-sm shadow-md dark:bg-surface-dark dark:text-white placeholder:text-text-secondary-light dark:placeholder:text-text-secondary-dark outline-none"
                         />
                     </div>
                     <button
                         onClick={() => setShowFilters(!showFilters)}
-                        className={`p-3 rounded-xl transition-colors shadow-sm ${showFilters || hasActiveFilters
+                        className={`p-3 rounded-xl transition-colors shadow-md ${showFilters || hasActiveFilters
                             ? 'bg-primary text-white'
                             : 'bg-surface-light dark:bg-surface-dark text-text-secondary-light dark:text-text-secondary-dark'
                             }`}
@@ -90,7 +90,7 @@ const MinorSearch = ({ warrants, routeWarrants = [], onRouteToggle }: MinorSearc
 
                 {/* Filters Panel */}
                 {showFilters && (
-                    <div className="mb-4 bg-surface-light dark:bg-surface-dark p-4 rounded-xl shadow-sm border border-border-light dark:border-border-dark animate-in slide-in-from-top-2">
+                    <div className="mb-4 bg-surface-light dark:bg-surface-dark p-4 rounded-xl shadow-md border border-border-light dark:border-border-dark animate-in slide-in-from-top-2">
                         <div className="flex justify-between items-center mb-3">
                             <h3 className="font-bold text-text-light dark:text-text-dark text-sm">Filtros Avançados</h3>
                             {hasActiveFilters && (

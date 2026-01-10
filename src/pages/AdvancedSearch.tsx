@@ -79,12 +79,12 @@ const AdvancedSearch = ({ warrants, routeWarrants = [], onRouteToggle }: Advance
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         placeholder="Pesquisar em tudo..."
-                        className="w-full rounded-xl border-none bg-surface-light py-3.5 pl-10 pr-4 text-sm shadow-sm dark:bg-surface-dark dark:text-white placeholder:text-text-secondary-light focus:ring-2 focus:ring-primary outline-none"
+                        className="w-full rounded-xl border-none bg-surface-light py-3.5 pl-10 pr-4 text-sm shadow-md dark:bg-surface-dark dark:text-white placeholder:text-text-secondary-light focus:ring-2 focus:ring-primary outline-none"
                     />
                 </div>
 
                 {/* Filters Panel - Always Visible in Advanced Search */}
-                <div className="mb-6 bg-surface-light dark:bg-surface-dark p-4 rounded-xl shadow-sm border border-border-light dark:border-border-dark">
+                <div className="mb-6 bg-surface-light dark:bg-surface-dark p-4 rounded-xl shadow-md border border-border-light dark:border-border-dark">
                     <div className="flex justify-between items-center mb-4">
                         <h3 className="font-bold text-text-light dark:text-text-dark text-sm flex items-center gap-2">
                             <Filter size={16} className="text-primary" /> Filtros
