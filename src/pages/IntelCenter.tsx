@@ -103,7 +103,7 @@ const IntelCenter = ({ warrants }: IntelCenterProps) => {
                 observation: geminiAnalysis
                     ? `[ANÁLISE IA]: ${geminiAnalysis.summary}\n\n${extracted.observations}`
                     : extracted.observations,
-                tacticalSummary: geminiAnalysis?.summary || extracted.tacticalSummary,
+                tacticalSummary: geminiAnalysis?.summary ? [geminiAnalysis.summary] : extracted.tacticalSummary,
                 tags: geminiAnalysis?.warnings || []
             } as any;
 
@@ -123,15 +123,22 @@ const IntelCenter = ({ warrants }: IntelCenterProps) => {
         }
     };
 
-    const getEliteProfile = (target: Warrant) => {
-        // 1. Find all warrants that mention this target's name or CPF in their observations or history
-        const mentions = (warrants || []).filter(w =>
+    // --- Memoized Elite Profile Analysis ---
+    const eliteProfile = useMemo(() => {
+        if (!raioXTarget) return { mentions: [], relationships: [] };
+
+        const target = raioXTarget;
+        const targetName = (target.name || '').trim().toLowerCase();
+
+        // 1. Find all warrants that mention this target (Only if name is substantial)
+        const mentions = (targetName.length >= 3) ? (warrants || []).filter(w =>
             w.id !== target.id && (
-                (w.name || '').toLowerCase().includes((target.name || '').toLowerCase()) ||
-                (w.observation || '').toLowerCase().includes((target.name || '').toLowerCase()) ||
-                (w.diligentHistory || []).some(d => (d.notes || '').toLowerCase().includes((target.name || '').toLowerCase()))
+                (w.name || '').toLowerCase().includes(targetName) ||
+                (w.observation || '').toLowerCase().includes(targetName) ||
+                (w.description || '').toLowerCase().includes(targetName) ||
+                (Array.isArray(w.diligentHistory) && w.diligentHistory.some(d => (d.notes || '').toLowerCase().includes(targetName)))
             )
-        );
+        ) : [];
 
         // 2. Extract potential family/friends from text
         const textToScan = `${target.observation || ''} ${target.description || ''} ${target.diligentHistory?.map(d => d.notes || '').join(' ') || ''}`;
@@ -147,31 +154,34 @@ const IntelCenter = ({ warrants }: IntelCenterProps) => {
         ];
 
         familyKeywords.forEach(k => {
-            const regex = new RegExp(`${k.key}\\s*:?\\s*([^,.;\\n]+)`, 'gi');
-            let match;
-            while ((match = regex.exec(textToScan)) !== null) {
-                const foundName = match[1].trim();
-                const bancoMatch = warrants.find(w => w.name.toUpperCase().includes(foundName.toUpperCase()));
-                relationships.push({
-                    name: foundName,
-                    type: k.type,
-                    source: 'Análise de Texto',
-                    isFromBanco: !!bancoMatch
-                });
-            }
+            try {
+                const regex = new RegExp(`${k.key}\\s*:?\\s*([^,.;\\n]+)`, 'gi');
+                let match;
+                while ((match = regex.exec(textToScan)) !== null) {
+                    const foundName = match[1].trim();
+                    if (foundName.length < 2) continue;
+
+                    const bancoMatch = warrants.find(w => w.name && w.name.toUpperCase().includes(foundName.toUpperCase()));
+                    relationships.push({
+                        name: foundName,
+                        type: k.type,
+                        source: 'Análise de Texto',
+                        isFromBanco: !!bancoMatch
+                    });
+                }
+            } catch (e) { console.error("Regex error for", k.key, e); }
         });
 
-        // 3. Surname Confrontation (The "Elite" logic)
+        // 3. Surname Confrontation
         const targetSurnames = getSurnames(target.name);
         if (targetSurnames.length > 0) {
             warrants.forEach(w => {
-                if (w.id === target.id) return; // Don't compare target with itself
+                if (w.id === target.id || !w.name) return;
                 const otherSurnames = getSurnames(w.name);
                 const hasMatch = targetSurnames.some(s => otherSurnames.includes(s));
 
                 if (hasMatch) {
-                    // Add only if not already present from text analysis
-                    if (!relationships.some(r => r.name === w.name)) {
+                    if (!relationships.some(r => r.name.toUpperCase() === w.name.toUpperCase())) {
                         relationships.push({
                             name: w.name,
                             type: 'Possível Parente (Sobrenome)',
@@ -183,11 +193,11 @@ const IntelCenter = ({ warrants }: IntelCenterProps) => {
             });
         }
 
-
         // 4. AIS-detected links if available
         if ((target as any).ai_relationships) {
             (target as any).ai_relationships.forEach((name: string) => {
-                const bancoMatch = warrants.find(w => w.name.toUpperCase().includes(name.toUpperCase()));
+                if (!name) return;
+                const bancoMatch = warrants.find(w => w.name && w.name.toUpperCase().includes(name.toUpperCase()));
                 if (!relationships.some(r => r.name.toUpperCase() === name.toUpperCase())) {
                     relationships.push({
                         name: name,
@@ -200,7 +210,7 @@ const IntelCenter = ({ warrants }: IntelCenterProps) => {
         }
 
         return { mentions, relationships };
-    };
+    }, [raioXTarget, warrants]);
 
     // Only show open warrants with location
     const openWarrants = useMemo(() => (warrants || []).filter(w => w.status === 'EM ABERTO'), [warrants]);
@@ -457,7 +467,7 @@ const IntelCenter = ({ warrants }: IntelCenterProps) => {
                                         </div>
 
                                         <div className="flex gap-2">
-                                            {raioXTarget.tags?.map(t => (
+                                            {Array.isArray(raioXTarget.tags) && raioXTarget.tags.map(t => (
                                                 <span key={t} className="px-3 py-1 bg-white/5 border border-white/10 rounded-full text-[10px] font-black uppercase text-slate-400">{t}</span>
                                             ))}
 
@@ -470,8 +480,8 @@ const IntelCenter = ({ warrants }: IntelCenterProps) => {
                                                         if (analysis) {
                                                             setRaioXTarget({
                                                                 ...raioXTarget,
-                                                                tacticalSummary: analysis.summary,
-                                                                tags: [...(raioXTarget.tags || []), ...analysis.warnings],
+                                                                tacticalSummary: analysis.summary ? [analysis.summary] : raioXTarget.tacticalSummary,
+                                                                tags: Array.from(new Set([...(raioXTarget.tags || []), ...analysis.warnings])),
                                                                 ai_relationships: analysis.possible_relatives
                                                             } as any);
                                                             toast.success("Análise profunda concluída!");
@@ -494,9 +504,9 @@ const IntelCenter = ({ warrants }: IntelCenterProps) => {
                                             <h4 className="text-xs font-black uppercase text-slate-400 mb-6 flex items-center gap-2">
                                                 <Users size={16} /> Mapa de Relacionamentos & Parentescos
                                             </h4>
-                                            {getEliteProfile(raioXTarget).relationships.length > 0 ? (
+                                            {eliteProfile.relationships.length > 0 ? (
                                                 <div className="space-y-4">
-                                                    {getEliteProfile(raioXTarget).relationships.map((r, i) => (
+                                                    {eliteProfile.relationships.map((r, i) => (
                                                         <div key={i} className={`flex items-start gap-4 p-3 rounded-2xl border transition-all ${r.isFromBanco
                                                             ? 'bg-primary/10 border-primary/20 hover:bg-primary/20'
                                                             : 'bg-slate-50 dark:bg-slate-800/50 border-transparent hover:border-slate-300'
@@ -533,9 +543,9 @@ const IntelCenter = ({ warrants }: IntelCenterProps) => {
                                             <h4 className="text-xs font-black uppercase text-slate-400 mb-6 flex items-center gap-2">
                                                 <Share2 size={16} /> Referências Cruzadas (App Search)
                                             </h4>
-                                            {getEliteProfile(raioXTarget).mentions.length > 0 ? (
+                                            {eliteProfile.mentions.length > 0 ? (
                                                 <div className="space-y-4">
-                                                    {getEliteProfile(raioXTarget).mentions.map((m, i) => (
+                                                    {eliteProfile.mentions.map((m, i) => (
                                                         <div key={i} className="flex items-center justify-between p-4 bg-primary/5 rounded-2xl border border-primary/20">
                                                             <div className="flex items-center gap-4">
                                                                 <div className="w-12 h-12 rounded-xl bg-primary text-white flex items-center justify-center shadow-lg shadow-primary/20">

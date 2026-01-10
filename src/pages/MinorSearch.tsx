@@ -7,13 +7,16 @@ import WarrantCard from '../components/WarrantCard';
 import { Warrant } from '../types';
 import { CRIME_OPTIONS, REGIME_OPTIONS } from '../data/constants';
 
+import { generateWarrantPDF } from '../services/pdfReportService';
+
 interface MinorSearchProps {
     warrants: Warrant[];
+    onUpdate: (id: string, updates: Partial<Warrant>) => Promise<boolean>;
     routeWarrants?: string[];
     onRouteToggle?: (id: string) => void;
 }
 
-const MinorSearch = ({ warrants, routeWarrants = [], onRouteToggle }: MinorSearchProps) => {
+const MinorSearch = ({ warrants, onUpdate, routeWarrants = [], onRouteToggle }: MinorSearchProps) => {
     const navigate = useNavigate();
     const [searchTerm, setSearchTerm] = useState('');
     const [showFilters, setShowFilters] = useState(false);
@@ -181,6 +184,11 @@ const MinorSearch = ({ warrants, routeWarrants = [], onRouteToggle }: MinorSearc
                             data={w}
                             isPlanned={routeWarrants.includes(w.id)}
                             onRouteToggle={onRouteToggle}
+                            onPrint={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                generateWarrantPDF(w, onUpdate);
+                            }}
                         />
                     )) : (
                         <div className="flex flex-col items-center justify-center py-10 opacity-50">

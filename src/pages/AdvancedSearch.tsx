@@ -7,13 +7,16 @@ import WarrantCard from '../components/WarrantCard';
 import { Warrant } from '../types';
 import { CRIME_OPTIONS, REGIME_OPTIONS } from '../data/constants';
 
+import { generateWarrantPDF } from '../services/pdfReportService';
+
 interface AdvancedSearchProps {
     warrants: Warrant[];
+    onUpdate: (id: string, updates: Partial<Warrant>) => Promise<boolean>;
     routeWarrants?: string[];
     onRouteToggle?: (id: string) => void;
 }
 
-const AdvancedSearch = ({ warrants, routeWarrants = [], onRouteToggle }: AdvancedSearchProps) => {
+const AdvancedSearch = ({ warrants, onUpdate, routeWarrants = [], onRouteToggle }: AdvancedSearchProps) => {
     const [searchParams] = useSearchParams();
     const query = searchParams.get('q') || '';
     const [searchTerm, setSearchTerm] = useState(query);
@@ -203,6 +206,11 @@ const AdvancedSearch = ({ warrants, routeWarrants = [], onRouteToggle }: Advance
                             data={w}
                             isPlanned={routeWarrants.includes(w.id)}
                             onRouteToggle={onRouteToggle}
+                            onPrint={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                generateWarrantPDF(w, onUpdate);
+                            }}
                         />
                     )) : (
                         <div className="flex flex-col items-center justify-center py-10 opacity-50">
