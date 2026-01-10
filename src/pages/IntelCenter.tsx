@@ -1,5 +1,5 @@
 
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Circle } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Warrant } from '../types';
@@ -16,6 +16,7 @@ import {
     Upload, FileUp, Link, Key
 } from 'lucide-react';
 import L from 'leaflet';
+import { toast } from 'sonner';
 import { analyzeWarrantData, findIntelligenceLinks, isGeminiEnabled } from '../services/geminiService';
 
 // Fix for default marker icons in Leaflet
@@ -47,6 +48,11 @@ const IntelCenter = ({ warrants }: IntelCenterProps) => {
     const [isScanningRaioX, setIsScanningRaioX] = useState(false);
     const [raioXFile, setRaioXFile] = useState<File | null>(null);
     const [isUploadingPdf, setIsUploadingPdf] = useState(false);
+    const [hasAi, setHasAi] = useState(false);
+
+    useEffect(() => {
+        isGeminiEnabled().then(setHasAi);
+    }, []);
 
     // --- Helper: Get Surname ---
     const getSurnames = (name: string) => {
@@ -80,9 +86,9 @@ const IntelCenter = ({ warrants }: IntelCenterProps) => {
 
             // IF GEMINI IS ENABLED: Do a deep analysis of all text content
             let geminiAnalysis = null;
-            if (isGeminiEnabled()) {
+            if (hasAi) {
                 // Combine all text found for Gemini
-                const fullText = `Mandado: ${extracted.processNumber}. Nome: ${extracted.name}. Crime: ${extracted.crime}. Observações: ${extracted.observation}.`;
+                const fullText = `Mandado: ${extracted.processNumber}. Nome: ${extracted.name}. Crime: ${extracted.crime}. Observações: ${extracted.observations}.`;
                 geminiAnalysis = await analyzeWarrantData(fullText);
             }
 
@@ -94,8 +100,8 @@ const IntelCenter = ({ warrants }: IntelCenterProps) => {
                 number: extracted.processNumber,
                 status: 'ANÁLISE PDF',
                 observation: geminiAnalysis
-                    ? `[ANÁLISE IA]: ${geminiAnalysis.summary}\n\n${extracted.observation}`
-                    : extracted.observation,
+                    ? `[ANÁLISE IA]: ${geminiAnalysis.summary}\n\n${extracted.observations}`
+                    : extracted.observations,
                 tacticalSummary: geminiAnalysis?.summary || extracted.tacticalSummary,
                 tags: geminiAnalysis?.warnings || []
             } as any;
@@ -264,7 +270,7 @@ const IntelCenter = ({ warrants }: IntelCenterProps) => {
 
         try {
             // IF GEMINI IS ENABLED: Use IA
-            if (isGeminiEnabled()) {
+            if (hasAi) {
                 const analysis = await analyzeWarrantData(labInput);
                 if (analysis) {
                     const results: any = {
@@ -454,7 +460,7 @@ const IntelCenter = ({ warrants }: IntelCenterProps) => {
                                                 <span key={t} className="px-3 py-1 bg-white/5 border border-white/10 rounded-full text-[10px] font-black uppercase text-slate-400">{t}</span>
                                             ))}
 
-                                            {isGeminiEnabled() && !raioXTarget.id.startsWith('virtual-') && (
+                                            {hasAi && !raioXTarget.id.startsWith('virtual-') && (
                                                 <button
                                                     onClick={async () => {
                                                         setIsScanningRaioX(true);

@@ -103,7 +103,7 @@ export default function Profile() {
                     <div className="space-y-3">
                         <div>
                             <label className="text-[10px] font-bold text-text-secondary-light dark:text-text-secondary-dark uppercase mb-1 block">
-                                Chave API Gemini
+                                Chave API Gemini {localStorage.getItem('gemini_api_key') ? '(Usando Pessoal)' : '(Usando Equipe)'}
                             </label>
                             <div className="flex gap-2">
                                 <input
@@ -127,9 +127,31 @@ export default function Profile() {
                                 </button>
                             </div>
                         </div>
+
+                        {user?.user_metadata?.role === 'admin' && (
+                            <button
+                                onClick={async () => {
+                                    const key = localStorage.getItem('gemini_api_key');
+                                    if (!key) {
+                                        toast.error("Insira uma chave primeiro para salvar para todos.");
+                                        return;
+                                    }
+                                    const { error } = await supabase
+                                        .from('system_settings')
+                                        .upsert({ key: 'gemini_api_key', value: key });
+
+                                    if (error) toast.error("Erro ao salvar chave global.");
+                                    else toast.success("Chave salva para todos os usuários da equipe!");
+                                }}
+                                className="w-full py-2 bg-blue-600/10 text-blue-600 rounded text-[10px] font-bold border border-blue-600/20 hover:bg-blue-600/20 transition-all"
+                            >
+                                SALVAR PARA TODA A EQUIPE (ADMIN)
+                            </button>
+                        )}
+
                         <div className="flex items-center gap-2 p-2 rounded bg-blue-50 dark:bg-blue-900/20 text-[10px] text-blue-700 dark:text-blue-300">
                             <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
-                            {localStorage.getItem('gemini_api_key') ? 'IA Ativa com Google Pro' : 'IA em modo Offline (Básico)'}
+                            {localStorage.getItem('gemini_api_key') ? 'IA Ativa com Chave Pessoal' : 'IA Ativa com Chave da Equipe'}
                         </div>
                     </div>
                 </div>

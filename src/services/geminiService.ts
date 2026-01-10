@@ -1,25 +1,57 @@
 
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { supabase } from "../supabaseClient";
 
-const getGeminiKey = () => {
-    return localStorage.getItem('gemini_api_key') || import.meta.env.VITE_GEMINI_API_KEY || '';
+let cachedGlobalKey: string | null = null;
+
+const fetchGlobalKey = async () => {
+    if (cachedGlobalKey) return cachedGlobalKey;
+    try {
+        const { data, error } = await supabase
+            .from('system_settings')
+            .select('value')
+            .eq('key', 'gemini_api_key')
+            .single();
+
+        if (data?.value) {
+            cachedGlobalKey = data.value;
+            return data.value;
+        }
+    } catch (e) {
+        console.error("Erro ao buscar chave global:", e);
+    }
+    return '';
 };
 
-export const isGeminiEnabled = () => {
-    return !!getGeminiKey();
+const getGeminiKey = async () => {
+    // Prioridade 1: LocalStorage (Chave pessoal)
+    const localKey = localStorage.getItem('gemini_api_key');
+    if (localKey) return localKey;
+
+    // Prioridade 2: Variável de ambiente (Build time)
+    const envKey = import.meta.env.VITE_GEMINI_API_KEY;
+    if (envKey) return envKey;
+
+    // Prioridade 3: Banco de dados (Compartilhada)
+    return await fetchGlobalKey();
 };
 
-const genAI = () => {
-    const key = getGeminiKey();
+export const isGeminiEnabled = async () => {
+    const key = await getGeminiKey();
+    return !!key;
+};
+
+const genAI = async () => {
+    const key = await getGeminiKey();
     if (!key) throw new Error("Chave API do Gemini não configurada.");
     return new GoogleGenerativeAI(key);
 };
 
 export async function analyzeWarrantData(text: string) {
-    if (!isGeminiEnabled()) return null;
+    if (!(await isGeminiEnabled())) return null;
 
     try {
-        const model = genAI().getGenerativeModel({ model: "gemini-1.5-flash" });
+        const model = (await genAI()).getGenerativeModel({ model: "gemini-1.5-flash" });
 
         const prompt = `
             Você é um analista de inteligência da Polícia Civil do Estado de São Paulo.
@@ -49,10 +81,10 @@ export async function analyzeWarrantData(text: string) {
 }
 
 export async function findIntelligenceLinks(targetName: string, allWarrantsText: string) {
-    if (!isGeminiEnabled()) return null;
+    if (!(await isGeminiEnabled())) return null;
 
     try {
-        const model = genAI().getGenerativeModel({ model: "gemini-1.5-flash" });
+        const model = (await genAI()).getGenerativeModel({ model: "gemini-1.5-flash" });
 
         const prompt = `
             Com base no nome do alvo "${targetName}" e no banco de dados de mandados resumido abaixo,

@@ -60,6 +60,12 @@ const NewWarrant = ({ onAdd, onUpdate, warrants }: NewWarrantProps) => {
         tacticalSummary: ''
     });
 
+    const [hasAi, setHasAi] = useState(false);
+
+    useEffect(() => {
+        isGeminiEnabled().then(setHasAi);
+    }, []);
+
     useEffect(() => {
         if (editId && warrants) {
             const existing = warrants.find(w => w.id === editId);
@@ -559,7 +565,7 @@ const NewWarrant = ({ onAdd, onUpdate, warrants }: NewWarrantProps) => {
                         <h3 className="font-bold text-text-light dark:text-text-dark text-sm flex items-center gap-2">
                             <Bot size={16} className="text-primary" /> Sumário Tático (IA)
                         </h3>
-                        {isGeminiEnabled() && (
+                        {hasAi && (
                             <button
                                 type="button"
                                 onClick={async () => {
