@@ -8,9 +8,10 @@ import { useNavigate } from 'react-router-dom';
 
 interface PatrolModeProps {
     warrants: Warrant[];
+    variant?: 'fab' | 'button';
 }
 
-const PatrolMode = ({ warrants }: PatrolModeProps) => {
+const PatrolMode = ({ warrants, variant = 'fab' }: PatrolModeProps) => {
     const [isActive, setIsActive] = useState(false);
     const [userPos, setUserPos] = useState<{ lat: number, lng: number } | null>(null);
     const [nearbyWarrants, setNearbyWarrants] = useState<Warrant[]>([]);
@@ -25,7 +26,7 @@ const PatrolMode = ({ warrants }: PatrolModeProps) => {
         }
 
         setIsActive(true);
-        toast.success("Modo Patrulhamento Ativado. Monitorando 300m ao redor.");
+        toast.success("Modo Patrulhamento Ativado.");
 
         watchId.current = navigator.geolocation.watchPosition(
             (position) => {
@@ -34,10 +35,10 @@ const PatrolMode = ({ warrants }: PatrolModeProps) => {
             },
             (error) => {
                 console.error("Erro GPS:", error);
-                toast.error("Erro ao obter localização. Verifique o GPS.");
+                toast.error("Erro GPS.");
                 stopPatrol();
             },
-            { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+            { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
         );
     };
 
@@ -60,7 +61,7 @@ const PatrolMode = ({ warrants }: PatrolModeProps) => {
             if (w.status !== 'EM ABERTO' || !w.latitude || !w.longitude) return false;
 
             const dist = calculateDistance(userPos.lat, userPos.lng, w.latitude, w.longitude);
-            return dist <= 300; // 300 meters
+            return dist <= 300;
         });
 
         setNearbyWarrants(filtered);
@@ -70,11 +71,11 @@ const PatrolMode = ({ warrants }: PatrolModeProps) => {
             if (!lastAlertedIds.current.has(w.id)) {
                 lastAlertedIds.current.add(w.id);
                 // Trigger an alert
-                toast.error(`ALVO DETECTADO! ${w.name} está na região (300m).`, {
-                    duration: 10000,
-                    description: `Endereço: ${w.location}`,
+                toast.error(`ALVO PROXIMO! ${w.name}`, {
+                    duration: 8000,
+                    description: `A menos de 300m.`,
                     action: {
-                        label: 'VER ALVO',
+                        label: 'VER',
                         onClick: () => navigate(`/warrant-detail/${w.id}`)
                     }
                 });
@@ -82,18 +83,22 @@ const PatrolMode = ({ warrants }: PatrolModeProps) => {
                 if ('vibrate' in navigator) navigator.vibrate([200, 100, 200]);
             }
         });
-
-        // Cleanup old alerts from tracking if they are far now
-        const currentIds = new Set(filtered.map(w => w.id));
-        lastAlertedIds.current.forEach(id => {
-            if (!currentIds.has(id)) {
-                // If the target is no longer in range according to calculation, we keep it in alerted
-                // to avoid double alerts if GPS jitters, but maybe we should expire it?
-                // For now, let's just keep track of what was alerted during this session.
-            }
-        });
-
     }, [userPos, warrants, isActive, navigate]);
+
+    if (variant === 'button') {
+        return (
+            <button
+                onClick={isActive ? stopPatrol : startPatrol}
+                className={`flex flex-col items-center justify-center gap-1 py-2 font-bold rounded-xl shadow-lg active:scale-95 transition-all ${isActive
+                        ? 'bg-red-600 text-white animate-pulse'
+                        : 'bg-emerald-600 text-white'
+                    }`}
+            >
+                {isActive ? <Shield size={18} className="animate-spin-slow" /> : <Shield size={18} />}
+                <span className="text-[10px] uppercase">{isActive ? 'Ativo' : 'Patrulha'}</span>
+            </button>
+        );
+    }
 
     return (
         <div className="fixed top-20 right-4 z-50 flex flex-col items-end gap-2">
@@ -117,10 +122,10 @@ const PatrolMode = ({ warrants }: PatrolModeProps) => {
                         <div className="bg-red-600 text-white p-3 rounded-2xl shadow-xl border-4 border-white dark:border-surface-dark animate-bounce-subtle max-w-[200px]">
                             <div className="flex items-center gap-2 mb-1">
                                 <AlertCircle size={16} />
-                                <span className="text-[10px] font-black uppercase tracking-widest">Alerta de Proximidade</span>
+                                <span className="text-[10px] font-black uppercase tracking-widest">Alerta 300m</span>
                             </div>
                             <p className="text-xs font-bold leading-tight">
-                                {nearbyWarrants.length} {nearbyWarrants.length === 1 ? 'Alvo detectado' : 'Alvos detectados'} a menos de 300m.
+                                {nearbyWarrants.length} {nearbyWarrants.length === 1 ? 'Alvo' : 'Alvos'} detectados.
                             </p>
                         </div>
                     )}

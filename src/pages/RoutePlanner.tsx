@@ -138,7 +138,6 @@ const RoutePlanner = ({ warrants = [], onRouteToggle, onUpdate }: RoutePlannerPr
     return (
         <div className="min-h-screen pb-40 bg-background-light dark:bg-background-dark overflow-x-hidden">
             <Header title="Roteiro de Diligências" back onBack={() => navigate('/')} />
-            <PatrolMode warrants={warrants} />
 
             <div className="p-4 space-y-5 max-w-md mx-auto">
                 {warrants.length === 0 ? (
@@ -208,7 +207,7 @@ const RoutePlanner = ({ warrants = [], onRouteToggle, onUpdate }: RoutePlannerPr
 
                         {/* Actions Footer - Justified and smaller above BottomNav */}
                         <div className="fixed bottom-16 left-0 right-0 p-3 bg-surface-light border-t border-border-light dark:bg-surface-dark dark:border-border-dark backdrop-blur-lg bg-opacity-95 dark:bg-opacity-95 z-40 shadow-[0_-10px_25px_rgba(0,0,0,0.1)]">
-                            <div className="max-w-md mx-auto grid grid-cols-3 gap-2">
+                            <div className="max-w-md mx-auto grid grid-cols-4 gap-2">
                                 <button
                                     onClick={handleOpenMap}
                                     className="flex flex-col items-center justify-center gap-1 py-2 bg-indigo-600 text-white font-bold rounded-xl shadow-lg active:scale-95 transition-all hover:bg-indigo-700"
@@ -216,6 +215,9 @@ const RoutePlanner = ({ warrants = [], onRouteToggle, onUpdate }: RoutePlannerPr
                                     <Map size={18} />
                                     <span className="text-[10px] uppercase">Navegar</span>
                                 </button>
+                                
+                                <PatrolMode warrants={warrants} variant="button" />
+
                                 <button
                                     onClick={() => navigate('/map')}
                                     className="flex flex-col items-center justify-center gap-1 py-2 bg-gray-100 dark:bg-gray-800 text-text-light dark:text-text-dark font-bold rounded-xl active:scale-95 transition-all"
