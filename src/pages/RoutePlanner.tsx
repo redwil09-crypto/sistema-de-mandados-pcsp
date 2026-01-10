@@ -7,6 +7,7 @@ import WarrantCard from '../components/WarrantCard';
 import ConfirmModal from '../components/ConfirmModal';
 import { toast } from 'sonner';
 import { Warrant } from '../types';
+import PatrolMode from '../components/PatrolMode';
 
 interface RoutePlannerProps {
     warrants: Warrant[];
@@ -137,6 +138,7 @@ const RoutePlanner = ({ warrants = [], onRouteToggle, onUpdate }: RoutePlannerPr
     return (
         <div className="min-h-screen pb-40 bg-background-light dark:bg-background-dark overflow-x-hidden">
             <Header title="Roteiro de Diligências" back onBack={() => navigate('/')} />
+            <PatrolMode warrants={warrants} />
 
             <div className="p-4 space-y-5 max-w-md mx-auto">
                 {warrants.length === 0 ? (
