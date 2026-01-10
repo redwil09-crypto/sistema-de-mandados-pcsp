@@ -7,7 +7,7 @@ import {
     Bike, FileCheck, FileText, Paperclip, Edit,
     Route as RouteIcon, RotateCcw, CheckCircle, Printer,
     Trash2, Zap, Bell, Eye, History, Send, Copy,
-    ShieldAlert, MessageSquare, Plus, PlusCircle, X, ChevronRight
+    ShieldAlert, MessageSquare, Plus, PlusCircle, X, ChevronRight, Bot
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '../supabaseClient';
@@ -970,6 +970,16 @@ Equipe de Capturas - DIG / PCSP
     };
 
 
+    if (!data) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark">
+                <div className="flex flex-col items-center gap-4">
+                    <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent shadow-lg shadow-primary/20"></div>
+                    <p className="text-xs font-black text-primary uppercase tracking-widest animate-pulse">Sincronizando Registro...</p>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen pb-32 bg-background-light dark:bg-background-dark">
@@ -1380,7 +1390,7 @@ Equipe de Capturas - DIG / PCSP
 
             </div>
 
-            {data.tacticalSummary && data.tacticalSummary.length > 0 && (
+            {Array.isArray(data.tacticalSummary) && data.tacticalSummary.length > 0 && (
                 <div className="bg-red-50 dark:bg-slate-900 border border-red-100 dark:border-indigo-500/30 p-4 rounded-xl shadow-sm overflow-hidden relative">
                     <div className="absolute top-0 right-0 p-2 opacity-10">
                         <ShieldAlert size={60} />
