@@ -23,6 +23,7 @@ import IntelCenter from './pages/IntelCenter';
 
 // Components
 import BottomNav from './components/BottomNav';
+import PatrolMode from './components/PatrolMode';
 
 // Services & Utils
 import { createWarrant, getWarrants, updateWarrant as updateWarrantDb, deleteWarrant as deleteWarrantDb } from './supabaseService';
@@ -192,6 +193,7 @@ function App() {
             <ScrollToTop />
             <Toaster richColors position="top-right" />
             <div className="min-h-screen bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark transition-colors duration-200">
+                <PatrolMode warrants={warrants} />
 
                 <Routes>
                     <Route path="/" element={<HomePage isDark={isDark} toggleTheme={toggleTheme} warrants={warrants} routeCount={routeWarrants.length} />} />

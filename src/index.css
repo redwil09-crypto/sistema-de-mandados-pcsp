@@ -5,7 +5,7 @@
 @layer base {
   body {
     @apply bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark antialiased;
-    background-image: 
+    background-image:
       radial-gradient(circle at 50% 50%, rgba(30, 58, 138, 0.05) 0%, transparent 50%),
       radial-gradient(circle at 100% 0%, rgba(0, 245, 255, 0.03) 0%, transparent 30%);
     background-attachment: fixed;
@@ -16,6 +16,7 @@
   .shadow-soft {
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
   }
+
   .shadow-sun {
     box-shadow: 0 8px 15px -3px rgba(0, 0, 0, 0.12), 0 4px 6px -2px rgba(0, 0, 0, 0.08);
   }
@@ -44,8 +45,45 @@
     animation: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   }
 
+  .animate-spin-slow {
+    animation: spin 3s linear infinite;
+  }
+
+  .animate-bounce-subtle {
+    animation: bounce-subtle 2s infinite;
+  }
+
   @keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.5; }
+
+    0%,
+    100% {
+      opacity: 1;
+    }
+
+    50% {
+      opacity: 0.5;
+    }
+  }
+
+  @keyframes spin {
+    from {
+      transform: rotate(0deg);
+    }
+
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  @keyframes bounce-subtle {
+
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+
+    50% {
+      transform: translateY(-5px);
+    }
   }
 }
