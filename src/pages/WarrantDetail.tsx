@@ -18,6 +18,7 @@ import VoiceInput from '../components/VoiceInput';
 import WarrantAuditLog from '../components/WarrantAuditLog';
 import { Warrant } from '../types';
 import { geocodeAddress } from '../services/geocodingService';
+import { CRIME_OPTIONS, REGIME_OPTIONS } from '../data/constants';
 
 interface WarrantDetailProps {
     warrants: Warrant[];
@@ -104,7 +105,8 @@ const WarrantDetail = ({ warrants, onUpdate, onDelete, routeWarrants = [], onRou
             'name', 'type', 'rg', 'cpf', 'number', 'crime', 'regime',
             'location', 'ifoodNumber', 'ifoodResult', 'digOffice',
             'issueDate', 'entryDate', 'expirationDate', 'dischargeDate', 'observation',
-            'status', 'fulfillmentResult', 'fulfillmentReport', 'latitude', 'longitude'
+            'status', 'fulfillmentResult', 'fulfillmentReport', 'latitude', 'longitude',
+            'tacticalSummary', 'tags'
         ];
 
         fields.forEach(key => {
@@ -1316,21 +1318,26 @@ Equipe de Capturas - DIG / PCSP
                         </div>
                         <div>
                             <p className="text-xs text-text-secondary-light dark:text-text-secondary-dark uppercase font-bold">Crime</p>
-                            <input
-                                className="text-sm font-bold text-red-600 dark:text-red-400 bg-transparent border-none w-full focus:ring-1 focus:ring-primary/20 rounded px-1 -ml-1"
+                            <select
+                                className="text-sm font-bold text-red-600 dark:text-red-400 bg-transparent border-none w-full focus:ring-1 focus:ring-primary/20 rounded px-1 -ml-1 cursor-pointer outline-none"
                                 value={localData.crime || ''}
                                 onChange={e => handleFieldChange('crime', e.target.value)}
-                                placeholder="Não Informado"
-                            />
+                            >
+                                <option value="">Não Informado</option>
+                                {CRIME_OPTIONS.map(c => <option key={c} value={c}>{c}</option>)}
+                                <option value="OUTRO">Outro</option>
+                            </select>
                         </div>
                         <div>
                             <p className="text-xs text-text-secondary-light dark:text-text-secondary-dark uppercase font-bold">Regime</p>
-                            <input
-                                className="text-sm font-bold text-red-600 dark:text-red-400 bg-transparent border-none w-full focus:ring-1 focus:ring-primary/20 rounded px-1 -ml-1"
+                            <select
+                                className="text-sm font-bold text-red-600 dark:text-red-400 bg-transparent border-none w-full focus:ring-1 focus:ring-primary/20 rounded px-1 -ml-1 cursor-pointer outline-none"
                                 value={localData.regime || ''}
                                 onChange={e => handleFieldChange('regime', e.target.value)}
-                                placeholder="Não Informado"
-                            />
+                            >
+                                <option value="">Não Informado</option>
+                                {REGIME_OPTIONS.map(r => <option key={r} value={r}>{r}</option>)}
+                            </select>
                         </div>
                     </div>
                 </div>
