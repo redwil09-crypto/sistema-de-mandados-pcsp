@@ -9,11 +9,12 @@ import { generateWarrantPDF } from '../services/pdfReportService';
 interface PriorityListProps {
     warrants: Warrant[];
     onUpdate: (id: string, updates: Partial<Warrant>) => Promise<boolean>;
+    onDelete: (id: string) => Promise<boolean>;
     routeWarrants?: string[];
     onRouteToggle?: (id: string) => void;
 }
 
-const PriorityList = ({ warrants, onUpdate, routeWarrants = [], onRouteToggle }: PriorityListProps) => (
+const PriorityList = ({ warrants, onUpdate, onDelete, routeWarrants = [], onRouteToggle }: PriorityListProps) => (
     <div className="min-h-screen pb-20 bg-background-light dark:bg-background-dark">
         <Header title="Prioridades" back />
         <div className="p-4 space-y-4">
@@ -21,6 +22,7 @@ const PriorityList = ({ warrants, onUpdate, routeWarrants = [], onRouteToggle }:
                 <WarrantCard
                     key={w.id}
                     data={w}
+                    onDelete={onDelete}
                     isPlanned={routeWarrants.includes(w.id)}
                     onRouteToggle={onRouteToggle}
                     onPrint={(e) => {

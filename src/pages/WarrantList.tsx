@@ -12,11 +12,12 @@ import { generateWarrantPDF } from '../services/pdfReportService';
 interface WarrantListProps {
     warrants: Warrant[];
     onUpdate: (id: string, updates: Partial<Warrant>) => Promise<boolean>;
+    onDelete: (id: string) => Promise<boolean>;
     routeWarrants?: string[];
     onRouteToggle?: (id: string) => void;
 }
 
-const WarrantList = ({ warrants, onUpdate, routeWarrants = [], onRouteToggle }: WarrantListProps) => {
+const WarrantList = ({ warrants, onUpdate, onDelete, routeWarrants = [], onRouteToggle }: WarrantListProps) => {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const query = searchParams.get('q') || '';
@@ -184,6 +185,7 @@ const WarrantList = ({ warrants, onUpdate, routeWarrants = [], onRouteToggle }: 
                         <WarrantCard
                             key={w.id}
                             data={w}
+                            onDelete={onDelete}
                             isPlanned={routeWarrants.includes(w.id)}
                             onRouteToggle={onRouteToggle}
                             onPrint={(e) => {

@@ -203,14 +203,14 @@ function App() {
                     </div>
                 }>
                     <Routes>
-                        <Route path="/" element={<HomePage isDark={isDark} toggleTheme={toggleTheme} warrants={warrants} onUpdate={handleUpdateWarrant} routeCount={routeWarrants.length} />} />
+                        <Route path="/" element={<HomePage isDark={isDark} toggleTheme={toggleTheme} warrants={warrants} onUpdate={handleUpdateWarrant} onDelete={handleDeleteWarrant} routeCount={routeWarrants.length} />} />
 
                         {/* Main Routes */}
-                        <Route path="/warrant-list" element={<WarrantList warrants={prisonWarrants} onUpdate={handleUpdateWarrant} routeWarrants={routeWarrants} onRouteToggle={toggleRouteWarrant} />} />
-                        <Route path="/advanced-search" element={<AdvancedSearch warrants={warrants} onUpdate={handleUpdateWarrant} routeWarrants={routeWarrants} onRouteToggle={toggleRouteWarrant} />} />
-                        <Route path="/recents" element={<RecentActivityPage warrants={warrants} onUpdate={handleUpdateWarrant} routeWarrants={routeWarrants} onRouteToggle={toggleRouteWarrant} />} />
-                        <Route path="/minor-search" element={<MinorSearch warrants={searchWarrants} onUpdate={handleUpdateWarrant} routeWarrants={routeWarrants} onRouteToggle={toggleRouteWarrant} />} />
-                        <Route path="/priority-list" element={<PriorityList warrants={priorityWarrants} onUpdate={handleUpdateWarrant} routeWarrants={routeWarrants} onRouteToggle={toggleRouteWarrant} />} />
+                        <Route path="/warrant-list" element={<WarrantList warrants={prisonWarrants} onUpdate={handleUpdateWarrant} onDelete={handleDeleteWarrant} routeWarrants={routeWarrants} onRouteToggle={toggleRouteWarrant} />} />
+                        <Route path="/advanced-search" element={<AdvancedSearch warrants={warrants} onUpdate={handleUpdateWarrant} onDelete={handleDeleteWarrant} routeWarrants={routeWarrants} onRouteToggle={toggleRouteWarrant} />} />
+                        <Route path="/recents" element={<RecentActivityPage warrants={warrants} onUpdate={handleUpdateWarrant} onDelete={handleDeleteWarrant} routeWarrants={routeWarrants} onRouteToggle={toggleRouteWarrant} />} />
+                        <Route path="/minor-search" element={<MinorSearch warrants={searchWarrants} onUpdate={handleUpdateWarrant} onDelete={handleDeleteWarrant} routeWarrants={routeWarrants} onRouteToggle={toggleRouteWarrant} />} />
+                        <Route path="/priority-list" element={<PriorityList warrants={priorityWarrants} onUpdate={handleUpdateWarrant} onDelete={handleDeleteWarrant} routeWarrants={routeWarrants} onRouteToggle={toggleRouteWarrant} />} />
 
                         {/* specialized pages */}
                         <Route path="/route-planner" element={<RoutePlanner

@@ -12,11 +12,12 @@ import { generateWarrantPDF } from '../services/pdfReportService';
 interface AdvancedSearchProps {
     warrants: Warrant[];
     onUpdate: (id: string, updates: Partial<Warrant>) => Promise<boolean>;
+    onDelete: (id: string) => Promise<boolean>;
     routeWarrants?: string[];
     onRouteToggle?: (id: string) => void;
 }
 
-const AdvancedSearch = ({ warrants, onUpdate, routeWarrants = [], onRouteToggle }: AdvancedSearchProps) => {
+const AdvancedSearch = ({ warrants, onUpdate, onDelete, routeWarrants = [], onRouteToggle }: AdvancedSearchProps) => {
     const [searchParams] = useSearchParams();
     const query = searchParams.get('q') || '';
     const [searchTerm, setSearchTerm] = useState(query);
@@ -204,6 +205,7 @@ const AdvancedSearch = ({ warrants, onUpdate, routeWarrants = [], onRouteToggle 
                         <WarrantCard
                             key={w.id}
                             data={w}
+                            onDelete={onDelete}
                             isPlanned={routeWarrants.includes(w.id)}
                             onRouteToggle={onRouteToggle}
                             onPrint={(e) => {

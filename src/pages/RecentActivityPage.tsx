@@ -9,11 +9,12 @@ import { generateWarrantPDF } from '../services/pdfReportService';
 interface RecentActivityPageProps {
     warrants: Warrant[];
     onUpdate: (id: string, updates: Partial<Warrant>) => Promise<boolean>;
+    onDelete: (id: string) => Promise<boolean>;
     routeWarrants?: string[];
     onRouteToggle?: (id: string) => void;
 }
 
-const RecentActivityPage = ({ warrants, onUpdate, routeWarrants = [], onRouteToggle }: RecentActivityPageProps) => {
+const RecentActivityPage = ({ warrants, onUpdate, onDelete, routeWarrants = [], onRouteToggle }: RecentActivityPageProps) => {
     const sortedWarrants = useMemo(() => {
         return [...warrants].sort((a, b) => {
             const dateA = a.updatedAt || a.createdAt || '';
@@ -30,6 +31,7 @@ const RecentActivityPage = ({ warrants, onUpdate, routeWarrants = [], onRouteTog
                     <WarrantCard
                         key={warrant.id}
                         data={warrant}
+                        onDelete={onDelete}
                         isPlanned={routeWarrants.includes(warrant.id)}
                         onRouteToggle={onRouteToggle}
                         onPrint={(e) => {

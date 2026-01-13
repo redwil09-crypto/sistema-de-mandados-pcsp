@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Briefcase, Gavel, MapPin, Calendar, Route as RouteIcon, Printer, CheckCircle } from 'lucide-react';
+import { Briefcase, Gavel, MapPin, Calendar, Route as RouteIcon, Printer, CheckCircle, Trash2 } from 'lucide-react';
 import { Warrant } from '../types';
 import { formatDate } from '../utils/helpers';
 
@@ -11,10 +11,11 @@ interface WarrantCardProps {
     isPlanned?: boolean;
     onRouteToggle?: (id: string) => void;
     onFinalize?: (e: React.MouseEvent, data: Warrant) => void;
+    onDelete?: (id: string) => void;
     [key: string]: any;
 }
 
-const WarrantCard = ({ data, onPrint, isPlanned, onRouteToggle, onFinalize, ...props }: WarrantCardProps) => {
+const WarrantCard = ({ data, onPrint, isPlanned, onRouteToggle, onFinalize, onDelete, ...props }: WarrantCardProps) => {
     // Determine stripe color based on search/seizure vs arrest
     const isSearch = data.type ? (data.type.toLowerCase().includes('busca') || data.type.toLowerCase().includes('apreensão')) : false;
 
@@ -49,6 +50,21 @@ const WarrantCard = ({ data, onPrint, isPlanned, onRouteToggle, onFinalize, ...p
                                     title="Marcar como Cumprido"
                                 >
                                     <CheckCircle size={14} />
+                                </button>
+                            )}
+                            {onDelete && (
+                                <button
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        if (window.confirm("Deseja realmente excluir este mandado? Esta ação não pode ser desfeita.")) {
+                                            onDelete(data.id);
+                                        }
+                                    }}
+                                    className="p-1.5 bg-red-100 text-red-600 dark:bg-red-900/40 dark:text-red-400 rounded-lg transition-colors"
+                                    title="Excluir Mandado Rápido"
+                                >
+                                    <Trash2 size={14} />
                                 </button>
                             )}
                             <span className={`text-[10px] font-bold px-2 py-0.5 rounded whitespace-nowrap ${data.status === 'EM ABERTO' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' :

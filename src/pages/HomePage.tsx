@@ -16,10 +16,11 @@ interface HomePageProps {
     toggleTheme: () => void;
     warrants: Warrant[];
     onUpdate: (id: string, updates: Partial<Warrant>) => Promise<boolean>;
+    onDelete: (id: string) => Promise<boolean>;
     routeCount?: number;
 }
 
-const HomePage = ({ isDark, toggleTheme, warrants, onUpdate, routeCount = 0 }: HomePageProps) => {
+const HomePage = ({ isDark, toggleTheme, warrants, onUpdate, onDelete, routeCount = 0 }: HomePageProps) => {
     const navigate = useNavigate();
     const [showNotifications, setShowNotifications] = useState(false);
     const [showAllNotifications, setShowAllNotifications] = useState(false);
@@ -273,6 +274,7 @@ const HomePage = ({ isDark, toggleTheme, warrants, onUpdate, routeCount = 0 }: H
                                 <WarrantCard
                                     key={warrant.id}
                                     data={warrant}
+                                    onDelete={onDelete}
                                     onPrint={(e) => {
                                         e.preventDefault();
                                         e.stopPropagation();

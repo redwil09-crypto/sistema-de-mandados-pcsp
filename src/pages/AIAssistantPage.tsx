@@ -809,8 +809,24 @@ const AIAssistantPage = ({ onAdd, warrants }: AIAssistantPageProps) => {
                                 </div>
 
                                 <div className="flex gap-3 pt-2">
+                                    <button
+                                        onClick={() => {
+                                            if (window.confirm("Descartar este resultado da extração?")) {
+                                                const newResults = batchResults.filter((_, i) => i !== currentIndex);
+                                                setBatchResults(newResults);
+                                                if (newResults.length === 0) {
+                                                    reset();
+                                                } else if (currentIndex >= newResults.length) {
+                                                    setCurrentIndex(newResults.length - 1);
+                                                }
+                                            }
+                                        }}
+                                        className="flex-1 py-3 bg-red-50 text-red-600 border border-red-200 rounded-xl text-sm font-bold hover:bg-red-100 flex items-center justify-center gap-2"
+                                    >
+                                        <Trash2 size={16} /> Descartar
+                                    </button>
                                     <button onClick={backToInput} className="flex-1 py-3 border border-border-light dark:border-border-dark rounded-xl text-sm font-bold hover:bg-black/5 dark:hover:bg-white/5 flex items-center justify-center gap-2">
-                                        <RefreshCw size={16} /> Pular
+                                        <RefreshCw size={16} /> Voltar
                                     </button>
                                     <button onClick={handleSave} disabled={isSaving} className="flex-[2] py-3 bg-primary text-white rounded-xl text-sm font-bold shadow-lg flex items-center justify-center gap-2 active:scale-[0.98] transition-all">
                                         {isSaving ? <RefreshCw className="animate-spin" size={18} /> : <Save size={18} />}

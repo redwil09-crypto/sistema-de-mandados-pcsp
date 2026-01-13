@@ -7,7 +7,7 @@ import {
     Bike, FileCheck, FileText, Paperclip, Edit,
     Route as RouteIcon, RotateCcw, CheckCircle, Printer,
     Trash2, Zap, Bell, Eye, History, Send, Copy,
-    ShieldAlert, MessageSquare, Plus, PlusCircle, X, ChevronRight
+    ShieldAlert, MessageSquare, Plus, PlusCircle, X, ChevronRight, Bot, Cpu
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '../supabaseClient';
@@ -1546,343 +1546,341 @@ Equipe de Capturas - DIG / PCSP
                     placeholder="Adicione observações importantes aqui..."
                 />
             </div>
-        </div>
 
-            {/* Sticky Save Changes Bar */ }
-    {
-        hasChanges && (
-            <div className="fixed bottom-[100px] left-4 right-4 p-4 bg-primary/95 dark:bg-primary/90 backdrop-blur-md rounded-2xl z-[60] flex gap-3 animate-in slide-in-from-bottom duration-300 shadow-2xl">
-                <button
-                    onClick={handleCancelEdits}
-                    className="flex-1 py-3 px-4 rounded-xl font-bold bg-white/20 text-white hover:bg-white/30 transition-colors"
-                >
-                    Descartar
-                </button>
-                <button
-                    onClick={() => setIsConfirmSaveOpen(true)}
-                    className="flex-1 py-3 px-4 rounded-xl font-bold bg-white text-primary shadow-lg hover:bg-gray-100 transition-colors flex items-center justify-center gap-2"
-                >
-                    <CheckCircle size={20} />
-                    SALVAR ALTERAÇÕES
-                </button>
-            </div>
-        )
-    }
+            {/* Sticky Save Changes Bar */}
+            {hasChanges && (
+                <div className="fixed bottom-[100px] left-4 right-4 p-4 bg-primary/95 dark:bg-primary/90 backdrop-blur-md rounded-2xl z-[60] flex gap-3 animate-in slide-in-from-bottom duration-300 shadow-2xl">
+                    <button
+                        onClick={handleCancelEdits}
+                        className="flex-1 py-3 px-4 rounded-xl font-bold bg-white/20 text-white hover:bg-white/30 transition-colors"
+                    >
+                        Descartar
+                    </button>
+                    <button
+                        onClick={() => setIsConfirmSaveOpen(true)}
+                        className="flex-1 py-3 px-4 rounded-xl font-bold bg-white text-primary shadow-lg hover:bg-gray-100 transition-colors flex items-center justify-center gap-2"
+                    >
+                        <CheckCircle size={20} />
+                        SALVAR ALTERAÇÕES
+                    </button>
+                </div>
+            )
+            }
 
-    {
-        isAdmin && (
-            <div className="bg-surface-light dark:bg-surface-dark p-4 rounded-xl shadow-sm border border-border-light dark:border-border-dark mt-4">
-                <h3 className="font-bold text-text-light dark:text-text-dark mb-3 flex items-center gap-2">
-                    <History size={18} className="text-primary" /> Histórico de Alterações (Admin)
-                </h3>
-                <WarrantAuditLog warrantId={data.id} />
-            </div>
-        )
-    }
-
-    {/* Modals */ }
-    <ConfirmModal
-        isOpen={isConfirmSaveOpen}
-        onCancel={() => setIsConfirmSaveOpen(false)}
-        onConfirm={handleSaveChanges}
-        title="Salvar Alterações"
-        message="Deseja salvar todas as modificações feitas nos detalhes deste mandado?"
-        confirmText="SALVAR AGORA"
-        cancelText="CANCELAR"
-        variant="primary"
-    />
-
-    {/* Fixed Bottom Action Bar */ }
-    <div className="fixed bottom-0 left-0 right-0 p-4 pb-6 bg-white/80 dark:bg-background-dark/80 backdrop-blur-lg border-t border-border-light dark:border-border-dark z-50 animate-in slide-in-from-bottom duration-300 shadow-[0_-4px_10px_rgba(0,0,0,0.05)]">
-        <div className="max-w-md mx-auto flex items-stretch gap-2">
-            <Link
-                to="/"
-                className="flex-1 min-w-0 flex flex-col items-center justify-center gap-1 p-2 rounded-xl bg-gray-500/10 text-gray-600 dark:text-gray-400 transition-all active:scale-95 touch-manipulation hover:bg-gray-500/20"
-            >
-                <Home size={18} />
-                <span className="text-[9px] font-bold uppercase truncate w-full text-center">Início</span>
-            </Link>
-
-            <Link
-                to={`/new-warrant?edit=${data.id}`}
-                className="flex-1 min-w-0 flex flex-col items-center justify-center gap-1 p-2 rounded-xl bg-primary/10 text-primary transition-all active:scale-95 touch-manipulation hover:bg-primary/20"
-            >
-                <Edit size={18} />
-                <span className="text-[9px] font-bold uppercase truncate w-full text-center">Editar</span>
-            </Link>
-
-
-            <button
-                onClick={data.status === 'CUMPRIDO' ? handleReopen : handleFinalize}
-                className={`flex-1 min-w-0 flex flex-col items-center justify-center gap-1 p-2 rounded-xl transition-all active:scale-95 touch-manipulation ${data.status === 'CUMPRIDO'
-                    ? 'bg-blue-600/10 text-blue-600 hover:bg-blue-600/20'
-                    : 'bg-green-600/10 text-green-600 hover:bg-green-600/20'
-                    }`}
-            >
-                {data.status === 'CUMPRIDO' ? <RotateCcw size={18} /> : <CheckCircle size={18} />}
-                <span className="text-[9px] font-bold uppercase truncate w-full text-center">{data.status === 'CUMPRIDO' ? 'REABRIR' : 'FECHAR'}</span>
-            </button>
-
-            <button
-                onClick={handleDownloadPDF}
-                className="flex-[2] min-w-0 flex flex-col items-center justify-center gap-1 p-2 rounded-xl bg-indigo-600 text-white shadow-lg shadow-indigo-500/20 transition-all active:scale-95 touch-manipulation hover:bg-indigo-700"
-            >
-                <Printer size={18} />
-                <span className="text-[9px] font-bold uppercase truncate w-full text-center">FICHA COMPLETA</span>
-            </button>
-
-            <button
-                onClick={handleDelete}
-                className="flex-1 min-w-0 flex flex-col items-center justify-center gap-1 p-2 rounded-xl bg-red-500/10 text-red-500 transition-all active:scale-95 touch-manipulation hover:bg-red-500/20"
-            >
-                <Trash2 size={18} />
-                <span className="text-[9px] font-bold uppercase truncate w-full text-center">APAGAR</span>
-            </button>
-        </div>
-    </div>
-
-    {
-        isReopenConfirmOpen && (
-            <ConfirmModal
-                isOpen={isReopenConfirmOpen}
-                title="Reabrir Mandado"
-                message="Deseja alterar o status deste mandado para EM ABERTO?"
-                onConfirm={handleConfirmReopen}
-                onCancel={() => setIsReopenConfirmOpen(false)}
-                confirmText="reabrir"
-                cancelText="cancelar"
-            />
-        )
-    }
-
-    {
-        tagToRemove && (
-            <ConfirmModal
-                isOpen={!!tagToRemove}
-                title="Remover Prioridade"
-                message={`Deseja remover a prioridade "${tagToRemove}" deste mandado e voltar ao normal?`}
-                onConfirm={handleConfirmRemoveTag}
-                onCancel={() => setTagToRemove(null)}
-                confirmText="Sim, Remover"
-                cancelText="Não"
-                variant="danger"
-            />
-        )
-    }
-    {
-        isDeleteConfirmOpen && (
-            <ConfirmModal
-                isOpen={isDeleteConfirmOpen}
-                title="Excluir Permanentemente"
-                message="TEM CERTEZA que deseja EXCLUIR este mandado permanentemente? Esta ação não pode ser desfeita."
-                onConfirm={handleConfirmDelete}
-                onCancel={() => setIsDeleteConfirmOpen(false)}
-                confirmText="Excluir"
-                variant="danger"
-            />
-        )
-    }
-
-    {
-        isFinalizeModalOpen && (
-            <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                <div className="bg-surface-light dark:bg-surface-dark rounded-xl w-full max-w-md shadow-2xl border border-border-light dark:border-border-dark animate-in fade-in zoom-in duration-200">
-                    <div className="p-6">
-                        <h3 className="text-xl font-bold text-text-light dark:text-text-dark mb-4">Finalizar Mandado</h3>
-
-                        <div className="space-y-4">
-                            <div>
-                                <label className="block text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark uppercase mb-1">Data do Cumprimento</label>
-                                <input
-                                    type="date"
-                                    value={finalizeFormData.date}
-                                    onChange={e => setFinalizeFormData({ ...finalizeFormData, date: e.target.value })}
-                                    className="w-full bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg p-3 text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark uppercase mb-1">Número do Relatório</label>
-                                <input
-                                    type="text"
-                                    value={finalizeFormData.reportNumber}
-                                    onChange={e => setFinalizeFormData({ ...finalizeFormData, reportNumber: e.target.value })}
-                                    placeholder="Ex: REL-2024/001"
-                                    className="w-full bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg p-3 text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark uppercase mb-1">Número de Ofício DIG</label>
-                                <input
-                                    type="text"
-                                    value={finalizeFormData.digOffice}
-                                    onChange={e => setFinalizeFormData({ ...finalizeFormData, digOffice: e.target.value })}
-                                    placeholder="Ex: 123/2024"
-                                    className="w-full bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg p-3 text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark uppercase mb-1">Resultado</label>
-                                <select
-                                    value={finalizeFormData.result}
-                                    onChange={e => setFinalizeFormData({ ...finalizeFormData, result: e.target.value })}
-                                    className="w-full bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg p-3 text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none"
-                                >
-                                    {(data.type?.toLowerCase().includes('busca') || data.type?.toLowerCase().includes('apreensão'))
-                                        ? ['Apreendido', 'Fora de Validade', 'Negativo', 'Encaminhado', 'Contra', 'Ofício Localiza', 'Óbito'].map(opt => (
-                                            <option key={opt} value={opt}>{opt}</option>
-                                        ))
-                                        : [
-                                            'PRESO',
-                                            'NEGATIVO',
-                                            'ENCAMINHADO',
-                                            'ÓBITO',
-                                            'CONTRA',
-                                            'LOCALIZADO',
-                                            'OFÍCIO',
-                                            'CUMPRIDO NO FÓRUM'
-                                        ].map(opt => (
-                                            <option key={opt} value={opt}>{opt}</option>
-                                        ))
-                                    }
-                                </select>
-                            </div>
-                        </div>
-
-                        <div className="flex gap-3 mt-8">
-                            <button
-                                onClick={() => setIsFinalizeModalOpen(false)}
-                                className="flex-1 py-3 px-4 rounded-xl font-bold bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:opacity-90 transition-opacity"
-                            >
-                                Cancelar
-                            </button>
-                            <button
-                                onClick={handleConfirmFinalize}
-                                className="flex-1 py-3 px-4 rounded-xl font-bold bg-green-600 text-white shadow-lg hover:bg-green-700 transition-colors flex items-center justify-center gap-2"
-                            >
-                                <CheckCircle size={20} />
-                                FECHAR
-                            </button>
-                        </div>
+            {
+                isAdmin && (
+                    <div className="bg-surface-light dark:bg-surface-dark p-4 rounded-xl shadow-sm border border-border-light dark:border-border-dark mt-4">
+                        <h3 className="font-bold text-text-light dark:text-text-dark mb-3 flex items-center gap-2">
+                            <History size={18} className="text-primary" /> Histórico de Alterações (Admin)
+                        </h3>
+                        <WarrantAuditLog warrantId={data.id} />
                     </div>
+                )
+            }
+
+            {/* Modals */}
+            <ConfirmModal
+                isOpen={isConfirmSaveOpen}
+                onCancel={() => setIsConfirmSaveOpen(false)}
+                onConfirm={handleSaveChanges}
+                title="Salvar Alterações"
+                message="Deseja salvar todas as modificações feitas nos detalhes deste mandado?"
+                confirmText="SALVAR AGORA"
+                cancelText="CANCELAR"
+                variant="primary"
+            />
+
+            {/* Fixed Bottom Action Bar */}
+            <div className="fixed bottom-0 left-0 right-0 p-4 pb-6 bg-white/80 dark:bg-background-dark/80 backdrop-blur-lg border-t border-border-light dark:border-border-dark z-50 animate-in slide-in-from-bottom duration-300 shadow-[0_-4px_10px_rgba(0,0,0,0.05)]">
+                <div className="max-w-md mx-auto flex items-stretch gap-2">
+                    <Link
+                        to="/"
+                        className="flex-1 min-w-0 flex flex-col items-center justify-center gap-1 p-2 rounded-xl bg-gray-500/10 text-gray-600 dark:text-gray-400 transition-all active:scale-95 touch-manipulation hover:bg-gray-500/20"
+                    >
+                        <Home size={18} />
+                        <span className="text-[9px] font-bold uppercase truncate w-full text-center">Início</span>
+                    </Link>
+
+                    <Link
+                        to={`/new-warrant?edit=${data.id}`}
+                        className="flex-1 min-w-0 flex flex-col items-center justify-center gap-1 p-2 rounded-xl bg-primary/10 text-primary transition-all active:scale-95 touch-manipulation hover:bg-primary/20"
+                    >
+                        <Edit size={18} />
+                        <span className="text-[9px] font-bold uppercase truncate w-full text-center">Editar</span>
+                    </Link>
+
+
+                    <button
+                        onClick={data.status === 'CUMPRIDO' ? handleReopen : handleFinalize}
+                        className={`flex-1 min-w-0 flex flex-col items-center justify-center gap-1 p-2 rounded-xl transition-all active:scale-95 touch-manipulation ${data.status === 'CUMPRIDO'
+                            ? 'bg-blue-600/10 text-blue-600 hover:bg-blue-600/20'
+                            : 'bg-green-600/10 text-green-600 hover:bg-green-600/20'
+                            }`}
+                    >
+                        {data.status === 'CUMPRIDO' ? <RotateCcw size={18} /> : <CheckCircle size={18} />}
+                        <span className="text-[9px] font-bold uppercase truncate w-full text-center">{data.status === 'CUMPRIDO' ? 'REABRIR' : 'FECHAR'}</span>
+                    </button>
+
+                    <button
+                        onClick={handleDownloadPDF}
+                        className="flex-[2] min-w-0 flex flex-col items-center justify-center gap-1 p-2 rounded-xl bg-indigo-600 text-white shadow-lg shadow-indigo-500/20 transition-all active:scale-95 touch-manipulation hover:bg-indigo-700"
+                    >
+                        <Printer size={18} />
+                        <span className="text-[9px] font-bold uppercase truncate w-full text-center">FICHA COMPLETA</span>
+                    </button>
+
+                    <button
+                        onClick={handleDelete}
+                        className="flex-1 min-w-0 flex flex-col items-center justify-center gap-1 p-2 rounded-xl bg-red-500/10 text-red-500 transition-all active:scale-95 touch-manipulation hover:bg-red-500/20"
+                    >
+                        <Trash2 size={18} />
+                        <span className="text-[9px] font-bold uppercase truncate w-full text-center">APAGAR</span>
+                    </button>
                 </div>
             </div>
-        )
-    }
-    {
-        isPhotoModalOpen && (
-            <div
-                className="fixed inset-0 z-[110] bg-black/95 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200"
-                onClick={() => setIsPhotoModalOpen(false)}
-            >
-                <div className="relative max-w-4xl w-full flex flex-col items-center">
-                    <button
-                        className="absolute -top-12 right-0 text-white hover:text-primary transition-colors p-2"
+
+            {
+                isReopenConfirmOpen && (
+                    <ConfirmModal
+                        isOpen={isReopenConfirmOpen}
+                        title="Reabrir Mandado"
+                        message="Deseja alterar o status deste mandado para EM ABERTO?"
+                        onConfirm={handleConfirmReopen}
+                        onCancel={() => setIsReopenConfirmOpen(false)}
+                        confirmText="reabrir"
+                        cancelText="cancelar"
+                    />
+                )
+            }
+
+            {
+                tagToRemove && (
+                    <ConfirmModal
+                        isOpen={!!tagToRemove}
+                        title="Remover Prioridade"
+                        message={`Deseja remover a prioridade "${tagToRemove}" deste mandado e voltar ao normal?`}
+                        onConfirm={handleConfirmRemoveTag}
+                        onCancel={() => setTagToRemove(null)}
+                        confirmText="Sim, Remover"
+                        cancelText="Não"
+                        variant="danger"
+                    />
+                )
+            }
+            {
+                isDeleteConfirmOpen && (
+                    <ConfirmModal
+                        isOpen={isDeleteConfirmOpen}
+                        title="Excluir Permanentemente"
+                        message="TEM CERTEZA que deseja EXCLUIR este mandado permanentemente? Esta ação não pode ser desfeita."
+                        onConfirm={handleConfirmDelete}
+                        onCancel={() => setIsDeleteConfirmOpen(false)}
+                        confirmText="Excluir"
+                        variant="danger"
+                    />
+                )
+            }
+
+            {
+                isFinalizeModalOpen && (
+                    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                        <div className="bg-surface-light dark:bg-surface-dark rounded-xl w-full max-w-md shadow-2xl border border-border-light dark:border-border-dark animate-in fade-in zoom-in duration-200">
+                            <div className="p-6">
+                                <h3 className="text-xl font-bold text-text-light dark:text-text-dark mb-4">Finalizar Mandado</h3>
+
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="block text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark uppercase mb-1">Data do Cumprimento</label>
+                                        <input
+                                            type="date"
+                                            value={finalizeFormData.date}
+                                            onChange={e => setFinalizeFormData({ ...finalizeFormData, date: e.target.value })}
+                                            className="w-full bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg p-3 text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark uppercase mb-1">Número do Relatório</label>
+                                        <input
+                                            type="text"
+                                            value={finalizeFormData.reportNumber}
+                                            onChange={e => setFinalizeFormData({ ...finalizeFormData, reportNumber: e.target.value })}
+                                            placeholder="Ex: REL-2024/001"
+                                            className="w-full bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg p-3 text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark uppercase mb-1">Número de Ofício DIG</label>
+                                        <input
+                                            type="text"
+                                            value={finalizeFormData.digOffice}
+                                            onChange={e => setFinalizeFormData({ ...finalizeFormData, digOffice: e.target.value })}
+                                            placeholder="Ex: 123/2024"
+                                            className="w-full bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg p-3 text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark uppercase mb-1">Resultado</label>
+                                        <select
+                                            value={finalizeFormData.result}
+                                            onChange={e => setFinalizeFormData({ ...finalizeFormData, result: e.target.value })}
+                                            className="w-full bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg p-3 text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none"
+                                        >
+                                            {(data.type?.toLowerCase().includes('busca') || data.type?.toLowerCase().includes('apreensão'))
+                                                ? ['Apreendido', 'Fora de Validade', 'Negativo', 'Encaminhado', 'Contra', 'Ofício Localiza', 'Óbito'].map(opt => (
+                                                    <option key={opt} value={opt}>{opt}</option>
+                                                ))
+                                                : [
+                                                    'PRESO',
+                                                    'NEGATIVO',
+                                                    'ENCAMINHADO',
+                                                    'ÓBITO',
+                                                    'CONTRA',
+                                                    'LOCALIZADO',
+                                                    'OFÍCIO',
+                                                    'CUMPRIDO NO FÓRUM'
+                                                ].map(opt => (
+                                                    <option key={opt} value={opt}>{opt}</option>
+                                                ))
+                                            }
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div className="flex gap-3 mt-8">
+                                    <button
+                                        onClick={() => setIsFinalizeModalOpen(false)}
+                                        className="flex-1 py-3 px-4 rounded-xl font-bold bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:opacity-90 transition-opacity"
+                                    >
+                                        Cancelar
+                                    </button>
+                                    <button
+                                        onClick={handleConfirmFinalize}
+                                        className="flex-1 py-3 px-4 rounded-xl font-bold bg-green-600 text-white shadow-lg hover:bg-green-700 transition-colors flex items-center justify-center gap-2"
+                                    >
+                                        <CheckCircle size={20} />
+                                        FECHAR
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )
+            }
+            {
+                isPhotoModalOpen && (
+                    <div
+                        className="fixed inset-0 z-[110] bg-black/95 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200"
                         onClick={() => setIsPhotoModalOpen(false)}
                     >
-                        <X size={32} />
-                    </button>
-                    <img
-                        src={data.img || `https://ui-avatars.com/api/?name=${encodeURIComponent(data.name)}&background=random&color=fff`}
-                        alt={data.name}
-                        className="max-h-[85vh] max-w-full rounded-2xl shadow-2xl border-2 border-white/10 object-contain animate-in zoom-in-95 duration-300"
-                    />
-                    <div className="mt-4 text-center">
-                        <h2 className="text-white font-black text-xl uppercase tracking-widest">{data.name}</h2>
-                        <p className="text-gray-400 text-sm">{data.number}</p>
+                        <div className="relative max-w-4xl w-full flex flex-col items-center">
+                            <button
+                                className="absolute -top-12 right-0 text-white hover:text-primary transition-colors p-2"
+                                onClick={() => setIsPhotoModalOpen(false)}
+                            >
+                                <X size={32} />
+                            </button>
+                            <img
+                                src={data.img || `https://ui-avatars.com/api/?name=${encodeURIComponent(data.name)}&background=random&color=fff`}
+                                alt={data.name}
+                                className="max-h-[85vh] max-w-full rounded-2xl shadow-2xl border-2 border-white/10 object-contain animate-in zoom-in-95 duration-300"
+                            />
+                            <div className="mt-4 text-center">
+                                <h2 className="text-white font-black text-xl uppercase tracking-widest">{data.name}</h2>
+                                <p className="text-gray-400 text-sm">{data.number}</p>
+                            </div>
+                        </div>
                     </div>
-                </div>
-            </div>
-        )
-    }
+                )
+            }
 
-    {
-        isCapturasModalOpen && (
-            <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                <div className="bg-surface-light dark:bg-surface-dark rounded-xl w-full max-w-2xl shadow-2xl border border-border-light dark:border-border-dark animate-in fade-in zoom-in duration-200">
-                    <div className="p-6">
-                        <h3 className="text-xl font-bold text-text-light dark:text-text-dark mb-4 flex items-center gap-2">
-                            <FileText size={24} className="text-primary" />
-                            Gerar Relatório de Capturas
-                        </h3>
+            {
+                isCapturasModalOpen && (
+                    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                        <div className="bg-surface-light dark:bg-surface-dark rounded-xl w-full max-w-2xl shadow-2xl border border-border-light dark:border-border-dark animate-in fade-in zoom-in duration-200">
+                            <div className="p-6">
+                                <h3 className="text-xl font-bold text-text-light dark:text-text-dark mb-4 flex items-center gap-2">
+                                    <FileText size={24} className="text-primary" />
+                                    Gerar Relatório de Capturas
+                                </h3>
 
-                        <div className="space-y-4">
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark uppercase mb-1">Número do Relatório</label>
-                                    <input
-                                        type="text"
-                                        value={capturasData.reportNumber}
-                                        onChange={e => setCapturasData({ ...capturasData, reportNumber: e.target.value })}
-                                        className="w-full bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg p-3 text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none"
-                                    />
+                                <div className="space-y-4">
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark uppercase mb-1">Número do Relatório</label>
+                                            <input
+                                                type="text"
+                                                value={capturasData.reportNumber}
+                                                onChange={e => setCapturasData({ ...capturasData, reportNumber: e.target.value })}
+                                                className="w-full bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg p-3 text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark uppercase mb-1">Juízo de Direito</label>
+                                            <input
+                                                type="text"
+                                                value={capturasData.court}
+                                                onChange={e => setCapturasData({ ...capturasData, court: e.target.value })}
+                                                className="w-full bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg p-3 text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark uppercase mb-1">Corpo do Relatório</label>
+                                        <textarea
+                                            value={capturasData.body}
+                                            onChange={e => setCapturasData({ ...capturasData, body: e.target.value })}
+                                            rows={8}
+                                            className="w-full bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg p-3 text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none resize-none text-sm leading-relaxed"
+                                        />
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark uppercase mb-1">Policial Responsável</label>
+                                            <input
+                                                type="text"
+                                                value={capturasData.signer}
+                                                onChange={e => setCapturasData({ ...capturasData, signer: e.target.value })}
+                                                className="w-full bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg p-3 text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark uppercase mb-1">Delegado Titular</label>
+                                            <input
+                                                type="text"
+                                                value={capturasData.delegate}
+                                                onChange={e => setCapturasData({ ...capturasData, delegate: e.target.value })}
+                                                className="w-full bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg p-3 text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none"
+                                            />
+                                        </div>
+                                    </div>
                                 </div>
-                                <div>
-                                    <label className="block text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark uppercase mb-1">Juízo de Direito</label>
-                                    <input
-                                        type="text"
-                                        value={capturasData.court}
-                                        onChange={e => setCapturasData({ ...capturasData, court: e.target.value })}
-                                        className="w-full bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg p-3 text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none"
-                                    />
-                                </div>
-                            </div>
 
-                            <div>
-                                <label className="block text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark uppercase mb-1">Corpo do Relatório</label>
-                                <textarea
-                                    value={capturasData.body}
-                                    onChange={e => setCapturasData({ ...capturasData, body: e.target.value })}
-                                    rows={8}
-                                    className="w-full bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg p-3 text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none resize-none text-sm leading-relaxed"
-                                />
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark uppercase mb-1">Policial Responsável</label>
-                                    <input
-                                        type="text"
-                                        value={capturasData.signer}
-                                        onChange={e => setCapturasData({ ...capturasData, signer: e.target.value })}
-                                        className="w-full bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg p-3 text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark uppercase mb-1">Delegado Titular</label>
-                                    <input
-                                        type="text"
-                                        value={capturasData.delegate}
-                                        onChange={e => setCapturasData({ ...capturasData, delegate: e.target.value })}
-                                        className="w-full bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg p-3 text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none"
-                                    />
+                                <div className="flex gap-3 mt-8">
+                                    <button
+                                        onClick={() => setIsCapturasModalOpen(false)}
+                                        className="flex-1 py-3 px-4 rounded-xl font-bold bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:opacity-90 transition-opacity"
+                                    >
+                                        Cancelar
+                                    </button>
+                                    <button
+                                        onClick={handleGenerateCapturasPDF}
+                                        className="flex-1 py-3 px-4 rounded-xl font-bold bg-indigo-600 text-white shadow-lg hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2"
+                                    >
+                                        <FileCheck size={20} />
+                                        GERAR PDF
+                                    </button>
                                 </div>
                             </div>
                         </div>
-
-                        <div className="flex gap-3 mt-8">
-                            <button
-                                onClick={() => setIsCapturasModalOpen(false)}
-                                className="flex-1 py-3 px-4 rounded-xl font-bold bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:opacity-90 transition-opacity"
-                            >
-                                Cancelar
-                            </button>
-                            <button
-                                onClick={handleGenerateCapturasPDF}
-                                className="flex-1 py-3 px-4 rounded-xl font-bold bg-indigo-600 text-white shadow-lg hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2"
-                            >
-                                <FileCheck size={20} />
-                                GERAR PDF
-                            </button>
-                        </div>
                     </div>
-                </div>
-            </div>
-        )
-    }
-        </div >
+                )
+            }
+        </div>
     );
 };
 

@@ -12,11 +12,12 @@ import { generateWarrantPDF } from '../services/pdfReportService';
 interface MinorSearchProps {
     warrants: Warrant[];
     onUpdate: (id: string, updates: Partial<Warrant>) => Promise<boolean>;
+    onDelete: (id: string) => Promise<boolean>;
     routeWarrants?: string[];
     onRouteToggle?: (id: string) => void;
 }
 
-const MinorSearch = ({ warrants, onUpdate, routeWarrants = [], onRouteToggle }: MinorSearchProps) => {
+const MinorSearch = ({ warrants, onUpdate, onDelete, routeWarrants = [], onRouteToggle }: MinorSearchProps) => {
     const navigate = useNavigate();
     const [searchTerm, setSearchTerm] = useState('');
     const [showFilters, setShowFilters] = useState(false);
@@ -182,6 +183,7 @@ const MinorSearch = ({ warrants, onUpdate, routeWarrants = [], onRouteToggle }: 
                         <WarrantCard
                             key={w.id}
                             data={w}
+                            onDelete={onDelete}
                             isPlanned={routeWarrants.includes(w.id)}
                             onRouteToggle={onRouteToggle}
                             onPrint={(e) => {
