@@ -1240,9 +1240,14 @@ Equipe de Capturas - DIG / PCSP
                                         const tid = toast.loading("Buscando coordenadas...");
                                         const res = await geocodeAddress(addr);
                                         if (res) {
+                                            // Atualiza o estado local e o banco de dados
+                                            setLocalData(prev => ({ ...prev, latitude: res.lat, longitude: res.lng }));
                                             await onUpdate(data.id, { latitude: res.lat, longitude: res.lng });
                                             toast.success("Mapa atualizado!", { id: tid });
                                         } else {
+                                            // Se não achar, limpa as coordenadas para forçar "Não Mapeado"
+                                            setLocalData(prev => ({ ...prev, latitude: null, longitude: null }));
+                                            await onUpdate(data.id, { latitude: null, longitude: null });
                                             toast.error("Endereço não encontrado no mapa", { id: tid });
                                         }
                                     }}
