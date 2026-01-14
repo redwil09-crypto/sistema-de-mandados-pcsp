@@ -7,7 +7,7 @@ import {
     Bike, FileCheck, FileText, Paperclip, Edit,
     Route as RouteIcon, RotateCcw, CheckCircle, Printer,
     Trash2, Zap, Bell, Eye, History, Send, Copy,
-    ShieldAlert, MessageSquare, Plus, PlusCircle, X, ChevronRight, Bot, Cpu
+    ShieldAlert, MessageSquare, Plus, PlusCircle, X, ChevronRight, Bot, Cpu, Sparkles
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '../supabaseClient';
