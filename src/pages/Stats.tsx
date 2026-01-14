@@ -1,16 +1,16 @@
 
 import React, { useMemo, useState } from 'react';
 import {
-    ResponsiveContainer, AreaChart, Area, XAxis, YAxis,
-    CartesianGrid, Tooltip, Legend, BarChart, Bar,
-    PieChart, Pie, Cell, LineChart, Line
+    ResponsiveContainer, XAxis, YAxis,
+    Tooltip, BarChart, Bar, Cell
 } from 'recharts';
 import {
     TrendingUp, Zap,
     Calendar, Shield, AlertTriangle,
-    Download, MapPin, Users, Database, Navigation
+    Download, MapPin, Users, Database, Navigation,
+    ShieldAlert, Activity, Scale, Search, Clock
 } from 'lucide-react';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import Header from '../components/Header';
 import { Warrant } from '../types';
 
@@ -52,140 +52,167 @@ const Stats = ({ warrants }: StatsProps) => {
         });
     }, [warrants, filterRange]);
 
-    // --- Calculations ---
-
-    // 1. Core KPIs
+    // 1. Core KPIs with Comparative Logic
     const kpis = useMemo(() => {
-        const total = filteredWarrants.filter(w => w.status === 'EM ABERTO').length;
-        const mapped = filteredWarrants.filter(w => w.status === 'EM ABERTO' && w.latitude && w.longitude).length;
+        const active = warrants.filter(w => w.status === 'EM ABERTO');
+        const totalActive = active.length;
+        const totalMapped = active.filter(w => w.latitude && w.longitude).length;
 
-        // Count total diligences in filtered warrants
-        const totalDiligencias = filteredWarrants.reduce((acc, w) => acc + (w.diligentHistory?.length || 0), 0);
+        const highRisk = active.filter(w => {
+            const crime = (w.crime || '').toUpperCase();
+            return crime.includes('HOMICIDIO') || crime.includes('ROUBO') || crime.includes('TRAFICO') || (w as any).tags?.includes('Urgente');
+        }).length;
 
-        // Expiration Alert (next 30 days)
-        const upcomingExpirations = warrants.filter(w => {
-            if (w.status !== 'EM ABERTO') return false;
+        const expiring30 = active.filter(w => {
             const expDate = parseDate(w.expirationDate);
             if (!expDate) return false;
             const diff = expDate.getTime() - new Date().getTime();
-            const days = diff / (1000 * 60 * 60 * 24);
-            return days > 0 && days <= 30;
+            return diff > 0 && diff <= (30 * 24 * 60 * 60 * 1000);
         }).length;
 
-        return { total, mapped, totalDiligencias, upcomingExpirations };
-    }, [filteredWarrants, warrants]);
+        const expiring90 = active.filter(w => {
+            const expDate = parseDate(w.expirationDate);
+            if (!expDate) return false;
+            const diff = expDate.getTime() - new Date().getTime();
+            return diff > 0 && diff <= (90 * 24 * 60 * 60 * 1000);
+        }).length;
 
-    // 2. Recent Diligences List
-    const recentDiligences = useMemo(() => {
-        const list: { name: string, date: string, type: string }[] = [];
+        return { totalActive, totalMapped, highRisk, expiring30, expiring90 };
+    }, [warrants]);
+
+    // 2. Nature Breakdown
+    const natureData = useMemo(() => {
+        const counts: Record<string, number> = {};
+        warrants.filter(w => w.status === 'EM ABERTO').forEach(w => {
+            const c = (w.crime || 'OUTROS').split(' - ')[0].split(' (')[0].toUpperCase();
+            counts[c] = (counts[c] || 0) + 1;
+        });
+        return Object.entries(counts)
+            .map(([name, value]) => ({ name, value }))
+            .sort((a, b) => b.value - a.value)
+            .slice(0, 5);
+    }, [warrants]);
+
+    // 3. Squad Timeline
+    const squadronTimeline = useMemo(() => {
+        const timeline: any[] = [];
         warrants.forEach(w => {
             w.diligentHistory?.forEach(d => {
-                list.push({
-                    name: w.name || 'N/I',
+                timeline.push({
+                    target: w.name || 'ALVO NÃO CADASTRADO',
+                    action: d.type,
                     date: d.date,
-                    type: d.type
+                    notes: d.notes
                 });
             });
         });
-        return list.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 5);
+        return timeline.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 8);
     }, [warrants]);
 
     return (
-        <div className="min-h-screen pb-24 bg-[#0f172a] text-slate-200">
-            <Header title="Painel Operacional" back showHome />
+        <div className="min-h-screen pb-24 bg-[#0a0f1a] text-slate-300 font-sans">
+            <Header title="Painel de Capturas • Equipe Alfa" back showHome />
 
-            {/* Simple Toolbar */}
-            <div className="p-4 flex justify-between items-center border-b border-slate-800 bg-slate-900/50 backdrop-blur-md sticky top-16 z-20">
-                <div className="flex bg-slate-800 p-1 rounded-lg border border-slate-700">
-                    {(['30d', '90d', 'all'] as FilterRange[]).map((r) => (
-                        <button
-                            key={r}
-                            onClick={() => setFilterRange(r)}
-                            className={`px-3 py-1 text-[10px] font-black rounded-md transition-all ${filterRange === r
-                                ? 'bg-amber-500 text-black shadow-lg'
-                                : 'text-slate-400 hover:text-white'
-                                }`}
-                        >
-                            {r === 'all' ? 'TOTAL' : r.toUpperCase()}
-                        </button>
-                    ))}
-                </div>
-
-                <Link to="/intel" className="flex items-center gap-2 bg-slate-100 text-slate-900 px-4 py-1.5 rounded-lg text-[10px] font-black shadow-lg active:scale-95 transition-all">
-                    RESUMO IA
-                </Link>
-            </div>
-
-            <main className="p-4 space-y-6">
-                {/* Team KPIs */}
-                <div className="grid grid-cols-2 gap-4">
-                    <OperationalCard
-                        label="Banco de Dados"
-                        value={kpis.total}
-                        sub="Mandados Ativos"
-                        icon={<Database size={16} className="text-amber-500" />}
+            <main className="p-4 space-y-6 max-w-7xl mx-auto">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <TacticalCard
+                        title="Inventário Ativo"
+                        value={kpis.totalActive}
+                        footer={`Mapeados: ${kpis.totalMapped}`}
+                        progress={(kpis.totalMapped / (kpis.totalActive || 1)) * 100}
+                        icon={<Database size={20} className="text-blue-500" />}
+                        color="blue"
                     />
-                    <OperationalCard
-                        label="Pronto p/ Campo"
-                        value={kpis.mapped}
-                        sub="Geolocalizados"
-                        icon={<Navigation size={16} className="text-emerald-500" />}
-                        trend={`${Math.round((kpis.mapped / (kpis.total || 1)) * 100)}%`}
+                    <TacticalCard
+                        title="Natureza Crítica"
+                        value={kpis.highRisk}
+                        footer="Homicídio / Roubo / Tráfico"
+                        icon={<ShieldAlert size={20} className="text-amber-500" />}
+                        color="amber"
+                        urgent={kpis.highRisk > 0}
                     />
-                    <OperationalCard
-                        label="Diligências"
-                        value={kpis.totalDiligencias}
-                        sub="Produção no Período"
-                        icon={<TrendingUp size={16} className="text-blue-500" />}
+                    <TacticalCard
+                        title="Janela de Prazos"
+                        value={kpis.expiring30}
+                        footer={`Próx. 90 dias: ${kpis.expiring90}`}
+                        icon={<Clock size={20} className="text-rose-500" />}
+                        color="rose"
+                        urgent={kpis.expiring30 > 0}
                     />
-                    <OperationalCard
-                        label="Prazos Críticos"
-                        value={kpis.upcomingExpirations}
-                        sub="Vencimento 30d"
-                        icon={<AlertTriangle size={16} className="text-rose-500" />}
-                        urgent={kpis.upcomingExpirations > 0}
+                    <TacticalCard
+                        title="Prontidão Digital"
+                        value={`${Math.round((kpis.totalMapped / (kpis.totalActive || 1)) * 100)}%`}
+                        footer="Alvos no GPS"
+                        icon={<Navigation size={20} className="text-emerald-500" />}
+                        color="emerald"
                     />
                 </div>
 
-                {/* Team Focus Section */}
-                <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
-                    <div className="flex items-center gap-3 mb-6">
-                        <div className="w-10 h-10 rounded-full bg-amber-500/10 flex items-center justify-center border border-amber-500/20">
-                            <Users size={20} className="text-amber-500" />
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div className="lg:col-span-2 bg-slate-900/40 border border-slate-800 rounded-2xl p-6 backdrop-blur-sm">
+                        <div className="flex items-center justify-between mb-8">
+                            <div>
+                                <h3 className="text-xs font-black uppercase tracking-[0.2em] text-slate-500 mb-1">Carga Operacional</h3>
+                                <p className="text-lg font-bold text-white">Análise por Natureza</p>
+                            </div>
+                            <TrendingUp className="text-slate-700" size={24} />
                         </div>
-                        <div>
-                            <h3 className="text-sm font-black uppercase tracking-tight">Atividade da Equipe</h3>
-                            <p className="text-[10px] text-slate-500 font-bold">Últimas movimentações em campo</p>
+                        <div className="h-64 w-full">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <BarChart data={natureData} layout="vertical" margin={{ left: 40, right: 20 }}>
+                                    <XAxis type="number" hide />
+                                    <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} fontSize={10} fontWeight="bold" tick={{ fill: '#94a3b8' }} width={100} />
+                                    <Tooltip cursor={{ fill: 'rgba(255,255,255,0.05)' }} contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', fontSize: '12px' }} />
+                                    <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={20}>
+                                        {natureData.map((_, index) => (
+                                            <Cell key={`cell-${index}`} fill={index === 0 ? '#f59e0b' : '#334155'} />
+                                        ))}
+                                    </Bar>
+                                </BarChart>
+                            </ResponsiveContainer>
                         </div>
                     </div>
 
-                    <div className="space-y-3">
-                        {recentDiligences.length > 0 ? (
-                            recentDiligences.map((d, i) => (
-                                <div key={i} className="flex items-center justify-between p-3 rounded-xl bg-slate-800/50 border border-slate-700/50">
-                                    <div className="flex flex-col">
-                                        <span className="text-[11px] font-black uppercase truncate max-w-[180px]">{d.name}</span>
-                                        <span className="text-[9px] text-slate-400 font-bold">{d.type}</span>
+                    <div className="bg-slate-900/40 border border-slate-800 rounded-2xl p-6 backdrop-blur-sm flex flex-col">
+                        <div className="mb-6">
+                            <h3 className="text-xs font-black uppercase tracking-[0.2em] text-slate-500 mb-1">Timeline</h3>
+                            <p className="text-lg font-bold text-white">Últimas do Squad</p>
+                        </div>
+                        <div className="space-y-4 flex-1 overflow-y-auto pr-2">
+                            {squadronTimeline.length > 0 ? squadronTimeline.map((item, idx) => (
+                                <div key={idx} className="relative pl-6 border-l-2 border-slate-800 pb-2">
+                                    <div className="absolute -left-[9px] top-0 w-4 h-4 rounded-full bg-slate-900 border-2 border-slate-700 flex items-center justify-center">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
                                     </div>
-                                    <div className="text-right">
-                                        <span className="text-[10px] font-mono text-slate-500">{new Date(d.date).toLocaleDateString('pt-BR')}</span>
+                                    <div className="space-y-1">
+                                        <div className="flex justify-between">
+                                            <p className="text-[10px] font-black uppercase text-white truncate max-w-[120px]">{item.target}</p>
+                                            <p className="text-[8px] font-bold text-slate-600 font-mono">{new Date(item.date).toLocaleDateString('pt-BR')}</p>
+                                        </div>
+                                        <p className="text-[9px] font-bold text-slate-500 uppercase">{item.action}</p>
                                     </div>
                                 </div>
-                            ))
-                        ) : (
-                            <p className="text-center py-8 text-xs text-slate-600 font-bold italic">Nenhuma diligência registrada no período.</p>
-                        )}
+                            )) : (
+                                <p className="text-xs text-slate-600 italic py-10 text-center">Nenhum registro</p>
+                            )}
+                        </div>
                     </div>
                 </div>
 
-                {/* Bottom Tip */}
-                <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-2xl p-4 flex items-center gap-4">
-                    <div className="p-2 bg-emerald-500/20 rounded-lg text-emerald-500">
-                        <Zap size={18} />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-4">
+                    <div className="p-6 rounded-2xl bg-gradient-to-br from-indigo-500/10 to-transparent border border-indigo-500/20 flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-2xl bg-indigo-500 flex items-center justify-center shadow-lg"><Activity className="text-white" size={24} /></div>
+                        <div>
+                            <h3 className="text-xs font-black uppercase tracking-widest text-indigo-400">Eficiência</h3>
+                            <p className="text-2xl font-black text-white">{kpis.totalMapped} / {kpis.totalActive}</p>
+                        </div>
                     </div>
-                    <div>
-                        <p className="text-[10px] font-black text-emerald-500 uppercase">Foco Operacional</p>
-                        <p className="text-[10px] text-slate-300">Priorize atualizar as geolocalizações para otimizar os roteiros de campo.</p>
+                    <div className="p-6 rounded-2xl bg-gradient-to-br from-rose-500/10 to-transparent border border-rose-500/20 flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-2xl bg-rose-500 flex items-center justify-center shadow-lg"><Scale className="text-white" size={24} /></div>
+                        <div>
+                            <h3 className="text-xs font-black uppercase tracking-widest text-rose-400">Vencimentos</h3>
+                            <p className="text-2xl font-black text-white">{kpis.expiring30}</p>
+                        </div>
                     </div>
                 </div>
             </main>
@@ -193,37 +220,30 @@ const Stats = ({ warrants }: StatsProps) => {
     );
 };
 
-// --- Minimalist Components ---
+const TacticalCard = ({ title, value, footer, icon, color, progress, urgent }: any) => {
+    const accents: any = {
+        blue: 'border-blue-500/20 text-blue-500 bg-blue-500/10',
+        amber: 'border-amber-500/20 text-amber-500 bg-amber-500/10',
+        rose: 'border-rose-500/30 text-rose-500 bg-rose-500/10',
+        emerald: 'border-emerald-500/20 text-emerald-500 bg-emerald-500/10'
+    };
 
-interface OperationalCardProps {
-    label: string;
-    value: number;
-    sub: string;
-    icon: React.ReactNode;
-    trend?: string;
-    urgent?: boolean;
-}
-
-const OperationalCard = ({ label, value, sub, icon, trend, urgent }: OperationalCardProps) => (
-    <div className={`p-4 rounded-2xl bg-slate-900 border transition-all ${urgent ? 'border-rose-500/50 animate-pulse' : 'border-slate-800'}`}>
-        <div className="flex justify-between items-start mb-3">
-            <div className="p-2 rounded-lg bg-slate-800 border border-slate-700">
-                {icon}
+    return (
+        <div className={`p-5 rounded-2xl bg-slate-900 border ${urgent ? 'border-rose-500/50 animate-pulse shadow-[0_0_20px_rgba(239,68,68,0.1)]' : 'border-slate-800'}`}>
+            <div className="flex justify-between items-start mb-4">
+                <div className={`p-2 rounded-xl border ${accents[color]}`}>{icon}</div>
+                {progress !== undefined && <div className="text-[10px] font-black text-slate-500">{Math.round(progress)}%</div>}
             </div>
-            {trend && (
-                <span className="text-[9px] font-black text-emerald-500 bg-emerald-500/10 px-1.5 py-0.5 rounded uppercase">
-                    {trend}
-                </span>
-            )}
-        </div>
-        <div className="space-y-0.5">
-            <h4 className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">{label}</h4>
-            <div className="flex items-baseline gap-2">
-                <span className="text-2xl font-black text-white">{value}</span>
-                <span className="text-[8px] font-bold text-slate-400 uppercase truncate">{sub}</span>
+            <div className="space-y-0.5 mb-4">
+                <h4 className="text-[10px] font-black text-slate-500 uppercase">{title}</h4>
+                <p className="text-3xl font-black text-white">{value}</p>
+            </div>
+            <div className="flex items-center gap-2">
+                <div className={`w-1 h-1 rounded-full ${urgent ? 'bg-rose-500 animate-ping' : 'bg-slate-700'}`} />
+                <p className="text-[9px] font-bold text-slate-500 uppercase">{footer}</p>
             </div>
         </div>
-    </div>
-);
+    );
+};
 
 export default Stats;
