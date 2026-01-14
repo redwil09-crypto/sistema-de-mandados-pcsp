@@ -203,7 +203,7 @@ function App() {
                     </div>
                 }>
                     <Routes>
-                        <Route path="/" element={<HomePage isDark={isDark} toggleTheme={toggleTheme} warrants={warrants} onUpdate={handleUpdateWarrant} onDelete={handleDeleteWarrant} routeCount={routeWarrants.length} />} />
+                        <Route path="/" element={<HomePage isDark={isDark} toggleTheme={toggleTheme} warrants={warrants} onUpdate={handleUpdateWarrant} onDelete={handleDeleteWarrant} routeWarrants={routeWarrants} onRouteToggle={toggleRouteWarrant} />} />
 
                         {/* Main Routes */}
                         <Route path="/warrant-list" element={<WarrantList warrants={prisonWarrants} onUpdate={handleUpdateWarrant} onDelete={handleDeleteWarrant} routeWarrants={routeWarrants} onRouteToggle={toggleRouteWarrant} />} />

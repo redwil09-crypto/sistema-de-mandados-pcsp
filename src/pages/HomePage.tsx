@@ -17,10 +17,11 @@ interface HomePageProps {
     warrants: Warrant[];
     onUpdate: (id: string, updates: Partial<Warrant>) => Promise<boolean>;
     onDelete: (id: string) => Promise<boolean>;
-    routeCount?: number;
+    routeWarrants: string[];
+    onRouteToggle: (id: string) => void;
 }
 
-const HomePage = ({ isDark, toggleTheme, warrants, onUpdate, onDelete, routeCount = 0 }: HomePageProps) => {
+const HomePage = ({ isDark, toggleTheme, warrants, onUpdate, onDelete, routeWarrants = [], onRouteToggle }: HomePageProps) => {
     const navigate = useNavigate();
     const [showNotifications, setShowNotifications] = useState(false);
     const [showAllNotifications, setShowAllNotifications] = useState(false);
@@ -204,9 +205,9 @@ const HomePage = ({ isDark, toggleTheme, warrants, onUpdate, onDelete, routeCoun
                     </Link>
 
                     <Link to="/route-planner" className="group flex flex-col gap-3 rounded-2xl bg-surface-light p-4 shadow-md transition-all active:scale-[0.98] dark:bg-surface-dark border border-transparent hover:border-indigo-500/20 relative">
-                        {routeCount > 0 && (
+                        {routeWarrants.length > 0 && (
                             <span className="absolute top-3 right-3 flex h-5 w-5 items-center justify-center rounded-full bg-indigo-600 text-[10px] font-bold text-white shadow-lg animate-bounce">
-                                {routeCount}
+                                {routeWarrants.length}
                             </span>
                         )}
                         <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400">
@@ -275,6 +276,8 @@ const HomePage = ({ isDark, toggleTheme, warrants, onUpdate, onDelete, routeCoun
                                     key={warrant.id}
                                     data={warrant}
                                     onDelete={onDelete}
+                                    onRouteToggle={onRouteToggle}
+                                    isPlanned={routeWarrants.includes(warrant.id)}
                                     onPrint={(e) => {
                                         e.preventDefault();
                                         e.stopPropagation();
