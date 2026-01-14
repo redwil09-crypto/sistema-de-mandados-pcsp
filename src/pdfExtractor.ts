@@ -39,8 +39,8 @@ const extractName = (text: string): string => {
 
     // Padrões específicos para nomes em mandados
     const patterns = [
-        /(?:Nome da Pessoa|RÉU\(A\)|RÉU|INVESTIGADO|INDICIADO|QUALIFICADO|AUTOR|REQUERIDO|SENTENCIADO|NOME)[:\s]+([A-ZÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑ\s]{5,})/i,
-        /MANDADO DE PRISÃO CONTRA\s+([A-ZÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑ\s]{5,})/i,
+        /(?:Nome da Pessoa|NOME DA PESSOA|RÉU\(A\)|RÉU|INVESTIGADO|INDICIADO|QUALIFICADO|AUTOR|REQUERIDO|SENTENCIADO|NOME)[:\s]+([a-zA-ZÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑáàâãéèêíïóôõöúçñ\s]{5,})/i,
+        /MANDADO DE PRISÃO CONTRA\s+([a-zA-ZÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑáàâãéèêíïóôõöúçñ\s]{5,})/i,
         /(?:NOME|NOME DO RÉU|NOME DO INVESTIGADO)[:\s]+([a-zA-ZÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑáàâãéèêíïóôõöúçñ\s]{5,})/i,
     ];
 
