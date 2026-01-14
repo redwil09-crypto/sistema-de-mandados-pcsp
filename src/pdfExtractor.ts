@@ -34,20 +34,28 @@ const extractName = (text: string): string => {
     const exclusionList = [
         'VARA', 'COMARCA', 'FORO', 'CRIMINAL', 'JUSTIÇA', 'TRIBUNAL', 'ESTADO', 'ESTADUAL',
         'FEDERAL', 'MINISTÉRIO', 'PÚBLICO', 'PODER', 'JUDICIÁRIO', 'SECRETARIA', 'POLÍCIA',
-        'CIVIL', 'MILITAR', 'DIPO', 'BNMP', 'SÃO PAULO', 'DELEGADO', 'ESCRIVÃO', 'JUIZ'
+        'CIVIL', 'MILITAR', 'DIPO', 'BNMP', 'SÃO PAULO', 'DELEGADO', 'ESCRIVÃO', 'JUIZ',
+        'SOCIAL', 'NOME', 'FAMILIA', 'SUCESSÕES', 'SUCESSOES', 'JACAREI', 'CAPITAL', 'INTERIOR',
+        'DOC', 'DIGITAL', 'ELETRÔNICO', 'MANDADO', 'PRISÃO', 'BUSCA', 'APREENSÃO'
     ];
 
     // Padrões específicos para nomes em mandados
     const patterns = [
-        /(?:Nome da Pessoa|NOME DA PESSOA|RÉU\(A\)|RÉU|INVESTIGADO|INDICIADO|QUALIFICADO|AUTOR|REQUERIDO|SENTENCIADO|NOME)[:\s]+([a-zA-ZÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑáàâãéèêíïóôõöúçñ\s]{5,})/i,
-        /MANDADO DE PRISÃO CONTRA\s+([a-zA-ZÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑáàâãéèêíïóôõöúçñ\s]{5,})/i,
-        /(?:NOME|NOME DO RÉU|NOME DO INVESTIGADO)[:\s]+([a-zA-ZÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑáàâãéèêíïóôõöúçñ\s]{5,})/i,
+        /Nome\s+da\s+Pessoa[:\s]+([a-zA-ZÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑáàâãéèêíïóôõöúçñ\s\-']{5,})/i,
+        /MANDADO\s+DE\s+PRISÃO\s+CONTRA[:\s]+([a-zA-ZÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑáàâãéèêíïóôõöúçñ\s\-']{5,})/i,
+        /(?:RÉU\(A\)|RÉU|INVESTIGADO|INDICIADO|QUALIFICADO|AUTOR|REQUERIDO|SENTENCIADO)[:\s]+([a-zA-ZÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑáàâãéèêíïóôõöúçñ\s\-']{5,})/i,
+        /NOME[:\s]+([a-zA-ZÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑáàâãéèêíïóôõöúçñ\s\-']{5,})/i,
     ];
 
     for (const pattern of patterns) {
         const match = text.match(pattern);
         if (match && match[1]) {
-            const potentialName = match[1].trim().split(/\n|,|\s{2,}/)[0].trim().toUpperCase();
+            let potentialName = match[1].trim().split(/\n|,|\s{2,}/)[0].trim().toUpperCase();
+
+            // Limpeza adicional para remover prefixos que podem ter sobrado
+            potentialName = potentialName.replace(/^(SOCIAL|NOME SOCIAL|NOME)[:\s]+/, '').trim();
+
+            if (potentialName === 'NÃO INFORMADO' || potentialName === 'NAO INFORMADO') continue;
 
             // Verifica se o nome capturado não contém palavras da lista de exclusão
             const containsExclusion = exclusionList.some(word => potentialName.includes(word));
@@ -59,7 +67,7 @@ const extractName = (text: string): string => {
 
     // Se falhar, procura a maior sequência de maiúsculas que não esteja na lista de exclusão
     const uppercaseSequence = /([A-ZÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑ]{3,}(?:\s+[A-ZÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑ]{2,})+)/g;
-    const matches = text.matchAll(uppercaseSequence);
+    const matches = Array.from(text.matchAll(uppercaseSequence));
     for (const match of matches) {
         const name = match[0].toUpperCase();
         const containsExclusion = exclusionList.some(word => name.includes(word));
@@ -68,7 +76,7 @@ const extractName = (text: string): string => {
         }
     }
 
-    return 'Não identificado';
+    return 'NOME NÃO IDENTIFICADO';
 };
 
 const extractRG = (text: string): string => {

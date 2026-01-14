@@ -617,7 +617,7 @@ const AIAssistantPage = ({ onAdd, warrants }: AIAssistantPageProps) => {
                                     </div>
                                     <div className="p-4 grid grid-cols-2 gap-4">
                                         <div className="col-span-2">
-                                            <label className="text-[10px] uppercase font-bold text-text-secondary-light">Nome</label>
+                                            <label className="text-[10px] uppercase font-bold text-amber-500">Nome</label>
                                             <input
                                                 type="text"
                                                 value={extractedData.name}
@@ -626,7 +626,7 @@ const AIAssistantPage = ({ onAdd, warrants }: AIAssistantPageProps) => {
                                             />
                                         </div>
                                         <div>
-                                            <label className="text-[10px] uppercase font-bold text-text-secondary-light">RG</label>
+                                            <label className="text-[10px] uppercase font-bold text-amber-500">RG</label>
                                             <input
                                                 type="text"
                                                 value={extractedData.rg}
@@ -635,7 +635,7 @@ const AIAssistantPage = ({ onAdd, warrants }: AIAssistantPageProps) => {
                                             />
                                         </div>
                                         <div>
-                                            <label className="text-[10px] uppercase font-bold text-text-secondary-light">CPF</label>
+                                            <label className="text-[10px] uppercase font-bold text-amber-500">CPF</label>
                                             <input
                                                 type="text"
                                                 value={extractedData.cpf}
@@ -644,7 +644,7 @@ const AIAssistantPage = ({ onAdd, warrants }: AIAssistantPageProps) => {
                                             />
                                         </div>
                                         <div className="col-span-2">
-                                            <label className="text-[10px] uppercase font-bold text-text-secondary-light">Processo (Chave Primária)</label>
+                                            <label className="text-[10px] uppercase font-bold text-amber-500">Processo (Chave Primária)</label>
                                             <input
                                                 type="text"
                                                 value={extractedData.processNumber}
@@ -653,7 +653,7 @@ const AIAssistantPage = ({ onAdd, warrants }: AIAssistantPageProps) => {
                                             />
                                         </div>
                                         <div>
-                                            <label className="text-[10px] uppercase font-bold text-text-secondary-light">Expedição</label>
+                                            <label className="text-[10px] uppercase font-bold text-amber-500">Expedição</label>
                                             <input
                                                 type="date"
                                                 value={extractedData.issueDate}
@@ -662,7 +662,7 @@ const AIAssistantPage = ({ onAdd, warrants }: AIAssistantPageProps) => {
                                             />
                                         </div>
                                         <div>
-                                            <label className="text-[10px] uppercase font-bold text-text-secondary-light">Vencimento</label>
+                                            <label className="text-[10px] uppercase font-bold text-amber-500">Vencimento</label>
                                             <input
                                                 type="date"
                                                 value={extractedData.expirationDate}
@@ -672,7 +672,7 @@ const AIAssistantPage = ({ onAdd, warrants }: AIAssistantPageProps) => {
                                             {extractedData.category === 'search' && <span className="text-[9px] text-orange-500 block mt-0.5">*Auto: +180 dias</span>}
                                         </div>
                                         <div>
-                                            <label className="text-[10px] uppercase font-bold text-text-secondary-light">Crime</label>
+                                            <label className="text-[10px] uppercase font-bold text-amber-500">Crime</label>
                                             <input
                                                 type="text"
                                                 value={extractedData.crime}
@@ -681,7 +681,7 @@ const AIAssistantPage = ({ onAdd, warrants }: AIAssistantPageProps) => {
                                             />
                                         </div>
                                         <div>
-                                            <label className="text-[10px] uppercase font-bold text-text-secondary-light">Regime</label>
+                                            <label className="text-[10px] uppercase font-bold text-amber-500">Regime</label>
                                             <input
                                                 type="text"
                                                 value={extractedData.regime}
@@ -690,7 +690,7 @@ const AIAssistantPage = ({ onAdd, warrants }: AIAssistantPageProps) => {
                                             />
                                         </div>
                                         <div className="col-span-2">
-                                            <label className="text-[10px] uppercase font-bold text-text-secondary-light">Endereços</label>
+                                            <label className="text-[10px] uppercase font-bold text-amber-500">Endereços</label>
                                             {extractedData.addresses.map((addr: string, i: number) => (
                                                 <input
                                                     key={i}
@@ -703,7 +703,7 @@ const AIAssistantPage = ({ onAdd, warrants }: AIAssistantPageProps) => {
                                         </div>
                                         <div className="col-span-2">
                                             <div className="flex justify-between items-center mb-1">
-                                                <label className="text-[10px] uppercase font-bold text-text-secondary-light">Observações / Dados Extraídos</label>
+                                                <label className="text-[10px] uppercase font-bold text-amber-500">Observações / Dados Extraídos</label>
                                                 <button
                                                     onClick={startRecording}
                                                     className={`p-1.5 rounded-full transition-all ${isRecording ? 'bg-red-500 text-white animate-pulse' : 'bg-gray-100 dark:bg-white/10 text-primary'}`}
