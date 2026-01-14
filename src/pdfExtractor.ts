@@ -128,8 +128,11 @@ const extractDates = (text: string): { issueDate: string; expirationDate: string
                         'maio': '05', 'junho': '06', 'julho': '07', 'agosto': '08',
                         'setembro': '09', 'outubro': '10', 'novembro': '11', 'dezembro': '12'
                     };
-                    issueDate = `${match[3]}-${months[match[2].toLowerCase()]}-${match[1].padStart(2, '0')}`;
-                    break;
+                    const monthKey = match[2].toLowerCase();
+                    if (months[monthKey]) {
+                        issueDate = `${match[3]}-${months[monthKey]}-${match[1].padStart(2, '0')}`;
+                        break;
+                    }
                 }
             }
         }
@@ -155,8 +158,9 @@ const extractDates = (text: string): { issueDate: string; expirationDate: string
                     'maio': '05', 'junho': '06', 'julho': '07', 'agosto': '08',
                     'setembro': '09', 'outubro': '10', 'novembro': '11', 'dezembro': '12'
                 };
-                if (months[match[2].toLowerCase()]) {
-                    expirationDate = `${match[3]}-${months[match[2].toLowerCase()]}-${match[1].padStart(2, '0')}`;
+                const monthKey = match[2].toLowerCase();
+                if (months[monthKey]) {
+                    expirationDate = `${match[3]}-${months[monthKey]}-${match[1].padStart(2, '0')}`;
                     break;
                 }
             }
@@ -296,8 +300,11 @@ const extractCrime = (text: string): string => {
 
     const lowerText = text.toLowerCase();
 
-    // Regra especial: se o texto contém civil ou alimentos, é pensão alimentícia
-    if (lowerText.includes('civil') || lowerText.includes('alimentos')) {
+    // Regra especial: pensão alimentícia (evitando falso positivo com "Polícia Civil")
+    const hasAlimentos = lowerText.includes('alimentos');
+    const hasPrisaoCivil = lowerText.includes('prisão civil') || lowerText.includes('prisao civil') || lowerText.includes('debito alimentar') || lowerText.includes('dívida de alimentos');
+
+    if (hasAlimentos || hasPrisaoCivil) {
         return "Pensão alimenticia";
     }
 
@@ -352,6 +359,7 @@ const extractObservations = (text: string): string => {
         { label: 'Prazo', regex: /Prazo da Prisão[:\s]+([^;\n]{1,100})/i },
         { label: 'Dívida', regex: /Valor da Dívida de Alimentos[:\s]+([^;\n]{1,100})/i },
         { label: 'Atualização', regex: /Data da Atualização da Dívida[:\s]+([^;\n]{1,100})/i },
+        { label: 'Ofício DIG', regex: /(?:Of[íi]cio\s+DIG|DIG-nº)[:\s]+([^;\n]{1,50})/i },
     ];
 
     for (const p of patterns) {
@@ -438,7 +446,11 @@ const determineAutoPriority = (text: string, crime: string): string[] => {
 
     if (highPriorityCrimes.includes(crime)) tags.push('Urgente');
     if (text.toLowerCase().includes('prazo determinado') || text.toLowerCase().includes('imediato')) tags.push('Prioridade');
-    if (crime === 'Pensão alimenticia') tags.push('Ofício de Cobrança');
+
+    // Ofício de Cobrança: apenas se houver menção explícita a cobrança/ofício no contexto de alimentos
+    if (crime === 'Pensão alimenticia' && (text.toLowerCase().includes('cobrança') || text.toLowerCase().includes('ofício'))) {
+        tags.push('Ofício de Cobrança');
+    }
 
     return Array.from(new Set(tags));
 };
