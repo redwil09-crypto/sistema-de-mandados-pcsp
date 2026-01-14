@@ -6,7 +6,8 @@ import {
     Home, Search, Filter, Gavel, Briefcase, FileUp,
     Bot, Cpu, Camera, Save, RefreshCw, CheckCircle,
     Printer, Database, AlertTriangle, Zap, Bell, Paperclip,
-    Mic, MicOff, ListTodo, ShieldAlert, History, Layers, Trash2
+    Mic, MicOff, ListTodo, ShieldAlert, History, Layers, Trash2,
+    User, Calendar, MapPin
 } from 'lucide-react';
 import Header from '../components/Header';
 import ConfirmModal from '../components/ConfirmModal';
@@ -37,6 +38,7 @@ const AIAssistantPage = ({ onAdd, warrants }: AIAssistantPageProps) => {
     const [photoFile, setPhotoFile] = useState<File | null>(null);
     const [photoPreview, setPhotoPreview] = useState<string | null>(null);
     const [isRecording, setIsRecording] = useState(false);
+    const [reviewTab, setReviewTab] = useState<'pessoais' | 'processual' | 'datas' | 'localizacao' | 'ia'>('pessoais');
 
     // Database Filters
     const [searchTerm, setSearchTerm] = useState('');
@@ -110,7 +112,23 @@ const AIAssistantPage = ({ onAdd, warrants }: AIAssistantPageProps) => {
     const handleExtractedDataChange = (field: string, value: any) => {
         setBatchResults(prev => {
             const newResults = [...prev];
-            newResults[currentIndex] = { ...newResults[currentIndex], [field]: value };
+            const current = { ...newResults[currentIndex], [field]: value };
+
+            // Auto-calculate age if birthDate changes
+            if (field === 'birthDate') {
+                const birth = value ? (value.includes('/') ? new Date(value.split('/').reverse().join('-')) : new Date(value)) : null;
+                if (birth && !isNaN(birth.getTime())) {
+                    const today = new Date();
+                    let age = today.getFullYear() - birth.getFullYear();
+                    const m = today.getMonth() - birth.getMonth();
+                    if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+                    current.age = `${age} anos`;
+                } else {
+                    current.age = '';
+                }
+            }
+
+            newResults[currentIndex] = current;
             return newResults;
         });
     };
@@ -295,7 +313,9 @@ const AIAssistantPage = ({ onAdd, warrants }: AIAssistantPageProps) => {
                 attachments: attachments,
                 tags: extractedData.tags || [],
                 tacticalSummary: extractedData.tacticalSummary || [],
-                location: extractedData.addresses && extractedData.addresses.length > 0 ? extractedData.addresses.join(' | ') : ''
+                location: extractedData.addresses && extractedData.addresses.length > 0 ? extractedData.addresses.join(' | ') : '',
+                birthDate: extractedData.birthDate,
+                age: extractedData.age
             };
 
             const result = await onAdd(newWarrant);
@@ -590,7 +610,7 @@ const AIAssistantPage = ({ onAdd, warrants }: AIAssistantPageProps) => {
 
                                 <div className="bg-surface-light dark:bg-surface-dark rounded-xl border border-border-light dark:border-border-dark overflow-hidden">
                                     <div className="p-3 border-b border-border-light dark:border-border-dark bg-background-light dark:bg-white/5 flex items-center justify-between">
-                                        <h3 className="font-bold text-xs uppercase">Dados Extraídos</h3>
+                                        <h3 className="font-bold text-xs uppercase">Conferência de Dados</h3>
                                         {hasAi && (
                                             <button
                                                 onClick={async () => {
@@ -611,192 +631,270 @@ const AIAssistantPage = ({ onAdd, warrants }: AIAssistantPageProps) => {
                                                 }}
                                                 className="text-[10px] font-black uppercase text-blue-600 flex items-center gap-1 bg-blue-50 dark:bg-blue-950 px-2 py-1 rounded-lg border border-blue-200"
                                             >
-                                                <Sparkles size={12} /> Aprimorar com IA Pro
+                                                <Sparkles size={12} /> IA Pro
                                             </button>
                                         )}
                                     </div>
-                                    <div className="p-4 grid grid-cols-2 gap-4">
-                                        <div className="col-span-2">
-                                            <label className="text-[10px] uppercase font-bold text-amber-500">Nome</label>
-                                            <input
-                                                type="text"
-                                                value={extractedData.name}
-                                                onChange={(e) => handleExtractedDataChange('name', e.target.value)}
-                                                className="w-full bg-transparent border-b border-border-light dark:border-border-dark py-1 text-sm font-bold outline-none"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="text-[10px] uppercase font-bold text-amber-500">RG</label>
-                                            <input
-                                                type="text"
-                                                value={extractedData.rg}
-                                                onChange={(e) => handleExtractedDataChange('rg', e.target.value)}
-                                                className="w-full bg-transparent border-b border-border-light dark:border-border-dark py-1 text-sm outline-none"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="text-[10px] uppercase font-bold text-amber-500">CPF</label>
-                                            <input
-                                                type="text"
-                                                value={extractedData.cpf}
-                                                onChange={(e) => handleExtractedDataChange('cpf', e.target.value)}
-                                                className="w-full bg-transparent border-b border-border-light dark:border-border-dark py-1 text-sm outline-none"
-                                            />
-                                        </div>
-                                        <div className="col-span-2">
-                                            <label className="text-[10px] uppercase font-bold text-amber-500">Processo (Chave Primária)</label>
-                                            <input
-                                                type="text"
-                                                value={extractedData.processNumber}
-                                                onChange={(e) => handleExtractedDataChange('processNumber', e.target.value)}
-                                                className="w-full bg-transparent border-b border-border-light dark:border-border-dark py-1 text-sm font-mono font-bold outline-none"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="text-[10px] uppercase font-bold text-amber-500">Expedição</label>
-                                            <input
-                                                type="date"
-                                                value={extractedData.issueDate}
-                                                onChange={(e) => handleExtractedDataChange('issueDate', e.target.value)}
-                                                className="w-full bg-transparent border-b border-border-light dark:border-border-dark py-1 text-sm outline-none"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="text-[10px] uppercase font-bold text-amber-500">Vencimento</label>
-                                            <input
-                                                type="date"
-                                                value={extractedData.expirationDate}
-                                                onChange={(e) => handleExtractedDataChange('expirationDate', e.target.value)}
-                                                className="w-full bg-transparent border-b border-red-200 dark:border-red-900 py-1 text-sm font-bold text-red-500 outline-none"
-                                            />
-                                            {extractedData.category === 'search' && <span className="text-[9px] text-orange-500 block mt-0.5">*Auto: +180 dias</span>}
-                                        </div>
-                                        <div>
-                                            <label className="text-[10px] uppercase font-bold text-amber-500">Crime</label>
-                                            <input
-                                                type="text"
-                                                value={extractedData.crime}
-                                                onChange={(e) => handleExtractedDataChange('crime', e.target.value)}
-                                                className="w-full bg-transparent border-b border-border-light dark:border-border-dark py-1 text-sm outline-none"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="text-[10px] uppercase font-bold text-amber-500">Regime</label>
-                                            <input
-                                                type="text"
-                                                value={extractedData.regime}
-                                                onChange={(e) => handleExtractedDataChange('regime', e.target.value)}
-                                                className="w-full bg-transparent border-b border-border-light dark:border-border-dark py-1 text-sm outline-none"
-                                            />
-                                        </div>
-                                        <div className="col-span-2">
-                                            <label className="text-[10px] uppercase font-bold text-amber-500">Endereços</label>
-                                            {extractedData.addresses.map((addr: string, i: number) => (
-                                                <input
-                                                    key={i}
-                                                    type="text"
-                                                    value={addr}
-                                                    onChange={(e) => handleAddressChange(i, e.target.value)}
-                                                    className="w-full bg-transparent border-b border-border-light dark:border-border-dark py-1 text-sm outline-none mb-1"
-                                                />
-                                            ))}
-                                        </div>
-                                        <div className="col-span-2">
-                                            <div className="flex justify-between items-center mb-1">
-                                                <label className="text-[10px] uppercase font-bold text-amber-500">Observações / Dados Extraídos</label>
-                                                <button
-                                                    onClick={startRecording}
-                                                    className={`p-1.5 rounded-full transition-all ${isRecording ? 'bg-red-500 text-white animate-pulse' : 'bg-gray-100 dark:bg-white/10 text-primary'}`}
-                                                    title="Adicionar por voz"
-                                                >
-                                                    {isRecording ? <MicOff size={14} /> : <Mic size={14} />}
-                                                </button>
-                                            </div>
-                                            <textarea
-                                                value={extractedData.observations || ''}
-                                                onChange={(e) => handleExtractedDataChange('observations', e.target.value)}
-                                                className="w-full bg-transparent border border-border-light dark:border-border-dark rounded-lg p-2 text-xs outline-none h-20 resize-none focus:ring-1 focus:ring-primary"
-                                                placeholder="Adicione observações ou use o microfone..."
-                                            />
-                                        </div>
+
+                                    {/* Sub-Tabs for Review */}
+                                    <div className="flex border-b border-border-light dark:border-border-dark bg-gray-50 dark:bg-white/5 overflow-x-auto no-scrollbar">
+                                        {[
+                                            { id: 'pessoais', label: 'Pessoais', icon: <User size={14} /> },
+                                            { id: 'processual', label: 'Processual', icon: <Gavel size={14} /> },
+                                            { id: 'datas', label: 'Datas', icon: <Calendar size={14} /> },
+                                            { id: 'localizacao', label: 'Local', icon: <MapPin size={14} /> },
+                                            { id: 'ia', label: 'Inteligência', icon: <Bot size={14} /> }
+                                        ].map(tab => (
+                                            <button
+                                                key={tab.id}
+                                                onClick={() => setReviewTab(tab.id as any)}
+                                                className={`flex items-center gap-1.5 px-4 py-2.5 text-[10px] font-bold uppercase transition-all border-b-2 whitespace-nowrap ${reviewTab === tab.id
+                                                    ? 'border-primary text-primary bg-primary/5'
+                                                    : 'border-transparent text-text-secondary-light dark:text-text-secondary-dark'
+                                                    }`}
+                                            >
+                                                {tab.icon}
+                                                {tab.label}
+                                            </button>
+                                        ))}
                                     </div>
 
-                                    {/* AI Tactical Summary */}
-                                    {(extractedData.tacticalSummary?.length > 0 || extractedData.searchChecklist?.length > 0) && (
-                                        <div className="p-4 border-t border-border-light dark:border-border-dark bg-blue-50/30 dark:bg-blue-900/10 space-y-3">
-                                            {extractedData.tacticalSummary?.length > 0 && (
+                                    <div className="p-4 min-h-[250px]">
+                                        {reviewTab === 'pessoais' && (
+                                            <div className="grid grid-cols-2 gap-4 animate-in fade-in duration-200">
+                                                <div className="col-span-2">
+                                                    <label className="text-[10px] uppercase font-bold text-amber-500">Nome Completo</label>
+                                                    <input
+                                                        type="text"
+                                                        value={extractedData.name}
+                                                        onChange={(e) => handleExtractedDataChange('name', e.target.value)}
+                                                        className="w-full bg-transparent border-b border-border-light dark:border-border-dark py-1 text-sm font-bold outline-none"
+                                                    />
+                                                </div>
                                                 <div>
-                                                    <div className="flex items-center gap-2 mb-2">
-                                                        <History size={14} className="text-blue-600" />
-                                                        <span className="text-[10px] uppercase font-bold text-blue-600">Sumário Tático (IA)</span>
+                                                    <label className="text-[10px] uppercase font-bold text-amber-500">RG</label>
+                                                    <input
+                                                        type="text"
+                                                        value={extractedData.rg}
+                                                        onChange={(e) => handleExtractedDataChange('rg', e.target.value)}
+                                                        className="w-full bg-transparent border-b border-border-light dark:border-border-dark py-1 text-sm outline-none"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="text-[10px] uppercase font-bold text-amber-500">CPF</label>
+                                                    <input
+                                                        type="text"
+                                                        value={extractedData.cpf}
+                                                        onChange={(e) => handleExtractedDataChange('cpf', e.target.value)}
+                                                        className="w-full bg-transparent border-b border-border-light dark:border-border-dark py-1 text-sm outline-none"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="text-[10px] uppercase font-bold text-amber-500">Nascimento</label>
+                                                    <input
+                                                        type="text"
+                                                        value={extractedData.birthDate || ''}
+                                                        onChange={(e) => handleExtractedDataChange('birthDate', e.target.value)}
+                                                        placeholder="DD/MM/YYYY"
+                                                        className="w-full bg-transparent border-b border-border-light dark:border-border-dark py-1 text-sm outline-none"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="text-[10px] uppercase font-bold text-amber-500">Idade Atual</label>
+                                                    <input
+                                                        type="text"
+                                                        value={extractedData.age || ''}
+                                                        onChange={(e) => handleExtractedDataChange('age', e.target.value)}
+                                                        placeholder="Ex: 25 anos"
+                                                        className="w-full bg-transparent border-b border-border-light dark:border-border-dark py-1 text-sm outline-none font-bold"
+                                                    />
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {reviewTab === 'processual' && (
+                                            <div className="grid grid-cols-2 gap-4 animate-in fade-in duration-200">
+                                                <div className="col-span-2">
+                                                    <label className="text-[10px] uppercase font-bold text-amber-500">Nº do Processo</label>
+                                                    <input
+                                                        type="text"
+                                                        value={extractedData.processNumber}
+                                                        onChange={(e) => handleExtractedDataChange('processNumber', e.target.value)}
+                                                        className="w-full bg-transparent border-b border-border-light dark:border-border-dark py-1 text-sm font-mono font-bold outline-none"
+                                                    />
+                                                </div>
+                                                <div className="col-span-2">
+                                                    <label className="text-[10px] uppercase font-bold text-amber-500">Natureza Criminal</label>
+                                                    <input
+                                                        type="text"
+                                                        value={extractedData.crime}
+                                                        onChange={(e) => handleExtractedDataChange('crime', e.target.value)}
+                                                        className="w-full bg-transparent border-b border-border-light dark:border-border-dark py-1 text-sm outline-none"
+                                                    />
+                                                </div>
+                                                <div className="col-span-2">
+                                                    <label className="text-[10px] uppercase font-bold text-amber-500">Regime Prisional</label>
+                                                    <input
+                                                        type="text"
+                                                        value={extractedData.regime}
+                                                        onChange={(e) => handleExtractedDataChange('regime', e.target.value)}
+                                                        className="w-full bg-transparent border-b border-border-light dark:border-border-dark py-1 text-sm outline-none"
+                                                    />
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {reviewTab === 'datas' && (
+                                            <div className="grid grid-cols-2 gap-4 animate-in fade-in duration-200">
+                                                <div>
+                                                    <label className="text-[10px] uppercase font-bold text-amber-500">Expedição</label>
+                                                    <input
+                                                        type="text"
+                                                        value={extractedData.issueDate}
+                                                        onChange={(e) => handleExtractedDataChange('issueDate', e.target.value)}
+                                                        placeholder="DD/MM/YYYY"
+                                                        className="w-full bg-transparent border-b border-border-light dark:border-border-dark py-1 text-sm outline-none"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="text-[10px] uppercase font-bold text-amber-500">Vencimento</label>
+                                                    <input
+                                                        type="text"
+                                                        value={extractedData.expirationDate}
+                                                        onChange={(e) => handleExtractedDataChange('expirationDate', e.target.value)}
+                                                        placeholder="DD/MM/YYYY"
+                                                        className="w-full bg-transparent border-b border-red-200 dark:border-red-900 py-1 text-sm font-bold text-red-500 outline-none"
+                                                    />
+                                                </div>
+                                                <div className="col-span-2 p-3 bg-red-500/5 rounded-lg border border-red-500/10 mt-2">
+                                                    <p className="text-[9px] text-red-600 dark:text-red-400 leading-tight">
+                                                        <AlertTriangle size={10} className="inline mr-1 mb-0.5" />
+                                                        <b>Nota:</b> O sistema calcula automaticamente o vencimento para Busca e Apreensão (+180 dias) se não for identificado no arquivo.
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {reviewTab === 'localizacao' && (
+                                            <div className="space-y-3 animate-in fade-in duration-200">
+                                                <label className="text-[10px] uppercase font-bold text-amber-500">Endereços Identificados</label>
+                                                {extractedData.addresses.length > 0 ? extractedData.addresses.map((addr: string, i: number) => (
+                                                    <div key={i} className="flex gap-2 items-center">
+                                                        <MapPin size={12} className="text-primary" />
+                                                        <input
+                                                            type="text"
+                                                            value={addr}
+                                                            onChange={(e) => handleAddressChange(i, e.target.value)}
+                                                            className="flex-1 bg-transparent border-b border-border-light dark:border-border-dark py-1 text-sm outline-none"
+                                                        />
                                                     </div>
-                                                    <div className="flex flex-wrap gap-1.5">
-                                                        {extractedData.tacticalSummary.map((tag: string) => (
-                                                            <span key={tag} className="text-[9px] px-2 py-0.5 bg-blue-500 text-white rounded-full font-bold">
-                                                                {tag}
-                                                            </span>
-                                                        ))}
+                                                )) : (
+                                                    <p className="text-xs text-text-secondary-light italic">Nenhum endereço identificado automaticamente.</p>
+                                                )}
+                                                <button
+                                                    onClick={() => {
+                                                        const results = [...batchResults];
+                                                        results[currentIndex] = { ...results[currentIndex], addresses: [...(results[currentIndex].addresses || []), ''] };
+                                                        setBatchResults(results);
+                                                    }}
+                                                    className="text-[10px] text-primary font-bold hover:underline"
+                                                >
+                                                    + ADICIONAR ENDEREÇO
+                                                </button>
+                                            </div>
+                                        )}
+
+                                        {reviewTab === 'ia' && (
+                                            <div className="space-y-4 animate-in fade-in duration-200">
+                                                {/* Priority Selection */}
+                                                <div>
+                                                    <span className="text-[10px] uppercase font-bold text-amber-500 block mb-2">Classificação de Prioridade</span>
+                                                    <div className="flex gap-2">
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                const tags = extractedData.tags || [];
+                                                                const newTags = tags.includes('Urgente') ? tags.filter((t: string) => t !== 'Urgente') : [...tags, 'Urgente'];
+                                                                handleExtractedDataChange('tags', newTags);
+                                                            }}
+                                                            className={`flex-1 py-2 px-2 rounded-lg border font-bold text-[10px] transition-all flex items-center justify-center gap-1.5 ${extractedData.tags?.includes('Urgente')
+                                                                ? 'bg-red-500 border-red-500 text-white'
+                                                                : 'bg-white dark:bg-surface-dark border-border-light dark:border-border-dark text-text-secondary-light'
+                                                                }`}
+                                                        >
+                                                            <Zap size={12} className={extractedData.tags?.includes('Urgente') ? 'fill-white' : ''} />
+                                                            URGENTE
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                const tags = extractedData.tags || [];
+                                                                const newTags = tags.includes('Ofício de Cobrança') ? tags.filter((t: string) => t !== 'Ofício de Cobrança') : [...tags, 'Ofício de Cobrança'];
+                                                                handleExtractedDataChange('tags', newTags);
+                                                            }}
+                                                            className={`flex-1 py-2 px-2 rounded-lg border font-bold text-[10px] transition-all flex items-center justify-center gap-1.5 ${extractedData.tags?.includes('Ofício de Cobrança')
+                                                                ? 'bg-amber-500 border-amber-500 text-white'
+                                                                : 'bg-white dark:bg-surface-dark border-border-light dark:border-border-dark text-text-secondary-light'
+                                                                }`}
+                                                        >
+                                                            <Bell size={12} className={extractedData.tags?.includes('Ofício de Cobrança') ? 'fill-white' : ''} />
+                                                            COBRANÇA
+                                                        </button>
                                                     </div>
                                                 </div>
-                                            )}
 
-                                            {extractedData.searchChecklist?.length > 0 && (
-                                                <div>
-                                                    <div className="flex items-center gap-2 mb-2">
-                                                        <ListTodo size={14} className="text-orange-600" />
-                                                        <span className="text-[10px] uppercase font-bold text-orange-600">Checklist de Busca (IA)</span>
-                                                    </div>
-                                                    <div className="space-y-1">
-                                                        {extractedData.searchChecklist.map((item: string) => (
-                                                            <div key={item} className="flex items-center gap-2 text-[10px] text-orange-700 dark:text-orange-400">
-                                                                <div className="w-1.5 h-1.5 bg-orange-400 rounded-full" />
-                                                                {item}
+                                                {/* AI Insights */}
+                                                <div className="space-y-3">
+                                                    {extractedData.tacticalSummary?.length > 0 && (
+                                                        <div>
+                                                            <div className="flex items-center gap-2 mb-1.5">
+                                                                <History size={12} className="text-blue-600" />
+                                                                <span className="text-[9px] uppercase font-bold text-blue-600">Sumário IA</span>
                                                             </div>
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                            )}
-                                        </div>
-                                    )}
+                                                            <div className="flex flex-wrap gap-1">
+                                                                {extractedData.tacticalSummary.map((tag: string) => (
+                                                                    <span key={tag} className="text-[8px] px-2 py-0.5 bg-blue-500/10 text-blue-600 border border-blue-200 rounded-full font-bold">
+                                                                        {tag}
+                                                                    </span>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                    )}
 
-                                    {/* Priority Selection for AI Review */}
-                                    <div className="p-4 border-t border-border-light dark:border-border-dark bg-gray-50/50 dark:bg-white/5 space-y-3">
-                                        <div className="flex items-center gap-2 mb-1">
-                                            <AlertTriangle size={14} className="text-primary" />
-                                            <span className="text-[10px] uppercase font-bold text-text-secondary-light">Prioridade</span>
-                                        </div>
-                                        <div className="flex gap-2">
-                                            <button
-                                                type="button"
-                                                onClick={() => {
-                                                    const tags = extractedData.tags || [];
-                                                    const newTags = tags.includes('Urgente') ? tags.filter((t: string) => t !== 'Urgente') : [...tags, 'Urgente'];
-                                                    handleExtractedDataChange('tags', newTags);
-                                                }}
-                                                className={`flex-1 py-3 px-2 rounded-xl border font-bold text-[10px] transition-all flex items-center justify-center gap-1.5 ${extractedData.tags?.includes('Urgente')
-                                                    ? 'bg-red-500 border-red-500 text-white'
-                                                    : 'bg-white dark:bg-surface-dark border-border-light dark:border-border-dark text-text-secondary-light'
-                                                    }`}
-                                            >
-                                                <Zap size={12} className={extractedData.tags?.includes('Urgente') ? 'fill-white' : ''} />
-                                                URGENTE
-                                            </button>
-                                            <button
-                                                type="button"
-                                                onClick={() => {
-                                                    const tags = extractedData.tags || [];
-                                                    const newTags = tags.includes('Ofício de Cobrança') ? tags.filter((t: string) => t !== 'Ofício de Cobrança') : [...tags, 'Ofício de Cobrança'];
-                                                    handleExtractedDataChange('tags', newTags);
-                                                }}
-                                                className={`flex-1 py-3 px-2 rounded-xl border font-bold text-[10px] transition-all flex items-center justify-center gap-1.5 ${extractedData.tags?.includes('Ofício de Cobrança')
-                                                    ? 'bg-amber-500 border-amber-500 text-white'
-                                                    : 'bg-white dark:bg-surface-dark border-border-light dark:border-border-dark text-text-secondary-light'
-                                                    }`}
-                                            >
-                                                <Bell size={12} className={extractedData.tags?.includes('Ofício de Cobrança') ? 'fill-white' : ''} />
-                                                COBRANÇA
-                                            </button>
-                                        </div>
+                                                    {extractedData.searchChecklist?.length > 0 && (
+                                                        <div>
+                                                            <div className="flex items-center gap-2 mb-1.5">
+                                                                <ListTodo size={12} className="text-orange-600" />
+                                                                <span className="text-[9px] uppercase font-bold text-orange-600">Checklist Operacional</span>
+                                                            </div>
+                                                            <div className="space-y-1">
+                                                                {extractedData.searchChecklist.map((item: string) => (
+                                                                    <div key={item} className="flex items-center gap-2 text-[9px] text-orange-700 dark:text-orange-400">
+                                                                        <div className="w-1 h-1 bg-orange-400 rounded-full" />
+                                                                        {item}
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
+
+                                                {/* Raw observations */}
+                                                <div>
+                                                    <div className="flex justify-between items-center mb-1">
+                                                        <label className="text-[10px] uppercase font-bold text-amber-500">Observações / Texto bruto</label>
+                                                        <button onClick={startRecording} className={`p-1.5 rounded-full ${isRecording ? 'bg-red-500 text-white animate-pulse' : 'text-primary'}`}>
+                                                            {isRecording ? <MicOff size={14} /> : <Mic size={14} />}
+                                                        </button>
+                                                    </div>
+                                                    <textarea
+                                                        value={extractedData.observations || ''}
+                                                        onChange={(e) => handleExtractedDataChange('observations', e.target.value)}
+                                                        className="w-full bg-background-light dark:bg-black/20 border border-border-light dark:border-border-dark rounded-lg p-2 text-[10px] outline-none h-20 resize-none"
+                                                    />
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
 

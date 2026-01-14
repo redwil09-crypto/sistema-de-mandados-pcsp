@@ -27,6 +27,7 @@ interface ExtractedData {
     searchChecklist?: string[];  // New: Itens para busca
     isDuplicate?: boolean;      // New: Verificação de duplicidade
     birthDate?: string;         // New: Data de Nascimento
+    age?: string;               // New: Idade calculada
 }
 
 // Helper functions for parsing
@@ -58,7 +59,6 @@ const extractName = (text: string): string => {
 
             if (potentialName === 'NÃO INFORMADO' || potentialName === 'NAO INFORMADO') continue;
 
-            // Verifica se o nome capturado não contém palavras da lista de exclusão
             const containsExclusion = exclusionList.some(word => potentialName.includes(word));
             if (potentialName.length > 5 && !containsExclusion) {
                 return potentialName;
@@ -78,6 +78,30 @@ const extractName = (text: string): string => {
     }
 
     return 'NOME NÃO IDENTIFICADO';
+};
+
+const calculateAge = (birthDate: string | undefined): string => {
+    if (!birthDate) return '';
+    try {
+        let birth: Date | null = null;
+        if (birthDate.includes('/')) {
+            const [day, month, year] = birthDate.split('/');
+            birth = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+        } else if (birthDate.includes('-')) {
+            const [year, month, day] = birthDate.split('-');
+            birth = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+        }
+
+        if (!birth || isNaN(birth.getTime())) return '';
+
+        const today = new Date();
+        let age = today.getFullYear() - birth.getFullYear();
+        const m = today.getMonth() - birth.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+        return `${age} anos`;
+    } catch (e) {
+        return '';
+    }
 };
 
 const extractRG = (text: string): string => {
@@ -550,7 +574,8 @@ export const extractPdfData = async (file: File): Promise<ExtractedData> => {
             tacticalSummary,
             searchChecklist: extractSearchChecklist(fullText, category),
             autoPriority: determineAutoPriority(fullText, crime),
-            birthDate
+            birthDate,
+            age: calculateAge(birthDate)
         };
     } catch (error: any) {
         console.error('Erro detalhado ao extrair PDF:', error);
@@ -598,6 +623,7 @@ export const extractFromText = (text: string, sourceName: string): ExtractedData
         tacticalSummary,
         searchChecklist: extractSearchChecklist(text, category),
         autoPriority: determineAutoPriority(text, crime),
-        birthDate
+        birthDate,
+        age: calculateAge(birthDate)
     };
 };
