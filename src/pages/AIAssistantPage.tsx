@@ -6,7 +6,7 @@ import {
     Home, Search, Filter, Gavel, Briefcase, FileUp,
     Bot, Cpu, Camera, Save, RefreshCw, CheckCircle,
     Printer, Database, AlertTriangle, Zap, Bell, Paperclip,
-    Mic, MicOff, ListTodo, ShieldAlert, History, Layers
+    Mic, MicOff, ListTodo, ShieldAlert, History, Layers, Trash2
 } from 'lucide-react';
 import Header from '../components/Header';
 import ConfirmModal from '../components/ConfirmModal';
