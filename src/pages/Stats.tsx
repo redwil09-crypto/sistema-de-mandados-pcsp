@@ -6,10 +6,9 @@ import {
     PieChart, Pie, Cell, LineChart, Line
 } from 'recharts';
 import {
-    FilePlus, CheckCircle, TrendingUp, Zap,
-    Calendar, Shield, Clock, AlertTriangle,
-    Filter, Download, ChevronRight, BarChart3,
-    MapPin, Users
+    TrendingUp, Zap,
+    Calendar, Shield, AlertTriangle,
+    Download, MapPin, Users, Database, Navigation
 } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import Header from '../components/Header';
@@ -57,13 +56,15 @@ const Stats = ({ warrants }: StatsProps) => {
 
     // 1. Core KPIs
     const kpis = useMemo(() => {
-        const total = filteredWarrants.length;
-        const fulfilled = filteredWarrants.filter(w => w.status === 'CUMPRIDO' || w.status === 'PRESO').length;
-        const efficiency = total > 0 ? (fulfilled / total) * 100 : 0;
+        const total = filteredWarrants.filter(w => w.status === 'EM ABERTO').length;
+        const mapped = filteredWarrants.filter(w => w.status === 'EM ABERTO' && w.latitude && w.longitude).length;
+
+        // Count total diligences in filtered warrants
+        const totalDiligencias = filteredWarrants.reduce((acc, w) => acc + (w.diligentHistory?.length || 0), 0);
 
         // Expiration Alert (next 30 days)
         const upcomingExpirations = warrants.filter(w => {
-            if (w.status === 'CUMPRIDO' || w.status === 'PRESO') return false;
+            if (w.status !== 'EM ABERTO') return false;
             const expDate = parseDate(w.expirationDate);
             if (!expDate) return false;
             const diff = expDate.getTime() - new Date().getTime();
@@ -71,334 +72,158 @@ const Stats = ({ warrants }: StatsProps) => {
             return days > 0 && days <= 30;
         }).length;
 
-        // Avg Fulfillment Time (simplified logic)
-        let totalDays = 0;
-        let count = 0;
-        filteredWarrants.forEach(w => {
-            if (w.dischargeDate && w.issueDate) {
-                const start = parseDate(w.issueDate);
-                const end = parseDate(w.dischargeDate);
-                if (start && end) {
-                    totalDays += (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24);
-                    count++;
-                }
-            }
-        });
-        const avgTime = count > 0 ? Math.round(totalDays / count) : 0;
-
-        // Mapped Count
-        const mapped = filteredWarrants.filter(w => w.latitude && w.longitude).length;
-
-        // High Priority
-        const priority = filteredWarrants.filter(w =>
-            (w as any).tags?.includes('Urgente') ||
-            (w as any).autoPriority === 'ALTA' ||
-            w.crime?.toUpperCase().includes('HOMICIDIO') ||
-            w.crime?.toUpperCase().includes('ROUBO')
-        ).length;
-
-        return { total, fulfilled, efficiency, upcomingExpirations, avgTime, mapped, priority };
+        return { total, mapped, totalDiligencias, upcomingExpirations };
     }, [filteredWarrants, warrants]);
 
-    // 2. Annual Evolution
-    const monthlyStats = useMemo(() => {
-        const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
-        const data = months.map(m => ({ name: m, entrada: 0, cumprido: 0 }));
-
-        filteredWarrants.forEach(w => {
-            const issueDate = parseDate(w.issueDate);
-            if (issueDate) {
-                data[issueDate.getMonth()].entrada++;
-            }
-            if ((w.status === 'CUMPRIDO' || w.status === 'PRESO') && w.dischargeDate) {
-                const dischargeDate = parseDate(w.dischargeDate);
-                if (dischargeDate) {
-                    data[dischargeDate.getMonth()].cumprido++;
-                }
-            }
+    // 2. Recent Diligences List
+    const recentDiligences = useMemo(() => {
+        const list: { name: string, date: string, type: string }[] = [];
+        warrants.forEach(w => {
+            w.diligentHistory?.forEach(d => {
+                list.push({
+                    name: w.name || 'N/I',
+                    date: d.date,
+                    type: d.type
+                });
+            });
         });
-        return data;
-    }, [filteredWarrants]);
-
-    // 3. Crime Distro
-    const crimeStats = useMemo(() => {
-        const counts: Record<string, number> = {};
-        filteredWarrants.forEach(w => {
-            const crime = w.crime || 'Outros';
-            counts[crime] = (counts[crime] || 0) + 1;
-        });
-        return Object.entries(counts)
-            .map(([name, value]) => ({ name, value }))
-            .sort((a, b) => b.value - a.value)
-            .slice(0, 6);
-    }, [filteredWarrants]);
-
-    // 4. Status Pie
-    const statusStats = useMemo(() => {
-        const counts: Record<string, number> = {};
-        filteredWarrants.forEach(w => {
-            const s = w.status || 'ABERTO';
-            counts[s] = (counts[s] || 0) + 1;
-        });
-        return Object.entries(counts).map(([name, value]) => ({ name, value }));
-    }, [filteredWarrants]);
-
-    const COLORS = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'];
+        return list.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 5);
+    }, [warrants]);
 
     return (
-        <div className="min-h-screen pb-24 bg-[#f8fafc] dark:bg-[#0f172a]">
-            <Header title="Painel de Inteligência" back showHome />
+        <div className="min-h-screen pb-24 bg-[#0f172a] text-slate-200">
+            <Header title="Painel Operacional" back showHome />
 
-            {/* Top Toolbar */}
-            <div className="p-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div className="flex bg-white dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
-                    {(['30d', '90d', '1y', 'all'] as FilterRange[]).map((r) => (
+            {/* Simple Toolbar */}
+            <div className="p-4 flex justify-between items-center border-b border-slate-800 bg-slate-900/50 backdrop-blur-md sticky top-16 z-20">
+                <div className="flex bg-slate-800 p-1 rounded-lg border border-slate-700">
+                    {(['30d', '90d', 'all'] as FilterRange[]).map((r) => (
                         <button
                             key={r}
                             onClick={() => setFilterRange(r)}
-                            className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all ${filterRange === r
-                                ? 'bg-indigo-600 text-white shadow-md'
-                                : 'text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-700'
+                            className={`px-3 py-1 text-[10px] font-black rounded-md transition-all ${filterRange === r
+                                ? 'bg-amber-500 text-black shadow-lg'
+                                : 'text-slate-400 hover:text-white'
                                 }`}
                         >
-                            {r === 'all' ? 'TUDO' : r.toUpperCase()}
+                            {r === 'all' ? 'TOTAL' : r.toUpperCase()}
                         </button>
                     ))}
                 </div>
 
-                <div className="flex gap-2">
-                    <Link to="/intel" className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-xl text-xs font-bold shadow-lg shadow-indigo-500/20 active:scale-95 transition-all">
-                        <Shield size={14} /> INTELIGÊNCIA
-                    </Link>
-                    <button className="flex items-center gap-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 py-2 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 hover:shadow-md transition-all active:scale-95">
-                        <Download size={14} /> EXPORTAR PDF
-                    </button>
-                </div>
+                <Link to="/intel" className="flex items-center gap-2 bg-slate-100 text-slate-900 px-4 py-1.5 rounded-lg text-[10px] font-black shadow-lg active:scale-95 transition-all">
+                    RESUMO IA
+                </Link>
             </div>
 
-            <main className="px-4 space-y-6">
-
-                {/* KPI Section */}
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                    <KPICard
-                        title="Mandados Ativos"
+            <main className="p-4 space-y-6">
+                {/* Team KPIs */}
+                <div className="grid grid-cols-2 gap-4">
+                    <OperationalCard
+                        label="Banco de Dados"
                         value={kpis.total}
-                        icon={<FilePlus className="text-indigo-600" size={20} />}
-                        trend="+4.2%"
-                        color="indigo"
+                        sub="Mandados Ativos"
+                        icon={<Database size={16} className="text-amber-500" />}
                     />
-                    <KPICard
-                        title="Mapeamento Digital"
+                    <OperationalCard
+                        label="Pronto p/ Campo"
                         value={kpis.mapped}
-                        icon={<MapPin className="text-emerald-600" size={20} />}
+                        sub="Geolocalizados"
+                        icon={<Navigation size={16} className="text-emerald-500" />}
                         trend={`${Math.round((kpis.mapped / (kpis.total || 1)) * 100)}%`}
-                        color="emerald"
-                        progress={(kpis.mapped / (kpis.total || 1)) * 100}
                     />
-                    <KPICard
-                        title="Alvos Prioritários"
-                        value={kpis.priority}
-                        icon={<Users className="text-amber-600" size={20} />}
-                        trend="Alto Risco"
-                        color="amber"
+                    <OperationalCard
+                        label="Diligências"
+                        value={kpis.totalDiligencias}
+                        sub="Produção no Período"
+                        icon={<TrendingUp size={16} className="text-blue-500" />}
                     />
-                    <KPICard
-                        title="Vencimento Próximo"
+                    <OperationalCard
+                        label="Prazos Críticos"
                         value={kpis.upcomingExpirations}
-                        icon={<Calendar className="text-rose-600" size={20} />}
-                        trend="Próx. 30d"
-                        color="rose"
+                        sub="Vencimento 30d"
+                        icon={<AlertTriangle size={16} className="text-rose-500" />}
                         urgent={kpis.upcomingExpirations > 0}
                     />
                 </div>
 
-                {/* Main Evolution Chart */}
-                <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700">
-                    <div className="flex items-center justify-between mb-6">
+                {/* Team Focus Section */}
+                <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+                    <div className="flex items-center gap-3 mb-6">
+                        <div className="w-10 h-10 rounded-full bg-amber-500/10 flex items-center justify-center border border-amber-500/20">
+                            <Users size={20} className="text-amber-500" />
+                        </div>
                         <div>
-                            <h3 className="font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
-                                <TrendingUp size={18} className="text-indigo-500" /> Fluxo de Operações
-                            </h3>
-                            <p className="text-[10px] text-slate-400 mt-1 uppercase font-bold tracking-wider">Entradas vs Cumprimentos (Distribuição Mensal)</p>
+                            <h3 className="text-sm font-black uppercase tracking-tight">Atividade da Equipe</h3>
+                            <p className="text-[10px] text-slate-500 font-bold">Últimas movimentações em campo</p>
                         </div>
                     </div>
-                    <div className="h-72 w-full">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <AreaChart data={monthlyStats}>
-                                <defs>
-                                    <linearGradient id="gradEntrada" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="#6366f1" stopOpacity={0.15} />
-                                        <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
-                                    </linearGradient>
-                                    <linearGradient id="gradCumprido" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="#10b981" stopOpacity={0.15} />
-                                        <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
-                                    </linearGradient>
-                                </defs>
-                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" opacity={0.5} />
-                                <XAxis dataKey="name" fontSize={10} axisLine={false} tickLine={false} tick={{ fill: '#94a3b8' }} dy={10} />
-                                <YAxis fontSize={10} axisLine={false} tickLine={false} tick={{ fill: '#94a3b8' }} />
-                                <Tooltip
-                                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', background: '#1e293b', color: '#fff' }}
-                                    itemStyle={{ fontSize: '12px', fontWeight: 'bold' }}
-                                />
-                                <Area type="monotone" dataKey="entrada" name="Registros" stroke="#6366f1" strokeWidth={3} fill="url(#gradEntrada)" animationDuration={1500} />
-                                <Area type="monotone" dataKey="cumprido" name="Capturas" stroke="#10b981" strokeWidth={3} fill="url(#gradCumprido)" animationDuration={1500} />
-                            </AreaChart>
-                        </ResponsiveContainer>
-                    </div>
-                </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    {/* Crime Analysis */}
-                    <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700">
-                        <h3 className="font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2 mb-6">
-                            <Shield size={18} className="text-blue-500" /> Top Naturezas Criminais
-                        </h3>
-                        <div className="space-y-4">
-                            {crimeStats.map((crime, i) => (
-                                <div key={crime.name} className="group">
-                                    <div className="flex justify-between items-end mb-1.5">
-                                        <span className="text-xs font-bold text-slate-600 dark:text-slate-400 truncate max-w-[80%] uppercase">{crime.name}</span>
-                                        <span className="text-xs font-black text-slate-900 dark:text-white">{crime.value}</span>
+                    <div className="space-y-3">
+                        {recentDiligences.length > 0 ? (
+                            recentDiligences.map((d, i) => (
+                                <div key={i} className="flex items-center justify-between p-3 rounded-xl bg-slate-800/50 border border-slate-700/50">
+                                    <div className="flex flex-col">
+                                        <span className="text-[11px] font-black uppercase truncate max-w-[180px]">{d.name}</span>
+                                        <span className="text-[9px] text-slate-400 font-bold">{d.type}</span>
                                     </div>
-                                    <div className="h-2 w-full bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
-                                        <div
-                                            className="h-full bg-indigo-500 group-hover:bg-indigo-400 transition-all duration-1000"
-                                            style={{ width: `${(crime.value / crimeStats[0].value) * 100}%` }}
-                                        />
+                                    <div className="text-right">
+                                        <span className="text-[10px] font-mono text-slate-500">{new Date(d.date).toLocaleDateString('pt-BR')}</span>
                                     </div>
                                 </div>
-                            ))}
-                        </div>
-                    </div>
-
-                    {/* Status Breakdown */}
-                    <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700">
-                        <h3 className="font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2 mb-6">
-                            <BarChart3 size={18} className="text-emerald-500" /> Situação da Base
-                        </h3>
-                        <div className="flex flex-col md:flex-row items-center gap-8">
-                            <div className="h-48 w-48 relative">
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <PieChart>
-                                        <Pie
-                                            data={statusStats}
-                                            innerRadius={60}
-                                            outerRadius={85}
-                                            paddingAngle={5}
-                                            dataKey="value"
-                                            stroke="none"
-                                        >
-                                            {statusStats.map((_, index) => (
-                                                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                                            ))}
-                                        </Pie>
-                                        <Tooltip />
-                                    </PieChart>
-                                </ResponsiveContainer>
-                                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                                    <span className="text-2xl font-black text-slate-900 dark:text-white">{kpis.total}</span>
-                                    <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">Total</span>
-                                </div>
-                            </div>
-                            <div className="flex-1 grid grid-cols-2 gap-3 w-full">
-                                {statusStats.map((s, i) => (
-                                    <div key={s.name} className="flex items-center gap-2 p-2 rounded-lg bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-700">
-                                        <div className="w-2 h-2 rounded-full" style={{ backgroundColor: COLORS[i % COLORS.length] }}></div>
-                                        <div className="flex flex-col">
-                                            <span className="text-[10px] font-bold text-slate-400 uppercase truncate max-w-[100px]">{s.name}</span>
-                                            <span className="text-sm font-black text-slate-900 dark:text-white">{s.value}</span>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
+                            ))
+                        ) : (
+                            <p className="text-center py-8 text-xs text-slate-600 font-bold italic">Nenhuma diligência registrada no período.</p>
+                        )}
                     </div>
                 </div>
 
-                {/* Efficiency Gauge Section */}
-                <div className="bg-indigo-600 dark:bg-indigo-900 rounded-3xl p-8 flex flex-col md:flex-row items-center justify-between gap-8 text-white relative overflow-hidden">
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-24 -mt-24 blur-3xl" />
-                    <div className="relative z-10 flex-1">
-                        <h2 className="text-3xl font-black mb-4">Meta de Eficiência DIG</h2>
-                        <p className="text-indigo-100 text-sm max-w-md">O monitoramento de metas ajuda a DIG a manter o padrão de excelência operacional no cumprimento de ordens judiciais.</p>
-                        <div className="flex gap-4 mt-8">
-                            <div className="bg-white/10 px-6 py-3 rounded-2xl backdrop-blur-sm border border-white/20">
-                                <p className="text-[10px] font-bold opacity-70 uppercase">Taxa Atual</p>
-                                <p className="text-2xl font-black">{Math.round(kpis.efficiency)}%</p>
-                            </div>
-                            <div className="bg-white/10 px-6 py-3 rounded-2xl backdrop-blur-sm border border-white/20">
-                                <p className="text-[10px] font-bold opacity-70 uppercase">Meta Semanal</p>
-                                <p className="text-2xl font-black">75%</p>
-                            </div>
-                        </div>
+                {/* Bottom Tip */}
+                <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-2xl p-4 flex items-center gap-4">
+                    <div className="p-2 bg-emerald-500/20 rounded-lg text-emerald-500">
+                        <Zap size={18} />
                     </div>
-
-                    <div className="w-full md:w-64 h-4 text-center">
-                        <div className="h-40 flex items-end justify-center gap-2">
-                            {[40, 60, 45, 80, 50, 90, 75].map((h, i) => (
-                                <div
-                                    key={i}
-                                    className="w-4 bg-white/20 rounded-t-lg transition-all hover:bg-white/50 cursor-help"
-                                    style={{ height: `${h}%` }}
-                                    title={`Volume Dia ${i + 1}`}
-                                />
-                            ))}
-                        </div>
-                        <p className="text-[9px] font-bold mt-4 uppercase tracking-widest opacity-60">Volume de Atividade Diária</p>
+                    <div>
+                        <p className="text-[10px] font-black text-emerald-500 uppercase">Foco Operacional</p>
+                        <p className="text-[10px] text-slate-300">Priorize atualizar as geolocalizações para otimizar os roteiros de campo.</p>
                     </div>
                 </div>
-
             </main>
         </div>
     );
 };
 
-// --- Subcomponents ---
+// --- Minimalist Components ---
 
-interface KPICardProps {
-    title: string;
-    value: string | number;
+interface OperationalCardProps {
+    label: string;
+    value: number;
+    sub: string;
     icon: React.ReactNode;
-    trend: string;
-    color: 'indigo' | 'emerald' | 'amber' | 'rose';
-    progress?: number;
+    trend?: string;
     urgent?: boolean;
 }
 
-const KPICard = ({ title, value, icon, trend, color, progress, urgent }: KPICardProps) => {
-    const colorClasses = {
-        indigo: 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600',
-        emerald: 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600',
-        amber: 'bg-amber-50 dark:bg-amber-900/20 text-amber-600',
-        rose: 'bg-rose-50 dark:bg-rose-900/20 text-rose-600'
-    };
-
-    return (
-        <div className={`p-5 rounded-2xl bg-white dark:bg-slate-800 border ${urgent ? 'border-rose-300 dark:border-rose-900 animate-pulse' : 'border-slate-100 dark:border-slate-700'} shadow-sm hover:shadow-md transition-all group`}>
-            <div className="flex justify-between items-start mb-4">
-                <div className={`p-2.5 rounded-xl ${colorClasses[color]} group-hover:scale-110 transition-transform`}>
-                    {icon}
-                </div>
-                <div className={`px-2 py-0.5 rounded text-[10px] font-bold ${trend.startsWith('+') ? 'text-emerald-500 bg-emerald-50' : 'text-slate-400 bg-slate-50'} dark:bg-slate-900/50`}>
+const OperationalCard = ({ label, value, sub, icon, trend, urgent }: OperationalCardProps) => (
+    <div className={`p-4 rounded-2xl bg-slate-900 border transition-all ${urgent ? 'border-rose-500/50 animate-pulse' : 'border-slate-800'}`}>
+        <div className="flex justify-between items-start mb-3">
+            <div className="p-2 rounded-lg bg-slate-800 border border-slate-700">
+                {icon}
+            </div>
+            {trend && (
+                <span className="text-[9px] font-black text-emerald-500 bg-emerald-500/10 px-1.5 py-0.5 rounded uppercase">
                     {trend}
-                </div>
-            </div>
-            <div className="space-y-1">
-                <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{title}</h4>
-                <p className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">{value}</p>
-            </div>
-            {progress !== undefined && (
-                <div className="mt-4 h-1 w-full bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
-                    <div
-                        className={`h-full transition-all duration-1000 ${color === 'emerald' ? 'bg-emerald-500' : 'bg-indigo-500'}`}
-                        style={{ width: `${progress}%` }}
-                    />
-                </div>
+                </span>
             )}
         </div>
-    );
-};
+        <div className="space-y-0.5">
+            <h4 className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">{label}</h4>
+            <div className="flex items-baseline gap-2">
+                <span className="text-2xl font-black text-white">{value}</span>
+                <span className="text-[8px] font-bold text-slate-400 uppercase truncate">{sub}</span>
+            </div>
+        </div>
+    </div>
+);
 
 export default Stats;
