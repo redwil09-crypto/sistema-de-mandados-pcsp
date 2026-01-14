@@ -19,6 +19,7 @@ import WarrantAuditLog from '../components/WarrantAuditLog';
 import { Warrant } from '../types';
 import { geocodeAddress } from '../services/geocodingService';
 import { generateWarrantPDF } from '../services/pdfReportService';
+import { analyzeRawDiligence } from '../services/geminiService';
 import { CRIME_OPTIONS, REGIME_OPTIONS } from '../data/constants';
 
 interface WarrantDetailProps {
@@ -47,9 +48,10 @@ const WarrantDetail = ({ warrants, onUpdate, onDelete, routeWarrants = [], onRou
 
     // Investigative States
     const [newDiligence, setNewDiligence] = useState('');
-    const [diligenceType, setDiligenceType] = useState<'observation' | 'attempt' | 'intelligence'>('observation');
     const [isDraftOpen, setIsDraftOpen] = useState(false);
     const [isUploadingFile, setIsUploadingFile] = useState(false);
+    const [isAnalyzingDiligence, setIsAnalyzingDiligence] = useState(false);
+    const [aiDiligenceResult, setAiDiligenceResult] = useState<string | null>(null);
 
     // Capturas Report State
     const [isCapturasModalOpen, setIsCapturasModalOpen] = useState(false);
@@ -288,7 +290,7 @@ const WarrantDetail = ({ warrants, onUpdate, onDelete, routeWarrants = [], onRou
             date: new Date().toISOString(),
             investigator: "Policial",
             notes: newDiligence,
-            type: diligenceType
+            type: 'intelligence' // Tipo padrão já que os botões foram removidos
         };
 
         const updatedHistory = [...(data.diligentHistory || []), entry];
@@ -296,7 +298,32 @@ const WarrantDetail = ({ warrants, onUpdate, onDelete, routeWarrants = [], onRou
 
         if (success) {
             setNewDiligence('');
-            toast.success("Diligência registrada com sucesso!");
+            setAiDiligenceResult(null);
+            toast.success("Informação registrada na linha do tempo.");
+        }
+    };
+
+    const handleAnalyzeDiligence = async () => {
+        if (!newDiligence.trim() || !data) {
+            toast.error("Insira informações para análise.");
+            return;
+        }
+
+        setIsAnalyzingDiligence(true);
+        const tid = toast.loading("Antigravity processando inteligência...");
+        try {
+            const result = await analyzeRawDiligence(data, newDiligence);
+            if (result) {
+                setAiDiligenceResult(result);
+                toast.success("Análise de inteligência concluída!", { id: tid });
+            } else {
+                toast.error("IA indisponível no momento.", { id: tid });
+            }
+        } catch (error) {
+            console.error("Gemini Error:", error);
+            toast.error("Erro na comunicação com a IA.", { id: tid });
+        } finally {
+            setIsAnalyzingDiligence(false);
         }
     };
 
@@ -1243,6 +1270,17 @@ Equipe de Capturas - DIG / PCSP
                             <FileText size={18} className="text-primary" /> Relatórios
                         </h3>
                         <div className="flex flex-wrap gap-2 justify-end">
+                            <label htmlFor="report-upload" className="bg-gray-600 hover:bg-gray-700 text-white text-[10px] font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-all active:scale-95 shadow-lg shadow-gray-500/20 cursor-pointer">
+                                <Plus size={14} />
+                                ANEXAR RELATÓRIO
+                                <input
+                                    id="report-upload"
+                                    type="file"
+                                    className="hidden"
+                                    onChange={(e) => handleAttachFile(e, 'reports')}
+                                    disabled={isUploadingFile}
+                                />
+                            </label>
                             <button
                                 onClick={() => setIsCapturasModalOpen(true)}
                                 className="bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-all active:scale-95 shadow-lg shadow-indigo-500/20"
@@ -1449,44 +1487,49 @@ Equipe de Capturas - DIG / PCSP
                 )}
 
                 <div className="mb-6 bg-gray-100 dark:bg-white/5 p-4 rounded-xl border border-border-light dark:border-border-dark shadow-inner">
-                    <span className="text-[10px] font-bold text-text-secondary-light uppercase mb-2 block">Nova Diligência / Modus Operandi</span>
-                    <div className="flex gap-2 mb-3">
-                        {(['observation', 'attempt', 'intelligence'] as const).map((type) => (
-                            <button
-                                key={type}
-                                onClick={() => setDiligenceType(type)}
-                                className={`flex-1 py-3 rounded-xl text-[10px] font-bold uppercase border-2 transition-all flex flex-col items-center justify-center gap-1.5 ${diligenceType === type
-                                    ? type === 'observation' ? 'bg-blue-600 border-blue-600 text-white shadow-lg' :
-                                        type === 'attempt' ? 'bg-orange-600 border-orange-600 text-white shadow-lg' :
-                                            'bg-purple-600 border-purple-600 text-white shadow-lg'
-                                    : 'bg-white dark:bg-surface-dark border-border-light text-text-secondary-light hover:border-gray-400'
-                                    }`}
-                            >
-                                {type === 'observation' && <Eye size={18} />}
-                                {type === 'attempt' && <RotateCcw size={18} />}
-                                {type === 'intelligence' && <ShieldAlert size={18} />}
-                                <span className="leading-none">{type === 'observation' ? 'Visita' : type === 'attempt' ? 'Insucesso' : 'Intel'}</span>
-                            </button>
-                        ))}
+                    <div className="flex justify-between items-center mb-2">
+                        <span className="text-[10px] font-bold text-text-secondary-light uppercase">Informações Brutas de Campo</span>
+                        <button
+                            onClick={handleAnalyzeDiligence}
+                            disabled={!newDiligence.trim() || isAnalyzingDiligence}
+                            className="bg-indigo-600 hover:bg-indigo-700 text-white text-[9px] font-black px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-all shadow-lg shadow-indigo-500/20 active:scale-95 disabled:opacity-50"
+                        >
+                            <Sparkles size={12} className={isAnalyzingDiligence ? 'animate-spin' : ''} />
+                            ANALISAR COM GEMINI IA
+                        </button>
                     </div>
+
                     <div>
                         <div className="relative">
                             <textarea
                                 value={newDiligence}
                                 onChange={(e) => setNewDiligence(e.target.value)}
-                                placeholder="Relate o que foi observado, pessoas que falaram com a equipe, ou inteligência obtida..."
-                                className="w-full bg-white dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-xl p-3 pr-12 text-sm min-h-[100px] outline-none focus:ring-2 focus:ring-primary shadow-sm"
+                                placeholder="Relate informações brutas colhidas, observações, dados de vizinhos, veículos avistados ou qualquer informe para análise da IA..."
+                                className="w-full bg-white dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-xl p-3 pr-12 text-sm min-h-[120px] outline-none focus:ring-2 focus:ring-primary shadow-sm"
                             />
                             <div className="absolute right-3 top-3">
                                 <VoiceInput onTranscript={(text) => setNewDiligence(text)} currentValue={newDiligence} />
                             </div>
                         </div>
+
+                        {aiDiligenceResult && (
+                            <div className="mt-3 p-4 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800/50 rounded-xl animate-in fade-in zoom-in duration-300">
+                                <div className="flex items-center gap-2 mb-2">
+                                    <Bot size={16} className="text-indigo-600" />
+                                    <span className="text-[10px] font-black uppercase text-indigo-600 tracking-wider">Parecer de Inteligência (Antigravity IA)</span>
+                                </div>
+                                <div className="text-xs text-text-light dark:text-text-dark leading-relaxed font-blue-500/10 prose prose-sm dark:prose-invert max-w-none whitespace-pre-wrap">
+                                    {aiDiligenceResult}
+                                </div>
+                            </div>
+                        )}
+
                         <button
                             onClick={handleAddDiligence}
                             disabled={!newDiligence.trim()}
-                            className="w-full mt-2 py-3 bg-primary text-white rounded-xl shadow-lg active:scale-95 disabled:opacity-50 transition-all font-bold text-xs flex items-center justify-center gap-2"
+                            className="w-full mt-3 py-3 bg-primary text-white rounded-xl shadow-lg active:scale-95 disabled:opacity-50 transition-all font-bold text-xs flex items-center justify-center gap-2"
                         >
-                            <PlusCircle size={18} /> INSERIR NA LINHA DO TEMPO
+                            <PlusCircle size={18} /> REGISTRAR E SALVAR NA LINHA DO TEMPO
                         </button>
                     </div>
                 </div>

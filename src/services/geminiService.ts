@@ -106,3 +106,39 @@ export async function findIntelligenceLinks(targetName: string, allWarrantsText:
         return [];
     }
 }
+
+export async function analyzeRawDiligence(warrantData: any, rawInfo: string) {
+    if (!(await isGeminiEnabled())) return null;
+
+    try {
+        // Usando o modelo mais avançado disponível para análise profunda
+        const model = (await genAI()).getGenerativeModel({ model: "gemini-2.0-flash-exp" });
+
+        const prompt = `
+            Você é Antigravity, um Especialista em Inteligência Policial de alto nível.
+            Sua missão é analisar informações brutas (diligências, observações, informes) colhidas por equipes de campo sobre um alvo de mandado judicial.
+
+            DADOS DO ALVO:
+            ${JSON.stringify(warrantData, null, 2)}
+
+            INFORMAÇÃO BRUTA COLETADA:
+            "${rawInfo}"
+
+            Sua análise deve:
+            1. CONFRONTAR: Verifique se a informação nova contradiz ou confirma dados já existentes (endereço, rotina, contatos).
+            2. INSIGHTS: Identifique padrões ocultos (ex: horários de maior vulnerabilidade, possíveis refúgios, comportamento de fuga).
+            3. OPINIÃO TÁTICA: Sugira a melhor abordagem ou o próximo passo para a captura, avaliando o risco.
+            4. IDENTIFICAÇÃO: Extraia nomes, apelidos, veículos (placas) ou endereços mencionados.
+
+            Responda de forma profissional, direta e em formato Markdown estruturado para leitura rápida em dispositivos móveis.
+            Use emojis para sinalizar pontos críticos.
+        `;
+
+        const result = await model.generateContent(prompt);
+        const response = await result.response;
+        return response.text();
+    } catch (error) {
+        console.error("Erro no Gemini (Análise Bruta):", error);
+        return "Erro ao processar análise de inteligência.";
+    }
+}
