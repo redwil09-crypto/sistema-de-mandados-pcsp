@@ -8,7 +8,8 @@ import {
 import {
     FilePlus, CheckCircle, TrendingUp, Zap,
     Calendar, Shield, Clock, AlertTriangle,
-    Filter, Download, ChevronRight, BarChart3
+    Filter, Download, ChevronRight, BarChart3,
+    MapPin, Users
 } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import Header from '../components/Header';
@@ -85,7 +86,18 @@ const Stats = ({ warrants }: StatsProps) => {
         });
         const avgTime = count > 0 ? Math.round(totalDays / count) : 0;
 
-        return { total, fulfilled, efficiency, upcomingExpirations, avgTime };
+        // Mapped Count
+        const mapped = filteredWarrants.filter(w => w.latitude && w.longitude).length;
+
+        // High Priority
+        const priority = filteredWarrants.filter(w =>
+            (w as any).tags?.includes('Urgente') ||
+            (w as any).autoPriority === 'ALTA' ||
+            w.crime?.toUpperCase().includes('HOMICIDIO') ||
+            w.crime?.toUpperCase().includes('ROUBO')
+        ).length;
+
+        return { total, fulfilled, efficiency, upcomingExpirations, avgTime, mapped, priority };
     }, [filteredWarrants, warrants]);
 
     // 2. Annual Evolution
@@ -176,25 +188,25 @@ const Stats = ({ warrants }: StatsProps) => {
                         color="indigo"
                     />
                     <KPICard
-                        title="Taxa Eficiência"
-                        value={`${Math.round(kpis.efficiency)}%`}
-                        icon={<Zap className="text-emerald-600" size={20} />}
-                        trend="+12%"
+                        title="Mapeamento Digital"
+                        value={kpis.mapped}
+                        icon={<MapPin className="text-emerald-600" size={20} />}
+                        trend={`${Math.round((kpis.mapped / (kpis.total || 1)) * 100)}%`}
                         color="emerald"
-                        progress={kpis.efficiency}
+                        progress={(kpis.mapped / (kpis.total || 1)) * 100}
                     />
                     <KPICard
-                        title="Tempo Médio"
-                        value={`${kpis.avgTime} dias`}
-                        icon={<Clock className="text-amber-600" size={20} />}
-                        trend="-2 dias"
+                        title="Alvos Prioritários"
+                        value={kpis.priority}
+                        icon={<Users className="text-amber-600" size={20} />}
+                        trend="Alto Risco"
                         color="amber"
                     />
                     <KPICard
-                        title="Alertas Críticos"
+                        title="Vencimento Próximo"
                         value={kpis.upcomingExpirations}
-                        icon={<AlertTriangle className="text-rose-600" size={20} />}
-                        trend="Venc. 30d"
+                        icon={<Calendar className="text-rose-600" size={20} />}
+                        trend="Próx. 30d"
                         color="rose"
                         urgent={kpis.upcomingExpirations > 0}
                     />
