@@ -28,15 +28,15 @@ const BottomNav = ({ routeCount = 0 }: BottomNavProps) => {
                     <span className="text-[9px] font-bold">Busca</span>
                 </Link>
 
-                <Link to="/route-planner" className={`flex flex-col items-center gap-1 min-w-[50px] ${isActive('/route-planner') ? 'text-primary' : 'text-text-secondary-light dark:text-text-secondary-dark'}`}>
-                    <RouteIcon size={22} strokeWidth={isActive('/route-planner') ? 2.5 : 2} />
-                    <span className="text-[9px] font-bold">Navegar</span>
-                </Link>
-
-                <Link to="/map" className={`flex flex-col items-center gap-1 min-w-[50px] ${isActive('/map') ? 'text-primary' : 'text-text-secondary-light dark:text-text-secondary-dark'}`}>
-                    <Map size={22} strokeWidth={isActive('/map') ? 2.5 : 2} />
-                    <span className="text-[9px] font-bold">Mapas Ops</span>
-                </Link>
+                <a
+                    href="https://portalbnmp.cnj.jus.br/#/pesquisa-peca"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex flex-col items-center gap-1 min-w-[50px] text-text-secondary-light dark:text-text-secondary-dark"
+                >
+                    <ShieldCheck size={22} />
+                    <span className="text-[9px] font-bold">BNMP</span>
+                </a>
 
                 <Link to="/profile" className={`flex flex-col items-center gap-1 min-w-[50px] ${isActive('/profile') ? 'text-primary' : 'text-text-secondary-light dark:text-text-secondary-dark'}`}>
                     <User size={22} strokeWidth={isActive('/profile') ? 2.5 : 2} />
