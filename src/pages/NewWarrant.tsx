@@ -554,19 +554,19 @@ const NewWarrant = ({ onAdd, onUpdate, warrants }: NewWarrantProps) => {
 
                     <div className="bg-surface-light dark:bg-surface-dark p-4 rounded-xl shadow-sm border border-border-light dark:border-border-dark space-y-3">
                         <h3 className="font-bold text-text-light dark:text-text-dark text-sm flex items-center gap-2">
-                            <Paperclip size={16} className="text-primary" /> Anexos
+                            <Paperclip size={16} className="text-primary" /> Mandado / Ofício / Ordem de Serviço
                         </h3>
                         <div className="flex flex-col gap-2">
                             {formData.attachments?.map((url, idx) => (
                                 <div key={`old-att-${idx}`} className="flex items-center justify-between p-2 bg-gray-50 dark:bg-white/5 rounded-lg text-xs">
-                                    <span className="truncate flex-1">Anexo {idx + 1}</span>
+                                    <span className="truncate flex-1">Documento {idx + 1}</span>
                                     <div className="flex items-center gap-2">
                                         <Link to={url} target="_blank" className="text-primary font-bold">Ver</Link>
                                         <button
                                             type="button"
                                             onClick={() => handleRemoveOldFile(idx, 'attachments')}
                                             className="text-red-500 hover:text-red-700 p-1"
-                                            title="Remover anexo existente"
+                                            title="Remover documento existente"
                                         >
                                             <X size={14} />
                                         </button>
@@ -580,7 +580,7 @@ const NewWarrant = ({ onAdd, onUpdate, warrants }: NewWarrantProps) => {
                                 </div>
                             ))}
                             <label htmlFor="attachment-upload" className="flex items-center justify-center gap-2 w-full py-2.5 border-2 border-dashed border-border-light dark:border-border-dark rounded-lg text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark hover:border-primary hover:text-primary transition-colors cursor-pointer">
-                                <Plus size={16} /> Adicionar Anexo
+                                <Plus size={16} /> Adicionar Documento
                                 <input id="attachment-upload" type="file" onChange={(e) => handleFileAdd(e, 'attachments')} className="hidden" multiple />
                             </label>
                         </div>

@@ -1420,7 +1420,7 @@ Equipe de Capturas - DIG / PCSP
                 <div className="bg-surface-light dark:bg-surface-dark p-4 rounded-xl shadow-sm border border-border-light dark:border-border-dark">
                     <div className="flex justify-between items-center mb-3">
                         <h3 className="font-bold text-text-light dark:text-text-dark flex items-center gap-2">
-                            <Paperclip size={18} className="text-primary" /> Anexos Gerais
+                            <Paperclip size={18} className="text-primary" /> Mandado / Ofício / Ordem de Serviço
                         </h3>
                         <label htmlFor="detail-attach-upload" className="bg-gray-600 hover:bg-gray-700 text-white text-[10px] font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-all active:scale-95 shadow-lg shadow-gray-500/20 cursor-pointer">
                             <Plus size={14} />
@@ -1476,7 +1476,7 @@ Equipe de Capturas - DIG / PCSP
                                 })}
                         </ul>
                     ) : (
-                        <p className="text-xs text-gray-400 text-center py-4">Nenhum anexo geral.</p>
+                        <p className="text-xs text-gray-400 text-center py-4">Nenhum documento anexado.</p>
                     )}
                 </div>
 
