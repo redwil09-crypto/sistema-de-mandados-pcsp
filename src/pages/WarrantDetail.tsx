@@ -1271,7 +1271,7 @@ Equipe de Capturas - DIG / PCSP
                         </div>
 
                         <div className="border-t border-border-light dark:border-border-dark pt-3">
-                            <p className="text-[10px] text-text-secondary-light dark:text-text-secondary-dark uppercase font-bold mb-1">Coordenadas GPS (Lat, Long)</p>
+                            <p className="text-[10px] text-text-secondary-light dark:text-text-secondary-dark uppercase font-bold mb-1">Coordenadas GPS (Latitude, Longitude)</p>
                             <input
                                 type="text"
                                 className="text-sm font-mono text-text-light dark:text-text-dark bg-transparent border-none w-full focus:ring-1 focus:ring-primary/20 rounded px-1 -ml-1 outline-none"
@@ -1296,14 +1296,9 @@ Equipe de Capturas - DIG / PCSP
                                             // Atualiza ambos de uma vez para evitar disparos parciais
                                             setLocalData(prev => ({ ...prev, latitude: lat, longitude: lng }));
                                         }
-                                    } else {
-                                        // Se o usuário estiver apenas apagando ou digitando algo que não parece coordenada ainda
-                                        // apenas atualiza visualmente para permitir a digitação, mas não altera os valores reais de geocode
-                                        // (Neste caso, o value do input depende de lat/long, então isso pode ser estranho se ele tentar digitar um por um)
-                                        // No entanto, o objetivo do usuário é COLAR, então esta lógica atende perfeitamente.
                                     }
                                 }}
-                                placeholder="Cole aqui: (-23.31, -45.96) ou -23.31, -45.96"
+                                placeholder="Cole aqui o que copiar do Google Maps: -23.31, -45.96"
                             />
                         </div>
                     </div>
