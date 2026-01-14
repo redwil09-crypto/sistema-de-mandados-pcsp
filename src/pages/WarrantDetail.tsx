@@ -90,13 +90,32 @@ const WarrantDetail = ({ warrants, onUpdate, onDelete, routeWarrants = [], onRou
         const fields: (keyof Warrant)[] = [
             'name', 'type', 'rg', 'cpf', 'number', 'crime', 'regime',
             'location', 'ifoodNumber', 'ifoodResult', 'digOffice',
-            'issueDate', 'entryDate', 'expirationDate', 'dischargeDate', 'observation'
+            'issueDate', 'entryDate', 'expirationDate', 'dischargeDate', 'observation',
+            'birthDate', 'age'
         ];
         return fields.some(key => localData[key] !== data[key]);
     }, [localData, data]);
 
     const handleFieldChange = (field: keyof Warrant, value: any) => {
-        setLocalData(prev => ({ ...prev, [field]: value }));
+        setLocalData(prev => {
+            const newState = { ...prev, [field]: value };
+
+            // Auto-calculate age if birthDate changes
+            if (field === 'birthDate') {
+                const birth = value ? (value.includes('/') ? new Date(value.split('/').reverse().join('-')) : new Date(value)) : null;
+                if (birth && !isNaN(birth.getTime())) {
+                    const today = new Date();
+                    let age = today.getFullYear() - birth.getFullYear();
+                    const m = today.getMonth() - birth.getMonth();
+                    if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+                    newState.age = `${age} anos`;
+                } else {
+                    newState.age = '';
+                }
+            }
+
+            return newState;
+        });
     };
 
     const handleSaveChanges = async () => {
@@ -109,7 +128,7 @@ const WarrantDetail = ({ warrants, onUpdate, onDelete, routeWarrants = [], onRou
             'location', 'ifoodNumber', 'ifoodResult', 'digOffice',
             'issueDate', 'entryDate', 'expirationDate', 'dischargeDate', 'observation',
             'status', 'fulfillmentResult', 'fulfillmentReport', 'latitude', 'longitude',
-            'tacticalSummary', 'tags'
+            'tacticalSummary', 'tags', 'birthDate', 'age'
         ];
 
         fields.forEach(key => {
@@ -1148,6 +1167,26 @@ Equipe de Capturas - DIG / PCSP
                         <Calendar size={18} className="text-primary" /> Datas
                     </h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <p className="text-[10px] text-text-secondary-light dark:text-text-secondary-dark uppercase font-bold">Nascimento</p>
+                            <input
+                                type="text"
+                                className="text-sm text-text-light dark:text-text-dark bg-transparent border-none w-full focus:ring-1 focus:ring-primary/20 rounded px-1 -ml-1"
+                                value={localData.birthDate || ''}
+                                onChange={e => handleFieldChange('birthDate', e.target.value)}
+                                placeholder="YYYY-MM-DD ou DD/MM/YYYY"
+                            />
+                        </div>
+                        <div>
+                            <p className="text-[10px] text-text-secondary-light dark:text-text-secondary-dark uppercase font-bold">Idade Atual</p>
+                            <input
+                                type="text"
+                                className="text-sm text-text-light dark:text-text-dark bg-transparent border-none w-full focus:ring-1 focus:ring-primary/20 rounded px-1 -ml-1"
+                                value={localData.age || ''}
+                                onChange={e => handleFieldChange('age', e.target.value)}
+                                placeholder="Ex: 25 anos"
+                            />
+                        </div>
                         <div>
                             <p className="text-[10px] text-text-secondary-light dark:text-text-secondary-dark uppercase font-bold">Expedição</p>
                             <input

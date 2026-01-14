@@ -57,7 +57,9 @@ const NewWarrant = ({ onAdd, onUpdate, warrants }: NewWarrantProps) => {
         tags: [] as string[],
         latitude: undefined as number | undefined,
         longitude: undefined as number | undefined,
-        tacticalSummary: ''
+        tacticalSummary: '',
+        birthDate: '',
+        age: ''
     });
 
     const [hasAi, setHasAi] = useState(false);
@@ -114,7 +116,9 @@ const NewWarrant = ({ onAdd, onUpdate, warrants }: NewWarrantProps) => {
                     tags: existing.tags || [],
                     latitude: existing.latitude,
                     longitude: existing.longitude,
-                    tacticalSummary: existing.tacticalSummary ? existing.tacticalSummary.join('\n') : ''
+                    tacticalSummary: existing.tacticalSummary ? existing.tacticalSummary.join('\n') : '',
+                    birthDate: parseDate(existing.birthDate),
+                    age: existing.age || ''
                 });
 
                 if (existing.img) {
@@ -168,7 +172,25 @@ const NewWarrant = ({ onAdd, onUpdate, warrants }: NewWarrantProps) => {
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
-        setFormData(prev => ({ ...prev, [name]: value }));
+        setFormData(prev => {
+            const newState = { ...prev, [name]: value };
+
+            // Auto-calculate age if birthDate changes
+            if (name === 'birthDate') {
+                const birth = value ? (value.includes('/') ? new Date(value.split('/').reverse().join('-')) : new Date(value)) : null;
+                if (birth && !isNaN(birth.getTime())) {
+                    const today = new Date();
+                    let age = today.getFullYear() - birth.getFullYear();
+                    const m = today.getMonth() - birth.getMonth();
+                    if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+                    newState.age = `${age} anos`;
+                } else {
+                    newState.age = '';
+                }
+            }
+
+            return newState;
+        });
     };
 
     const handleTagToggle = (tag: string) => {
@@ -284,7 +306,9 @@ const NewWarrant = ({ onAdd, onUpdate, warrants }: NewWarrantProps) => {
                 attachments: [...(formData.attachments || []), ...newAttachmentsUrls],
                 latitude: lat || formData.latitude,
                 longitude: lng || formData.longitude,
-                tacticalSummary: formData.tacticalSummary ? formData.tacticalSummary.split('\n').filter(line => line.trim() !== '') : []
+                tacticalSummary: formData.tacticalSummary ? formData.tacticalSummary.split('\n').filter(line => line.trim() !== '') : [],
+                birthDate: formData.birthDate,
+                age: formData.age
             };
 
             if (editId && onUpdate) {
@@ -438,6 +462,14 @@ const NewWarrant = ({ onAdd, onUpdate, warrants }: NewWarrantProps) => {
                         <Calendar size={16} className="text-primary" /> Datas
                     </h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label className="block text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark mb-1">Data Nascimento</label>
+                            <input name="birthDate" value={formData.birthDate} onChange={handleChange} type="date" className="w-full rounded-lg border border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark p-2.5 text-sm text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none" />
+                        </div>
+                        <div>
+                            <label className="block text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark mb-1">Idade Atual</label>
+                            <input name="age" value={formData.age} onChange={handleChange} type="text" className="w-full rounded-lg border border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark p-2.5 text-sm text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none" placeholder="Ex: 25 anos" />
+                        </div>
                         <div>
                             <label className="block text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark mb-1">Data Expedição</label>
                             <input name="issueDate" value={formData.issueDate} onChange={handleChange} type="date" className="w-full rounded-lg border border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark p-2.5 text-sm text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none" />

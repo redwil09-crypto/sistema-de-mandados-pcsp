@@ -50,6 +50,7 @@ const dbToWarrant = (dbWarrant: any): Warrant => {
         tacticalSummary: dbWarrant.tactical_summary || [],
         latitude: dbWarrant.latitude,
         longitude: dbWarrant.longitude,
+        birthDate: dbWarrant.birth_date,
     };
 };
 
@@ -79,6 +80,7 @@ const warrantToDb = (warrant: Partial<Warrant>) => {
     if (warrant.entryDate !== undefined) dbObj.entry_date = toISODate(warrant.entryDate);
     if (warrant.expirationDate !== undefined) dbObj.expiration_date = toISODate(warrant.expirationDate);
     if (warrant.dischargeDate !== undefined) dbObj.discharge_date = toISODate(warrant.dischargeDate);
+    if (warrant.birthDate !== undefined) dbObj.birth_date = toISODate(warrant.birthDate);
 
     if (warrant.ifoodNumber !== undefined) dbObj.ifood_number = warrant.ifoodNumber;
     if (warrant.ifoodResult !== undefined) dbObj.ifood_result = warrant.ifoodResult;

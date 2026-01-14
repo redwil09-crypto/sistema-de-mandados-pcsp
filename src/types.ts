@@ -9,6 +9,7 @@ export interface Warrant {
     img?: string | null;
     priority?: string;
     age?: string;
+    birthDate?: string;
     rg?: string;
     description?: string; // Keep for compatibility
     timestamp?: string;

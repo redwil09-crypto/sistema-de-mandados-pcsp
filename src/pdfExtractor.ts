@@ -26,6 +26,7 @@ interface ExtractedData {
     autoPriority?: string[];    // New: Sugestão de tags
     searchChecklist?: string[];  // New: Itens para busca
     isDuplicate?: boolean;      // New: Verificação de duplicidade
+    birthDate?: string;         // New: Data de Nascimento
 }
 
 // Helper functions for parsing
@@ -95,6 +96,34 @@ const extractProcessNumber = (text: string): string => {
     const processPattern = /([0-9]{7}[-\s]?[0-9]{2}\.?[0-9]{4}\.?[0-9]\.?[0-9]{2}\.?[0-9]{4})/;
     const match = text.match(processPattern);
     return match ? match[1].trim() : '';
+};
+
+const extractBirthDate = (text: string): string => {
+    const birthPatterns = [
+        /(?:nascimento|nascido em|data de nascimento)[:\s]*([0-9]{1,2}[\/\-][0-9]{1,2}[\/\-][0-9]{4})/i,
+        /(?:nascimento|nascido em|data de nascimento)[:\s]*([0-9]{1,2})\s+de\s+([a-zç]+)\s+de\s+([0-9]{4})/i
+    ];
+
+    for (const pattern of birthPatterns) {
+        const match = text.match(pattern);
+        if (match) {
+            if (match[1] && (match[1].includes('/') || match[1].includes('-'))) {
+                const [day, month, year] = match[1].split(/[\/\-]/);
+                return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+            } else if (match[1] && match[2] && match[3]) {
+                const months: any = {
+                    'janeiro': '01', 'fevereiro': '02', 'março': '03', 'abril': '04',
+                    'maio': '05', 'junho': '06', 'julho': '07', 'agosto': '08',
+                    'setembro': '09', 'outubro': '10', 'novembro': '11', 'dezembro': '12'
+                };
+                const monthKey = match[2].toLowerCase();
+                if (months[monthKey]) {
+                    return `${match[3]}-${months[monthKey]}-${match[1].padStart(2, '0')}`;
+                }
+            }
+        }
+    }
+    return '';
 };
 
 const extractDates = (text: string): { issueDate: string; expirationDate: string } => {
@@ -485,6 +514,7 @@ export const extractPdfData = async (file: File): Promise<ExtractedData> => {
         const name = extractName(fullText);
         const rg = extractRG(fullText);
         const cpf = extractCPF(fullText);
+        const birthDate = extractBirthDate(fullText);
         const processNumber = extractProcessNumber(fullText);
         const { issueDate, expirationDate } = extractDates(fullText);
         const addresses = extractAddresses(fullText);
@@ -519,7 +549,8 @@ export const extractPdfData = async (file: File): Promise<ExtractedData> => {
             observations: fullObservations,
             tacticalSummary,
             searchChecklist: extractSearchChecklist(fullText, category),
-            autoPriority: determineAutoPriority(fullText, crime)
+            autoPriority: determineAutoPriority(fullText, crime),
+            birthDate
         };
     } catch (error: any) {
         console.error('Erro detalhado ao extrair PDF:', error);
@@ -532,6 +563,7 @@ export const extractFromText = (text: string, sourceName: string): ExtractedData
     const name = extractName(text);
     const rg = extractRG(text);
     const cpf = extractCPF(text);
+    const birthDate = extractBirthDate(text);
     const processNumber = extractProcessNumber(text);
     const { issueDate, expirationDate = new Date().toISOString().split('T')[0] } = extractDates(text);
     const addresses = extractAddresses(text);
@@ -565,6 +597,7 @@ export const extractFromText = (text: string, sourceName: string): ExtractedData
         observations: fullObservations,
         tacticalSummary,
         searchChecklist: extractSearchChecklist(text, category),
-        autoPriority: determineAutoPriority(text, crime)
+        autoPriority: determineAutoPriority(text, crime),
+        birthDate
     };
 };
