@@ -481,10 +481,6 @@ const NewWarrant = ({ onAdd, onUpdate, warrants }: NewWarrantProps) => {
                             <label className="block text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark mb-1">Resultado iFood</label>
                             <textarea name="ifoodResult" value={formData.ifoodResult} onChange={handleChange} rows={2} className="w-full rounded-lg border border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark p-2.5 text-sm text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none" placeholder="Resultado da quebra de sigilo..." />
                         </div>
-                        <div>
-                            <label className="block text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark mb-1">Ofício DIG</label>
-                            <input name="digOffice" value={formData.digOffice} onChange={handleChange} type="text" className="w-full rounded-lg border border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark p-2.5 text-sm text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none" placeholder="Ex: DIG-001/24" />
-                        </div>
                     </div>
                 </div>
 
@@ -559,47 +555,6 @@ const NewWarrant = ({ onAdd, onUpdate, warrants }: NewWarrantProps) => {
                     </div>
                 </div>
 
-                {/* Tactical Summary (AI) */}
-                <div className="bg-surface-light dark:bg-surface-dark p-4 rounded-xl shadow-sm border border-border-light dark:border-border-dark space-y-3">
-                    <div className="flex items-center justify-between">
-                        <h3 className="font-bold text-text-light dark:text-text-dark text-sm flex items-center gap-2">
-                            <Bot size={16} className="text-primary" /> Sumário Tático (IA)
-                        </h3>
-                        {hasAi && (
-                            <button
-                                type="button"
-                                onClick={async () => {
-                                    if (!formData.name || !formData.observation) {
-                                        toast.error("Preencha ao menos o nome e as observações para a IA analisar.");
-                                        return;
-                                    }
-                                    toast.info("Analisando dados com Gemini Pro...");
-                                    const fullText = `Alvo: ${formData.name}. Crime: ${formData.crime}. Processo: ${formData.number}. Observações: ${formData.observation}. iFood: ${formData.ifoodResult}`;
-                                    const analysis = await analyzeWarrantData(fullText);
-                                    if (analysis) {
-                                        setFormData(prev => ({
-                                            ...prev,
-                                            tacticalSummary: analysis.summary,
-                                            tags: [...new Set([...prev.tags, ...analysis.warnings])]
-                                        }));
-                                        toast.success("Sumário gerado com sucesso!");
-                                    }
-                                }}
-                                className="text-[10px] font-black uppercase text-primary flex items-center gap-1 bg-primary/10 px-2 py-1 rounded-lg hover:bg-primary/20"
-                            >
-                                <Sparkles size={12} /> Melhorar com IA
-                            </button>
-                        )}
-                    </div>
-                    <textarea
-                        name="tacticalSummary"
-                        value={formData.tacticalSummary}
-                        onChange={handleChange}
-                        rows={6}
-                        className="w-full rounded-lg border border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark p-2.5 text-sm font-mono text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none"
-                        placeholder="Informações extraídas pela IA..."
-                    />
-                </div>
 
                 {/* Observations */}
                 <div className="bg-surface-light dark:bg-surface-dark p-4 rounded-xl shadow-sm border border-border-light dark:border-border-dark space-y-3">

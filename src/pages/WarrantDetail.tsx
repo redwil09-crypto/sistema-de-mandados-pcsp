@@ -1236,77 +1236,124 @@ Equipe de Capturas - DIG / PCSP
                     </div>
                 </div>
 
-                {/* Dossiê Técnico Section */}
+                {/* Relatórios Section */}
                 <div className="bg-surface-light dark:bg-surface-dark p-4 rounded-xl shadow-sm border border-border-light dark:border-border-dark">
-                    <div className="flex flex-wrap justify-between items-center gap-3 mb-4">
-                        <div>
-                            <h3 className="font-bold text-text-light dark:text-text-dark flex items-center gap-2">
-                                <FileCheck size={18} className="text-indigo-600" /> Dossiê Técnico de Inteligência
-                            </h3>
-                            <p className="text-[10px] text-text-secondary-light dark:text-text-secondary-dark uppercase tracking-wider font-bold">
-                                Documentos Gerados e Sincronizados
-                            </p>
-                        </div>
-                        <div className="flex flex-wrap gap-2">
-                            <label className="bg-amber-600 hover:bg-amber-700 text-white text-[9px] font-bold px-2 py-1.5 rounded-lg flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer shadow-sm">
-                                <Plus size={12} /> IFOOD
-                                <input type="file" className="hidden" onChange={(e) => handleAttachFile(e, 'ifoodDocs')} disabled={isUploadingFile} />
-                            </label>
-                            <label className="bg-blue-600 hover:bg-blue-700 text-white text-[9px] font-bold px-2 py-1.5 rounded-lg flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer shadow-sm">
-                                <Plus size={12} /> RELATÓRIO
-                                <input type="file" className="hidden" onChange={(e) => handleAttachFile(e, 'reports')} disabled={isUploadingFile} />
-                            </label>
-                            <label className="bg-gray-600 hover:bg-gray-700 text-white text-[9px] font-bold px-2 py-1.5 rounded-lg flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer shadow-sm">
-                                <Plus size={12} /> ANEXO
-                                <input type="file" className="hidden" onChange={(e) => handleAttachFile(e, 'attachments')} disabled={isUploadingFile} />
-                            </label>
+                    <div className="flex justify-between items-center mb-3">
+                        <h3 className="font-bold text-text-light dark:text-text-dark flex items-center gap-2">
+                            <FileText size={18} className="text-primary" /> Relatórios
+                        </h3>
+                        <div className="flex flex-wrap gap-2 justify-end">
+                            <button
+                                onClick={() => setIsCapturasModalOpen(true)}
+                                className="bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-all active:scale-95 shadow-lg shadow-indigo-500/20"
+                            >
+                                <Plus size={14} />
+                                GERAR RELATÓRIO CAPTURAS
+                            </button>
                         </div>
                     </div>
-
-                    {data.attachments && data.attachments.length > 0 ? (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            {data.attachments.map((doc, idx) => {
-                                const isUrl = doc.startsWith('http');
-                                const isIfood = doc.includes('/ifoodDocs/');
-                                const isReport = doc.includes('/reports/');
-                                const fileName = doc.split('/').pop()?.split('_').slice(1).join('_') || `Documento_${idx + 1}.pdf`;
-
-                                return (
-                                    <div
-                                        key={idx}
-                                        onClick={() => isUrl ? window.open(doc, '_blank') : null}
-                                        className={`flex items-center gap-3 p-3 rounded-xl border transition-all cursor-pointer active:scale-95 hover:border-primary/50 group ${isIfood ? 'bg-amber-50/50 border-amber-200 dark:bg-amber-900/10 dark:border-amber-900/30' :
-                                            isReport ? 'bg-indigo-50/50 border-indigo-200 dark:bg-indigo-900/10 dark:border-indigo-900/30' :
-                                                'bg-gray-50 border-gray-100 dark:bg-white/5 dark:border-white/10'
-                                            }`}
-                                    >
-                                        <div className={`p-2 rounded-lg ${isIfood ? 'bg-amber-500 text-white' :
-                                            isReport ? 'bg-indigo-500 text-white' :
-                                                'bg-gray-400 text-white'
-                                            }`}>
-                                            {isIfood ? <Zap size={16} /> : <FileText size={16} />}
-                                        </div>
-                                        <div className="flex-1 min-w-0">
-                                            <p className={`text-[11px] font-bold truncate ${isIfood ? 'text-amber-900 dark:text-amber-200' :
-                                                isReport ? 'text-indigo-900 dark:text-indigo-200' :
-                                                    'text-text-light dark:text-text-dark'
-                                                }`}>
-                                                {isIfood ? 'OFÍCIO IFOOD' : isReport ? 'RELATÓRIO PDF' : 'ANEXO'}
-                                            </p>
-                                            <p className="text-[9px] text-text-secondary-light dark:text-text-secondary-dark truncate opacity-70">
-                                                {fileName}
-                                            </p>
-                                        </div>
-                                        <ChevronRight size={14} className="opacity-30 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
-                                    </div>
-                                );
-                            })}
-                        </div>
+                    {data.attachments && data.attachments.some(report => report.includes('/reports/')) ? (
+                        <ul className="space-y-2">
+                            {data.attachments
+                                .filter(report => report.includes('/reports/'))
+                                .map((report, idx) => {
+                                    const isUrl = report.startsWith('http');
+                                    return (
+                                        <li key={idx}
+                                            className="flex items-center justify-between p-2 bg-gray-50 dark:bg-white/5 rounded-lg border border-border-light dark:border-border-dark group hover:border-primary/50 transition-colors"
+                                        >
+                                            <div className="flex items-center gap-2 overflow-hidden flex-1 cursor-pointer"
+                                                onClick={() => isUrl ? window.open(report, '_blank') : toast.info(`Arquivo de referência: ${report}. Anexe o PDF para visualizar.`)}>
+                                                <FileText size={14} className="text-primary shrink-0" />
+                                                <div className="flex flex-col truncate">
+                                                    <span className="text-xs font-bold text-text-light dark:text-text-dark whitespace-nowrap">Relatório #{idx + 1}</span>
+                                                    <span className="text-[9px] text-text-secondary-light truncate">
+                                                        {report.split('/').pop()?.split('_').pop() || report}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            {isUrl ? (
+                                                <a
+                                                    href={report}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="text-[10px] font-bold text-primary hover:underline bg-primary/10 px-2 py-1 rounded shrink-0"
+                                                >
+                                                    VER PDF
+                                                </a>
+                                            ) : (
+                                                <span className="text-[9px] text-gray-400 font-medium">REFERÊNCIA</span>
+                                            )}
+                                        </li>
+                                    );
+                                })}
+                        </ul>
                     ) : (
-                        <div className="text-center py-6 border-2 border-dashed border-border-light dark:border-border-dark rounded-xl">
-                            <Paperclip size={24} className="mx-auto text-gray-300 mb-2" />
-                            <p className="text-xs text-text-secondary-light">Nenhum documento gerado para este alvo.</p>
-                        </div>
+                        <p className="text-xs text-gray-400 text-center py-4">Nenhum relatório.</p>
+                    )}
+                </div>
+
+                {/* Anexos Gerais Section */}
+                <div className="bg-surface-light dark:bg-surface-dark p-4 rounded-xl shadow-sm border border-border-light dark:border-border-dark">
+                    <div className="flex justify-between items-center mb-3">
+                        <h3 className="font-bold text-text-light dark:text-text-dark flex items-center gap-2">
+                            <Paperclip size={18} className="text-primary" /> Anexos Gerais
+                        </h3>
+                        <label htmlFor="detail-attach-upload" className="bg-gray-600 hover:bg-gray-700 text-white text-[10px] font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-all active:scale-95 shadow-lg shadow-gray-500/20 cursor-pointer">
+                            <Plus size={14} />
+                            ANEXAR
+                            <input
+                                id="detail-attach-upload"
+                                type="file"
+                                className="hidden"
+                                onChange={(e) => handleAttachFile(e, 'attachments')}
+                                disabled={isUploadingFile}
+                            />
+                        </label>
+                    </div>
+                    {data.attachments && data.attachments.filter(att =>
+                        !att.includes('/reports/') &&
+                        !att.includes('/ifoodDocs/')
+                    ).length > 0 ? (
+                        <ul className="space-y-2">
+                            {data.attachments
+                                .filter(att =>
+                                    !att.includes('/reports/') &&
+                                    !att.includes('/ifoodDocs/')
+                                )
+                                .map((att, idx) => {
+                                    const isUrl = att.startsWith('http');
+                                    return (
+                                        <li key={idx}
+                                            className="flex items-center justify-between p-2 bg-gray-50 dark:bg-white/5 rounded-lg border border-border-light dark:border-border-dark group hover:border-primary/50 transition-colors"
+                                        >
+                                            <div className="flex items-center gap-2 overflow-hidden flex-1 cursor-pointer"
+                                                onClick={() => isUrl ? window.open(att, '_blank') : toast.info(`Arquivo de referência: ${att}. Anexe o PDF para visualizar.`)}>
+                                                <Paperclip size={14} className="text-primary shrink-0" />
+                                                <div className="flex flex-col truncate">
+                                                    <span className="text-xs font-medium text-text-light dark:text-text-dark truncate">
+                                                        {att.split('/').pop()?.split('_').slice(1).join('_') || att}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            {isUrl ? (
+                                                <a
+                                                    href={att}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="text-[10px] font-bold text-primary hover:underline bg-primary/10 px-2 py-1 rounded shrink-0"
+                                                >
+                                                    ABRIR
+                                                </a>
+                                            ) : (
+                                                <span className="text-[9px] text-gray-400 font-medium">REFERÊNCIA</span>
+                                            )}
+                                        </li>
+                                    );
+                                })}
+                        </ul>
+                    ) : (
+                        <p className="text-xs text-gray-400 text-center py-4">Nenhum anexo geral.</p>
                     )}
                 </div>
 
@@ -1364,15 +1411,6 @@ Equipe de Capturas - DIG / PCSP
                                 </div>
                             </div>
                         </div>
-                        <div>
-                            <p className="text-xs text-text-secondary-light dark:text-text-secondary-dark uppercase font-bold">Ofício DIG</p>
-                            <input
-                                className="text-sm text-text-light dark:text-text-dark bg-transparent border-none w-full focus:ring-1 focus:ring-primary/20 rounded px-1 -ml-1"
-                                value={localData.digOffice || ''}
-                                onChange={e => handleFieldChange('digOffice', e.target.value)}
-                                placeholder="Não Informado"
-                            />
-                        </div>
 
                         {/* Document links were here, now moved and handled by Dossier Técnico */}
                     </div>
@@ -1380,53 +1418,6 @@ Equipe de Capturas - DIG / PCSP
 
             </div>
 
-            {data.tacticalSummary && data.tacticalSummary.length > 0 && (
-                <div className="bg-red-50 dark:bg-slate-900 border border-red-100 dark:border-indigo-500/30 p-4 rounded-xl shadow-sm overflow-hidden relative">
-                    <div className="absolute top-0 right-0 p-2 opacity-10">
-                        <ShieldAlert size={60} />
-                    </div>
-                    <h3 className="font-bold text-red-700 dark:text-indigo-400 mb-3 flex items-center gap-2 relative z-10">
-                        <Bot size={18} className="text-indigo-500" /> Inteligência Analítica (IA)
-                    </h3>
-
-                    <div className="space-y-4 relative z-10">
-                        <div>
-                            <p className="text-[10px] font-black uppercase text-slate-500 mb-2 tracking-widest">Sinais Táticos Coletados</p>
-                            <div className="flex flex-wrap gap-2">
-                                {data.tacticalSummary.map((tag, idx) => (
-                                    <span key={idx} className="bg-red-100 text-red-700 dark:bg-indigo-500/10 dark:text-indigo-300 px-3 py-1 rounded-full text-xs font-bold border border-red-200 dark:border-indigo-500/20">
-                                        {tag}
-                                    </span>
-                                ))}
-                            </div>
-                        </div>
-
-                        {aiTimeSuggestion && (
-                            <div className="bg-white/50 dark:bg-white/5 p-3 rounded-xl border border-white/10">
-                                <div className="flex justify-between items-center mb-1">
-                                    <span className="text-[10px] font-bold text-slate-400 uppercase">Sugestão de Janela Operacional</span>
-                                    <span className={`text-[9px] font-black px-1.5 py-0.5 rounded ${aiTimeSuggestion.confidence === 'Muito Alta' ? 'bg-emerald-500 text-white' : 'bg-indigo-500 text-white'}`}>
-                                        CONFIANÇA: {aiTimeSuggestion.confidence.toUpperCase()}
-                                    </span>
-                                </div>
-                                <p className="text-lg font-black text-indigo-600 dark:text-indigo-400">{aiTimeSuggestion.suggestion}</p>
-                                <p className="text-[10px] text-slate-500 mt-1"><b>RACIOCÍNIO:</b> {aiTimeSuggestion.reason}</p>
-                            </div>
-                        )}
-
-                        <Link
-                            to="/intel"
-                            className="flex items-center justify-between bg-indigo-600 hover:bg-indigo-700 text-white p-3 rounded-xl transition-all active:scale-[0.98] group"
-                        >
-                            <div>
-                                <p className="font-bold text-sm">Ver no Radar de Inteligência</p>
-                                <p className="text-[10px] opacity-80 uppercase font-bold">Análise de Vínculos e Mapa de Calor</p>
-                            </div>
-                            <ChevronRight size={18} className="group-hover:translate-x-1 transition-transform" />
-                        </Link>
-                    </div>
-                </div>
-            )}
 
             <div className="bg-surface-light dark:bg-surface-dark p-4 rounded-xl shadow-sm border border-border-light dark:border-border-dark">
                 <h3 className="font-bold text-text-light dark:text-text-dark flex items-center gap-2">
