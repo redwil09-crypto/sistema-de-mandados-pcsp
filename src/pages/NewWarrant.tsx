@@ -4,7 +4,7 @@ import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import {
     User, Gavel, Calendar, MapPin, Bike, FileCheck,
     Paperclip, X, Plus, Bot, ChevronRight, Camera,
-    AlertTriangle, Zap, Bell, RefreshCw, Eye, Sparkles
+    AlertTriangle, Zap, Bell, RefreshCw, Eye, Sparkles, Map
 } from 'lucide-react';
 import { toast } from 'sonner';
 import Header from '../components/Header';
@@ -491,57 +491,82 @@ const NewWarrant = ({ onAdd, onUpdate, warrants }: NewWarrantProps) => {
 
                 {/* Location */}
                 <div className="bg-surface-light dark:bg-surface-dark p-4 rounded-xl shadow-sm border border-border-light dark:border-border-dark space-y-3">
-                    <h3 className="font-bold text-text-light dark:text-text-dark text-sm flex items-center gap-2">
-                        <MapPin size={16} className="text-primary" /> Endereço e Localização
-                    </h3>
-                    <div>
-                        <label className="block text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark mb-1">Endereço (Texto)</label>
-                        <div className="flex gap-2">
-                            <input name="location" value={formData.location} onChange={handleChange} type="text" className="flex-1 rounded-lg border border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark p-2.5 text-sm text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none" placeholder="Rua, Número, Bairro, Cidade" />
-                            <button
-                                type="button"
-                                onClick={async () => {
-                                    if (!formData.location) return toast.error("Informe um endereço primeiro");
-                                    const tid = toast.loading("Buscando coordenadas...");
-                                    const res = await geocodeAddress(formData.location);
-                                    if (res) {
-                                        setFormData(prev => ({ ...prev, latitude: res.lat, longitude: res.lng }));
-                                        toast.success("Coordenadas obtidas!", { id: tid });
-                                    } else {
-                                        toast.error("Endereço não encontrado", { id: tid });
-                                    }
-                                }}
-                                className="bg-primary/10 text-primary p-2.5 rounded-lg hover:bg-primary/20 transition-colors"
-                                title="Buscar Coordenadas"
-                            >
-                                <RefreshCw size={18} />
-                            </button>
-                        </div>
+                    <div className="flex items-center justify-between">
+                        <h3 className="font-bold text-text-light dark:text-text-dark text-sm flex items-center gap-2">
+                            <MapPin size={16} className="text-primary" /> Localização Operacional
+                        </h3>
+                        {formData.latitude && formData.longitude ? (
+                            <span className="text-[10px] font-black bg-green-500 text-white px-2 py-0.5 rounded-full flex items-center gap-1 shadow-sm">
+                                <FileCheck size={10} /> MAPEADO
+                            </span>
+                        ) : (
+                            <span className="text-[10px] font-black bg-red-500 text-white px-2 py-0.5 rounded-full flex items-center gap-1 shadow-sm">
+                                <AlertTriangle size={10} /> NÃO MAPEADO
+                            </span>
+                        )}
                     </div>
-                    <div>
-                        <label className="block text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark mb-1">Coordenadas GPS (Lat, Long)</label>
-                        <input
-                            name="coords"
-                            value={formData.latitude && formData.longitude ? `${formData.latitude}, ${formData.longitude}` : ''}
-                            onChange={(e) => {
-                                const val = e.target.value;
-                                if (!val) {
-                                    setFormData(prev => ({ ...prev, latitude: undefined, longitude: undefined }));
-                                    return;
-                                }
-                                const matches = val.match(/-?\d+\.\d+/g);
-                                if (matches && matches.length >= 2) {
-                                    setFormData(prev => ({
-                                        ...prev,
-                                        latitude: parseFloat(matches[0]),
-                                        longitude: parseFloat(matches[1])
-                                    }));
-                                }
-                            }}
-                            type="text"
-                            className="w-full rounded-lg border border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark p-2.5 text-sm font-mono text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none"
-                            placeholder="Ex: -23.31, -45.96"
-                        />
+
+                    <div className="space-y-4 p-3 bg-gray-50 dark:bg-white/5 rounded-xl border border-border-light dark:border-border-dark">
+                        <div>
+                            <label className="block text-[10px] font-black text-text-secondary-light uppercase mb-1">Endereço (Texto)</label>
+                            <div className="flex gap-2">
+                                <input name="location" value={formData.location} onChange={handleChange} type="text" className="flex-1 rounded-lg border border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark p-2.5 text-sm text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none" placeholder="Rua, Número, Bairro, Cidade" />
+                                <button
+                                    type="button"
+                                    onClick={async () => {
+                                        if (!formData.location) return toast.error("Informe um endereço primeiro");
+                                        const tid = toast.loading("Buscando coordenadas...");
+                                        const res = await geocodeAddress(formData.location);
+                                        if (res) {
+                                            setFormData(prev => ({ ...prev, latitude: res.lat, longitude: res.lng }));
+                                            toast.success("Mapeado com sucesso!", { id: tid });
+                                        } else {
+                                            toast.error("Endereço não localizado", { id: tid });
+                                        }
+                                    }}
+                                    className="bg-primary hover:bg-primary-dark text-white p-2.5 rounded-lg transition-colors shrink-0 shadow-md"
+                                    title="Mapear Endereço"
+                                >
+                                    <RefreshCw size={18} />
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className="pt-2 border-t border-dashed border-border-light dark:border-border-dark">
+                            <label className="block text-[10px] font-black text-text-secondary-light uppercase mb-1">Coordenadas GPS (Lat, Long)</label>
+                            <div className="flex flex-col sm:flex-row gap-2">
+                                <input
+                                    name="coords_manual"
+                                    value={formData.latitude && formData.longitude ? `${formData.latitude}, ${formData.longitude}` : ''}
+                                    onChange={(e) => {
+                                        const val = e.target.value;
+                                        if (!val) {
+                                            setFormData(prev => ({ ...prev, latitude: undefined, longitude: undefined }));
+                                            return;
+                                        }
+                                        const matches = val.match(/-?\d+\.\d+/g);
+                                        if (matches && matches.length >= 2) {
+                                            setFormData(prev => ({
+                                                ...prev,
+                                                latitude: parseFloat(matches[0]),
+                                                longitude: parseFloat(matches[1])
+                                            }));
+                                        }
+                                    }}
+                                    type="text"
+                                    className="flex-1 rounded-lg border border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark p-2.5 text-sm font-mono text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none"
+                                    placeholder="Ex: -23.31, -45.96"
+                                />
+                                {formData.latitude && formData.longitude && (
+                                    <Link
+                                        to="/map"
+                                        className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-lg text-[10px] font-black flex items-center justify-center gap-2 transition-all shadow-lg shadow-indigo-500/20 uppercase"
+                                    >
+                                        <Map size={14} /> Confirmar no MAPA OPS
+                                    </Link>
+                                )}
+                            </div>
+                        </div>
                     </div>
                 </div>
 

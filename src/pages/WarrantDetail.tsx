@@ -7,7 +7,7 @@ import {
     Bike, FileCheck, FileText, Paperclip, Edit,
     Route as RouteIcon, RotateCcw, CheckCircle, Printer,
     Trash2, Zap, Bell, Eye, History, Send, Copy,
-    ShieldAlert, MessageSquare, Plus, PlusCircle, X, ChevronRight, Bot, Cpu, Sparkles
+    ShieldAlert, MessageSquare, Plus, PlusCircle, X, ChevronRight, Bot, Cpu, Sparkles, RefreshCw
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '../supabaseClient';
@@ -1234,17 +1234,19 @@ Equipe de Capturas - DIG / PCSP
                 <div className="bg-surface-light dark:bg-surface-dark p-4 rounded-xl shadow-sm border border-border-light dark:border-border-dark">
                     <div className="flex items-center justify-between mb-3">
                         <h3 className="font-bold text-text-light dark:text-text-dark flex items-center gap-2">
-                            <MapPin size={18} className="text-primary" /> Localização
+                            <MapPin size={18} className="text-primary" /> Localização Operacional
                         </h3>
                         {localData.latitude && localData.longitude ? (
                             <div className="flex items-center gap-2">
-                                <CheckCircle size={14} className="text-green-500" />
-                                <span className="text-[10px] bg-green-500/20 text-green-600 px-2 py-0.5 rounded-full font-bold">MAPEADO</span>
+                                <span className="text-[10px] bg-green-500 text-white px-3 py-1 rounded-full font-black shadow-sm flex items-center gap-1">
+                                    <FileCheck size={12} /> MAPEADO
+                                </span>
                             </div>
                         ) : (
                             <div className="flex items-center gap-2">
-                                <AlertCircle size={14} className="text-red-500" />
-                                <span className="text-[10px] bg-red-500/20 text-red-600 px-2 py-0.5 rounded-full font-bold">NÃO MAPEADO</span>
+                                <span className="text-[10px] bg-red-500 text-white px-3 py-1 rounded-full font-black shadow-sm flex items-center gap-1">
+                                    <AlertTriangle size={12} /> NÃO MAPEADO
+                                </span>
                             </div>
                         )}
                     </div>
@@ -1259,56 +1261,45 @@ Equipe de Capturas - DIG / PCSP
                         </div>
                     )}
 
-                    <div className="p-3 bg-gray-50 dark:bg-white/5 rounded-lg border border-border-light dark:border-border-dark space-y-4">
+                    <div className="p-4 bg-gray-50 dark:bg-white/5 rounded-xl border border-border-light dark:border-border-dark space-y-4">
                         <div>
-                            <p className="text-[10px] text-text-secondary-light dark:text-text-secondary-dark uppercase font-bold mb-2">Endereço (Texto)</p>
-                            <div className="flex items-start justify-between gap-3">
-                                <div className="flex-1 bg-white dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-lg p-2">
-                                    <textarea
-                                        className="text-sm text-text-light dark:text-text-dark font-medium bg-transparent border-none w-full focus:ring-0 rounded resize-none min-h-[60px]"
-                                        value={localData.location || ''}
-                                        rows={2}
-                                        onChange={e => handleFieldChange('location', e.target.value)}
-                                        placeholder="Endereço não informado"
-                                    />
-                                </div>
+                            <p className="text-[10px] text-text-secondary-light dark:text-text-secondary-dark uppercase font-black mb-2 px-1">Endereço (Texto)</p>
+                            <div className="flex items-start justify-between gap-3 bg-white dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-xl p-3 shadow-sm">
+                                <textarea
+                                    className="text-sm text-text-light dark:text-text-dark font-medium bg-transparent border-none w-full focus:ring-0 resize-none min-h-[50px] scrollbar-hide"
+                                    value={localData.location || ''}
+                                    rows={2}
+                                    onChange={e => handleFieldChange('location', e.target.value)}
+                                    placeholder="Endereço não informado"
+                                />
                                 <div className="flex flex-col gap-2 shrink-0">
                                     <button
-                                        title="Recalcular Geolocalização"
+                                        title="Atualizar Coordenadas via Texto"
                                         onClick={async () => {
                                             const addr = localData.location || data.location;
                                             if (!addr) return toast.error("Informe um endereço primeiro");
-                                            const tid = toast.loading("Buscando coordenadas...");
+                                            const tid = toast.loading("Mapeando endereço...");
                                             const res = await geocodeAddress(addr);
                                             if (res) {
                                                 setLocalData(prev => ({ ...prev, latitude: res.lat, longitude: res.lng }));
                                                 await onUpdate(data.id, { latitude: res.lat, longitude: res.lng });
-                                                toast.success("Coordenadas obtidas!", { id: tid });
+                                                toast.success("Mapeado com sucesso!", { id: tid });
                                             } else {
-                                                setLocalData(prev => ({ ...prev, latitude: null, longitude: null }));
-                                                await onUpdate(data.id, { latitude: null, longitude: null });
-                                                toast.error("Endereço não encontrado", { id: tid });
+                                                toast.error("Endereço não localizado", { id: tid });
                                             }
                                         }}
-                                        className="flex items-center justify-center bg-white dark:bg-surface-dark border border-border-light dark:border-border-dark shadow-sm w-10 h-10 rounded-lg text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/10 transition-all active:scale-95"
+                                        className="flex items-center justify-center bg-primary text-white shadow-lg shadow-primary/20 w-10 h-10 rounded-xl transition-all active:scale-95 hover:bg-primary-dark"
                                     >
-                                        <RotateCcw size={18} />
-                                    </button>
-                                    <button
-                                        title="Abrir no Google Maps"
-                                        onClick={() => data.location && window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(data.location)}`, '_blank')}
-                                        className="flex items-center justify-center bg-white dark:bg-surface-dark border border-border-light dark:border-border-dark shadow-sm w-10 h-10 rounded-lg text-primary hover:bg-blue-50 dark:hover:bg-primary/10 transition-all active:scale-95"
-                                    >
-                                        <Map size={18} />
+                                        <RefreshCw size={18} />
                                     </button>
                                 </div>
                             </div>
                         </div>
 
-                        <div className="border-t border-border-light dark:border-border-dark pt-3">
-                            <p className="text-[10px] text-text-secondary-light dark:text-text-secondary-dark uppercase font-bold mb-2">Coordenadas GPS (Lat, Long)</p>
-                            <div className="flex items-center gap-3">
-                                <div className="flex-1 bg-white dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-lg p-3">
+                        <div className="pt-3 border-t border-dashed border-border-light dark:border-border-dark">
+                            <p className="text-[10px] text-text-secondary-light dark:text-text-secondary-dark uppercase font-black mb-2 px-1">Coordenadas GPS (Lat, Long)</p>
+                            <div className="flex flex-col sm:flex-row items-stretch gap-3">
+                                <div className="flex-1 bg-white dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-xl p-3 shadow-sm">
                                     <input
                                         type="text"
                                         className="text-sm font-mono text-text-light dark:text-text-dark bg-transparent border-none w-full focus:ring-0 outline-none"
@@ -1328,21 +1319,31 @@ Equipe de Capturas - DIG / PCSP
                                                 }
                                             }
                                         }}
-                                        placeholder="Ex: -23.31, -45.96"
+                                        placeholder="Cole coordenadas do Google Maps..."
                                     />
                                 </div>
-                                <button
-                                    title={routeWarrants.includes(data.id) ? "Remover da Rota" : "Adicionar à Rota"}
-                                    onClick={() => onRouteToggle?.(data.id)}
-                                    className={`flex items-center justify-center border shadow-sm w-12 h-12 rounded-xl transition-all active:scale-95 ${routeWarrants.includes(data.id)
-                                        ? 'bg-indigo-600 border-indigo-600 text-white shadow-indigo-500/20 shadow-lg'
-                                        : 'bg-white dark:bg-surface-dark border-border-light dark:border-border-dark text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/10'
-                                        }`}
-                                >
-                                    <RouteIcon size={20} />
-                                </button>
+                                <div className="flex gap-2">
+                                    {localData.latitude && localData.longitude && (
+                                        <Link
+                                            to="/map"
+                                            className="flex-1 sm:flex-none flex items-center justify-center bg-indigo-600 hover:bg-indigo-700 text-white min-w-[140px] px-4 py-2 rounded-xl text-[10px] font-black shadow-lg shadow-indigo-500/20 active:scale-95 transition-all gap-2"
+                                        >
+                                            <MapPin size={14} /> VER NO MAPA OPS
+                                        </Link>
+                                    )}
+                                    <button
+                                        title={routeWarrants.includes(data.id) ? "Remover da Rota" : "Adicionar à Rota"}
+                                        onClick={() => onRouteToggle?.(data.id)}
+                                        className={`flex items-center justify-center border shadow-sm w-12 h-12 rounded-xl transition-all active:scale-95 ${routeWarrants.includes(data.id)
+                                            ? 'bg-indigo-600 border-indigo-600 text-white shadow-indigo-500/20 shadow-lg'
+                                            : 'bg-white dark:bg-surface-dark border-border-light dark:border-border-dark text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/10'
+                                            }`}
+                                    >
+                                        <RouteIcon size={20} />
+                                    </button>
+                                </div>
                             </div>
-                            <p className="text-[9px] text-text-secondary-light mt-2 italic">* Você pode colar coordenadas formatadas do Google Maps aqui.</p>
+                            <p className="text-[9px] text-text-secondary-light mt-2 italic px-1">* Mapeamento automático via endereço ou manual via coordenadas GPS.</p>
                         </div>
                     </div>
                 </div>
