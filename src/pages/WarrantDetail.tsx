@@ -804,10 +804,32 @@ Equipe de Capturas - DIG / PCSP
             const history = data.diligentHistory || [];
             const observations = data.observation || '';
 
-            const timelineText = history.map(h => `${h.date}: ${h.notes}`).join('\n');
-            const rawContent = `DADOS DO MANDADO:\nAlvo: ${name}\nProcesso: ${process}\nEndereço: ${address}\n\nHISTÓRICO DE DILIGÊNCIAS:\n${timelineText}\n\nOBSERVAÇÕES ADICIONAIS:\n${observations}`.trim();
+            const fullHistoryText = history.map(h => (h.notes || '').toLowerCase()).join(' ') + ' ' + observations.toLowerCase();
+            const isMoved = fullHistoryText.includes('mudou') || fullHistoryText.includes('não mora') || fullHistoryText.includes('desconhece') || fullHistoryText.includes('saiu');
+            const isEmpty = fullHistoryText.includes('vazio') || fullHistoryText.includes('fechado') || fullHistoryText.includes('aluga') || fullHistoryText.includes('vende');
+            const addrLower = address.toLowerCase();
+            const isAnotherCity = addrLower.includes('são sebastião') ||
+                addrLower.includes('são josé dos campos') ||
+                addrLower.includes('sjc') ||
+                addrLower.includes('mg') ||
+                addrLower.includes('minas gerais') ||
+                addrLower.includes('rj') ||
+                (addrLower.includes('sp') && !addrLower.includes('jacareí')) ||
+                (!addrLower.includes('jacareí') && addrLower.length > 5);
 
-            return rawContent;
+            let body = "";
+
+            if (isAnotherCity) {
+                body = `Em cumprimento ao solicitado, informo que, após diligências realizadas, constatou-se que o endereço indicado no mandado em nome do réu ${name}, situado na ${address}, não pertence à área de circunscrição desta Seccional de Jacareí/SP.\n\nEsclarece-se que tal endereço encontra-se sob a competência territorial de outra unidade policial, sendo, portanto, de atribuição daquela unidade as providências relativas ao presente caso.\n\nDiante do exposto, encaminha-se o presente relatório para conhecimento e eventuais encaminhamentos cabíveis.`;
+            } else if (isMoved) {
+                body = `Em cumprimento ao Mandado de Prisão referente ao Processo nº ${process}, foram realizadas diligências no endereço indicado como possível residência do réu ${name}, situado na ${address}.\n\nAo chegar ao local, a equipe obteve informações de que o procurado não reside mais no endereço há longa data, não tendo os atuais moradores informações que possam contribuir para sua localização. Consultas atualizadas nos sistemas policiais também não apontaram novos vínculos nesta cidade.\n\nDiante do exposto, as diligências foram encerradas sem êxito na localização do procurado até o presente momento.`;
+            } else if (isEmpty) {
+                body = `Em cumprimento ao Mandado de Prisão nos autos do processo nº ${process}, esta equipe dirigiu-se ao endereço: ${address}.\n\nForam efetuadas visitas em dias e horários distintos, constatando-se que o imóvel encontra-se fechado e sem sinais de habitação (apresentando placas de anúncio imobiliário), não sendo observada qualquer movimentação que indicasse a presença do réu no local.\n\nAté o momento, as diligências restaram negativas, permanecendo as investigações em andamento.`;
+            } else {
+                body = `Registra-se o presente para dar cumprimento ao Mandado de Prisão expedido em desfavor de ${name}, nos autos do processo nº ${process}. \n\nA equipe desta especializada procedeu às diligências nos endereços vinculados ao réu, realizando verificações em dias e horários distintos. Contudo, em todas as ocasiões não houve êxito na localização do procurado, não sendo colhidos dados atuais sobre seu paradeiro junto a vizinhos ou sistemas de consulta.\n\nDessa forma, as diligências permanecem negativas até o presente momento.`;
+            }
+
+            return body;
         };
 
         setCapturasData(prev => ({
@@ -931,7 +953,7 @@ Equipe de Capturas - DIG / PCSP
             doc.setFont('times', 'normal');
             doc.setFontSize(11);
             const indent = "      "; // Visual indent
-            
+
             const paragraphs = capturasData.body.split('\n');
             paragraphs.forEach(para => {
                 if (!para.trim()) {
@@ -941,7 +963,7 @@ Equipe de Capturas - DIG / PCSP
                 const splitPara = doc.splitTextToSize(para.trim(), contentWidth - 10);
                 doc.text(splitPara, margin + 10, y, { align: 'justify', maxWidth: contentWidth - 10 });
                 y += (splitPara.length * 5) + 2;
-                
+
                 // Add page break if needed
                 if (y > pageHeight - 60) {
                     doc.addPage();
@@ -1489,7 +1511,7 @@ Equipe de Capturas - DIG / PCSP
                                     disabled={isUploadingFile}
                                 />
                             </label>
-                             <button
+                            <button
                                 onClick={handleOpenCapturasModal}
                                 className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] font-bold px-3 py-2 rounded-lg flex items-center justify-center gap-1.5 transition-all active:scale-95 shadow-lg shadow-indigo-500/20"
                             >
