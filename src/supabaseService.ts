@@ -105,6 +105,7 @@ const logAudit = async (warrantId: string, action: 'CREATE' | 'UPDATE' | 'DELETE
         await supabase.from('audit_logs').insert([{
             warrant_id: warrantId,
             user_id: user.id,
+            user_email: user.email,
             action,
             details,
             changes
