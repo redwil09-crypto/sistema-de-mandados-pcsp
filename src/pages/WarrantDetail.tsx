@@ -1454,7 +1454,7 @@ Equipe de Capturas - DIG / PCSP
                                 onClick={() => setIsCapturasModalOpen(true)}
                                 className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] font-bold px-3 py-2 rounded-lg flex items-center justify-center gap-1.5 transition-all active:scale-95 shadow-lg shadow-indigo-500/20"
                             >
-                                <Plus size={14} /> GERAR CAPTURAS
+                                <Plus size={14} /> GERAR RELATÓRIO
                             </button>
                         </div>
                     </div>
@@ -1947,7 +1947,7 @@ Equipe de Capturas - DIG / PCSP
                                 <div className="p-6">
                                     <h3 className="text-xl font-bold text-text-light dark:text-text-dark mb-4 flex items-center gap-2">
                                         <FileText size={24} className="text-primary" />
-                                        Gerar Relatório de Capturas
+                                        Gerar Relatório
                                     </h3>
 
                                     <div className="space-y-4">
