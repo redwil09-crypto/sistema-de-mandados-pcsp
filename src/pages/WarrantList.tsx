@@ -96,7 +96,7 @@ const WarrantList = ({ warrants, onUpdate, onDelete, routeWarrants = [], onRoute
 
                 {/* Filters Panel */}
                 {showFilters && (
-                    <div className="mb-4 bg-surface-light dark:bg-surface-dark p-4 rounded-2xl shadow-md border border-border-light dark:border-border-dark animate-in slide-in-from-top-2">
+                    <div className="mb-4 bg-surface-light dark:bg-surface-dark p-4 rounded-xl shadow-md border border-border-light dark:border-border-dark animate-in slide-in-from-top-2">
                         <div className="flex justify-between items-center mb-3">
                             <h3 className="font-bold text-text-light dark:text-text-dark text-sm">Filtros Avançados</h3>
                             {hasActiveFilters && (

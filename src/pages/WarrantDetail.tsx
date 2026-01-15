@@ -1144,14 +1144,14 @@ Equipe de Capturas - DIG / PCSP
             />
             <div className="p-4 pb-4 space-y-4">
 
-                <div className="bg-surface-light dark:bg-surface-dark p-4 rounded-2xl shadow-sm border border-border-light dark:border-border-dark">
+                <div className="bg-surface-light dark:bg-surface-dark p-4 rounded-xl shadow-sm border border-border-light dark:border-border-dark">
                     <div className="flex gap-4">
                         <div className="shrink-0">
                             <img
                                 src={data.img || `https://ui-avatars.com/api/?name=${encodeURIComponent(data.name)}&background=random&color=fff`}
                                 alt={data.name}
                                 onClick={() => setIsPhotoModalOpen(true)}
-                                className="h-40 w-40 rounded-2xl object-cover border-2 border-primary/20 shadow-lg bg-gray-100 dark:bg-gray-800 cursor-zoom-in hover:scale-[1.02] transition-transform active:scale-95"
+                                className="h-40 w-40 rounded-xl object-cover border-2 border-primary/20 shadow-lg bg-gray-100 dark:bg-gray-800 cursor-zoom-in hover:scale-[1.02] transition-transform active:scale-95"
                             />
                         </div>
                         <div className="flex-1 min-w-0">
@@ -1213,7 +1213,7 @@ Equipe de Capturas - DIG / PCSP
                     </div>
                 </div>
 
-                <div className="bg-surface-light dark:bg-surface-dark p-4 rounded-2xl shadow-sm border border-border-light dark:border-border-dark">
+                <div className="bg-surface-light dark:bg-surface-dark p-4 rounded-xl shadow-sm border border-border-light dark:border-border-dark">
                     <h3 className="font-bold text-text-light dark:text-text-dark mb-3 flex items-center gap-2">
                         <User size={18} className="text-primary" /> Dados Pessoais
                     </h3>
@@ -1259,7 +1259,7 @@ Equipe de Capturas - DIG / PCSP
                     </div>
                 </div>
 
-                <div className="bg-surface-light dark:bg-surface-dark p-4 rounded-2xl shadow-sm border border-border-light dark:border-border-dark">
+                <div className="bg-surface-light dark:bg-surface-dark p-4 rounded-xl shadow-sm border border-border-light dark:border-border-dark">
                     <div className="flex justify-between items-center mb-3">
                         <h3 className="font-bold text-text-light dark:text-text-dark flex items-center gap-2">
                             <Gavel size={18} className="text-primary" /> Processual
@@ -1300,7 +1300,7 @@ Equipe de Capturas - DIG / PCSP
                     </div>
                 </div>
 
-                <div className="bg-surface-light dark:bg-surface-dark p-4 rounded-2xl shadow-sm border border-border-light dark:border-border-dark">
+                <div className="bg-surface-light dark:bg-surface-dark p-4 rounded-xl shadow-sm border border-border-light dark:border-border-dark">
                     <h3 className="font-bold text-text-light dark:text-text-dark mb-3 flex items-center gap-2">
                         <Calendar size={18} className="text-primary" /> Datas
                     </h3>
@@ -1350,7 +1350,7 @@ Equipe de Capturas - DIG / PCSP
 
                 <div className="p-4 space-y-6 w-full">
                     {/* Operational Location Card */}
-                    <div className="bg-surface-light dark:bg-surface-dark rounded-2xl shadow-sm border border-border-light dark:border-border-dark overflow-hidden transition-all hover:shadow-md">
+                    <div className="bg-surface-light dark:bg-surface-dark rounded-xl shadow-sm border border-border-light dark:border-border-dark overflow-hidden transition-all hover:shadow-md">
                         <div className="p-4 border-b border-border-light dark:border-border-dark bg-gray-50/50 dark:bg-white/5 flex items-center justify-between">
                             <h3 className="font-bold text-text-light dark:text-text-dark text-sm flex items-center gap-2">
                                 <MapPin size={18} className="text-primary" /> Localização Operacional
@@ -1414,7 +1414,7 @@ Equipe de Capturas - DIG / PCSP
                             <div className="pt-4 border-t border-dashed border-border-light dark:border-border-dark">
                                 <label className="text-[10px] font-black text-text-secondary-light dark:text-text-dark/40 uppercase tracking-widest px-1 mb-2 block">Coordenadas de Precisão (Lat, Long)</label>
                                 <div className="flex flex-col lg:flex-row gap-3">
-                                    <div className="flex-1 bg-white dark:bg-black/20 border border-border-light dark:border-border-dark rounded-2xl p-4 shadow-sm flex items-center gap-3 focus-within:ring-2 focus-within:ring-primary/10 transition-all">
+                                    <div className="flex-1 bg-white dark:bg-black/20 border border-border-light dark:border-border-dark rounded-xl p-4 shadow-sm flex items-center gap-3 focus-within:ring-2 focus-within:ring-primary/10 transition-all">
                                         <div className="p-1.5 bg-gray-100 dark:bg-white/5 rounded-lg">
                                             <MapIcon size={14} className="text-text-secondary-light/40" />
                                         </div>
@@ -1479,7 +1479,7 @@ Equipe de Capturas - DIG / PCSP
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
                         {/* 1. Mandado/Ofício/OS Section */}
-                        <div className="bg-surface-light dark:bg-surface-dark rounded-2xl shadow-sm border border-border-light dark:border-border-dark overflow-hidden flex flex-col transition-all hover:shadow-md">
+                        <div className="bg-surface-light dark:bg-surface-dark rounded-xl shadow-sm border border-border-light dark:border-border-dark overflow-hidden flex flex-col transition-all hover:shadow-md">
                             <div className="p-4 bg-gray-50/50 dark:bg-white/5 border-b border-border-light dark:border-border-dark flex justify-between items-center">
                                 <div className="flex items-center gap-3">
                                     <div className="p-2 bg-blue-500/10 rounded-xl">
@@ -1515,7 +1515,7 @@ Equipe de Capturas - DIG / PCSP
                                                     const fileName = att.split('/').pop()?.split('_').slice(1).join('_') || att;
                                                     return (
                                                         <li key={idx}
-                                                            className="flex items-center justify-between p-3.5 bg-white dark:bg-black/20 rounded-2xl border border-border-light dark:border-border-dark group hover:border-blue-300 dark:hover:border-blue-900/50 transition-all shadow-sm"
+                                                            className="flex items-center justify-between p-3.5 bg-white dark:bg-black/20 rounded-xl border border-border-light dark:border-border-dark group hover:border-blue-300 dark:hover:border-blue-900/50 transition-all shadow-sm"
                                                         >
                                                             <div className="flex items-center gap-3 overflow-hidden flex-1 cursor-pointer"
                                                                 onClick={() => isUrl ? window.open(att, '_blank') : toast.info(`Arquivo: ${att}`)}>
@@ -1549,7 +1549,7 @@ Equipe de Capturas - DIG / PCSP
                                                 })}
                                         </ul>
                                     ) : (
-                                        <div className="h-full flex flex-col items-center justify-center gap-3 py-10 opacity-40 border-2 border-dashed border-border-light dark:border-border-dark rounded-2xl bg-gray-50/50 dark:bg-white/5">
+                                        <div className="h-full flex flex-col items-center justify-center gap-3 py-10 opacity-40 border-2 border-dashed border-border-light dark:border-border-dark rounded-xl bg-gray-50/50 dark:bg-white/5">
                                             <div className="p-4 bg-gray-200 dark:bg-white/10 rounded-full">
                                                 <Paperclip size={32} className="text-gray-400" />
                                             </div>
@@ -1561,7 +1561,7 @@ Equipe de Capturas - DIG / PCSP
                         </div>
 
                         {/* 2. Relatórios Section */}
-                        <div className="bg-surface-light dark:bg-surface-dark rounded-2xl shadow-sm border border-border-light dark:border-border-dark overflow-hidden flex flex-col transition-all hover:shadow-md">
+                        <div className="bg-surface-light dark:bg-surface-dark rounded-xl shadow-sm border border-border-light dark:border-border-dark overflow-hidden flex flex-col transition-all hover:shadow-md">
                             <div className="p-4 bg-gray-50/50 dark:bg-white/5 border-b border-border-light dark:border-border-dark flex justify-between items-center">
                                 <div className="flex items-center gap-3">
                                     <div className="p-2 bg-indigo-500/10 rounded-xl">
@@ -1603,7 +1603,7 @@ Equipe de Capturas - DIG / PCSP
                                                     const fileName = report.split('/').pop()?.split('_').pop() || report;
                                                     return (
                                                         <li key={idx}
-                                                            className="flex items-center justify-between p-3.5 bg-white dark:bg-black/20 rounded-2xl border border-border-light dark:border-border-dark group hover:border-indigo-300 dark:hover:border-indigo-900/50 transition-all shadow-sm"
+                                                            className="flex items-center justify-between p-3.5 bg-white dark:bg-black/20 rounded-xl border border-border-light dark:border-border-dark group hover:border-indigo-300 dark:hover:border-indigo-900/50 transition-all shadow-sm"
                                                         >
                                                             <div className="flex items-center gap-3 overflow-hidden flex-1 cursor-pointer"
                                                                 onClick={() => isUrl ? window.open(report, '_blank') : toast.info(`Relatório: ${report}`)}>
@@ -1637,7 +1637,7 @@ Equipe de Capturas - DIG / PCSP
                                                 })}
                                         </ul>
                                     ) : (
-                                        <div className="h-full flex flex-col items-center justify-center gap-3 py-10 opacity-40 border-2 border-dashed border-border-light dark:border-border-dark rounded-2xl bg-gray-50/50 dark:bg-white/5">
+                                        <div className="h-full flex flex-col items-center justify-center gap-3 py-10 opacity-40 border-2 border-dashed border-border-light dark:border-border-dark rounded-xl bg-gray-50/50 dark:bg-white/5">
                                             <div className="p-4 bg-gray-200 dark:bg-white/10 rounded-full">
                                                 <FileCheck size={32} className="text-gray-400" />
                                             </div>
@@ -1845,7 +1845,7 @@ Equipe de Capturas - DIG / PCSP
                                     </div>
                                 ))
                             ) : (
-                                <div className="text-center py-10 bg-gray-50/50 dark:bg-black/10 rounded-2xl border-2 border-dashed border-border-light dark:border-border-dark">
+                                <div className="text-center py-10 bg-gray-50/50 dark:bg-black/10 rounded-xl border-2 border-dashed border-border-light dark:border-border-dark">
                                     <MessageSquare size={40} className="mx-auto text-gray-300 dark:text-gray-700 mb-3" />
                                     <p className="text-xs text-text-secondary-light font-bold">Nenhum registro tático disponível para este alvo.</p>
                                     <p className="text-[10px] text-text-secondary-light/60 mt-1">Use o campo acima para registrar diligências.</p>
@@ -1868,7 +1868,7 @@ Equipe de Capturas - DIG / PCSP
 
                     {/* Sticky Save Changes Bar */}
                     {hasChanges && (
-                        <div className="fixed bottom-[100px] left-4 right-4 p-4 bg-primary/95 dark:bg-primary/90 backdrop-blur-md rounded-2xl z-[60] flex gap-3 animate-in slide-in-from-bottom duration-300 shadow-2xl">
+                        <div className="fixed bottom-[100px] left-4 right-4 p-4 bg-primary/95 dark:bg-primary/90 backdrop-blur-md rounded-xl z-[60] flex gap-3 animate-in slide-in-from-bottom duration-300 shadow-2xl">
                             <button
                                 onClick={handleCancelEdits}
                                 className="flex-1 py-3 px-4 rounded-xl font-bold bg-white/20 text-white hover:bg-white/30 transition-colors"
@@ -2093,7 +2093,7 @@ Equipe de Capturas - DIG / PCSP
                                     <img
                                         src={data.img || `https://ui-avatars.com/api/?name=${encodeURIComponent(data.name)}&background=random&color=fff`}
                                         alt={data.name}
-                                        className="max-h-[85vh] max-w-full rounded-2xl shadow-2xl border-2 border-white/10 object-contain animate-in zoom-in-95 duration-300"
+                                        className="max-h-[85vh] max-w-full rounded-xl shadow-2xl border-2 border-white/10 object-contain animate-in zoom-in-95 duration-300"
                                     />
                                     <div className="mt-4 text-center">
                                         <h2 className="text-white font-black text-xl uppercase tracking-widest">{data.name}</h2>
