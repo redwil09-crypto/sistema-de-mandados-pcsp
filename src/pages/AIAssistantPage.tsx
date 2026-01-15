@@ -8,7 +8,7 @@ import {
     RefreshCw, Save, CheckCircle, Filter, Home, History,
     Bell, Zap, Printer, User, Calendar, MapPin, Mic,
     MicOff, Bot, Briefcase, FileUp, Gavel, AlertTriangle,
-    Paperclip, ShieldAlert, Layers, Sparkles
+    Paperclip, ShieldAlert, Layers, Sparkles, Camera
 } from 'lucide-react';
 import Header from '../components/Header';
 import ConfirmModal from '../components/ConfirmModal';
