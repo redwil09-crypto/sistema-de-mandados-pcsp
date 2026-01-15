@@ -803,42 +803,49 @@ Equipe de Capturas - DIG / PCSP
             const address = data.location || '';
             const history = data.diligentHistory || [];
             const observations = data.observation || '';
+            const crime = (data.crime || '').toLowerCase();
 
-            // Check for relevant information - prevent invention
+            // Intelligence safety check
             if (history.length === 0 && !observations.trim()) {
                 return "[AVISO: NÃO HÁ INFORMAÇÕES RELEVANTES NA LINHA DO TEMPO OU OBSERVAÇÕES PARA GERAR O RELATÓRIO. POR FAVOR, REGISTRE AS DILIGÊNCIAS PRIMEIRO.]";
             }
 
-            const fullHistoryText = history.map(h => (h.notes || '').toLowerCase()).join(' ') + ' ' + observations.toLowerCase();
-            
-            // Intelligence flags strictly based on content
-            const isMoved = fullHistoryText.includes('mudou') || fullHistoryText.includes('não mora') || fullHistoryText.includes('desconhece') || fullHistoryText.includes('saiu');
-            const isEmpty = fullHistoryText.includes('vazio') || fullHistoryText.includes('fechado') || fullHistoryText.includes('aluga') || fullHistoryText.includes('vende');
-            
+            const fullText = (history.map(h => (h.notes || '')).join(' ') + ' ' + observations).toLowerCase();
             const addrLower = address.toLowerCase();
+
+            // 1. OUTRA CIDADE / CIRCUNSCRIÇÃO (Exemplo 1 e 2)
             const isAnotherCity = address && (
-                addrLower.includes('são sebastião') || 
-                addrLower.includes('sjc') ||
-                addrLower.includes('são josé dos campos') ||
-                addrLower.includes('mg') || 
-                addrLower.includes('rj') || 
-                (addrLower.includes('sp') && !addrLower.includes('jacareí')) ||
+                addrLower.includes('são sebastião') || addrLower.includes('sjc') || addrLower.includes('são josé dos campos') ||
+                addrLower.includes('mg') || addrLower.includes('rj') || (addrLower.includes('sp') && !addrLower.includes('jacareí')) ||
                 (!addrLower.includes('jacareí') && addrLower.trim().length > 10)
             );
 
-            let body = "";
-
             if (isAnotherCity) {
-                body = `Em cumprimento ao solicitado, informo que, após diligências e consultas realizadas, constatou-se que o endereço indicado no mandado em nome do réu ${name}, situado na ${address}, não pertence à área de circunscrição desta Seccional de Jacareí/SP.\n\nEsclarece-se que tal endereço encontra-se sob a competência territorial de outra unidade policial, sendo de atribuição daquela unidade as providências relativas ao cumprimento da ordem judicial.\n\nDiante do exposto, encaminha-se o presente relatório para conhecimento e eventuais encaminhamentos cabíveis.`;
-            } else if (isMoved) {
-                body = `Em cumprimento ao Mandado de Prisão referente ao Processo nº ${process}, foram realizadas diligências no endereço indicado como possível paradeiro do réu ${name}, situado na ${address}.\n\nNo local, esta equipe de Jacareí/SP obteve informações de que o procurado não reside mais no referido imóvel há considerável lapso temporal, não sendo fornecidos dados que pudessem auxiliar em sua localização atual. Pesquisas nos sistemas policiais também resultaram negativas para novos endereços ativos nesta Comarca.\n\nFica assim encerrada a diligência sem êxito na captura do procurado até o presente momento.`;
-            } else if (isEmpty) {
-                body = `Em cumprimento ao Mandado de Prisão nos autos do processo nº ${process}, esta equipe dirigiu-se ao endereço: ${address}.\n\nEm diversas visitas realizadas em dias e horários distintos, constatou-se que o imóvel permanece fechado, sem sinais de habitação recente ou movimentação de moradores. Durante as diligências in loco, não foram obtidos elementos que confirmassem a permanência do réu no local.\n\nDiante dos fatos, as diligências restaram negativas nesta cidade de Jacareí/SP.`;
-            } else {
-                body = `Registra-se o presente para dar cumprimento ao Mandado de Prisão em desfavor de ${name}, nos autos do processo nº ${process}, oriundo da Comarca de Jacareí/SP.\n\nEsta equipe procedeu às diligências necessárias nos endereços vinculados ao réu, efetuando verificações constantes. No entanto, em todas as tentativas, as diligências restaram infrutíferas, não sendo localizado o procurado nem obtidas informações precisas sobre seu paradeiro atual junto a vizinhos ou sistemas de dados.\n\nNada mais a relatar até o momento em Jacareí/SP, permanecendo as buscas em aberto.`;
+                return `Em cumprimento ao solicitado, informo que, após diligências realizadas, constatou-se que o endereço indicado no mandado em nome do réu ${name}, situado na ${address}, não pertence à área de circunscrição desta Seccional de Jacareí/SP.\n\nEsclarece-se que tal endereço encontra-se sob a competência territorial de outra unidade policial, sendo, portanto, de atribuição daquela unidade as providências relativas ao cumprimento da ordem judicial.\n\nDiante do exposto, encaminha-se o presente relatório para conhecimento e encaminhamentos cabíveis.`;
             }
 
-            return body;
+            // 2. CONTATO COM GENITORA / FAMILIARES (Exemplo 3)
+            if (fullText.includes('mãe') || fullText.includes('genitora') || fullText.includes('pai') || fullText.includes('familia')) {
+                return `Em cumprimento ao Mandado de Prisão referente ao Processo nº ${process}, foram realizadas diligências no endereço indicado como possível residência do réu ${name}, situado na ${address}.\n\nAo chegar ao local, a equipe de Jacareí/SP foi atendida por familiares do procurado, os quais relataram que o mesmo não reside mais no endereço há longo lapso temporal, não mantendo contato e não possuindo informações que possam contribuir para sua localização. Após apresentação do mandado judicial, foi franqueado o acesso ao imóvel, sendo realizada busca em todos os cômodos da residência, sem êxito.\n\nPor fim, consultas atualizadas nos sistemas policiais não apontaram novos endereços ou vínculos deste réu nesta cidade. Diante disso, as diligências foram encerradas sem êxito.`;
+            }
+
+            // 3. IMÓVEL COM PLACAS (Exemplo 13)
+            if (fullText.includes('aluga') || fullText.includes('vende') || fullText.includes('placa')) {
+                return `Em cumprimento ao mandado de prisão expedido nos autos do processo nº ${process}, em desfavor de ${name}, esta equipe de Jacareí/SP realizou diligências no endereço indicado — ${address}.\n\nForam efetuadas visitas em dias e horários distintos, constatando-se que o imóvel encontra-se com placas de “aluga-se” ou “vende-se”, sem qualquer movimentação que indicasse a presença de moradores ou ocupação regular da residência no momento das verificações.\n\nAté o momento, não foram obtidos elementos que indiquem o paradeiro do procurado, permanecendo negativas as diligências nesta Comarca.`;
+            }
+
+            // 4. PENSÃO ALIMENTÍCIA / SISTEMAS (Exemplo 2)
+            if (crime.includes('pensão') || crime.includes('alimentar')) {
+                return `Em cumprimento ao Mandado de Prisão Civil, referente ao Processo nº ${process}, pela obrigação de pensão alimentícia, foram realizadas consultas nos sistemas policiais para localização de ${name} nesta Comarca de Jacareí/SP.\n\nAs pesquisas não identificaram qualquer endereço ativo do executado no município, inexistindo dados recentes que indicassem residência ou vínculo local. Ressalte-se que não sobrevieram novas informações, até a presente data, capazes de orientar diligências adicionais ou modificar o cenário fático apresentado.\n\nDiante do exposto, as diligências restaram infrutíferas nesta Comarca de Jacareí/SP.`;
+            }
+
+            // 5. NEGATIVA GERAL / VIZINHOS (Exemplo 9, 10, 11)
+            if (fullText.includes('vizinho') || fullText.includes('entrevista') || fullText.includes('morador')) {
+                return `Em cumprimento ao mandado expedido nos autos do processo nº ${process}, em desfavor de ${name}, esta equipe procedeu a diligências no endereço indicado — ${address}.\n\nForam realizadas verificações in loco em dias e horários diversos, ocasião em que se constatou ausência de sinais de habitação ou indício de presença recente do procurado no imóvel. Procedeu-se à entrevista com moradores lindeiros, os quais informaram que há considerável lapso temporal não visualizam o requerido naquela localidade, bem como desconhecem seu atual paradeiro.\n\nAdicionalmente, foram efetuadas consultas nos sistemas policiais disponíveis, não sendo identificados novos endereços ou informações úteis à sua localização. Diante do exposto, as diligências restaram infrutíferas nesta cidade de Jacareí/SP.`;
+            }
+
+            // 6. FALLBACK: PADRÃO FORMAL (Exemplo 4)
+            return `Registra-se o presente para dar cumprimento ao Mandado de Prisão expedido em desfavor de ${name}, nos autos do processo nº ${process}, oriundo da Comarca de Jacareí/SP.\n\nA equipe desta especializada procedeu às diligências nos endereços vinculados ao réu. Em todos os locais indicados, foram efetuadas verificações em dias e horários distintos; contudo, em todas as ocasiões o imóvel encontrava-se fechado e sem movimentação ou presença de moradores.\n\nAté o presente momento, não foi possível localizar o investigado, restando negativas as diligências realizadas por esta equipe para cumprimento da ordem judicial em Jacareí/SP.`;
         };
 
         setCapturasData(prev => ({
