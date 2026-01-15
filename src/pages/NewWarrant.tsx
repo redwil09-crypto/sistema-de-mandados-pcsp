@@ -4,7 +4,7 @@ import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import {
     User, Gavel, Calendar, MapPin, Bike, FileCheck,
     Paperclip, X, Plus, Bot, ChevronRight, Camera,
-    AlertTriangle, Zap, Bell, RefreshCw, Eye, Sparkles, Map as MapIcon
+    AlertTriangle, Zap, Bell, RefreshCw, Eye, Sparkles, Map as MapIcon, ExternalLink
 } from 'lucide-react';
 import { toast } from 'sonner';
 import Header from '../components/Header';
@@ -558,12 +558,22 @@ const NewWarrant = ({ onAdd, onUpdate, warrants }: NewWarrantProps) => {
                                     placeholder="Ex: -23.31, -45.96"
                                 />
                                 {formData.latitude && formData.longitude && (
-                                    <Link
-                                        to="/map"
-                                        className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-lg text-[10px] font-black flex items-center justify-center gap-2 transition-all shadow-lg shadow-indigo-500/20 uppercase"
-                                    >
-                                        <MapIcon size={14} /> Confirmar no MAPA OPS
-                                    </Link>
+                                    <div className="flex gap-2">
+                                        <Link
+                                            to={`/map?lat=${formData.latitude}&lng=${formData.longitude}`}
+                                            className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-lg text-[10px] font-black flex items-center justify-center gap-2 transition-all shadow-lg shadow-indigo-500/20 uppercase"
+                                        >
+                                            <MapIcon size={14} /> MAPA OPS
+                                        </Link>
+                                        <a
+                                            href={`https://www.google.com/maps?q=${formData.latitude},${formData.longitude}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="bg-slate-100 dark:bg-white/10 text-slate-700 dark:text-white px-4 py-2.5 rounded-lg text-[10px] font-black flex items-center justify-center gap-2 transition-all shadow-sm uppercase border border-slate-200 dark:border-white/10"
+                                        >
+                                            <ExternalLink size={14} className="text-green-600" /> GOOGLE MAPS
+                                        </a>
+                                    </div>
                                 )}
                             </div>
                         </div>

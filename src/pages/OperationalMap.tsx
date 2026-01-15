@@ -6,7 +6,7 @@ import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import Header from '../components/Header';
 import BottomNav from '../components/BottomNav';
-import { useNavigate } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { geocodeAddress } from '../services/geocodingService';
 import { toast } from 'sonner';
 import { RefreshCw, User, MapPin } from 'lucide-react';
@@ -42,6 +42,7 @@ const OperationalMap = ({ warrants: initialWarrants, onUpdate }: OperationalMapP
     const [loading, setLoading] = useState(true);
     const [isSyncing, setIsSyncing] = useState(false);
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
 
     useEffect(() => {
         const loadData = async () => {
@@ -87,6 +88,13 @@ const OperationalMap = ({ warrants: initialWarrants, onUpdate }: OperationalMapP
     };
 
     const center = useMemo(() => {
+        const pLat = searchParams.get('lat');
+        const pLng = searchParams.get('lng');
+
+        if (pLat && pLng) {
+            return [parseFloat(pLat), parseFloat(pLng)] as any;
+        }
+
         if (warrants.length === 0) return [-23.55052, -46.633309]; // Default SP Center
 
         // Simple clustering: finding the warrant that has more neighbors within ~2km
@@ -107,7 +115,7 @@ const OperationalMap = ({ warrants: initialWarrants, onUpdate }: OperationalMapP
         });
 
         return [bestWarrant.latitude!, bestWarrant.longitude!] as any;
-    }, [warrants]);
+    }, [warrants, searchParams]);
 
     return (
         <div className="min-h-screen bg-background-light dark:bg-background-dark pb-20 flex flex-col">
