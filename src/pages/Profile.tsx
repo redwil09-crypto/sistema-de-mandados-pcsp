@@ -55,26 +55,9 @@ export default function Profile() {
                             <div className="flex-1">
                                 <p className="text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark uppercase">Função</p>
                                 <p className="text-sm font-bold text-text-light dark:text-text-dark">
-                                    {user?.user_metadata?.role === 'admin' ? 'Administrador' : 'Agente (Sem acesso Admin)'}
+                                    {user?.user_metadata?.role === 'admin' ? 'Administrador' : 'Agente'}
                                 </p>
                             </div>
-                            {user?.user_metadata?.role !== 'admin' && (
-                                <button
-                                    onClick={async () => {
-                                        const { error } = await supabase.auth.updateUser({
-                                            data: { role: 'admin' }
-                                        });
-                                        if (error) toast.error("Erro ao definir admin");
-                                        else {
-                                            toast.success("Agora você é Administrador!");
-                                            window.location.reload();
-                                        }
-                                    }}
-                                    className="text-[10px] bg-primary text-white px-2 py-1 rounded font-bold"
-                                >
-                                    LIBERAR ADMIN
-                                </button>
-                            )}
                         </div>
 
                         <div className="flex items-center gap-3 p-3 rounded-lg bg-background-light dark:bg-background-dark">
