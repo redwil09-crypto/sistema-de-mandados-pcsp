@@ -82,17 +82,17 @@ const WarrantCard = ({ data, onPrint, isPlanned, onRouteToggle, onFinalize, onDe
                             ) : (
                                 <Gavel size={12} className="text-blue-500 shrink-0" />
                             )}
-                            <p className="text-xs font-medium text-text-secondary-light dark:text-text-secondary-dark flex-1 whitespace-normal leading-tight">{data.type}</p>
+                            <p className="text-xs font-medium text-text-secondary-light dark:text-text-dark/80 flex-1 whitespace-normal leading-tight">{data.type}</p>
                         </div>
-                        {data.crime && <p className="text-[10px] text-text-secondary-light dark:text-text-secondary-dark ml-4.5">Crime: {data.crime}</p>}
-                        {data.regime && <p className="text-[10px] text-text-secondary-light dark:text-text-secondary-dark ml-4.5">Regime: {data.regime}</p>}
+                        {data.crime && <p className="text-[10px] text-text-secondary-light dark:text-text-dark/60 ml-4.5">Crime: {data.crime}</p>}
+                        {data.regime && <p className="text-[10px] text-text-secondary-light dark:text-text-dark/60 ml-4.5">Regime: {data.regime}</p>}
                         {data.priority && <p className="text-[10px] font-bold text-red-500 ml-4.5">Prioridade: {data.priority}</p>}
                         {data.tags && data.tags.length > 0 && (
                             <div className="flex flex-wrap gap-1 ml-4.5 mt-0.5">
                                 {data.tags.map(tag => (
-                                    <span key={tag} className={`text-[9px] font-bold px-1.5 py-0.5 rounded border ${tag === 'Urgente'
-                                        ? 'bg-red-50 text-red-600 border-red-200'
-                                        : 'bg-amber-50 text-amber-700 border-amber-200'
+                                    <span key={tag} className={`text-[9px] font-black px-1.5 py-0.5 rounded border ${tag === 'Urgente'
+                                        ? 'bg-red-50 text-red-600 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800/50'
+                                        : 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-800/50'
                                         }`}>
                                         {tag.toUpperCase()}
                                     </span>

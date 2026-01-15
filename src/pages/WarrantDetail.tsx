@@ -1102,7 +1102,7 @@ Equipe de Capturas - DIG / PCSP
                     </h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                            <p className="text-xs text-text-secondary-light dark:text-text-secondary-dark uppercase font-bold">RG</p>
+                            <p className="text-xs text-text-secondary-light dark:text-text-dark/60 uppercase font-black">RG</p>
                             <input
                                 className="text-sm font-mono text-text-light dark:text-text-dark bg-transparent border-none w-full focus:ring-1 focus:ring-primary/20 rounded px-1 -ml-1 border-b border-transparent hover:border-gray-200 dark:hover:border-white/10"
                                 value={localData.rg || ''}
@@ -1111,7 +1111,7 @@ Equipe de Capturas - DIG / PCSP
                             />
                         </div>
                         <div>
-                            <p className="text-xs text-text-secondary-light dark:text-text-secondary-dark uppercase font-bold">CPF</p>
+                            <p className="text-xs text-text-secondary-light dark:text-text-dark/60 uppercase font-black">CPF</p>
                             <input
                                 className="text-sm font-mono text-text-light dark:text-text-dark bg-transparent border-none w-full focus:ring-1 focus:ring-primary/20 rounded px-1 -ml-1 border-b border-transparent hover:border-gray-200 dark:hover:border-white/10"
                                 value={localData.cpf || ''}
@@ -1120,7 +1120,7 @@ Equipe de Capturas - DIG / PCSP
                             />
                         </div>
                         <div>
-                            <p className="text-xs text-text-secondary-light dark:text-text-secondary-dark uppercase font-bold">Nascimento</p>
+                            <p className="text-xs text-text-secondary-light dark:text-text-dark/60 uppercase font-black">Nascimento</p>
                             <input
                                 type="text"
                                 className="text-sm text-text-light dark:text-text-dark bg-transparent border-none w-full focus:ring-1 focus:ring-primary/20 rounded px-1 -ml-1 border-b border-transparent hover:border-gray-200 dark:hover:border-white/10"
@@ -1130,7 +1130,7 @@ Equipe de Capturas - DIG / PCSP
                             />
                         </div>
                         <div>
-                            <p className="text-xs text-text-secondary-light dark:text-text-secondary-dark uppercase font-bold">Idade Atual</p>
+                            <p className="text-xs text-text-secondary-light dark:text-text-dark/60 uppercase font-black">Idade Atual</p>
                             <input
                                 type="text"
                                 className="text-sm text-text-light dark:text-text-dark bg-transparent border-none w-full focus:ring-1 focus:ring-primary/20 rounded px-1 -ml-1 border-b border-transparent hover:border-gray-200 dark:hover:border-white/10"
@@ -1263,7 +1263,7 @@ Equipe de Capturas - DIG / PCSP
 
                     <div className="p-4 bg-gray-50 dark:bg-white/5 rounded-xl border border-border-light dark:border-border-dark space-y-4">
                         <div>
-                            <p className="text-[10px] text-text-secondary-light dark:text-text-secondary-dark uppercase font-black mb-2 px-1">Endereço (Texto)</p>
+                            <p className="text-[10px] text-text-secondary-light dark:text-text-dark/70 uppercase font-black mb-2 px-1">Endereço (Texto)</p>
                             <div className="flex items-start justify-between gap-3 bg-white dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-xl p-3 shadow-sm">
                                 <textarea
                                     className="text-sm text-text-light dark:text-text-dark font-medium bg-transparent border-none w-full focus:ring-0 resize-none min-h-[50px] scrollbar-hide"
@@ -1297,7 +1297,7 @@ Equipe de Capturas - DIG / PCSP
                         </div>
 
                         <div className="pt-3 border-t border-dashed border-border-light dark:border-border-dark">
-                            <p className="text-[10px] text-text-secondary-light dark:text-text-secondary-dark uppercase font-black mb-2 px-1">Coordenadas GPS (Lat, Long)</p>
+                            <p className="text-[10px] text-text-secondary-light dark:text-text-dark/70 uppercase font-black mb-2 px-1">Coordenadas GPS (Lat, Long)</p>
                             <div className="flex flex-col sm:flex-row items-stretch gap-3">
                                 <div className="flex-1 bg-white dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-xl p-3 shadow-sm">
                                     <input
@@ -1343,7 +1343,7 @@ Equipe de Capturas - DIG / PCSP
                                     </button>
                                 </div>
                             </div>
-                            <p className="text-[9px] text-text-secondary-light mt-2 italic px-1">* Mapeamento automático via endereço ou manual via coordenadas GPS.</p>
+                            <p className="text-[9px] text-text-secondary-light dark:text-text-secondary-dark mt-2 italic px-1">* Mapeamento automático via endereço ou manual via coordenadas GPS.</p>
                         </div>
                     </div>
                 </div>
@@ -1434,7 +1434,7 @@ Equipe de Capturas - DIG / PCSP
                                 </div>
                                 <div>
                                     <p className="text-xs font-black text-text-light dark:text-text-dark uppercase tracking-tight">Relatórios Gerados</p>
-                                    <p className="text-[10px] text-text-secondary-light">Documentos de Inteligência</p>
+                                    <p className="text-[10px] text-text-secondary-light/70 dark:text-text-dark/50 tracking-tight">Documentos de Inteligência</p>
                                 </div>
                             </div>
                         </div>
@@ -1514,7 +1514,7 @@ Equipe de Capturas - DIG / PCSP
                                 </div>
                                 <div>
                                     <p className="text-xs font-black text-text-light dark:text-text-dark uppercase tracking-tight">Diligência Digital</p>
-                                    <p className="text-[10px] text-text-secondary-light">Integração iFood</p>
+                                    <p className="text-[10px] text-text-secondary-light/70 dark:text-text-dark/50 tracking-tight">Integração iFood</p>
                                 </div>
                             </div>
                         </div>
@@ -1540,7 +1540,7 @@ Equipe de Capturas - DIG / PCSP
 
                     <div className="grid grid-cols-1 gap-4">
                         <div className="bg-white dark:bg-black/20 p-3 rounded-xl border border-border-light dark:border-border-dark">
-                            <p className="text-[10px] text-text-secondary-light dark:text-text-secondary-dark uppercase font-black tracking-widest mb-2 px-1">Ofício iFood nº</p>
+                            <p className="text-[10px] text-text-secondary-light dark:text-text-dark/70 uppercase font-black tracking-widest mb-2 px-1">Ofício iFood nº</p>
                             <input
                                 className="text-sm font-mono text-text-light dark:text-text-dark bg-gray-50 dark:bg-white/5 w-full p-2.5 rounded-lg border border-border-light dark:border-border-dark focus:ring-2 focus:ring-primary/40 outline-none transition-all"
                                 value={localData.ifoodNumber || ''}
@@ -1549,7 +1549,7 @@ Equipe de Capturas - DIG / PCSP
                             />
                         </div>
                         <div className="bg-white dark:bg-black/20 p-3 rounded-xl border border-border-light dark:border-border-dark">
-                            <p className="text-[10px] text-text-secondary-light dark:text-text-secondary-dark uppercase font-black tracking-widest mb-2 px-1">Resultado da Pesquisa</p>
+                            <p className="text-[10px] text-text-secondary-light dark:text-text-dark/70 uppercase font-black tracking-widest mb-2 px-1">Resultado da Pesquisa</p>
                             <div className="relative">
                                 <textarea
                                     className="text-sm text-text-light dark:text-text-dark bg-gray-50 dark:bg-white/5 p-3 pr-12 rounded-xl border border-border-light dark:border-border-dark w-full focus:ring-2 focus:ring-primary/40 outline-none resize-none transition-all scrollbar-hide"
@@ -1597,7 +1597,7 @@ Equipe de Capturas - DIG / PCSP
 
                     <div className="mb-6 bg-gray-100 dark:bg-white/5 p-4 rounded-xl border border-border-light dark:border-border-dark shadow-inner">
                         <div className="flex justify-between items-center mb-2">
-                            <span className="text-[10px] font-bold text-text-secondary-light uppercase">Informações Brutas de Campo</span>
+                            <span className="text-[10px] font-black text-text-secondary-light dark:text-text-dark/70 uppercase">Informações Brutas de Campo</span>
                             <button
                                 onClick={handleAnalyzeDiligence}
                                 disabled={!newDiligence.trim() || isAnalyzingDiligence}
@@ -1625,7 +1625,7 @@ Equipe de Capturas - DIG / PCSP
                                 <div className="mt-3 p-4 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800/50 rounded-xl animate-in fade-in zoom-in duration-300">
                                     <div className="flex items-center gap-2 mb-2">
                                         <Bot size={16} className="text-indigo-600" />
-                                        <span className="text-[10px] font-black uppercase text-indigo-600 tracking-wider">Parecer de Inteligência (Antigravity IA)</span>
+                                        <span className="text-[10px] font-black uppercase text-indigo-600 dark:text-indigo-400 tracking-wider">Parecer de Inteligência (Antigravity IA)</span>
                                     </div>
                                     <div className="text-xs text-text-light dark:text-text-dark leading-relaxed font-blue-500/10 prose prose-sm dark:prose-invert max-w-none whitespace-pre-wrap">
                                         {aiDiligenceResult}

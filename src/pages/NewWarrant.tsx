@@ -508,7 +508,7 @@ const NewWarrant = ({ onAdd, onUpdate, warrants }: NewWarrantProps) => {
 
                     <div className="space-y-4 p-3 bg-gray-50 dark:bg-white/5 rounded-xl border border-border-light dark:border-border-dark">
                         <div>
-                            <label className="block text-[10px] font-black text-text-secondary-light uppercase mb-1">Endereço (Texto)</label>
+                            <label className="block text-[10px] font-black text-text-secondary-light dark:text-text-dark/70 uppercase mb-1">Endereço (Texto)</label>
                             <div className="flex gap-2">
                                 <input name="location" value={formData.location} onChange={handleChange} type="text" className="flex-1 rounded-lg border border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark p-2.5 text-sm text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none" placeholder="Rua, Número, Bairro, Cidade" />
                                 <button
@@ -533,7 +533,7 @@ const NewWarrant = ({ onAdd, onUpdate, warrants }: NewWarrantProps) => {
                         </div>
 
                         <div className="pt-2 border-t border-dashed border-border-light dark:border-border-dark">
-                            <label className="block text-[10px] font-black text-text-secondary-light uppercase mb-1">Coordenadas GPS (Lat, Long)</label>
+                            <label className="block text-[10px] font-black text-text-secondary-light dark:text-text-dark/70 uppercase mb-1">Coordenadas GPS (Lat, Long)</label>
                             <div className="flex flex-col sm:flex-row gap-2">
                                 <input
                                     name="coords_manual"
@@ -577,11 +577,11 @@ const NewWarrant = ({ onAdd, onUpdate, warrants }: NewWarrantProps) => {
                     </h3>
                     <div className="grid grid-cols-1 gap-3">
                         <div>
-                            <label className="block text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark mb-1">Ofício iFood nº</label>
+                            <label className="block text-xs font-bold text-text-secondary-light dark:text-text-dark/70 mb-1">Ofício iFood nº</label>
                             <input name="ifoodNumber" value={formData.ifoodNumber} onChange={handleChange} type="text" className="w-full rounded-lg border border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark p-2.5 text-sm text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none" placeholder="Ex: OF-123/2024" />
                         </div>
                         <div>
-                            <label className="block text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark mb-1">Resultado iFood</label>
+                            <label className="block text-xs font-bold text-text-secondary-light dark:text-text-dark/70 mb-1">Resultado iFood</label>
                             <textarea name="ifoodResult" value={formData.ifoodResult} onChange={handleChange} rows={2} className="w-full rounded-lg border border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark p-2.5 text-sm text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none" placeholder="Resultado da quebra de sigilo..." />
                         </div>
                     </div>

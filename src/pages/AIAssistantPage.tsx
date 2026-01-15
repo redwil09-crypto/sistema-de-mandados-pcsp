@@ -646,7 +646,7 @@ const AIAssistantPage = ({ onAdd, warrants }: AIAssistantPageProps) => {
                                             </div>
                                             <div className="grid grid-cols-2 gap-4">
                                                 <div className="col-span-2">
-                                                    <label className="text-[10px] uppercase font-bold text-amber-500">Nome Completo</label>
+                                                    <label className="text-[10px] uppercase font-black text-amber-600 dark:text-amber-400/90">Nome Completo</label>
                                                     <input
                                                         type="text"
                                                         value={extractedData.name}
@@ -655,7 +655,7 @@ const AIAssistantPage = ({ onAdd, warrants }: AIAssistantPageProps) => {
                                                     />
                                                 </div>
                                                 <div>
-                                                    <label className="text-[10px] uppercase font-bold text-amber-500">RG</label>
+                                                    <label className="text-[10px] uppercase font-black text-amber-600 dark:text-amber-400/90">RG</label>
                                                     <input
                                                         type="text"
                                                         value={extractedData.rg}
@@ -664,7 +664,7 @@ const AIAssistantPage = ({ onAdd, warrants }: AIAssistantPageProps) => {
                                                     />
                                                 </div>
                                                 <div>
-                                                    <label className="text-[10px] uppercase font-bold text-amber-500">CPF</label>
+                                                    <label className="text-[10px] uppercase font-black text-amber-600 dark:text-amber-400/90">CPF</label>
                                                     <input
                                                         type="text"
                                                         value={extractedData.cpf}
@@ -673,7 +673,7 @@ const AIAssistantPage = ({ onAdd, warrants }: AIAssistantPageProps) => {
                                                     />
                                                 </div>
                                                 <div>
-                                                    <label className="text-[10px] uppercase font-bold text-amber-500">Nascimento</label>
+                                                    <label className="text-[10px] uppercase font-black text-amber-600 dark:text-amber-400/90">Nascimento</label>
                                                     <input
                                                         type="text"
                                                         value={formatDate(extractedData.birthDate)}
@@ -683,7 +683,7 @@ const AIAssistantPage = ({ onAdd, warrants }: AIAssistantPageProps) => {
                                                     />
                                                 </div>
                                                 <div>
-                                                    <label className="text-[10px] uppercase font-bold text-amber-500">Idade Atual</label>
+                                                    <label className="text-[10px] uppercase font-black text-amber-600 dark:text-amber-400/90">Idade Atual</label>
                                                     <input
                                                         type="text"
                                                         value={extractedData.age || ''}
@@ -703,7 +703,7 @@ const AIAssistantPage = ({ onAdd, warrants }: AIAssistantPageProps) => {
                                             </div>
                                             <div className="grid grid-cols-2 gap-4">
                                                 <div className="col-span-2">
-                                                    <label className="text-[10px] uppercase font-bold text-amber-500">Nº do Processo</label>
+                                                    <label className="text-[10px] uppercase font-black text-amber-600 dark:text-amber-400/90">Nº do Processo</label>
                                                     <input
                                                         type="text"
                                                         value={extractedData.processNumber}
@@ -712,7 +712,7 @@ const AIAssistantPage = ({ onAdd, warrants }: AIAssistantPageProps) => {
                                                     />
                                                 </div>
                                                 <div className="col-span-2">
-                                                    <label className="text-[10px] uppercase font-bold text-amber-500">Natureza Criminal</label>
+                                                    <label className="text-[10px] uppercase font-black text-amber-600 dark:text-amber-400/90">Natureza Criminal</label>
                                                     <input
                                                         type="text"
                                                         value={extractedData.crime}
@@ -721,7 +721,7 @@ const AIAssistantPage = ({ onAdd, warrants }: AIAssistantPageProps) => {
                                                     />
                                                 </div>
                                                 <div className="col-span-2">
-                                                    <label className="text-[10px] uppercase font-bold text-amber-500">Regime Prisional</label>
+                                                    <label className="text-[10px] uppercase font-black text-amber-600 dark:text-amber-400/90">Regime Prisional</label>
                                                     <input
                                                         type="text"
                                                         value={extractedData.regime}
@@ -740,7 +740,7 @@ const AIAssistantPage = ({ onAdd, warrants }: AIAssistantPageProps) => {
                                             </div>
                                             <div className="grid grid-cols-2 gap-4">
                                                 <div>
-                                                    <label className="text-[10px] uppercase font-bold text-amber-500">Expedição</label>
+                                                    <label className="text-[10px] uppercase font-black text-amber-600 dark:text-amber-400/90">Expedição</label>
                                                     <input
                                                         type="text"
                                                         value={formatDate(extractedData.issueDate)}
@@ -750,7 +750,7 @@ const AIAssistantPage = ({ onAdd, warrants }: AIAssistantPageProps) => {
                                                     />
                                                 </div>
                                                 <div>
-                                                    <label className="text-[10px] uppercase font-bold text-amber-500">Vencimento</label>
+                                                    <label className="text-[10px] uppercase font-black text-amber-600 dark:text-amber-400/90">Vencimento</label>
                                                     <input
                                                         type="text"
                                                         value={formatDate(extractedData.expirationDate)}

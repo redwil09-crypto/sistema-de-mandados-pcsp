@@ -121,7 +121,7 @@ const HomePage = ({ isDark, toggleTheme, warrants, onUpdate, onDelete, routeWarr
                 <div className="flex items-center justify-between mb-4">
                     <div>
                         <h1 className="text-lg font-black text-text-light dark:text-text-dark uppercase tracking-widest">Polícia Civil</h1>
-                        <p className="text-xs font-medium text-text-secondary-light dark:text-text-secondary-dark tracking-wide">Sistema de Mandados</p>
+                        <p className="text-xs font-black text-text-secondary-light/60 dark:text-text-dark/50 tracking-wide uppercase">Sistema de Mandados</p>
                     </div>
                     <div className="flex items-center gap-2">
                         <button
@@ -147,7 +147,7 @@ const HomePage = ({ isDark, toggleTheme, warrants, onUpdate, onDelete, routeWarr
                         type="text"
                         placeholder="Nome, RG, endereço, crime, nº mandado..."
                         onKeyDown={handleSearch}
-                        className="w-full rounded-xl border-none bg-surface-light py-3.5 pl-10 pr-4 text-sm shadow-md placeholder:text-text-secondary-light focus:ring-2 focus:ring-primary dark:bg-surface-dark dark:text-white"
+                        className="w-full rounded-xl border-none bg-surface-light py-3.5 pl-10 pr-4 text-sm shadow-md placeholder:text-gray-400 focus:ring-2 focus:ring-primary dark:bg-surface-dark dark:text-white dark:placeholder:text-gray-500"
                     />
                 </div>
             </header>
@@ -170,7 +170,7 @@ const HomePage = ({ isDark, toggleTheme, warrants, onUpdate, onDelete, routeWarr
                         </div>
                         <div>
                             <h3 className="font-bold text-text-light dark:text-text-dark">Busca de Menores</h3>
-                            <p className="text-xs text-text-secondary-light dark:text-text-secondary-dark">Busca e Apreensão</p>
+                            <p className="text-xs text-text-secondary-light/70 dark:text-text-dark/60">Busca e Apreensão</p>
                         </div>
                     </Link>
 
@@ -180,7 +180,7 @@ const HomePage = ({ isDark, toggleTheme, warrants, onUpdate, onDelete, routeWarr
                         </div>
                         <div>
                             <h3 className="font-bold text-text-light dark:text-text-dark">Novo</h3>
-                            <p className="text-xs text-text-secondary-light dark:text-text-secondary-dark">Registrar mandado</p>
+                            <p className="text-xs text-text-secondary-light/70 dark:text-text-dark/60">Registrar mandado</p>
                         </div>
                     </Link>
 
@@ -201,7 +201,7 @@ const HomePage = ({ isDark, toggleTheme, warrants, onUpdate, onDelete, routeWarr
                         </div>
                         <div>
                             <h3 className="font-bold text-text-light dark:text-text-dark">Estatística</h3>
-                            <p className="text-xs text-text-secondary-light dark:text-text-secondary-dark">Análise de BI</p>
+                            <p className="text-xs text-text-secondary-light/70 dark:text-text-dark/60">Análise de BI</p>
                         </div>
                     </Link>
 
@@ -216,7 +216,7 @@ const HomePage = ({ isDark, toggleTheme, warrants, onUpdate, onDelete, routeWarr
                         </div>
                         <div>
                             <h3 className="font-bold text-text-light dark:text-text-dark">Roteiro</h3>
-                            <p className="text-xs text-text-secondary-light dark:text-text-secondary-dark">Planejar diligência</p>
+                            <p className="text-xs text-text-secondary-light/70 dark:text-text-dark/60">Planejar diligência</p>
                         </div>
                     </Link>
 
@@ -226,7 +226,7 @@ const HomePage = ({ isDark, toggleTheme, warrants, onUpdate, onDelete, routeWarr
                         </div>
                         <div>
                             <h3 className="font-bold text-text-light dark:text-text-dark">Assistente IA</h3>
-                            <p className="text-xs text-text-secondary-light dark:text-text-secondary-dark tracking-tight">Extração e Voz</p>
+                            <p className="text-xs text-text-secondary-light/70 dark:text-text-dark/60 tracking-tight">Extração e Voz</p>
                         </div>
                     </Link>
                 </div>
