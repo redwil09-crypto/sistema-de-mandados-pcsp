@@ -531,7 +531,7 @@ const AIAssistantPage = ({ onAdd, warrants }: AIAssistantPageProps) => {
                         {/* STEP 1: INPUT */}
                         {step === 'input' && (
                             <div className="animate-in fade-in slide-in-from-bottom-4 duration-300 space-y-4">
-                                <div className="grid grid-cols-2 gap-3">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                     <button
                                         onClick={handleVoiceAssistant}
                                         className="col-span-2 py-4 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-xl shadow-lg border border-white/20 flex items-center justify-center gap-3 active:scale-95 transition-all text-sm font-bold"
