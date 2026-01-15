@@ -4,6 +4,7 @@ import { MapContainer, TileLayer, Marker, Popup, Circle } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Warrant } from '../types';
 import Header from '../components/Header';
+import { extractPdfData } from '../pdfExtractor';
 import {
     Map as MapIcon, Share2,
     Target, Users, Search,
@@ -12,14 +13,11 @@ import {
     AlertTriangle, TrendingUp,
     Navigation, Microscope, FileText,
     Brain, FileSearch, Sparkles, ScanSearch, X,
-    Upload, FileUp, Link, Key, Bot, Mic, Cpu, Camera,
-    User, Save, CheckCircle
+    Upload, FileUp, Link, Key
 } from 'lucide-react';
 import L from 'leaflet';
 import { toast } from 'sonner';
 import { analyzeWarrantData, findIntelligenceLinks, isGeminiEnabled } from '../services/geminiService';
-import { extractPdfData, extractFromText } from '../pdfExtractor';
-import { uploadFile, getPublicUrl } from '../supabaseStorage';
 
 // Fix for default marker icons in Leaflet
 import icon from 'leaflet/dist/images/marker-icon.png';
@@ -35,11 +33,10 @@ L.Marker.prototype.options.icon = DefaultIcon;
 
 interface IntelCenterProps {
     warrants: Warrant[];
-    onAdd?: (w: Warrant) => Promise<boolean>;
 }
 
-const IntelCenter = ({ warrants, onAdd }: IntelCenterProps) => {
-    const [view, setView] = useState<'advisor' | 'lab' | 'map' | 'network' | 'raioX' | 'assistant'>('assistant');
+const IntelCenter = ({ warrants }: IntelCenterProps) => {
+    const [view, setView] = useState<'advisor' | 'lab' | 'map' | 'network' | 'raioX'>('advisor');
     const [labInput, setLabInput] = useState('');
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [labResult, setLabResult] = useState<{
@@ -52,17 +49,6 @@ const IntelCenter = ({ warrants, onAdd }: IntelCenterProps) => {
     const [raioXFile, setRaioXFile] = useState<File | null>(null);
     const [isUploadingPdf, setIsUploadingPdf] = useState(false);
     const [hasAi, setHasAi] = useState(false);
-
-    // Assistant State
-    const [assistantStep, setAssistantStep] = useState<'input' | 'processing' | 'review' | 'saved'>('input');
-    const [assistantText, setAssistantText] = useState('');
-    const [assistantFiles, setAssistantFiles] = useState<File[]>([]);
-    const [batchResults, setBatchResults] = useState<any[]>([]);
-    const [currentIndex, setCurrentIndex] = useState(0);
-    const [isSaving, setIsSaving] = useState(false);
-    const [isRecording, setIsRecording] = useState(false);
-    const [photoFile, setPhotoFile] = useState<File | null>(null);
-    const [photoPreview, setPhotoPreview] = useState<string | null>(null);
 
     useEffect(() => {
         isGeminiEnabled().then(setHasAi);
@@ -226,90 +212,6 @@ const IntelCenter = ({ warrants, onAdd }: IntelCenterProps) => {
         return { mentions, relationships };
     }, [raioXTarget, warrants]);
 
-    // --- AI Assistant Elite Logic ---
-    const handleVoiceAssistant = () => {
-        if (!('webkitSpeechRecognition' in window)) {
-            toast.error("Voz não suportada.");
-            return;
-        }
-        const recognition = new (window as any).webkitSpeechRecognition();
-        recognition.lang = 'pt-BR';
-        recognition.onstart = () => {
-            setIsRecording(true);
-            toast.info("Descreva o mandado...");
-        };
-        recognition.onend = () => setIsRecording(false);
-        recognition.onresult = async (event: any) => {
-            const text = event.results[0][0].transcript;
-            setAssistantStep('processing');
-            try {
-                const results = extractFromText(text, "Voz");
-                setBatchResults([{ ...results, tags: results.autoPriority || [] }]);
-                setAssistantStep('review');
-            } catch (err) {
-                setAssistantStep('input');
-            }
-        };
-        recognition.start();
-    };
-
-    const handleAssistantFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files && e.target.files.length > 0) {
-            setAssistantStep('processing');
-            const filesList = Array.from(e.target.files);
-            setAssistantFiles(filesList);
-            const docs = [];
-            for (const f of filesList) {
-                try {
-                    const data = await extractPdfData(f);
-                    docs.push({ ...data, tags: data.autoPriority || [] });
-                } catch (e) { toast.error(`Erro em ${f.name}`); }
-            }
-            if (docs.length > 0) {
-                setBatchResults(docs);
-                setCurrentIndex(0);
-                setAssistantStep('review');
-            } else setAssistantStep('input');
-        }
-    };
-
-    const handleAssistantTextExtraction = () => {
-        if (!assistantText.trim()) return;
-        setAssistantStep('processing');
-        try {
-            const data = extractFromText(assistantText, "Texto");
-            setBatchResults([{ ...data, tags: data.autoPriority || [] }]);
-            setAssistantStep('review');
-        } catch (e) { setAssistantStep('input'); }
-    };
-
-    const handleAssistantSave = async () => {
-        const data = batchResults[currentIndex];
-        if (!data || !onAdd) return;
-        setIsSaving(true);
-        try {
-            let photoUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(data.name)}&background=random`;
-            if (photoFile) {
-                const path = await uploadFile(photoFile, `photos/${Date.now()}_${photoFile.name}`);
-                if (path) photoUrl = getPublicUrl(path);
-            }
-            const success = await onAdd({
-                ...data,
-                id: Date.now().toString(),
-                status: 'EM ABERTO',
-                img: photoUrl,
-                location: data.addresses?.join(' | ') || '',
-                number: data.processNumber
-            });
-            if (success) {
-                toast.success("Salvo com sucesso!");
-                if (currentIndex < batchResults.length - 1) {
-                    setCurrentIndex(prev => prev + 1);
-                } else setAssistantStep('saved');
-            }
-        } finally { setIsSaving(false); }
-    };
-
     // Only show open warrants with location
     const openWarrants = useMemo(() => (warrants || []).filter(w => w.status === 'EM ABERTO'), [warrants]);
     const geocodedWarrants = useMemo(() => openWarrants.filter(w => typeof w.latitude === 'number' && typeof w.longitude === 'number'), [openWarrants]);
@@ -442,12 +344,6 @@ const IntelCenter = ({ warrants, onAdd }: IntelCenterProps) => {
             {/* Navigation Tabs */}
             <div className="flex bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-4 pt-2 gap-2 overflow-x-auto scrollbar-hide">
                 <TabButton
-                    active={view === 'assistant'}
-                    onClick={() => setView('assistant')}
-                    icon={<Bot size={18} />}
-                    label="Centro de Comando IA"
-                />
-                <TabButton
                     active={view === 'advisor'}
                     onClick={() => setView('advisor')}
                     icon={<Zap size={18} />}
@@ -457,7 +353,7 @@ const IntelCenter = ({ warrants, onAdd }: IntelCenterProps) => {
                     active={view === 'lab'}
                     onClick={() => setView('lab')}
                     icon={<Microscope size={18} />}
-                    label="Laboratório"
+                    label="Laboratório Analítico"
                 />
                 <TabButton
                     active={view === 'map'}
@@ -469,7 +365,7 @@ const IntelCenter = ({ warrants, onAdd }: IntelCenterProps) => {
                     active={view === 'raioX'}
                     onClick={() => setView('raioX')}
                     icon={<ScanSearch size={18} />}
-                    label="Raio-X"
+                    label="Protocolo Raio-X"
                 />
                 <TabButton
                     active={view === 'network'}
@@ -480,183 +376,6 @@ const IntelCenter = ({ warrants, onAdd }: IntelCenterProps) => {
             </div>
 
             <main className="flex-1 relative overflow-y-auto">
-
-                {/* 0. AI COMMAND CENTER (ASSISTANT) */}
-                {view === 'assistant' && (
-                    <div className="p-4 md:p-8 max-w-5xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
-                        {assistantStep === 'input' && (
-                            <div className="space-y-8">
-                                <div className="text-center space-y-2">
-                                    <div className="inline-flex items-center justify-center p-3 bg-primary/10 rounded-2xl mb-2">
-                                        <Bot size={32} className="text-primary" />
-                                    </div>
-                                    <h2 className="text-2xl font-black text-slate-800 dark:text-white">Centro de Comando IA</h2>
-                                    <p className="text-sm text-slate-500 max-w-md mx-auto">Extração instantânea de dados via Voz, PDF ou Imagem com processamento Neural.</p>
-                                </div>
-
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <button
-                                        onClick={handleVoiceAssistant}
-                                        className="md:col-span-2 group relative overflow-hidden bg-gradient-to-r from-indigo-600 to-primary p-6 rounded-[2rem] text-white shadow-xl active:scale-[0.98] transition-all"
-                                    >
-                                        <div className="absolute -right-4 -top-4 w-24 h-24 bg-white/10 rounded-full blur-2xl group-hover:scale-150 transition-transform" />
-                                        <div className="flex items-center justify-center gap-4 relative z-10">
-                                            <div className={`p-4 rounded-full ${isRecording ? 'bg-red-500 animate-pulse' : 'bg-white/20'}`}>
-                                                <Mic size={32} />
-                                            </div>
-                                            <div className="text-left">
-                                                <h3 className="font-bold text-lg">Acionamento por Voz</h3>
-                                                <p className="text-xs opacity-70">Descreva o mandado e eu farei o restante</p>
-                                            </div>
-                                        </div>
-                                    </button>
-
-                                    <div className="group relative bg-white dark:bg-slate-900 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-[2rem] p-8 flex flex-col items-center justify-center text-center hover:border-primary transition-all cursor-pointer">
-                                        <div className="p-4 bg-indigo-50 dark:bg-indigo-500/10 rounded-2xl text-primary mb-4 group-hover:scale-110 transition-transform">
-                                            <Upload size={32} />
-                                        </div>
-                                        <h4 className="font-bold text-slate-900 dark:text-white">Upload de PDF</h4>
-                                        <p className="text-[10px] text-slate-500 uppercase font-bold tracking-widest mt-1">Lote ou Único</p>
-                                        <input type="file" multiple className="absolute inset-0 opacity-0 cursor-pointer" accept=".pdf" onChange={handleAssistantFileUpload} />
-                                    </div>
-
-                                    <div className="group relative bg-white dark:bg-slate-900 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-[2rem] p-8 flex flex-col items-center justify-center text-center hover:border-emerald-500 transition-all cursor-pointer">
-                                        <div className="p-4 bg-emerald-50 dark:bg-emerald-500/10 rounded-2xl text-emerald-500 mb-4 group-hover:scale-110 transition-transform">
-                                            <Camera size={32} />
-                                        </div>
-                                        <h4 className="font-bold text-slate-900 dark:text-white">Foto de Documento</h4>
-                                        <p className="text-[10px] text-slate-500 uppercase font-bold tracking-widest mt-1">Uso em Viatura</p>
-                                        <input type="file" capture="environment" className="absolute inset-0 opacity-0 cursor-pointer" accept="image/*" onChange={handleAssistantFileUpload} />
-                                    </div>
-                                </div>
-
-                                <div className="space-y-4">
-                                    <h4 className="text-center text-[10px] font-black uppercase text-slate-400 tracking-[0.3em]">Ou entrada manual de texto</h4>
-                                    <div className="relative group">
-                                        <textarea
-                                            value={assistantText}
-                                            onChange={e => setAssistantText(e.target.value)}
-                                            placeholder="Cole o corpo do mandado aqui..."
-                                            className="w-full h-40 p-6 rounded-[2rem] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-sm font-medium focus:ring-4 focus:ring-primary/10 outline-none transition-all shadow-sm"
-                                        />
-                                        <button
-                                            onClick={handleAssistantTextExtraction}
-                                            disabled={!assistantText.trim()}
-                                            className="absolute bottom-4 right-4 bg-primary text-white px-6 py-3 rounded-2xl font-black text-[11px] uppercase shadow-lg shadow-primary/20 active:scale-95 transition-all disabled:opacity-50 flex items-center gap-2"
-                                        >
-                                            <Cpu size={14} /> Processar Agora
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-
-                        {assistantStep === 'processing' && (
-                            <div className="flex flex-col items-center justify-center py-32 space-y-6">
-                                <div className="relative w-24 h-24">
-                                    <div className="absolute inset-0 border-4 border-primary/20 rounded-full" />
-                                    <div className="absolute inset-0 border-4 border-t-primary rounded-full animate-spin" />
-                                    <div className="absolute inset-0 flex items-center justify-center">
-                                        <Bot size={32} className="text-primary animate-pulse" />
-                                    </div>
-                                </div>
-                                <div className="text-center">
-                                    <h3 className="text-xl font-bold">IA em Ação...</h3>
-                                    <p className="text-slate-500 text-sm">Extraindo entidades, datas e cruzando informações.</p>
-                                </div>
-                            </div>
-                        )}
-
-                        {assistantStep === 'review' && batchResults[currentIndex] && (
-                            <div className="space-y-6">
-                                <div className="flex items-center justify-between bg-slate-900 p-6 rounded-[2rem] text-white">
-                                    <div className="flex items-center gap-4">
-                                        <div className="w-16 h-16 rounded-2xl bg-white/10 flex items-center justify-center overflow-hidden border border-white/20">
-                                            {photoPreview ? <img src={photoPreview} className="w-full h-full object-cover" /> : <User size={32} className="text-primary" />}
-                                        </div>
-                                        <div>
-                                            <p className="text-[10px] font-black text-primary uppercase tracking-widest">Documento Detectado</p>
-                                            <h3 className="text-lg font-bold">{batchResults[currentIndex].name || 'Nome não identificado'}</h3>
-                                            <p className="text-xs opacity-60">Item {currentIndex + 1} de {batchResults.length}</p>
-                                        </div>
-                                    </div>
-                                    <label className="bg-primary/20 border border-primary/30 text-primary px-4 py-2 rounded-xl text-[10px] font-black uppercase cursor-pointer hover:bg-primary/30 transition-all">
-                                        Alterar Foto
-                                        <input type="file" className="hidden" accept="image/*" onChange={e => {
-                                            const f = e.target.files?.[0];
-                                            if (f) {
-                                                setPhotoFile(f);
-                                                setPhotoPreview(URL.createObjectURL(f));
-                                            }
-                                        }} />
-                                    </label>
-                                </div>
-
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <ReviewCard label="Número do Processo" value={batchResults[currentIndex].processNumber || '---'} />
-                                    <ReviewCard label="Natureza do Crime" value={batchResults[currentIndex].crime || '---'} />
-                                    <ReviewCard label="RG" value={batchResults[currentIndex].rg || '---'} />
-                                    <ReviewCard label="CPF" value={batchResults[currentIndex].cpf || '---'} />
-                                    <ReviewCard label="Expedição" value={batchResults[currentIndex].issueDate || '---'} />
-                                    <ReviewCard label="Vencimento" value={batchResults[currentIndex].expirationDate || '---'} />
-                                </div>
-
-                                <div className="bg-white dark:bg-slate-900 p-6 rounded-[2rem] border border-slate-200 dark:border-slate-800">
-                                    <h4 className="text-[10px] font-black uppercase text-slate-400 mb-4 flex items-center gap-2">
-                                        <MapPin size={14} /> Endereços Identificados
-                                    </h4>
-                                    <div className="space-y-2">
-                                        {batchResults[currentIndex].addresses?.map((addr: string, i: number) => (
-                                            <div key={i} className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl text-xs font-medium border border-slate-100 dark:border-slate-800">
-                                                {addr}
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-
-                                <div className="flex gap-4">
-                                    <button
-                                        onClick={() => setAssistantStep('input')}
-                                        className="flex-1 py-4 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-2xl font-black text-xs uppercase"
-                                    >
-                                        Recomeçar
-                                    </button>
-                                    <button
-                                        onClick={handleAssistantSave}
-                                        disabled={isSaving}
-                                        className="flex-[2] py-4 bg-primary text-white rounded-2xl font-black text-xs uppercase shadow-xl shadow-primary/20 active:scale-95 transition-all flex items-center justify-center gap-2"
-                                    >
-                                        {isSaving ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Save size={18} />}
-                                        Salvar Mandado
-                                    </button>
-                                </div>
-                            </div>
-                        )}
-
-                        {assistantStep === 'saved' && (
-                            <div className="flex flex-col items-center justify-center py-24 text-center space-y-6">
-                                <div className="w-24 h-24 bg-emerald-500 rounded-full flex items-center justify-center text-white shadow-xl shadow-emerald-500/20 animate-in zoom-in duration-300">
-                                    <CheckCircle size={48} />
-                                </div>
-                                <div>
-                                    <h3 className="text-2xl font-black">Operação Concluída!</h3>
-                                    <p className="text-slate-500 mt-2">Os dados foram integrados ao banco de dados oficial.</p>
-                                </div>
-                                <button
-                                    onClick={() => {
-                                        setAssistantStep('input');
-                                        setBatchResults([]);
-                                        setCurrentIndex(0);
-                                        setPhotoPreview(null);
-                                    }}
-                                    className="px-10 py-4 bg-primary text-white rounded-2xl font-black text-xs uppercase shadow-lg shadow-primary/20"
-                                >
-                                    Novo Processamento IA
-                                </button>
-                            </div>
-                        )}
-                    </div>
-                )}
 
                 {/* 5. PROTOCOLO RAIO-X (Elite Investigative Service) */}
                 {view === 'raioX' && (
@@ -1101,13 +820,6 @@ const ProfileInfo = ({ label, value }: { label: string, value: string }) => (
     <div className="bg-white/5 p-3 rounded-2xl border border-white/5">
         <p className="text-[9px] font-black uppercase text-slate-500 mb-1">{label}</p>
         <p className="text-xs font-bold text-white truncate">{value}</p>
-    </div>
-);
-
-const ReviewCard = ({ label, value }: { label: string, value: string }) => (
-    <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
-        <p className="text-[9px] font-black uppercase text-slate-400 mb-1 tracking-wider">{label}</p>
-        <p className="text-sm font-bold text-slate-900 dark:text-white">{value}</p>
     </div>
 );
 

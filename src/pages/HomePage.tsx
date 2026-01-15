@@ -4,7 +4,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import {
     Search, Sun, Moon, Bell, Gavel, Baby, FilePlus,
     BarChart2, Route as RouteIcon, Siren, ChevronRight,
-    Activity, CalendarClock, X, CheckCircle, Bot, Shield, Sparkles
+    Activity, CalendarClock, X, CheckCircle, Bot, Shield
 } from 'lucide-react';
 import { generateWarrantPDF } from '../services/pdfReportService';
 import { Warrant } from '../types';
@@ -184,36 +184,14 @@ const HomePage = ({ isDark, toggleTheme, warrants, onUpdate, onDelete, routeWarr
                         </div>
                     </Link>
 
-                    <Link to="/intel" className="col-span-2 group relative flex flex-col gap-4 rounded-[2rem] bg-slate-900 p-6 shadow-2xl transition-all active:scale-[0.98] border border-indigo-500/30 hover:border-indigo-500 overflow-hidden">
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 rounded-full blur-[50px] group-hover:bg-indigo-500/20 transition-all" />
-                        <div className="absolute bottom-0 left-0 w-24 h-24 bg-primary/5 rounded-full blur-[40px]" />
-
-                        <div className="flex items-center justify-between relative z-10">
-                            <div className="flex gap-3">
-                                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-600 text-white shadow-lg shadow-indigo-500/30 group-hover:scale-110 transition-transform">
-                                    <Shield size={24} />
-                                </div>
-                                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary text-white shadow-lg shadow-primary/30 group-hover:scale-110 transition-transform delay-75">
-                                    <Bot size={24} />
-                                </div>
-                            </div>
-                            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-500/10 rounded-full border border-indigo-500/20">
-                                <Sparkles size={14} className="text-indigo-400 animate-pulse" />
-                                <span className="text-[10px] font-black text-indigo-300 uppercase tracking-widest">Nível Elite</span>
-                            </div>
+                    <Link to="/intel" className="group flex flex-col gap-3 rounded-2xl bg-slate-900 p-4 shadow-xl transition-all active:scale-[0.98] border border-indigo-500/30 hover:border-indigo-500 relative overflow-hidden">
+                        <div className="absolute -top-4 -right-4 w-12 h-12 bg-indigo-500/20 rounded-full blur-xl group-hover:bg-indigo-500/40 transition-all" />
+                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-lg shadow-indigo-500/20">
+                            <Shield size={22} />
                         </div>
-
-                        <div className="relative z-10">
-                            <h3 className="text-xl font-black text-white tracking-tight">Centro de Inteligência IA</h3>
-                            <p className="text-xs text-indigo-300/80 font-medium mt-1 leading-relaxed">
-                                Radar de Vínculos • Extração por Voz • Análise Preditiva Gemini
-                            </p>
-                        </div>
-
-                        <div className="flex items-center gap-2 mt-2 relative z-10">
-                            <div className="h-1 w-12 bg-indigo-500 rounded-full" />
-                            <div className="h-1 w-4 bg-indigo-500/30 rounded-full" />
-                            <div className="h-1 w-2 bg-indigo-500/30 rounded-full" />
+                        <div>
+                            <h3 className="font-bold text-white">Centro de Inteligência</h3>
+                            <p className="text-[10px] text-indigo-300 font-bold uppercase tracking-tight">Radar & Vínculos</p>
                         </div>
                     </Link>
 
@@ -239,6 +217,16 @@ const HomePage = ({ isDark, toggleTheme, warrants, onUpdate, onDelete, routeWarr
                         <div>
                             <h3 className="font-bold text-text-light dark:text-text-dark">Roteiro</h3>
                             <p className="text-xs text-text-secondary-light dark:text-text-secondary-dark">Planejar diligência</p>
+                        </div>
+                    </Link>
+
+                    <Link to="/ai-assistant" className="group flex flex-col gap-3 rounded-2xl bg-gradient-to-br from-primary/5 to-primary/10 p-4 shadow-sm transition-all active:scale-[0.98] dark:from-primary/10 dark:to-primary/20 border border-primary/20 hover:border-primary/40">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-white shadow-md">
+                            <Bot size={24} />
+                        </div>
+                        <div>
+                            <h3 className="font-bold text-text-light dark:text-text-dark">Assistente IA</h3>
+                            <p className="text-xs text-text-secondary-light dark:text-text-secondary-dark tracking-tight">Extração e Voz</p>
                         </div>
                     </Link>
                 </div>
