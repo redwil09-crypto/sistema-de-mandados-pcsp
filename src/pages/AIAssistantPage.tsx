@@ -39,8 +39,6 @@ const AIAssistantPage = ({ onAdd, warrants }: AIAssistantPageProps) => {
     const [photoFile, setPhotoFile] = useState<File | null>(null);
     const [photoPreview, setPhotoPreview] = useState<string | null>(null);
     const [isRecording, setIsRecording] = useState(false);
-    const [reviewTab, setReviewTab] = useState<'pessoais' | 'processual' | 'datas' | 'localizacao' | 'ia'>('pessoais');
-
     // Database Filters
     const [searchTerm, setSearchTerm] = useState('');
     const [showFilters, setShowFilters] = useState(false);
@@ -637,32 +635,16 @@ const AIAssistantPage = ({ onAdd, warrants }: AIAssistantPageProps) => {
                                         )}
                                     </div>
 
-                                    {/* Sub-Tabs for Review */}
-                                    <div className="flex border-b border-border-light dark:border-border-dark bg-gray-50 dark:bg-white/5 overflow-x-auto no-scrollbar">
-                                        {[
-                                            { id: 'pessoais', label: 'Pessoais', icon: <User size={14} /> },
-                                            { id: 'processual', label: 'Processual', icon: <Gavel size={14} /> },
-                                            { id: 'datas', label: 'Datas', icon: <Calendar size={14} /> },
-                                            { id: 'localizacao', label: 'Local', icon: <MapPin size={14} /> },
-                                            { id: 'ia', label: 'Inteligência', icon: <Bot size={14} /> }
-                                        ].map(tab => (
-                                            <button
-                                                key={tab.id}
-                                                onClick={() => setReviewTab(tab.id as any)}
-                                                className={`flex items-center gap-1.5 px-4 py-2.5 text-[10px] font-bold uppercase transition-all border-b-2 whitespace-nowrap ${reviewTab === tab.id
-                                                    ? 'border-primary text-primary bg-primary/5'
-                                                    : 'border-transparent text-text-secondary-light dark:text-text-secondary-dark'
-                                                    }`}
-                                            >
-                                                {tab.icon}
-                                                {tab.label}
-                                            </button>
-                                        ))}
-                                    </div>
 
-                                    <div className="p-4 min-h-[250px]">
-                                        {reviewTab === 'pessoais' && (
-                                            <div className="grid grid-cols-2 gap-4 animate-in fade-in duration-200">
+
+                                    <div className="p-4 space-y-8">
+                                        {/* Pessoais */}
+                                        <div className="animate-in fade-in duration-200">
+                                            <div className="flex items-center gap-2 mb-3 border-b border-border-light dark:border-border-dark pb-1">
+                                                <User size={16} className="text-primary" />
+                                                <h4 className="text-[10px] font-bold uppercase text-text-light dark:text-text-dark">Dados Pessoais</h4>
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-4">
                                                 <div className="col-span-2">
                                                     <label className="text-[10px] uppercase font-bold text-amber-500">Nome Completo</label>
                                                     <input
@@ -711,10 +693,15 @@ const AIAssistantPage = ({ onAdd, warrants }: AIAssistantPageProps) => {
                                                     />
                                                 </div>
                                             </div>
-                                        )}
+                                        </div>
 
-                                        {reviewTab === 'processual' && (
-                                            <div className="grid grid-cols-2 gap-4 animate-in fade-in duration-200">
+                                        {/* Processual */}
+                                        <div className="animate-in fade-in duration-200">
+                                            <div className="flex items-center gap-2 mb-3 border-b border-border-light dark:border-border-dark pb-1">
+                                                <Gavel size={16} className="text-primary" />
+                                                <h4 className="text-[10px] font-bold uppercase text-text-light dark:text-text-dark">Dados Processuais</h4>
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-4">
                                                 <div className="col-span-2">
                                                     <label className="text-[10px] uppercase font-bold text-amber-500">Nº do Processo</label>
                                                     <input
@@ -743,10 +730,15 @@ const AIAssistantPage = ({ onAdd, warrants }: AIAssistantPageProps) => {
                                                     />
                                                 </div>
                                             </div>
-                                        )}
+                                        </div>
 
-                                        {reviewTab === 'datas' && (
-                                            <div className="grid grid-cols-2 gap-4 animate-in fade-in duration-200">
+                                        {/* Datas */}
+                                        <div className="animate-in fade-in duration-200">
+                                            <div className="flex items-center gap-2 mb-3 border-b border-border-light dark:border-border-dark pb-1">
+                                                <Calendar size={16} className="text-primary" />
+                                                <h4 className="text-[10px] font-bold uppercase text-text-light dark:text-text-dark">Prazos e Datas</h4>
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-4">
                                                 <div>
                                                     <label className="text-[10px] uppercase font-bold text-amber-500">Expedição</label>
                                                     <input
@@ -774,11 +766,15 @@ const AIAssistantPage = ({ onAdd, warrants }: AIAssistantPageProps) => {
                                                     </p>
                                                 </div>
                                             </div>
-                                        )}
+                                        </div>
 
-                                        {reviewTab === 'localizacao' && (
-                                            <div className="space-y-3 animate-in fade-in duration-200">
-                                                <label className="text-[10px] uppercase font-bold text-amber-500">Endereços Identificados</label>
+                                        {/* Localização */}
+                                        <div className="animate-in fade-in duration-200">
+                                            <div className="flex items-center gap-2 mb-3 border-b border-border-light dark:border-border-dark pb-1">
+                                                <MapPin size={16} className="text-primary" />
+                                                <h4 className="text-[10px] font-bold uppercase text-text-light dark:text-text-dark">Endereços</h4>
+                                            </div>
+                                            <div className="space-y-3">
                                                 {extractedData.addresses.length > 0 ? extractedData.addresses.map((addr: string, i: number) => (
                                                     <div key={i} className="flex gap-2 items-center">
                                                         <MapPin size={12} className="text-primary" />
@@ -803,10 +799,15 @@ const AIAssistantPage = ({ onAdd, warrants }: AIAssistantPageProps) => {
                                                     + ADICIONAR ENDEREÇO
                                                 </button>
                                             </div>
-                                        )}
+                                        </div>
 
-                                        {reviewTab === 'ia' && (
-                                            <div className="space-y-4 animate-in fade-in duration-200">
+                                        {/* Inteligência */}
+                                        <div className="animate-in fade-in duration-200">
+                                            <div className="flex items-center gap-2 mb-3 border-b border-border-light dark:border-border-dark pb-1">
+                                                <Bot size={16} className="text-primary" />
+                                                <h4 className="text-[10px] font-bold uppercase text-text-light dark:text-text-dark">Inteligência e Observações</h4>
+                                            </div>
+                                            <div className="space-y-4">
                                                 {/* Priority Selection */}
                                                 <div>
                                                     <span className="text-[10px] uppercase font-bold text-amber-500 block mb-2">Classificação de Prioridade</span>
@@ -895,7 +896,7 @@ const AIAssistantPage = ({ onAdd, warrants }: AIAssistantPageProps) => {
                                                     />
                                                 </div>
                                             </div>
-                                        )}
+                                        </div>
                                     </div>
                                 </div>
 
