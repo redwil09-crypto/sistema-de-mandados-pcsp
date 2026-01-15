@@ -1347,50 +1347,46 @@ Equipe de Capturas - DIG / PCSP
                     </div>
                 </div>
 
-                <div className="bg-surface-light dark:bg-surface-dark p-4 rounded-xl shadow-sm border border-border-light dark:border-border-dark">
-                    <div className="flex items-center justify-between mb-3">
+                <div className="bg-surface-light dark:bg-surface-dark rounded-2xl shadow-sm border border-border-light dark:border-border-dark overflow-hidden">
+                    <div className="p-4 border-b border-border-light dark:border-border-dark bg-gray-50/50 dark:bg-white/5 flex items-center justify-between">
                         <h3 className="font-bold text-text-light dark:text-text-dark flex items-center gap-2">
-                            <MapPin size={18} className="text-primary" /> Localização Operacional
+                            <MapPin size={20} className="text-primary" /> Localização Operacional
                         </h3>
                         {localData.latitude && localData.longitude ? (
-                            <div className="flex items-center gap-2">
-                                <span className="text-[10px] bg-green-500 text-white px-3 py-1 rounded-full font-black shadow-sm flex items-center gap-1">
-                                    <FileCheck size={12} /> MAPEADO
-                                </span>
-                            </div>
+                            <span className="text-[10px] bg-green-500/10 text-green-600 dark:text-green-400 border border-green-500/20 px-3 py-1 rounded-full font-black shadow-sm flex items-center gap-1.5 animate-pulse">
+                                <FileCheck size={12} /> MAPEADO
+                            </span>
                         ) : (
-                            <div className="flex items-center gap-2">
-                                <span className="text-[10px] bg-red-500 text-white px-3 py-1 rounded-full font-black shadow-sm flex items-center gap-1">
-                                    <AlertTriangle size={12} /> NÃO MAPEADO
-                                </span>
-                            </div>
+                            <span className="text-[10px] bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20 px-3 py-1 rounded-full font-black shadow-sm flex items-center gap-1.5">
+                                <AlertTriangle size={12} /> NÃO MAPEADO
+                            </span>
                         )}
                     </div>
 
-                    {nearbyWarrants.length > 0 && (
-                        <div className="mb-3 p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg flex items-center gap-3">
-                            <ShieldAlert className="text-amber-600" size={18} />
-                            <div>
-                                <p className="text-[10px] font-bold text-amber-700 uppercase">Inteligência de Vizinhança</p>
-                                <p className="text-[10px] text-amber-600">Existem {nearbyWarrants.length} outro(s) mandado(s) aberto(s) nesta mesma rua/região.</p>
+                    <div className="p-5 space-y-6">
+                        {nearbyWarrants.length > 0 && (
+                            <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl flex items-center gap-3">
+                                <ShieldAlert className="text-amber-600" size={18} />
+                                <div>
+                                    <p className="text-[10px] font-black text-amber-700 uppercase tracking-wider">Inteligência de Vizinhança</p>
+                                    <p className="text-[11px] text-amber-600/90 font-medium">Existem {nearbyWarrants.length} outro(s) mandado(s) em aberto nesta mesma região.</p>
+                                </div>
                             </div>
-                        </div>
-                    )}
+                        )}
 
-                    <div className="p-4 bg-gray-50 dark:bg-white/5 rounded-xl border border-border-light dark:border-border-dark space-y-4">
-                        <div>
-                            <p className="text-[10px] text-text-secondary-light dark:text-text-dark/70 uppercase font-black mb-2 px-1">Endereço (Texto)</p>
-                            <div className="flex items-start justify-between gap-3 bg-white dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-xl p-3 shadow-sm">
-                                <textarea
-                                    className="text-sm text-text-light dark:text-text-dark font-medium bg-transparent border-none w-full focus:ring-0 resize-none min-h-[50px] scrollbar-hide"
-                                    value={localData.location || ''}
-                                    rows={2}
-                                    onChange={e => handleFieldChange('location', e.target.value)}
-                                    placeholder="Endereço não informado"
-                                />
-                                <div className="flex flex-col gap-2 shrink-0">
+                        <div className="grid grid-cols-1 gap-5">
+                            <div className="space-y-2">
+                                <label className="text-[10px] text-text-secondary-light dark:text-text-dark/50 uppercase font-bold tracking-widest px-1">Endereço de Diligência</label>
+                                <div className="group relative flex items-center transition-all bg-white dark:bg-black/20 border border-border-light dark:border-border-dark rounded-2xl focus-within:ring-2 focus-within:ring-primary/30 focus-within:border-primary shadow-sm overflow-hidden">
+                                    <textarea
+                                        className="w-full bg-transparent border-none text-sm text-text-light dark:text-text-dark font-medium p-4 py-3 placeholder:text-text-secondary-light/40 resize-none min-h-[60px] outline-none"
+                                        value={localData.location || ''}
+                                        rows={2}
+                                        onChange={e => handleFieldChange('location', e.target.value)}
+                                        placeholder="Digite o endereço completo..."
+                                    />
                                     <button
-                                        title="Atualizar Coordenadas via Texto"
+                                        title="Sincronizar Coordenadas"
                                         onClick={async () => {
                                             const addr = localData.location || data.location;
                                             if (!addr) return toast.error("Informe um endereço primeiro");
@@ -1399,77 +1395,85 @@ Equipe de Capturas - DIG / PCSP
                                             if (res) {
                                                 setLocalData(prev => ({ ...prev, latitude: res.lat, longitude: res.lng }));
                                                 await onUpdate(data.id, { latitude: res.lat, longitude: res.lng });
-                                                toast.success("Mapeado com sucesso!", { id: tid });
+                                                toast.success("Localização atualizada!", { id: tid });
                                             } else {
                                                 toast.error("Endereço não localizado", { id: tid });
                                             }
                                         }}
-                                        className="flex items-center justify-center bg-primary text-white shadow-lg shadow-primary/20 w-10 h-10 rounded-xl transition-all active:scale-95 hover:bg-primary-dark"
+                                        className="m-2 p-3 bg-primary text-white shadow-lg shadow-primary/30 rounded-xl hover:scale-105 active:scale-95 transition-all text-primary-foreground shrink-0"
                                     >
-                                        <RefreshCw size={18} />
+                                        <RefreshCw size={20} />
                                     </button>
                                 </div>
                             </div>
-                        </div>
 
-                        <div className="pt-3 border-t border-dashed border-border-light dark:border-border-dark">
-                            <p className="text-[10px] text-text-secondary-light dark:text-text-dark/70 uppercase font-black mb-2 px-1">Coordenadas GPS (Lat, Long)</p>
-                            <div className="flex flex-col sm:flex-row items-stretch gap-3">
-                                <div className="flex-1 bg-white dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-xl p-3 shadow-sm">
-                                    <input
-                                        type="text"
-                                        className="text-sm font-mono text-text-light dark:text-text-dark bg-transparent border-none w-full focus:ring-0 outline-none"
-                                        value={localData.latitude !== undefined && localData.longitude !== undefined && localData.latitude !== null && localData.longitude !== null ? `${localData.latitude}, ${localData.longitude}` : ''}
-                                        onChange={e => {
-                                            const val = e.target.value;
-                                            if (!val) {
-                                                setLocalData(prev => ({ ...prev, latitude: null, longitude: null }));
-                                                return;
-                                            }
-                                            const matches = val.match(/-?\d+\.\d+/g);
-                                            if (matches && matches.length >= 2) {
-                                                const lat = parseFloat(matches[0]);
-                                                const lng = parseFloat(matches[1]);
-                                                if (!isNaN(lat) && !isNaN(lng)) {
-                                                    setLocalData(prev => ({ ...prev, latitude: lat, longitude: lng }));
+                            <div className="space-y-2 pt-2 border-t border-dashed border-border-light dark:border-border-dark">
+                                <label className="text-[10px] text-text-secondary-light dark:text-text-dark/50 uppercase font-bold tracking-widest px-1">Coordenadas de Precisão (Lat, Long)</label>
+                                <div className="flex flex-col sm:flex-row items-stretch gap-3">
+                                    <div className="flex-1 bg-white dark:bg-black/20 border border-border-light dark:border-border-dark rounded-2xl p-4 shadow-sm flex items-center gap-3">
+                                        <div className="p-1.5 bg-gray-100 dark:bg-white/5 rounded-lg">
+                                            <MapIcon size={14} className="text-text-secondary-light/50" />
+                                        </div>
+                                        <input
+                                            type="text"
+                                            className="flex-1 bg-transparent border-none text-sm font-mono text-text-light dark:text-text-dark outline-none placeholder:text-text-secondary-light/30"
+                                            value={localData.latitude !== undefined && localData.longitude !== undefined && localData.latitude !== null && localData.longitude !== null ? `${localData.latitude}, ${localData.longitude}` : ''}
+                                            onChange={e => {
+                                                const val = e.target.value;
+                                                if (!val) {
+                                                    setLocalData(prev => ({ ...prev, latitude: null, longitude: null }));
+                                                    return;
                                                 }
-                                            }
-                                        }}
-                                        placeholder="Cole coordenadas do Google Maps..."
-                                    />
-                                </div>
-                                <div className="flex gap-2">
-                                    {localData.latitude && localData.longitude && (
-                                        <>
-                                            <Link
-                                                to={`/map?lat=${localData.latitude}&lng=${localData.longitude}`}
-                                                className="flex-1 sm:flex-none flex items-center justify-center bg-indigo-600 hover:bg-indigo-700 text-white min-w-[120px] px-3 py-2 rounded-xl text-[10px] font-black shadow-lg shadow-indigo-500/20 active:scale-95 transition-all gap-1.5"
-                                            >
-                                                <MapPin size={14} /> MAPA OPS
-                                            </Link>
-                                            <a
-                                                href={`https://www.google.com/maps?q=${localData.latitude},${localData.longitude}`}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="flex-1 sm:flex-none flex items-center justify-center bg-slate-100 dark:bg-white/10 text-slate-700 dark:text-white min-w-[120px] px-3 py-2 rounded-xl text-[10px] font-black shadow-sm active:scale-95 transition-all gap-1.5 border border-slate-200 dark:border-white/10"
-                                            >
-                                                <ExternalLink size={14} className="text-green-600" /> GOOGLE MAPS
-                                            </a>
-                                        </>
-                                    )}
-                                    <button
-                                        title={routeWarrants.includes(data.id) ? "Remover da Rota" : "Adicionar à Rota"}
-                                        onClick={() => onRouteToggle?.(data.id)}
-                                        className={`flex items-center justify-center border shadow-sm w-10 h-10 rounded-xl transition-all active:scale-95 ${routeWarrants.includes(data.id)
-                                            ? 'bg-indigo-600 border-indigo-600 text-white shadow-indigo-500/20 shadow-lg'
-                                            : 'bg-white dark:bg-surface-dark border-border-light dark:border-border-dark text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/10'
-                                            }`}
-                                    >
-                                        <RouteIcon size={18} />
-                                    </button>
+                                                const matches = val.match(/-?\d+\.\d+/g);
+                                                if (matches && matches.length >= 2) {
+                                                    const lat = parseFloat(matches[0]);
+                                                    const lng = parseFloat(matches[1]);
+                                                    if (!isNaN(lat) && !isNaN(lng)) {
+                                                        setLocalData(prev => ({ ...prev, latitude: lat, longitude: lng }));
+                                                    }
+                                                }
+                                            }}
+                                            placeholder="Cole aqui as coordenadas ou arraste do mapa..."
+                                        />
+                                    </div>
+                                    <div className="flex gap-2">
+                                        {localData.latitude && localData.longitude && (
+                                            <>
+                                                <Link
+                                                    to={`/map?lat=${localData.latitude}&lng=${localData.longitude}`}
+                                                    className="flex-1 sm:flex-none flex items-center justify-center bg-indigo-600 hover:bg-indigo-700 text-white min-w-[130px] px-4 py-2 rounded-2xl text-[10px] font-black shadow-lg shadow-indigo-500/20 active:scale-95 transition-all gap-2 tracking-wider"
+                                                >
+                                                    <MapPin size={14} className="fill-white/20" /> MAPA OPS
+                                                </Link>
+                                                <a
+                                                    href={`https://www.google.com/maps?q=${localData.latitude},${localData.longitude}`}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="flex-1 sm:flex-none flex items-center justify-center bg-white dark:bg-white/5 text-slate-700 dark:text-white border border-border-light dark:border-border-dark min-w-[130px] px-4 py-2 rounded-2xl text-[10px] font-black shadow-sm active:scale-95 transition-all gap-2 tracking-wider hover:bg-gray-50 dark:hover:bg-white/10"
+                                                >
+                                                    <ExternalLink size={14} className="text-green-500" /> GOOGLE MAPS
+                                                </a>
+                                            </>
+                                        )}
+                                        <button
+                                            title={routeWarrants.includes(data.id) ? "Remover da Rota de Capturas" : "Adicionar à Rota de Capturas"}
+                                            onClick={() => onRouteToggle?.(data.id)}
+                                            className={`flex items-center justify-center border shadow-sm w-12 h-12 rounded-2xl transition-all active:scale-95 ${routeWarrants.includes(data.id)
+                                                ? 'bg-indigo-600 border-indigo-600 text-white shadow-indigo-500/30 shadow-xl'
+                                                : 'bg-white dark:bg-black/20 border-border-light dark:border-border-dark text-indigo-500 hover:border-indigo-300 dark:hover:border-indigo-700'
+                                                }`}
+                                        >
+                                            <RouteIcon size={20} />
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
-                            <p className="text-[9px] text-text-secondary-light dark:text-text-secondary-dark mt-2 italic px-1">* Mapeamento automático via endereço ou manual via coordenadas GPS.</p>
+                            <div className="flex items-center gap-2 px-1">
+                                <Sparkles size={12} className="text-primary/40" />
+                                <p className="text-[9px] text-text-secondary-light/60 dark:text-text-dark/40 font-medium italic">
+                                    O sistema utiliza georeferenciamento híbrido via endereço textual e coordenadas GPS de alta precisão.
+                                </p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1477,35 +1481,35 @@ Equipe de Capturas - DIG / PCSP
                 <div className="p-4 space-y-4 max-w-5xl mx-auto">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                         {/* 1. Mandado/Ofício/OS Section */}
-                        <div className="bg-surface-light dark:bg-surface-dark p-1 rounded-xl shadow-sm border border-border-light dark:border-border-dark flex flex-col">
-                            <div className="p-3 md:p-4 space-y-4 flex-1">
-                                <div className="flex justify-between items-center bg-gray-50 dark:bg-white/5 p-3 rounded-xl border border-border-light dark:border-border-dark min-h-[64px]">
-                                    <div className="flex items-center gap-2">
-                                        <div className="p-2 bg-blue-500/10 rounded-lg">
-                                            <Paperclip size={18} className="text-blue-500" />
-                                        </div>
-                                        <div>
-                                            <p className="text-xs font-black text-text-light dark:text-text-dark uppercase tracking-tight leading-none mb-1">Mandado / Ofício / OS</p>
-                                            <p className="text-[10px] text-text-secondary-light leading-none">Documentos Oficiais</p>
-                                        </div>
+                        <div className="bg-surface-light dark:bg-surface-dark rounded-2xl shadow-sm border border-border-light dark:border-border-dark overflow-hidden flex flex-col transition-all hover:shadow-md">
+                            <div className="p-4 bg-gray-50/50 dark:bg-white/5 border-b border-border-light dark:border-border-dark flex justify-between items-center">
+                                <div className="flex items-center gap-3">
+                                    <div className="p-2 bg-blue-500/10 rounded-xl">
+                                        <Paperclip size={20} className="text-blue-500" />
                                     </div>
-                                    <label htmlFor="detail-attach-upload" className="bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-bold px-3 py-2 rounded-lg flex items-center gap-1.5 transition-all active:scale-95 shadow-lg shadow-blue-500/20 cursor-pointer shrink-0">
-                                        <Plus size={14} /> ADICIONAR
-                                        <input
-                                            id="detail-attach-upload"
-                                            type="file"
-                                            className="hidden"
-                                            onChange={(e) => handleAttachFile(e, 'attachments')}
-                                            disabled={isUploadingFile}
-                                        />
-                                    </label>
+                                    <div>
+                                        <h4 className="text-xs font-black text-text-light dark:text-text-dark uppercase tracking-tight leading-none mb-1">Mandado / Ofício / OS</h4>
+                                        <p className="text-[10px] text-text-secondary-light/60 dark:text-text-dark/40 font-bold uppercase tracking-wider">Documentos Oficiais</p>
+                                    </div>
                                 </div>
+                                <label htmlFor="detail-attach-upload" className="bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-black px-4 py-2 rounded-xl flex items-center gap-2 transition-all active:scale-95 shadow-lg shadow-blue-500/20 cursor-pointer shrink-0">
+                                    <Plus size={14} /> ADICIONAR
+                                    <input
+                                        id="detail-attach-upload"
+                                        type="file"
+                                        className="hidden"
+                                        onChange={(e) => handleAttachFile(e, 'attachments')}
+                                        disabled={isUploadingFile}
+                                    />
+                                </label>
+                            </div>
 
-                                <div className="space-y-2 min-h-[120px]">
+                            <div className="p-5 flex-1 flex flex-col">
+                                <div className="space-y-3 min-h-[140px] flex-1">
                                     {data.attachments && data.attachments.filter(att =>
                                         !att.includes('/reports/') && !att.includes('/ifoodDocs/')
                                     ).length > 0 ? (
-                                        <ul className="space-y-2">
+                                        <ul className="space-y-2.5">
                                             {data.attachments
                                                 .filter(att => !att.includes('/reports/') && !att.includes('/ifoodDocs/'))
                                                 .map((att, idx) => {
@@ -1513,27 +1517,30 @@ Equipe de Capturas - DIG / PCSP
                                                     const fileName = att.split('/').pop()?.split('_').slice(1).join('_') || att;
                                                     return (
                                                         <li key={idx}
-                                                            className="flex items-center justify-between p-3 bg-white dark:bg-black/20 rounded-xl border border-border-light dark:border-border-dark group hover:border-primary/50 transition-all"
+                                                            className="flex items-center justify-between p-3.5 bg-white dark:bg-black/20 rounded-2xl border border-border-light dark:border-border-dark group hover:border-blue-300 dark:hover:border-blue-900/50 transition-all shadow-sm"
                                                         >
                                                             <div className="flex items-center gap-3 overflow-hidden flex-1 cursor-pointer"
-                                                                onClick={() => isUrl ? window.open(att, '_blank') : toast.info(`Arquivo de referência: ${att}.`)}>
+                                                                onClick={() => isUrl ? window.open(att, '_blank') : toast.info(`Arquivo: ${att}`)}>
+                                                                <div className="p-2 bg-gray-50 dark:bg-white/5 rounded-lg group-hover:bg-blue-500/10 transition-colors">
+                                                                    <FileText size={16} className="text-text-secondary-light/40 group-hover:text-blue-500" />
+                                                                </div>
                                                                 <div className="truncate flex flex-col">
                                                                     <span className="text-xs font-bold text-text-light dark:text-text-dark truncate leading-none mb-1">{fileName}</span>
-                                                                    <span className="text-[9px] text-text-secondary-light/60 uppercase font-bold tracking-widest">Oficial</span>
+                                                                    <span className="text-[9px] text-text-secondary-light/50 uppercase font-black tracking-widest">Validade Jurídica</span>
                                                                 </div>
                                                             </div>
-                                                            <div className="flex items-center gap-3 shrink-0">
+                                                            <div className="flex items-center gap-4 shrink-0 pl-2">
                                                                 {isUrl && (
                                                                     <button
                                                                         onClick={() => window.open(att, '_blank')}
-                                                                        className="text-[10px] font-black text-primary hover:underline hover:scale-110 transition-transform"
+                                                                        className="text-[10px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-wider hover:scale-110 transition-transform"
                                                                     >
                                                                         Ver
                                                                     </button>
                                                                 )}
                                                                 <button
                                                                     onClick={(e) => { e.stopPropagation(); handleDeleteAttachment(att); }}
-                                                                    className="text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 p-1.5 rounded-lg transition-all hover:scale-110"
+                                                                    className="text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 p-2 rounded-xl transition-all hover:scale-110"
                                                                     title="Excluir"
                                                                 >
                                                                     <X size={16} />
@@ -1544,9 +1551,11 @@ Equipe de Capturas - DIG / PCSP
                                                 })}
                                         </ul>
                                     ) : (
-                                        <div className="py-8 text-center flex flex-col items-center gap-2 opacity-30 border-2 border-dashed border-border-light dark:border-border-dark rounded-xl h-full justify-center">
-                                            <Plus size={24} className="text-gray-400" />
-                                            <p className="text-[10px] font-bold uppercase text-gray-400">Adicionar Documento</p>
+                                        <div className="h-full flex flex-col items-center justify-center gap-3 py-10 opacity-40 border-2 border-dashed border-border-light dark:border-border-dark rounded-2xl bg-gray-50/50 dark:bg-white/5">
+                                            <div className="p-4 bg-gray-200 dark:bg-white/10 rounded-full">
+                                                <Paperclip size={32} className="text-gray-400" />
+                                            </div>
+                                            <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">Nenhum documento anexado</p>
                                         </div>
                                     )}
                                 </div>
@@ -1554,43 +1563,41 @@ Equipe de Capturas - DIG / PCSP
                         </div>
 
                         {/* 2. Relatórios Section */}
-                        <div className="bg-surface-light dark:bg-surface-dark p-1 rounded-xl shadow-sm border border-border-light dark:border-border-dark flex flex-col">
-                            <div className="p-3 md:p-4 space-y-4 flex-1">
-                                <div className="flex flex-col gap-3 bg-gray-50 dark:bg-white/5 p-3 rounded-xl border border-border-light dark:border-border-dark min-h-[64px] justify-center">
-                                    <div className="flex justify-between items-center">
-                                        <div className="flex items-center gap-2">
-                                            <div className="p-2 bg-indigo-500/10 rounded-lg">
-                                                <FileText size={18} className="text-indigo-500" />
-                                            </div>
-                                            <div>
-                                                <p className="text-xs font-black text-text-light dark:text-text-dark uppercase tracking-tight leading-none mb-1">Relatórios</p>
-                                                <p className="text-[10px] text-text-secondary-light/70 dark:text-text-dark/50 tracking-tight leading-none">Inteligência</p>
-                                            </div>
-                                        </div>
-                                        <div className="flex gap-2">
-                                            <label htmlFor="report-upload" className="bg-gray-600 hover:bg-gray-700 text-white text-[10px] font-bold px-3 py-2 rounded-lg flex items-center justify-center gap-1.5 transition-all active:scale-95 cursor-pointer shadow-lg shadow-gray-500/10 shrink-0">
-                                                <Plus size={14} /> ADICIONAR
-                                                <input
-                                                    id="report-upload"
-                                                    type="file"
-                                                    className="hidden"
-                                                    onChange={(e) => handleAttachFile(e, 'reports')}
-                                                    disabled={isUploadingFile}
-                                                />
-                                            </label>
-                                            <button
-                                                onClick={handleOpenCapturasModal}
-                                                className="bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] font-bold px-3 py-2 rounded-lg flex items-center justify-center gap-1.5 transition-all active:scale-95 shadow-lg shadow-indigo-500/10 shrink-0"
-                                            >
-                                                <Plus size={14} /> GERAR
-                                            </button>
-                                        </div>
+                        <div className="bg-surface-light dark:bg-surface-dark rounded-2xl shadow-sm border border-border-light dark:border-border-dark overflow-hidden flex flex-col transition-all hover:shadow-md">
+                            <div className="p-4 bg-gray-50/50 dark:bg-white/5 border-b border-border-light dark:border-border-dark flex justify-between items-center">
+                                <div className="flex items-center gap-3">
+                                    <div className="p-2 bg-indigo-500/10 rounded-xl">
+                                        <FileCheck size={20} className="text-indigo-500" />
+                                    </div>
+                                    <div>
+                                        <h4 className="text-xs font-black text-text-light dark:text-text-dark uppercase tracking-tight leading-none mb-1">Relatórios de Inteligência</h4>
+                                        <p className="text-[10px] text-text-secondary-light/60 dark:text-text-dark/40 font-bold uppercase tracking-wider">Produção Analítica</p>
                                     </div>
                                 </div>
+                                <div className="flex gap-2.5">
+                                    <label htmlFor="report-upload" className="bg-gray-200 dark:bg-white/10 hover:bg-gray-300 dark:hover:bg-white/20 text-gray-700 dark:text-gray-200 text-[10px] font-black px-4 py-2 rounded-xl flex items-center justify-center gap-2 transition-all active:scale-95 cursor-pointer shrink-0">
+                                        <Plus size={14} /> ADICIONAR
+                                        <input
+                                            id="report-upload"
+                                            type="file"
+                                            className="hidden"
+                                            onChange={(e) => handleAttachFile(e, 'reports')}
+                                            disabled={isUploadingFile}
+                                        />
+                                    </label>
+                                    <button
+                                        onClick={handleOpenCapturasModal}
+                                        className="bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] font-black px-4 py-2 rounded-xl flex items-center justify-center gap-2 transition-all active:scale-95 shadow-lg shadow-indigo-500/20 shrink-0"
+                                    >
+                                        <Sparkles size={14} className="fill-white/20" /> GERAR
+                                    </button>
+                                </div>
+                            </div>
 
-                                <div className="space-y-2 min-h-[120px]">
+                            <div className="p-5 flex-1 flex flex-col">
+                                <div className="space-y-3 min-h-[140px] flex-1">
                                     {data.attachments && data.attachments.some(report => report.includes('/reports/')) ? (
-                                        <ul className="space-y-2">
+                                        <ul className="space-y-2.5">
                                             {data.attachments
                                                 .filter(report => report.includes('/reports/'))
                                                 .map((report, idx) => {
@@ -1598,27 +1605,30 @@ Equipe de Capturas - DIG / PCSP
                                                     const fileName = report.split('/').pop()?.split('_').pop() || report;
                                                     return (
                                                         <li key={idx}
-                                                            className="flex items-center justify-between p-3 bg-white dark:bg-black/20 rounded-xl border border-border-light dark:border-border-dark group hover:border-primary/50 transition-all shadow-sm"
+                                                            className="flex items-center justify-between p-3.5 bg-white dark:bg-black/20 rounded-2xl border border-border-light dark:border-border-dark group hover:border-indigo-300 dark:hover:border-indigo-900/50 transition-all shadow-sm"
                                                         >
                                                             <div className="flex items-center gap-3 overflow-hidden flex-1 cursor-pointer"
-                                                                onClick={() => isUrl ? window.open(report, '_blank') : toast.info(`Arquivo: ${report}`)}>
+                                                                onClick={() => isUrl ? window.open(report, '_blank') : toast.info(`Relatório: ${report}`)}>
+                                                                <div className="p-2 bg-gray-50 dark:bg-white/5 rounded-lg group-hover:bg-indigo-500/10 transition-colors">
+                                                                    <Bot size={16} className="text-text-secondary-light/40 group-hover:text-indigo-500" />
+                                                                </div>
                                                                 <div className="truncate flex flex-col">
-                                                                    <span className="text-xs font-bold text-text-light dark:text-text-dark truncate leading-none mb-1">Relatório #{idx + 1}</span>
-                                                                    <span className="text-[9px] text-text-secondary-light truncate leading-none">{fileName}</span>
+                                                                    <span className="text-xs font-bold text-text-light dark:text-text-dark truncate leading-none mb-1">Diligência Operacional #{idx + 1}</span>
+                                                                    <span className="text-[9px] text-text-secondary-light/50 uppercase font-black tracking-widest">{fileName.substring(0, 30)}...</span>
                                                                 </div>
                                                             </div>
-                                                            <div className="flex items-center gap-3 shrink-0">
+                                                            <div className="flex items-center gap-4 shrink-0 pl-2">
                                                                 {isUrl && (
                                                                     <button
                                                                         onClick={() => window.open(report, '_blank')}
-                                                                        className="text-[10px] font-black text-primary hover:underline hover:scale-110 transition-transform"
+                                                                        className="text-[10px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-wider hover:scale-110 transition-transform"
                                                                     >
                                                                         Ver
                                                                     </button>
                                                                 )}
                                                                 <button
                                                                     onClick={(e) => { e.stopPropagation(); handleDeleteAttachment(report); }}
-                                                                    className="text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 p-1.5 rounded-lg transition-all hover:scale-110"
+                                                                    className="text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 p-2 rounded-xl transition-all hover:scale-110"
                                                                     title="Excluir"
                                                                 >
                                                                     <X size={16} />
@@ -1629,9 +1639,11 @@ Equipe de Capturas - DIG / PCSP
                                                 })}
                                         </ul>
                                     ) : (
-                                        <div className="py-8 text-center flex flex-col items-center gap-2 opacity-30 border-2 border-dashed border-border-light dark:border-border-dark rounded-xl h-full justify-center">
-                                            <Plus size={24} className="text-gray-400" />
-                                            <p className="text-[10px] font-bold uppercase text-gray-400">Adicionar Relatório</p>
+                                        <div className="h-full flex flex-col items-center justify-center gap-3 py-10 opacity-40 border-2 border-dashed border-border-light dark:border-border-dark rounded-2xl bg-gray-50/50 dark:bg-white/5">
+                                            <div className="p-4 bg-gray-200 dark:bg-white/10 rounded-full">
+                                                <FileCheck size={32} className="text-gray-400" />
+                                            </div>
+                                            <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">Nenhum relatório produzido</p>
                                         </div>
                                     )}
                                 </div>

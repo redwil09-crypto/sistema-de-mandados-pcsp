@@ -507,27 +507,39 @@ const NewWarrant = ({ onAdd, onUpdate, warrants }: NewWarrantProps) => {
                 </div>
 
                 {/* Location */}
-                <div className="bg-surface-light dark:bg-surface-dark p-4 rounded-xl shadow-sm border border-border-light dark:border-border-dark space-y-3">
-                    <div className="flex items-center justify-between">
+                <div className="bg-surface-light dark:bg-surface-dark rounded-2xl shadow-sm border border-border-light dark:border-border-dark overflow-hidden transition-all hover:shadow-md">
+                    <div className="p-4 border-b border-border-light dark:border-border-dark bg-gray-50/50 dark:bg-white/5 flex items-center justify-between">
                         <h3 className="font-bold text-text-light dark:text-text-dark text-sm flex items-center gap-2">
-                            <MapPin size={16} className="text-primary" /> Localização Operacional
+                            <MapPin size={18} className="text-primary" /> Localização Operacional
                         </h3>
                         {formData.latitude && formData.longitude ? (
-                            <span className="text-[10px] font-black bg-green-500 text-white px-2 py-0.5 rounded-full flex items-center gap-1 shadow-sm">
-                                <FileCheck size={10} /> MAPEADO
+                            <span className="text-[10px] font-black bg-green-500/10 text-green-600 dark:text-green-400 border border-green-500/20 px-3 py-1 rounded-full flex items-center gap-1.5 shadow-sm animate-pulse">
+                                <FileCheck size={12} /> MAPEADO
                             </span>
                         ) : (
-                            <span className="text-[10px] font-black bg-red-500 text-white px-2 py-0.5 rounded-full flex items-center gap-1 shadow-sm">
-                                <AlertTriangle size={10} /> NÃO MAPEADO
+                            <span className="text-[10px] font-black bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20 px-3 py-1 rounded-full flex items-center gap-1.5 shadow-sm">
+                                <AlertTriangle size={12} /> NÃO MAPEADO
                             </span>
                         )}
                     </div>
 
-                    <div className="space-y-4 p-3 bg-gray-50 dark:bg-white/5 rounded-xl border border-border-light dark:border-border-dark">
-                        <div>
-                            <label className="block text-[10px] font-black text-text-secondary-light dark:text-text-dark/70 uppercase mb-1">Endereço (Texto)</label>
-                            <div className="flex gap-2">
-                                <input name="location" value={formData.location} onChange={handleChange} type="text" className="flex-1 rounded-lg border border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark p-2.5 text-sm text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none" placeholder="Rua, Número, Bairro, Cidade" />
+                    <div className="p-5 space-y-6">
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black text-text-secondary-light dark:text-text-dark/50 uppercase tracking-widest px-1">Endereço de Diligência</label>
+                            <div className="flex gap-3 items-center">
+                                <div className="relative flex-1 group">
+                                    <input
+                                        name="location"
+                                        value={formData.location}
+                                        onChange={handleChange}
+                                        type="text"
+                                        className="w-full rounded-xl border border-border-light dark:border-border-dark bg-white dark:bg-black/20 p-3.5 text-sm text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none transition-all shadow-sm"
+                                        placeholder="Rua, Número, Bairro, Cidade"
+                                    />
+                                    <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none opacity-20 group-focus-within:opacity-50 transition-opacity">
+                                        <Search size={16} />
+                                    </div>
+                                </div>
                                 <button
                                     type="button"
                                     onClick={async () => {
@@ -541,57 +553,68 @@ const NewWarrant = ({ onAdd, onUpdate, warrants }: NewWarrantProps) => {
                                             toast.error("Endereço não localizado", { id: tid });
                                         }
                                     }}
-                                    className="bg-primary hover:bg-primary-dark text-white p-2.5 rounded-lg transition-colors shrink-0 shadow-md"
+                                    className="bg-primary hover:bg-primary-dark text-white p-3.5 rounded-xl transition-all active:scale-95 shrink-0 shadow-lg shadow-primary/30 flex items-center justify-center"
                                     title="Mapear Endereço"
                                 >
-                                    <RefreshCw size={18} />
+                                    <RefreshCw size={20} />
                                 </button>
                             </div>
                         </div>
 
-                        <div className="pt-2 border-t border-dashed border-border-light dark:border-border-dark">
-                            <label className="block text-[10px] font-black text-text-secondary-light dark:text-text-dark/70 uppercase mb-1">Coordenadas GPS (Lat, Long)</label>
-                            <div className="flex flex-col sm:flex-row gap-2">
-                                <input
-                                    name="coords_manual"
-                                    value={formData.latitude && formData.longitude ? `${formData.latitude}, ${formData.longitude}` : ''}
-                                    onChange={(e) => {
-                                        const val = e.target.value;
-                                        if (!val) {
-                                            setFormData(prev => ({ ...prev, latitude: undefined, longitude: undefined }));
-                                            return;
-                                        }
-                                        const matches = val.match(/-?\d+\.\d+/g);
-                                        if (matches && matches.length >= 2) {
-                                            setFormData(prev => ({
-                                                ...prev,
-                                                latitude: parseFloat(matches[0]),
-                                                longitude: parseFloat(matches[1])
-                                            }));
-                                        }
-                                    }}
-                                    type="text"
-                                    className="flex-1 rounded-lg border border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark p-2.5 text-sm font-mono text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none"
-                                    placeholder="Ex: -23.31, -45.96"
-                                />
+                        <div className="pt-4 border-t border-dashed border-border-light dark:border-border-dark">
+                            <label className="text-[10px] font-black text-text-secondary-light dark:text-text-dark/50 uppercase tracking-widest px-1 mb-2 block">Coordenadas de Precisão (Lat, Long)</label>
+                            <div className="flex flex-col sm:flex-row gap-3">
+                                <div className="flex-1 bg-white dark:bg-black/20 border border-border-light dark:border-border-dark rounded-xl p-3.5 shadow-sm flex items-center gap-3 focus-within:ring-2 focus-within:ring-primary/30 focus-within:border-primary transition-all">
+                                    <div className="p-1.5 bg-gray-100 dark:bg-white/5 rounded-lg">
+                                        <MapIcon size={14} className="text-text-secondary-light/40" />
+                                    </div>
+                                    <input
+                                        name="coords_manual"
+                                        value={formData.latitude && formData.longitude ? `${formData.latitude}, ${formData.longitude}` : ''}
+                                        onChange={(e) => {
+                                            const val = e.target.value;
+                                            if (!val) {
+                                                setFormData(prev => ({ ...prev, latitude: undefined, longitude: undefined }));
+                                                return;
+                                            }
+                                            const matches = val.match(/-?\d+\.\d+/g);
+                                            if (matches && matches.length >= 2) {
+                                                setFormData(prev => ({
+                                                    ...prev,
+                                                    latitude: parseFloat(matches[0]),
+                                                    longitude: parseFloat(matches[1])
+                                                }));
+                                            }
+                                        }}
+                                        type="text"
+                                        className="flex-1 bg-transparent border-none text-sm font-mono text-text-light dark:text-text-dark outline-none placeholder:text-text-secondary-light/30"
+                                        placeholder="Ex: -23.31, -45.96"
+                                    />
+                                </div>
                                 {formData.latitude && formData.longitude && (
                                     <div className="flex gap-2">
                                         <Link
                                             to={`/map?lat=${formData.latitude}&lng=${formData.longitude}`}
-                                            className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-lg text-[10px] font-black flex items-center justify-center gap-2 transition-all shadow-lg shadow-indigo-500/20 uppercase"
+                                            className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-3 rounded-xl text-[10px] font-black flex items-center justify-center gap-2 transition-all shadow-lg shadow-indigo-500/20 tracking-wider uppercase active:scale-95"
                                         >
-                                            <MapIcon size={14} /> MAPA OPS
+                                            <MapPin size={14} className="fill-white/20" /> MAPA OPS
                                         </Link>
                                         <a
                                             href={`https://www.google.com/maps?q=${formData.latitude},${formData.longitude}`}
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            className="bg-slate-100 dark:bg-white/10 text-slate-700 dark:text-white px-4 py-2.5 rounded-lg text-[10px] font-black flex items-center justify-center gap-2 transition-all shadow-sm uppercase border border-slate-200 dark:border-white/10"
+                                            className="bg-white dark:bg-white/5 text-slate-700 dark:text-white px-5 py-3 rounded-xl text-[10px] font-black flex items-center justify-center gap-2 transition-all shadow-sm tracking-wider uppercase border border-border-light dark:border-border-dark hover:bg-gray-50 dark:hover:bg-white/10 active:scale-95"
                                         >
-                                            <ExternalLink size={14} className="text-green-600" /> GOOGLE MAPS
+                                            <ExternalLink size={14} className="text-green-500" /> GOOGLE MAPS
                                         </a>
                                     </div>
                                 )}
+                            </div>
+                            <div className="flex items-center gap-2 mt-3 px-1">
+                                <Sparkles size={12} className="text-primary/40" />
+                                <p className="text-[9px] text-text-secondary-light/60 dark:text-text-dark/40 font-medium italic">
+                                    O georeferenciamento integra bases de dados geográficas para precisão tática em campo.
+                                </p>
                             </div>
                         </div>
                     </div>
