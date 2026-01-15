@@ -687,7 +687,7 @@ const AIAssistantPage = ({ onAdd, warrants }: AIAssistantPageProps) => {
                                                 <User size={16} className="text-primary" />
                                                 <h4 className="text-[10px] font-bold uppercase text-text-light dark:text-text-dark">Dados Pessoais</h4>
                                             </div>
-                                            <div className="grid grid-cols-2 gap-4">
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                                 <div className="col-span-2">
                                                     <label className="text-[10px] uppercase font-black text-amber-600 dark:text-amber-400/90">Nome Completo</label>
                                                     <input
@@ -744,7 +744,7 @@ const AIAssistantPage = ({ onAdd, warrants }: AIAssistantPageProps) => {
                                                 <Gavel size={16} className="text-primary" />
                                                 <h4 className="text-[10px] font-bold uppercase text-text-light dark:text-text-dark">Dados Processuais</h4>
                                             </div>
-                                            <div className="grid grid-cols-2 gap-4">
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                                 <div className="col-span-2">
                                                     <label className="text-[10px] uppercase font-black text-amber-600 dark:text-amber-400/90">Nº do Processo</label>
                                                     <input
@@ -781,7 +781,7 @@ const AIAssistantPage = ({ onAdd, warrants }: AIAssistantPageProps) => {
                                                 <Calendar size={16} className="text-primary" />
                                                 <h4 className="text-[10px] font-bold uppercase text-text-light dark:text-text-dark">Prazos e Datas</h4>
                                             </div>
-                                            <div className="grid grid-cols-2 gap-4">
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                                 <div>
                                                     <label className="text-[10px] uppercase font-black text-amber-600 dark:text-amber-400/90">Expedição</label>
                                                     <input
@@ -1046,7 +1046,7 @@ const AIAssistantPage = ({ onAdd, warrants }: AIAssistantPageProps) => {
                                         </button>
                                     )}
                                 </div>
-                                <div className="grid grid-cols-2 gap-3 mb-3">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
                                     <div>
                                         <label className="block text-xs font-medium text-text-secondary-light mb-1">Crime</label>
                                         <select value={filterCrime} onChange={e => setFilterCrime(e.target.value)} className="w-full rounded-lg border-gray-200 text-xs p-2">
@@ -1110,7 +1110,7 @@ const AIAssistantPage = ({ onAdd, warrants }: AIAssistantPageProps) => {
                                             </span>
                                         </div>
 
-                                        <div className="grid grid-cols-4 gap-2 text-[10px] text-text-secondary-light dark:text-text-secondary-dark mb-1.5">
+                                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[10px] text-text-secondary-light dark:text-text-secondary-dark mb-1.5">
                                             <p className="truncate"><span className="font-bold">RG:</span> {w.rg || '-'}</p>
                                             <p className="truncate"><span className="font-bold">CPF:</span> {w.cpf || '-'}</p>
                                             <p className="truncate"><span className="font-bold">Crime:</span> {w.crime || '-'}</p>

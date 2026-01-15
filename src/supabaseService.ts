@@ -4,8 +4,9 @@ import type { Warrant } from './types';
 // Helper to convert DD/MM/YYYY to YYYY-MM-DD
 const toISODate = (dateStr: string | undefined): string | null => {
     if (!dateStr) return null;
-    if (dateStr.match(/^\d{4}-\d{2}-\d{2}$/)) return dateStr;
-    const parts = dateStr.split('/');
+    const cleanDate = dateStr.trim().split(' ')[0];
+    if (cleanDate.match(/^\d{4}-\d{2}-\d{2}$/)) return cleanDate;
+    const parts = cleanDate.split('/');
     if (parts.length === 3) {
         const [day, month, year] = parts;
         return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
