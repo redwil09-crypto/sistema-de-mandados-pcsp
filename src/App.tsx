@@ -17,6 +17,7 @@ import PriorityList from './pages/PriorityList';
 import WarrantDetail from './pages/WarrantDetail';
 import NewWarrant from './pages/NewWarrant';
 import AIAssistantPage from './pages/AIAssistantPage';
+import AuditPage from './pages/AuditPage';
 import RoutePlanner from './pages/RoutePlanner';
 import OperationalMap from './pages/OperationalMap';
 
@@ -240,6 +241,7 @@ function AppContent({
                     />} />
 
                     <Route path="/stats" element={<Stats warrants={warrants} />} />
+                    <Route path="/audit" element={<AuditPage />} />
                     <Route path="/profile" element={<Profile />} />
                     <Route path="/ai-assistant" element={<AIAssistantPage onAdd={handleAddWarrant} warrants={warrants} />} />
                     <Route path="/map" element={<OperationalMap warrants={warrants} onUpdate={handleUpdateWarrant} />} />

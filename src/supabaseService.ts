@@ -249,3 +249,29 @@ export const getAuditLogs = async (warrantId: string) => {
         return [];
     }
 };
+
+// Get all audit logs for admin
+export const getAllAuditLogs = async () => {
+    try {
+        const { data, error } = await supabase
+            .from('audit_logs')
+            .select('*')
+            .order('created_at', { ascending: false })
+            .limit(200);
+
+        if (error) throw error;
+        return data;
+    } catch (error) {
+        console.error('Error getting all audit logs:', error);
+        return [];
+    }
+};
+
+export const translateAction = (action: string) => {
+    switch (action.toUpperCase()) {
+        case 'CREATE': return 'CRIAÇÃO';
+        case 'UPDATE': return 'ATUALIZAÇÃO';
+        case 'DELETE': return 'EXCLUSÃO';
+        default: return action;
+    }
+};

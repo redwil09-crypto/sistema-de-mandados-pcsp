@@ -1,7 +1,8 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useLocation, Link } from 'react-router-dom';
-import { Home, Search, User, ShieldCheck, Map, Route as RouteIcon } from 'lucide-react';
+import { Home, Search, User, ShieldCheck, ClipboardList } from 'lucide-react';
+import { supabase } from '../supabaseClient';
 
 interface BottomNavProps {
     routeCount?: number;
@@ -9,7 +10,23 @@ interface BottomNavProps {
 
 const BottomNav = ({ routeCount = 0 }: BottomNavProps) => {
     const location = useLocation();
+    const [isAdmin, setIsAdmin] = useState(false);
     const isActive = (path: string) => location.pathname === path;
+
+    useEffect(() => {
+        supabase.auth.getUser().then(({ data: { user } }) => {
+            if (user) {
+                supabase
+                    .from('profiles')
+                    .select('role')
+                    .eq('id', user.id)
+                    .single()
+                    .then(({ data }) => {
+                        if (data?.role === 'admin') setIsAdmin(true);
+                    });
+            }
+        });
+    }, []);
 
     const hideNav = ['/warrant-detail', '/new-warrant', '/ai-assistant'].some(p => location.pathname.startsWith(p));
 
@@ -37,6 +54,13 @@ const BottomNav = ({ routeCount = 0 }: BottomNavProps) => {
                     <ShieldCheck size={22} />
                     <span className="text-[9px] font-bold">BNMP</span>
                 </a>
+
+                {isAdmin && (
+                    <Link to="/audit" className={`flex flex-col items-center gap-1 min-w-[50px] ${isActive('/audit') ? 'text-primary' : 'text-text-secondary-light dark:text-text-secondary-dark'}`}>
+                        <ClipboardList size={22} strokeWidth={isActive('/audit') ? 2.5 : 2} />
+                        <span className="text-[9px] font-bold">Auditoria</span>
+                    </Link>
+                )}
 
                 <Link to="/profile" className={`flex flex-col items-center gap-1 min-w-[50px] ${isActive('/profile') ? 'text-primary' : 'text-text-secondary-light dark:text-text-secondary-dark'}`}>
                     <User size={22} strokeWidth={isActive('/profile') ? 2.5 : 2} />

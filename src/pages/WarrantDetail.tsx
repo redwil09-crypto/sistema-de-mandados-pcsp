@@ -1876,16 +1876,6 @@ Equipe de Capturas - DIG / PCSP
                     )
                     }
 
-                    {
-                        isAdmin && (
-                            <div className="bg-surface-light dark:bg-surface-dark p-4 rounded-xl shadow-sm border border-border-light dark:border-border-dark mt-4">
-                                <h3 className="font-bold text-text-light dark:text-text-dark mb-3 flex items-center gap-2">
-                                    <History size={18} className="text-primary" /> Histórico de Alterações (Admin)
-                                </h3>
-                                <WarrantAuditLog warrantId={data.id} excludeUserId={userId} />
-                            </div>
-                        )
-                    }
 
                     {/* Modals */}
                     <ConfirmModal
