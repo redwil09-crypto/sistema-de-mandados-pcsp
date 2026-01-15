@@ -99,6 +99,51 @@ const WarrantDetail = ({ warrants, onUpdate, onDelete, routeWarrants = [], onRou
         return fields.some(key => localData[key] !== data[key]);
     }, [localData, data]);
 
+    // Pre-fill report body when modal opens
+    useEffect(() => {
+        if (isCapturasModalOpen && data && !capturasData.body) {
+            const timelineText = data.diligentHistory?.map(d => `${d.date} - ${d.notes}`).join('\n') || '';
+            const observationText = data.observation || '';
+            const combined = `DILIGÊNCIAS:\n${timelineText}\n\nOBSERVAÇÕES:\n${observationText}`.trim();
+
+            setCapturasData(prev => ({
+                ...prev,
+                body: combined
+            }));
+        }
+    }, [isCapturasModalOpen, data]);
+
+    const handleRefreshAiReport = async () => {
+        if (!data) return;
+
+        setIsGeneratingAiReport(true);
+        const toastId = toast.loading("IA formatando relatório profissional...");
+
+        try {
+            const timelineText = data.diligentHistory?.map(d => `${d.date} - ${d.notes}`).join('\n') || '';
+            const observationText = data.observation || '';
+            const rawContent = `DILIGÊNCIAS:\n${timelineText}\n\nOBSERVAÇÕES:\n${observationText}`.trim();
+
+            const formattedBody = await generateReportBody(
+                { ...data, court: capturasData.court },
+                rawContent,
+                capturasData.aiInstructions
+            );
+
+            if (formattedBody) {
+                setCapturasData(prev => ({ ...prev, body: formattedBody }));
+                toast.success("Relatório formatado pela IA!", { id: toastId });
+            } else {
+                toast.error("IA não conseguiu processar. Tente novamente.", { id: toastId });
+            }
+        } catch (err) {
+            console.error("Erro IA:", err);
+            toast.error("Erro ao conectar com a IA.", { id: toastId });
+        } finally {
+            setIsGeneratingAiReport(false);
+        }
+    };
+
     const handleFieldChange = (field: keyof Warrant, value: any) => {
         setLocalData(prev => {
             const newState = { ...prev, [field]: value };
@@ -754,48 +799,49 @@ Equipe de Capturas - DIG / PCSP
 
         const generateIntelligentReportBody = () => {
             const name = data.name.toUpperCase();
-            const rg = data.rg || 'Não Informado';
             const process = data.number;
             const address = data.location || 'Endereço não informado';
             const history = data.diligentHistory || [];
+            const observations = data.observation || '';
 
-            // Analyze history for keywords
-            const fullHistoryText = history.map(h => (h.notes || '').toLowerCase()).join(' ');
+            // Aggregate raw info for the AI to use later
+            const rawTimeline = history.map(h => `- ${h.date}: ${h.notes}`).join('\n');
+            const rawInfo = `\n\n--- INFORMAÇÕES DE CAMPO ---\n${rawTimeline}\n\n--- OBSERVAÇÕES ---\n${observations}`.trim();
+
+            // Analyze history for keywords for template selection
+            const fullHistoryText = (rawTimeline + observations).toLowerCase();
             const isMoved = fullHistoryText.includes('mudou') || fullHistoryText.includes('não mora') || fullHistoryText.includes('desconhece');
             const isEmpty = fullHistoryText.includes('vazio') || fullHistoryText.includes('fechado') || fullHistoryText.includes('aluga') || fullHistoryText.includes('vende');
             const addrLower = address.toLowerCase();
-            const isAnotherCity = addrLower.includes('são sebastião') ||
-                addrLower.includes('são josé dos campos') ||
-                addrLower.includes('mg') ||
-                addrLower.includes('minas gerais') ||
-                addrLower.includes('rj') ||
-                (addrLower.includes('sp') && !addrLower.includes('jacareí')) ||
-                (!addrLower.includes('jacareí') && addrLower.length > 5);
+            const isAnotherCity = addrLower.includes('são sebastião') || 
+                               addrLower.includes('são josé dos campos') || 
+                               addrLower.includes('mg') || 
+                               addrLower.includes('minas gerais') || 
+                               addrLower.includes('rj') || 
+                               (addrLower.includes('sp') && !addrLower.includes('jacareí')) ||
+                               (!addrLower.includes('jacareí') && addrLower.length > 5);
 
-            // Template 1: Outra Cidade
+            let baseText = "";
+
             if (isAnotherCity) {
-                return `Em cumprimento ao Mandado de Prisão Civil, referente ao Processo nº ${process}, pela obrigação de pensão alimentícia, foram realizadas consultas nos sistemas policiais para localização de ${name} nesta Comarca de Jacareí/SP.\n\nAs pesquisas não identificaram qualquer endereço ativo do executado no município, inexistindo dados recentes que indicassem residência ou vínculo local.\n\nEm retorno de diligência, registra-se que o próprio mandado indica o endereço ${address}, razão pela qual sugere-se o encaminhamento da ordem para aquela localidade, a fim de que a autoridade policial competente prossiga nas buscas.\n\nDiante disso, as diligências restaram negativas nesta Comarca.`;
+                baseText = `Em cumprimento ao Mandado e após diligências realizadas, constatou-se que o endereço indicado no mandado em nome do réu ${name}, situado na ${address}, não pertence à área de circunscrição desta Seccional de Jacareí/SP.\n\nEsclarece-se que tal endereço encontra-se sob a competência territorial de outra unidade policial, sendo de atribuição desta as providências relativas ao caso.`;
+            } else if (isMoved) {
+                baseText = `Em cumprimento ao mandado expedido nos autos do processo nº ${process}, em desfavor de ${name}, esta equipe procedeu a diligências no endereço indicado — ${address}.\n\nForam realizadas verificações e entrevistas com moradores/vizinhos, os quais relataram que o procurado não reside mais no local, desconhecendo seu atual paradeiro.`;
+            } else if (isEmpty) {
+                baseText = `Em cumprimento ao Mandado de Prisão nos autos do processo nº ${process}, esta equipe dirigiu-se ao endereço: ${address}.\n\nNo local, constatou-se que o imóvel encontra-se desocupado ou sem sinais de habitação recente, impossibilitando o contato com o procurado.`;
+            } else {
+                baseText = `Registra-se o presente para dar cumprimento ao Mandado de Prisão expedido em desfavor de ${name}, nos autos do processo nº ${process}. Foram realizadas diligências nos endereços vinculados ao réu em dias e horários distintos.`;
             }
 
-            // Template 2: Mudou-se / Desconhecido no local
-            if (isMoved) {
-                return `Em cumprimento ao mandato expedido nos autos do processo nº ${process}, em desfavor de ${name}, esta equipe procedeu a diligências no endereço indicado — ${address}.\n\nForam realizadas verificações em dias e horários distintos. Durante as diligências, foram entrevistados moradores atuais ou vizinhos, os quais relataram que o procurado não reside mais no local, ou é desconhecido, não sabendo informar seu atual paradeiro.\n\nAdicionalmente, foram efetuadas consultas nos sistemas policiais disponíveis, não sendo identificados novos endereços, vínculos ou informações que pudessem auxiliar na sua localização.\n\nDiante do exposto, as diligências restaram infrutíferas, não sendo obtidos elementos que permitam, até o presente momento, a localização do procurado.`;
-            }
-
-            // Template 3: Imóvel Vazio
-            if (isEmpty) {
-                return `Em cumprimento ao Mandado de Prisão Civil expedido nos autos do processo nº ${process}, esta equipe dirigiu-se ao endereço indicado: ${address}.\n\nForam efetuadas visitas em dias e horários distintos, constatando-se que o imóvel encontra-se fechado/desocupado (ou com placas de "aluga-se/vende-se"), sem qualquer movimentação que indicasse a presença de moradores ou ocupação regular da residência.\n\nConsultas atualizadas nos sistemas policiais também não apontaram novos endereços.\n\nAté o momento, não foram obtidos elementos que indiquem o paradeiro do procurado, permanecendo negativas as diligências.`;
-            }
-
-            // Template 4: Padrão Negativo (Genérico mas detalhado)
-            return `Em cumprimento ao Mandado de Prisão Civil expedido nos autos do processo nº ${process}, referente à obrigação alimentar, foram realizadas diligências no endereço indicado pela Vara competente: ${address}.\n\nAs ações ocorreram em dias e horários distintos; contudo, em nenhuma das tentativas houve contato com o procurado, tampouco foi possível obter informações junto a vizinhos que pudessem auxiliar na sua localização exata.\n\nDiante do exposto, até o presente momento não foi possível cumprir o mandado, permanecendo negativas as diligências realizadas por esta equipe.`;
+            return `${baseText}\n\n${rawInfo}`;
         };
 
         setCapturasData(prev => ({
             ...prev,
             reportNumber: data.fulfillmentReport || `001/DIG/${new Date().getFullYear()}`,
             court: '1ª Vara da Família e Sucessões de Jacareí/SP',
-            body: generateIntelligentReportBody()
+            body: generateIntelligentReportBody(),
+            aiInstructions: ''
         }));
         setIsCapturasModalOpen(true);
     };
@@ -861,7 +907,7 @@ Equipe de Capturas - DIG / PCSP
             doc.setTextColor(255, 255, 255);
             doc.setFont('helvetica', 'bold');
             doc.setFontSize(12);
-            doc.text("RELATÓRIO CAPTURAS", pageWidth / 2, y + 5, { align: 'center' });
+            doc.text("RELATÓRIO DE INVESTIGAÇÃO POLICIAL", pageWidth / 2, y + 5, { align: 'center' });
             doc.setTextColor(0, 0, 0); // Reset Color
             y += 12;
 
@@ -1461,8 +1507,8 @@ Equipe de Capturas - DIG / PCSP
                                     disabled={isUploadingFile}
                                 />
                             </label>
-                            <button
-                                onClick={() => setIsCapturasModalOpen(true)}
+                             <button
+                                onClick={handleOpenCapturasModal}
                                 className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] font-bold px-3 py-2 rounded-lg flex items-center justify-center gap-1.5 transition-all active:scale-95 shadow-lg shadow-indigo-500/20"
                             >
                                 <Plus size={14} /> GERAR RELATÓRIO
@@ -1983,13 +2029,34 @@ Equipe de Capturas - DIG / PCSP
                                             </div>
                                         </div>
 
+                                        <div className="bg-indigo-50 dark:bg-indigo-900/10 p-3 rounded-xl border border-indigo-100 dark:border-indigo-500/20 space-y-2">
+                                            <div className="flex items-center justify-between">
+                                                <label className="block text-xs font-black text-indigo-600 dark:text-indigo-400 uppercase">✨ IA PRO - AJUSTAR TEXTO</label>
+                                                <button
+                                                    onClick={handleRefreshAiReport}
+                                                    disabled={isGeneratingAiReport}
+                                                    className="p-1.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 active:scale-95 transition-all disabled:opacity-50"
+                                                    title="Refazer com IA"
+                                                >
+                                                    <RefreshCw size={14} className={isGeneratingAiReport ? 'animate-spin' : ''} />
+                                                </button>
+                                            </div>
+                                            <input
+                                                type="text"
+                                                placeholder="Ex: 'Faça mais curto', 'Foque no carro citado', 'Refaça modo negativo'..."
+                                                value={capturasData.aiInstructions}
+                                                onChange={e => setCapturasData({ ...capturasData, aiInstructions: e.target.value })}
+                                                className="w-full bg-white dark:bg-black/20 border border-indigo-200 dark:border-indigo-500/30 rounded-lg p-2 text-xs text-text-light dark:text-text-dark outline-none focus:ring-1 focus:ring-indigo-500"
+                                            />
+                                        </div>
+
                                         <div>
                                             <label className="block text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark uppercase mb-1">Corpo do Relatório</label>
                                             <textarea
                                                 value={capturasData.body}
                                                 onChange={e => setCapturasData({ ...capturasData, body: e.target.value })}
-                                                rows={8}
-                                                className="w-full bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg p-3 text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none resize-none text-sm leading-relaxed"
+                                                rows={10}
+                                                className="w-full bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg p-3 text-sm text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none resize-none leading-relaxed font-serif"
                                             />
                                         </div>
 
@@ -2017,17 +2084,21 @@ Equipe de Capturas - DIG / PCSP
 
                                     <div className="flex gap-3 mt-8">
                                         <button
-                                            onClick={() => setIsCapturasModalOpen(false)}
+                                            onClick={() => {
+                                                setIsCapturasModalOpen(false);
+                                                setCapturasData(prev => ({ ...prev, body: '', aiInstructions: '' }));
+                                            }}
                                             className="flex-1 py-3 px-4 rounded-xl font-bold bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:opacity-90 transition-opacity"
                                         >
                                             Cancelar
                                         </button>
                                         <button
                                             onClick={handleGenerateCapturasPDF}
-                                            className="flex-1 py-3 px-4 rounded-xl font-bold bg-indigo-600 text-white shadow-lg hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2"
+                                            disabled={isGeneratingAiReport}
+                                            className="flex-[2] py-3 px-4 rounded-xl font-bold bg-indigo-600 text-white shadow-lg hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
                                         >
                                             <FileCheck size={20} />
-                                            GERAR PDF
+                                            GERAR PDF PROFISSIONAL
                                         </button>
                                     </div>
                                 </div>
