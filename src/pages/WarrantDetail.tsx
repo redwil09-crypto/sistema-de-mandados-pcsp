@@ -1904,7 +1904,7 @@ Equipe de Capturas - DIG / PCSP
                         <div className="max-w-md mx-auto flex items-stretch gap-1.5 md:gap-2">
                             <Link
                                 to="/"
-                                className="flex-[0.8] min-w-0 flex flex-col items-center justify-center gap-0.5 p-1.5 rounded-xl bg-gray-500/10 text-gray-600 dark:text-gray-400 transition-all active:scale-95 touch-manipulation hover:bg-gray-500/20"
+                                className="flex-1 min-w-0 flex flex-col items-center justify-center gap-0.5 p-1.5 rounded-xl bg-gray-500/10 text-gray-600 dark:text-gray-400 transition-all active:scale-95 touch-manipulation hover:bg-gray-500/20"
                             >
                                 <Home size={16} />
                                 <span className="text-[8px] md:text-[9px] font-bold uppercase truncate w-full text-center">Início</span>
@@ -1931,7 +1931,7 @@ Equipe de Capturas - DIG / PCSP
 
                             <button
                                 onClick={handleDownloadPDF}
-                                className="flex-[1.5] min-w-0 flex flex-col items-center justify-center gap-0.5 p-1.5 rounded-xl bg-indigo-600 text-white shadow-lg shadow-indigo-500/20 transition-all active:scale-95 touch-manipulation hover:bg-indigo-700"
+                                className="flex-1 min-w-0 flex flex-col items-center justify-center gap-0.5 p-1.5 rounded-xl bg-indigo-600 text-white shadow-lg shadow-indigo-500/20 transition-all active:scale-95 touch-manipulation hover:bg-indigo-700"
                             >
                                 <Printer size={16} />
                                 <span className="text-[8px] md:text-[9px] font-bold uppercase truncate w-full text-center">FICHA</span>
