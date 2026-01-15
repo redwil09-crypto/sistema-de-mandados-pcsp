@@ -192,18 +192,13 @@ export const generateWarrantPDF = async (
             ["Observações:", data.observation || data.description || "-"]
         ];
 
-        if (data.tacticalSummary) {
-            const summaryText = Array.isArray(data.tacticalSummary)
-                ? data.tacticalSummary.join(", ")
-                : String(data.tacticalSummary);
-            intelFields.push(["Sumário Tático (IA):", summaryText]);
-        }
+
 
         if (aiTimeSuggestion) {
             intelFields.push(["Janela Operacional:", `${aiTimeSuggestion.suggestion} - ${aiTimeSuggestion.reason}`]);
         }
 
-        drawSection("Informações de Inteligência e IA", intelFields);
+        drawSection("Análise e Observações", intelFields);
 
         if (data.attachments && data.attachments.length > 0) {
             const docFields: [string, string][] = data.attachments.map((at, idx) => {

@@ -184,16 +184,7 @@ const HomePage = ({ isDark, toggleTheme, warrants, onUpdate, onDelete, routeWarr
                         </div>
                     </Link>
 
-                    <Link to="/intel" className="group flex flex-col gap-3 rounded-2xl bg-slate-900 p-4 shadow-xl transition-all active:scale-[0.98] border border-indigo-500/30 hover:border-indigo-500 relative overflow-hidden">
-                        <div className="absolute -top-4 -right-4 w-12 h-12 bg-indigo-500/20 rounded-full blur-xl group-hover:bg-indigo-500/40 transition-all" />
-                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-lg shadow-indigo-500/20">
-                            <Shield size={22} />
-                        </div>
-                        <div>
-                            <h3 className="font-bold text-white">Centro de Inteligência</h3>
-                            <p className="text-[10px] text-indigo-300 font-bold uppercase tracking-tight">Radar & Vínculos</p>
-                        </div>
-                    </Link>
+
 
                     <Link to="/stats" className="group flex flex-col gap-3 rounded-2xl bg-surface-light p-4 shadow-md transition-all active:scale-[0.98] dark:bg-surface-dark border border-transparent hover:border-purple-500/20">
                         <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-50 text-purple-600 dark:bg-purple-500/10 dark:text-purple-500">

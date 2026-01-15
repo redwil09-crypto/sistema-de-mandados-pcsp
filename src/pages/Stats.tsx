@@ -152,7 +152,7 @@ const Stats = ({ warrants }: StatsProps) => {
 
     return (
         <div className="min-h-screen pb-24 bg-[#05070a] text-slate-300 font-sans">
-            <Header title="Inteligência Operacional" back showHome />
+            <Header title="Estatísticas Operacionais" back showHome />
 
             <main className="p-4 space-y-10 max-w-7xl mx-auto">
 
