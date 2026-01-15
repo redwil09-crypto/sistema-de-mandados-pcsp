@@ -804,36 +804,10 @@ Equipe de Capturas - DIG / PCSP
             const history = data.diligentHistory || [];
             const observations = data.observation || '';
 
-            // Aggregate raw info for the AI to use later
-            const rawTimeline = history.map(h => `- ${h.date}: ${h.notes}`).join('\n');
-            const rawInfo = `\n\n--- INFORMAÇÕES DE CAMPO ---\n${rawTimeline}\n\n--- OBSERVAÇÕES ---\n${observations}`.trim();
+            const timelineText = history.map(h => `${h.date}: ${h.notes}`).join('\n');
+            const rawContent = `DADOS DO MANDADO:\nAlvo: ${name}\nProcesso: ${process}\nEndereço: ${address}\n\nHISTÓRICO DE DILIGÊNCIAS:\n${timelineText}\n\nOBSERVAÇÕES ADICIONAIS:\n${observations}`.trim();
 
-            // Analyze history for keywords for template selection
-            const fullHistoryText = (rawTimeline + observations).toLowerCase();
-            const isMoved = fullHistoryText.includes('mudou') || fullHistoryText.includes('não mora') || fullHistoryText.includes('desconhece');
-            const isEmpty = fullHistoryText.includes('vazio') || fullHistoryText.includes('fechado') || fullHistoryText.includes('aluga') || fullHistoryText.includes('vende');
-            const addrLower = address.toLowerCase();
-            const isAnotherCity = addrLower.includes('são sebastião') || 
-                               addrLower.includes('são josé dos campos') || 
-                               addrLower.includes('mg') || 
-                               addrLower.includes('minas gerais') || 
-                               addrLower.includes('rj') || 
-                               (addrLower.includes('sp') && !addrLower.includes('jacareí')) ||
-                               (!addrLower.includes('jacareí') && addrLower.length > 5);
-
-            let baseText = "";
-
-            if (isAnotherCity) {
-                baseText = `Em cumprimento ao Mandado e após diligências realizadas, constatou-se que o endereço indicado no mandado em nome do réu ${name}, situado na ${address}, não pertence à área de circunscrição desta Seccional de Jacareí/SP.\n\nEsclarece-se que tal endereço encontra-se sob a competência territorial de outra unidade policial, sendo de atribuição desta as providências relativas ao caso.`;
-            } else if (isMoved) {
-                baseText = `Em cumprimento ao mandado expedido nos autos do processo nº ${process}, em desfavor de ${name}, esta equipe procedeu a diligências no endereço indicado — ${address}.\n\nForam realizadas verificações e entrevistas com moradores/vizinhos, os quais relataram que o procurado não reside mais no local, desconhecendo seu atual paradeiro.`;
-            } else if (isEmpty) {
-                baseText = `Em cumprimento ao Mandado de Prisão nos autos do processo nº ${process}, esta equipe dirigiu-se ao endereço: ${address}.\n\nNo local, constatou-se que o imóvel encontra-se desocupado ou sem sinais de habitação recente, impossibilitando o contato com o procurado.`;
-            } else {
-                baseText = `Registra-se o presente para dar cumprimento ao Mandado de Prisão expedido em desfavor de ${name}, nos autos do processo nº ${process}. Foram realizadas diligências nos endereços vinculados ao réu em dias e horários distintos.`;
-            }
-
-            return `${baseText}\n\n${rawInfo}`;
+            return rawContent;
         };
 
         setCapturasData(prev => ({
@@ -948,28 +922,33 @@ Equipe de Capturas - DIG / PCSP
             y += 15;
 
             // --- ADDRESSEE ---
-            doc.setFont('helvetica', 'bold'); // Not italic in image for this line
+            doc.setFont('helvetica', 'bold');
             doc.setFontSize(11);
             doc.text("Excelentíssimo Sr. Delegado de Polícia:", margin, y);
-            y += 15;
+            y += 12;
 
-            // --- BODY ---
-            doc.setFont('helvetica', 'normal');
-            const indent = "\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0"; // 16 NBSP indent
-            // Split by newline to preserve user's paragraphs
+            // --- BODY (Times for formal look) ---
+            doc.setFont('times', 'normal');
+            doc.setFontSize(11);
+            const indent = "      "; // Visual indent
+            
             const paragraphs = capturasData.body.split('\n');
-
             paragraphs.forEach(para => {
                 if (!para.trim()) {
-                    y += 3; // Minimal empty line spacing
+                    y += 4;
                     return;
                 }
-                const indentedPara = indent + para.trim();
-                const splitPara = doc.splitTextToSize(indentedPara, contentWidth);
-                doc.text(splitPara, margin, y, { align: 'justify', maxWidth: contentWidth });
-                y += (splitPara.length * 4.5) + 2; // Compact line height
+                const splitPara = doc.splitTextToSize(para.trim(), contentWidth - 10);
+                doc.text(splitPara, margin + 10, y, { align: 'justify', maxWidth: contentWidth - 10 });
+                y += (splitPara.length * 5) + 2;
+                
+                // Add page break if needed
+                if (y > pageHeight - 60) {
+                    doc.addPage();
+                    y = 20;
+                }
             });
-            y += 8;
+            y += 10;
 
             // --- CLOSING ---
             doc.setFont('helvetica', 'bold');
