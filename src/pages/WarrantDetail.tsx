@@ -380,12 +380,12 @@ const WarrantDetail = ({ warrants, onUpdate, onDelete, routeWarrants = [], onRou
         }
 
         setIsAnalyzingDiligence(true);
-        const tid = toast.loading("Antigravity processando inteligência...");
+        const tid = toast.loading("Antigravity processando análise estratégica...");
         try {
             const result = await analyzeRawDiligence(data, newDiligence);
             if (result) {
                 setAiDiligenceResult(result);
-                toast.success("Análise de inteligência concluída!", { id: tid });
+                toast.success("Análise estratégica concluída!", { id: tid });
             } else {
                 toast.error("IA indisponível no momento.", { id: tid });
             }
@@ -1762,7 +1762,7 @@ Equipe de Capturas - DIG / PCSP
                                 <div className="mt-3 p-4 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800/50 rounded-xl animate-in fade-in zoom-in duration-300">
                                     <div className="flex items-center gap-2 mb-2">
                                         <Bot size={16} className="text-indigo-600" />
-                                        <span className="text-[10px] font-black uppercase text-indigo-600 dark:text-indigo-400 tracking-wider">Parecer de Inteligência (Antigravity IA)</span>
+                                        <span className="text-[10px] font-black uppercase text-indigo-600 dark:text-indigo-400 tracking-wider">Parecer de Análise Estratégica (Antigravity IA)</span>
                                     </div>
                                     <div className="text-xs text-text-light dark:text-text-dark leading-relaxed font-blue-500/10 prose prose-sm dark:prose-invert max-w-none whitespace-pre-wrap">
                                         {aiDiligenceResult}
