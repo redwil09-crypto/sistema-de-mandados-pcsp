@@ -55,10 +55,12 @@ const BottomNav = ({ routeCount = 0 }: BottomNavProps) => {
                     <span className="text-[9px] font-bold">BNMP</span>
                 </a>
 
-                <Link to="/audit" className={`flex flex-col items-center gap-1 min-w-[50px] ${isActive('/audit') ? 'text-primary' : 'text-text-secondary-light dark:text-text-secondary-dark'}`}>
-                    <ClipboardList size={22} strokeWidth={isActive('/audit') ? 2.5 : 2} />
-                    <span className="text-[9px] font-bold">ADM</span>
-                </Link>
+                {isAdmin && (
+                    <Link to="/audit" className={`flex flex-col items-center gap-1 min-w-[50px] ${isActive('/audit') ? 'text-primary' : 'text-text-secondary-light dark:text-text-secondary-dark'}`}>
+                        <ClipboardList size={22} strokeWidth={isActive('/audit') ? 2.5 : 2} />
+                        <span className="text-[9px] font-bold">ADM</span>
+                    </Link>
+                )}
 
                 <Link to="/profile" className={`flex flex-col items-center gap-1 min-w-[50px] ${isActive('/profile') ? 'text-primary' : 'text-text-secondary-light dark:text-text-secondary-dark'}`}>
                     <User size={22} strokeWidth={isActive('/profile') ? 2.5 : 2} />

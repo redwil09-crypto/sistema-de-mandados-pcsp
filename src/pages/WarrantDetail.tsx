@@ -1347,46 +1347,49 @@ Equipe de Capturas - DIG / PCSP
                     </div>
                 </div>
 
-                <div className="bg-surface-light dark:bg-surface-dark rounded-2xl shadow-sm border border-border-light dark:border-border-dark overflow-hidden">
-                    <div className="p-4 border-b border-border-light dark:border-border-dark bg-gray-50/50 dark:bg-white/5 flex items-center justify-between">
-                        <h3 className="font-bold text-text-light dark:text-text-dark flex items-center gap-2">
-                            <MapPin size={20} className="text-primary" /> Localização Operacional
-                        </h3>
-                        {localData.latitude && localData.longitude ? (
-                            <span className="text-[10px] bg-green-500/10 text-green-600 dark:text-green-400 border border-green-500/20 px-3 py-1 rounded-full font-black shadow-sm flex items-center gap-1.5 animate-pulse">
-                                <FileCheck size={12} /> MAPEADO
-                            </span>
-                        ) : (
-                            <span className="text-[10px] bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20 px-3 py-1 rounded-full font-black shadow-sm flex items-center gap-1.5">
-                                <AlertTriangle size={12} /> NÃO MAPEADO
-                            </span>
-                        )}
-                    </div>
+                <div className="p-4 space-y-6 max-w-5xl mx-auto">
+                    {/* Operational Location Card */}
+                    <div className="bg-surface-light dark:bg-surface-dark rounded-2xl shadow-sm border border-border-light dark:border-border-dark overflow-hidden transition-all hover:shadow-md">
+                        <div className="p-4 border-b border-border-light dark:border-border-dark bg-gray-50/50 dark:bg-white/5 flex items-center justify-between">
+                            <h3 className="font-bold text-text-light dark:text-text-dark text-sm flex items-center gap-2">
+                                <MapPin size={18} className="text-primary" /> Localização Operacional
+                            </h3>
+                            {localData.latitude && localData.longitude ? (
+                                <span className="text-[10px] font-black bg-green-500/10 text-green-600 dark:text-green-400 border border-green-500/20 px-3 py-1 rounded-full flex items-center gap-1.5 shadow-sm animate-pulse">
+                                    <FileCheck size={12} /> MAPEADO
+                                </span>
+                            ) : (
+                                <span className="text-[10px] font-black bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20 px-3 py-1 rounded-full flex items-center gap-1.5 shadow-sm">
+                                    <AlertTriangle size={12} /> NÃO MAPEADO
+                                </span>
+                            )}
+                        </div>
 
-                    <div className="p-5 space-y-6">
-                        {nearbyWarrants.length > 0 && (
-                            <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl flex items-center gap-3">
-                                <ShieldAlert className="text-amber-600" size={18} />
-                                <div>
-                                    <p className="text-[10px] font-black text-amber-700 uppercase tracking-wider">Inteligência de Vizinhança</p>
-                                    <p className="text-[11px] text-amber-600/90 font-medium">Existem {nearbyWarrants.length} outro(s) mandado(s) em aberto nesta mesma região.</p>
+                        <div className="p-5 space-y-6">
+                            {nearbyWarrants.length > 0 && (
+                                <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl flex items-center gap-3">
+                                    <ShieldAlert className="text-amber-600" size={18} />
+                                    <div>
+                                        <p className="text-[10px] font-black text-amber-700 uppercase tracking-wider">Inteligência de Vizinhança</p>
+                                        <p className="text-[11px] text-amber-600/90 font-medium">Existem {nearbyWarrants.length} outro(s) mandado(s) em aberto nesta mesma região.</p>
+                                    </div>
                                 </div>
-                            </div>
-                        )}
+                            )}
 
-                        <div className="grid grid-cols-1 gap-5">
                             <div className="space-y-2">
-                                <label className="text-[10px] text-text-secondary-light dark:text-text-dark/50 uppercase font-bold tracking-widest px-1">Endereço de Diligência</label>
-                                <div className="group relative flex items-center transition-all bg-white dark:bg-black/20 border border-border-light dark:border-border-dark rounded-2xl focus-within:ring-2 focus-within:ring-primary/30 focus-within:border-primary shadow-sm overflow-hidden">
-                                    <textarea
-                                        className="w-full bg-transparent border-none text-sm text-text-light dark:text-text-dark font-medium p-4 py-3 placeholder:text-text-secondary-light/40 resize-none min-h-[60px] outline-none"
-                                        value={localData.location || ''}
-                                        rows={2}
-                                        onChange={e => handleFieldChange('location', e.target.value)}
-                                        placeholder="Digite o endereço completo..."
-                                    />
+                                <label className="text-[10px] font-black text-text-secondary-light dark:text-text-dark/40 uppercase tracking-widest px-1">Endereço de Diligência (Texto)</label>
+                                <div className="flex gap-3 items-start">
+                                    <div className="relative flex-1 group">
+                                        <textarea
+                                            className="w-full rounded-xl border border-border-light dark:border-border-dark bg-white dark:bg-black/20 p-4 text-sm text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary/20 focus:border-primary/50 outline-none transition-all shadow-sm resize-none min-h-[60px]"
+                                            value={localData.location || ''}
+                                            rows={2}
+                                            onChange={e => handleFieldChange('location', e.target.value)}
+                                            placeholder="Descrever endereço completo para navegação..."
+                                        />
+                                    </div>
                                     <button
-                                        title="Sincronizar Coordenadas"
+                                        title="Atualizar Coordenadas via Texto"
                                         onClick={async () => {
                                             const addr = localData.location || data.location;
                                             if (!addr) return toast.error("Informe um endereço primeiro");
@@ -1395,29 +1398,29 @@ Equipe de Capturas - DIG / PCSP
                                             if (res) {
                                                 setLocalData(prev => ({ ...prev, latitude: res.lat, longitude: res.lng }));
                                                 await onUpdate(data.id, { latitude: res.lat, longitude: res.lng });
-                                                toast.success("Localização atualizada!", { id: tid });
+                                                toast.success("Mapeado com sucesso!", { id: tid });
                                             } else {
                                                 toast.error("Endereço não localizado", { id: tid });
                                             }
                                         }}
-                                        className="m-2 p-3 bg-primary text-white shadow-lg shadow-primary/30 rounded-xl hover:scale-105 active:scale-95 transition-all text-primary-foreground shrink-0"
+                                        className="bg-primary hover:bg-primary-dark text-white p-4 rounded-xl transition-all active:scale-95 shrink-0 shadow-lg shadow-primary/30 flex items-center justify-center h-[60px] w-[60px]"
                                     >
-                                        <RefreshCw size={20} />
+                                        <RefreshCw size={22} />
                                     </button>
                                 </div>
                             </div>
 
-                            <div className="space-y-2 pt-2 border-t border-dashed border-border-light dark:border-border-dark">
-                                <label className="text-[10px] text-text-secondary-light dark:text-text-dark/50 uppercase font-bold tracking-widest px-1">Coordenadas de Precisão (Lat, Long)</label>
-                                <div className="flex flex-col sm:flex-row items-stretch gap-3">
-                                    <div className="flex-1 bg-white dark:bg-black/20 border border-border-light dark:border-border-dark rounded-2xl p-4 shadow-sm flex items-center gap-3">
+                            <div className="pt-4 border-t border-dashed border-border-light dark:border-border-dark">
+                                <label className="text-[10px] font-black text-text-secondary-light dark:text-text-dark/40 uppercase tracking-widest px-1 mb-2 block">Coordenadas de Precisão (Lat, Long)</label>
+                                <div className="flex flex-col lg:flex-row gap-3">
+                                    <div className="flex-1 bg-white dark:bg-black/20 border border-border-light dark:border-border-dark rounded-2xl p-4 shadow-sm flex items-center gap-3 focus-within:ring-2 focus-within:ring-primary/10 transition-all">
                                         <div className="p-1.5 bg-gray-100 dark:bg-white/5 rounded-lg">
-                                            <MapIcon size={14} className="text-text-secondary-light/50" />
+                                            <MapIcon size={14} className="text-text-secondary-light/40" />
                                         </div>
                                         <input
                                             type="text"
                                             className="flex-1 bg-transparent border-none text-sm font-mono text-text-light dark:text-text-dark outline-none placeholder:text-text-secondary-light/30"
-                                            value={localData.latitude !== undefined && localData.longitude !== undefined && localData.latitude !== null && localData.longitude !== null ? `${localData.latitude}, ${localData.longitude}` : ''}
+                                            value={localData.latitude && localData.longitude ? `${localData.latitude}, ${localData.longitude}` : ''}
                                             onChange={e => {
                                                 const val = e.target.value;
                                                 if (!val) {
@@ -1426,60 +1429,54 @@ Equipe de Capturas - DIG / PCSP
                                                 }
                                                 const matches = val.match(/-?\d+\.\d+/g);
                                                 if (matches && matches.length >= 2) {
-                                                    const lat = parseFloat(matches[0]);
-                                                    const lng = parseFloat(matches[1]);
-                                                    if (!isNaN(lat) && !isNaN(lng)) {
-                                                        setLocalData(prev => ({ ...prev, latitude: lat, longitude: lng }));
-                                                    }
+                                                    setLocalData(prev => ({ ...prev, latitude: parseFloat(matches[0]), longitude: parseFloat(matches[1]) }));
                                                 }
                                             }}
-                                            placeholder="Cole aqui as coordenadas ou arraste do mapa..."
+                                            placeholder="Ex: -23.123, -45.456"
                                         />
                                     </div>
-                                    <div className="flex gap-2">
+                                    <div className="flex gap-2 flex-wrap sm:flex-nowrap">
                                         {localData.latitude && localData.longitude && (
                                             <>
                                                 <Link
                                                     to={`/map?lat=${localData.latitude}&lng=${localData.longitude}`}
-                                                    className="flex-1 sm:flex-none flex items-center justify-center bg-indigo-600 hover:bg-indigo-700 text-white min-w-[130px] px-4 py-2 rounded-2xl text-[10px] font-black shadow-lg shadow-indigo-500/20 active:scale-95 transition-all gap-2 tracking-wider"
+                                                    className="flex-1 flex items-center justify-center bg-indigo-600 hover:bg-indigo-700 text-white min-w-[140px] px-5 py-3 rounded-xl text-[10px] font-black shadow-lg shadow-indigo-500/20 active:scale-95 transition-all gap-2 tracking-widest uppercase h-[54px]"
                                                 >
-                                                    <MapPin size={14} className="fill-white/20" /> MAPA OPS
+                                                    <MapPin size={16} className="fill-white/20" /> MAPA OPS
                                                 </Link>
                                                 <a
                                                     href={`https://www.google.com/maps?q=${localData.latitude},${localData.longitude}`}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
-                                                    className="flex-1 sm:flex-none flex items-center justify-center bg-white dark:bg-white/5 text-slate-700 dark:text-white border border-border-light dark:border-border-dark min-w-[130px] px-4 py-2 rounded-2xl text-[10px] font-black shadow-sm active:scale-95 transition-all gap-2 tracking-wider hover:bg-gray-50 dark:hover:bg-white/10"
+                                                    className="flex-1 flex items-center justify-center bg-white dark:bg-white/5 text-slate-700 dark:text-white border border-border-light dark:border-border-dark min-w-[140px] px-5 py-3 rounded-xl text-[10px] font-black shadow-sm active:scale-95 transition-all gap-2 tracking-widest uppercase hover:bg-gray-50 dark:hover:bg-white/10 h-[54px]"
                                                 >
-                                                    <ExternalLink size={14} className="text-green-500" /> GOOGLE MAPS
+                                                    <ExternalLink size={16} className="text-green-500" /> GOOGLE MAPS
                                                 </a>
                                             </>
                                         )}
                                         <button
-                                            title={routeWarrants.includes(data.id) ? "Remover da Rota de Capturas" : "Adicionar à Rota de Capturas"}
+                                            title={routeWarrants.includes(data.id) ? "Remover da Rota" : "Adicionar à Rota"}
                                             onClick={() => onRouteToggle?.(data.id)}
-                                            className={`flex items-center justify-center border shadow-sm w-12 h-12 rounded-2xl transition-all active:scale-95 ${routeWarrants.includes(data.id)
-                                                ? 'bg-indigo-600 border-indigo-600 text-white shadow-indigo-500/30 shadow-xl'
-                                                : 'bg-white dark:bg-black/20 border-border-light dark:border-border-dark text-indigo-500 hover:border-indigo-300 dark:hover:border-indigo-700'
+                                            className={`flex items-center justify-center border shadow-sm w-[54px] h-[54px] rounded-xl transition-all active:scale-95 ${routeWarrants.includes(data.id)
+                                                ? 'bg-indigo-600 border-indigo-600 text-white shadow-indigo-500/30 shadow-lg'
+                                                : 'bg-white dark:bg-black/20 border-border-light dark:border-border-dark text-indigo-500 hover:border-indigo-300'
                                                 }`}
                                         >
-                                            <RouteIcon size={20} />
+                                            <RouteIcon size={22} />
                                         </button>
                                     </div>
                                 </div>
-                            </div>
-                            <div className="flex items-center gap-2 px-1">
-                                <Sparkles size={12} className="text-primary/40" />
-                                <p className="text-[9px] text-text-secondary-light/60 dark:text-text-dark/40 font-medium italic">
-                                    O sistema utiliza georeferenciamento híbrido via endereço textual e coordenadas GPS de alta precisão.
-                                </p>
+                                <div className="flex items-center gap-2 mt-4 px-1">
+                                    <Sparkles size={12} className="text-primary/40" />
+                                    <p className="text-[9px] text-text-secondary-light/60 dark:text-text-dark/40 font-medium italic">
+                                        Georeferenciamento tático integrado para precisão absoluta em campo.
+                                    </p>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <div className="p-4 space-y-4 max-w-5xl mx-auto">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {/* 1. Mandado/Ofício/OS Section */}
                         <div className="bg-surface-light dark:bg-surface-dark rounded-2xl shadow-sm border border-border-light dark:border-border-dark overflow-hidden flex flex-col transition-all hover:shadow-md">
                             <div className="p-4 bg-gray-50/50 dark:bg-white/5 border-b border-border-light dark:border-border-dark flex justify-between items-center">
