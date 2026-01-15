@@ -644,7 +644,7 @@ const AIAssistantPage = ({ onAdd, warrants }: AIAssistantPageProps) => {
                                                 <User size={16} className="text-primary" />
                                                 <h4 className="text-[10px] font-bold uppercase text-text-light dark:text-text-dark">Dados Pessoais</h4>
                                             </div>
-                                            <div className="grid grid-cols-2 gap-4">
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                                 <div className="col-span-2">
                                                     <label className="text-[10px] uppercase font-bold text-amber-500">Nome Completo</label>
                                                     <input
@@ -701,7 +701,7 @@ const AIAssistantPage = ({ onAdd, warrants }: AIAssistantPageProps) => {
                                                 <Gavel size={16} className="text-primary" />
                                                 <h4 className="text-[10px] font-bold uppercase text-text-light dark:text-text-dark">Dados Processuais</h4>
                                             </div>
-                                            <div className="grid grid-cols-2 gap-4">
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                                 <div className="col-span-2">
                                                     <label className="text-[10px] uppercase font-bold text-amber-500">Nº do Processo</label>
                                                     <input
@@ -738,7 +738,7 @@ const AIAssistantPage = ({ onAdd, warrants }: AIAssistantPageProps) => {
                                                 <Calendar size={16} className="text-primary" />
                                                 <h4 className="text-[10px] font-bold uppercase text-text-light dark:text-text-dark">Prazos e Datas</h4>
                                             </div>
-                                            <div className="grid grid-cols-2 gap-4">
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                                 <div>
                                                     <label className="text-[10px] uppercase font-bold text-amber-500">Expedição</label>
                                                     <input
