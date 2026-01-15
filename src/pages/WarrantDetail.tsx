@@ -70,13 +70,16 @@ const WarrantDetail = ({ warrants, onUpdate, onDelete, routeWarrants = [], onRou
 
     const [localData, setLocalData] = useState<Partial<Warrant>>({});
     const [isConfirmSaveOpen, setIsConfirmSaveOpen] = useState(false);
-    const [isAdmin, setIsAdmin] = useState(false);
+    const [userId, setUserId] = useState<string | undefined>(undefined);
 
     useEffect(() => {
         const checkAdmin = async () => {
             const { data: { user } } = await supabase.auth.getUser();
-            if (user?.user_metadata?.role === 'admin') {
-                setIsAdmin(true);
+            if (user) {
+                setUserId(user.id);
+                if (user.user_metadata?.role === 'admin') {
+                    setIsAdmin(true);
+                }
             }
         };
         checkAdmin();
@@ -1442,10 +1445,11 @@ Equipe de Capturas - DIG / PCSP
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="p-4 space-y-4 max-w-5xl mx-auto">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                     {/* 1. Mandado/Ofício/OS Section */}
                     <div className="bg-surface-light dark:bg-surface-dark p-1 rounded-xl shadow-sm border border-border-light dark:border-border-dark flex flex-col">
-                        <div className="p-4 space-y-4 flex-1">
+                        <div className="p-3 md:p-4 space-y-4 flex-1">
                             <div className="flex justify-between items-center bg-gray-50 dark:bg-white/5 p-3 rounded-xl border border-border-light dark:border-border-dark min-h-[64px]">
                                 <div className="flex items-center gap-2">
                                     <div className="p-2 bg-blue-500/10 rounded-lg">
@@ -1522,7 +1526,7 @@ Equipe de Capturas - DIG / PCSP
 
                     {/* 2. Relatórios Section */}
                     <div className="bg-surface-light dark:bg-surface-dark p-1 rounded-xl shadow-sm border border-border-light dark:border-border-dark flex flex-col">
-                        <div className="p-4 space-y-4 flex-1">
+                        <div className="p-3 md:p-4 space-y-4 flex-1">
                             <div className="flex flex-col gap-3 bg-gray-50 dark:bg-white/5 p-3 rounded-xl border border-border-light dark:border-border-dark min-h-[64px] justify-center">
                                 <div className="flex justify-between items-center">
                                     <div className="flex items-center gap-2">
@@ -1849,7 +1853,7 @@ Equipe de Capturas - DIG / PCSP
                             <h3 className="font-bold text-text-light dark:text-text-dark mb-3 flex items-center gap-2">
                                 <History size={18} className="text-primary" /> Histórico de Alterações (Admin)
                             </h3>
-                            <WarrantAuditLog warrantId={data.id} />
+                            <WarrantAuditLog warrantId={data.id} excludeUserId={userId} />
                         </div>
                     )
                 }
@@ -1867,50 +1871,49 @@ Equipe de Capturas - DIG / PCSP
                 />
 
                 {/* Fixed Bottom Action Bar */}
-                <div className="fixed bottom-0 left-0 right-0 p-4 pb-6 bg-white/80 dark:bg-background-dark/80 backdrop-blur-lg border-t border-border-light dark:border-border-dark z-50 animate-in slide-in-from-bottom duration-300 shadow-[0_-4px_10px_rgba(0,0,0,0.05)]">
-                    <div className="max-w-md mx-auto flex items-stretch gap-2">
+                <div className="fixed bottom-0 left-0 right-0 p-3 pb-6 md:pb-6 bg-white/80 dark:bg-background-dark/80 backdrop-blur-lg border-t border-border-light dark:border-border-dark z-50 animate-in slide-in-from-bottom duration-300 shadow-[0_-4px_10px_rgba(0,0,0,0.05)]">
+                    <div className="max-w-md mx-auto flex items-stretch gap-1.5 md:gap-2">
                         <Link
                             to="/"
-                            className="flex-1 min-w-0 flex flex-col items-center justify-center gap-1 p-2 rounded-xl bg-gray-500/10 text-gray-600 dark:text-gray-400 transition-all active:scale-95 touch-manipulation hover:bg-gray-500/20"
+                            className="flex-[0.8] min-w-0 flex flex-col items-center justify-center gap-0.5 p-1.5 rounded-xl bg-gray-500/10 text-gray-600 dark:text-gray-400 transition-all active:scale-95 touch-manipulation hover:bg-gray-500/20"
                         >
-                            <Home size={18} />
-                            <span className="text-[9px] font-bold uppercase truncate w-full text-center">Início</span>
+                            <Home size={16} />
+                            <span className="text-[8px] md:text-[9px] font-bold uppercase truncate w-full text-center">Início</span>
                         </Link>
 
                         <Link
                             to={`/new-warrant?edit=${data.id}`}
-                            className="flex-1 min-w-0 flex flex-col items-center justify-center gap-1 p-2 rounded-xl bg-primary/10 text-primary transition-all active:scale-95 touch-manipulation hover:bg-primary/20"
+                            className="flex-1 min-w-0 flex flex-col items-center justify-center gap-0.5 p-1.5 rounded-xl bg-primary/10 text-primary transition-all active:scale-95 touch-manipulation hover:bg-primary/20"
                         >
-                            <Edit size={18} />
-                            <span className="text-[9px] font-bold uppercase truncate w-full text-center">Editar</span>
+                            <Edit size={16} />
+                            <span className="text-[8px] md:text-[9px] font-bold uppercase truncate w-full text-center">Editar</span>
                         </Link>
-
 
                         <button
                             onClick={data.status === 'CUMPRIDO' ? handleReopen : handleFinalize}
-                            className={`flex-1 min-w-0 flex flex-col items-center justify-center gap-1 p-2 rounded-xl transition-all active:scale-95 touch-manipulation ${data.status === 'CUMPRIDO'
+                            className={`flex-1 min-w-0 flex flex-col items-center justify-center gap-0.5 p-1.5 rounded-xl transition-all active:scale-95 touch-manipulation ${data.status === 'CUMPRIDO'
                                 ? 'bg-blue-600/10 text-blue-600 hover:bg-blue-600/20'
                                 : 'bg-green-600/10 text-green-600 hover:bg-green-600/20'
                                 }`}
                         >
-                            {data.status === 'CUMPRIDO' ? <RotateCcw size={18} /> : <CheckCircle size={18} />}
-                            <span className="text-[9px] font-bold uppercase truncate w-full text-center">{data.status === 'CUMPRIDO' ? 'REABRIR' : 'FECHAR'}</span>
+                            {data.status === 'CUMPRIDO' ? <RotateCcw size={16} /> : <CheckCircle size={16} />}
+                            <span className="text-[8px] md:text-[9px] font-bold uppercase truncate w-full text-center">{data.status === 'CUMPRIDO' ? 'REABRIR' : 'FECHAR'}</span>
                         </button>
 
                         <button
                             onClick={handleDownloadPDF}
-                            className="flex-[2] min-w-0 flex flex-col items-center justify-center gap-1 p-2 rounded-xl bg-indigo-600 text-white shadow-lg shadow-indigo-500/20 transition-all active:scale-95 touch-manipulation hover:bg-indigo-700"
+                            className="flex-[1.5] min-w-0 flex flex-col items-center justify-center gap-0.5 p-1.5 rounded-xl bg-indigo-600 text-white shadow-lg shadow-indigo-500/20 transition-all active:scale-95 touch-manipulation hover:bg-indigo-700"
                         >
-                            <Printer size={18} />
-                            <span className="text-[9px] font-bold uppercase truncate w-full text-center">FICHA COMPLETA</span>
+                            <Printer size={16} />
+                            <span className="text-[8px] md:text-[9px] font-bold uppercase truncate w-full text-center">FICHA</span>
                         </button>
 
                         <button
                             onClick={handleDelete}
-                            className="flex-1 min-w-0 flex flex-col items-center justify-center gap-1 p-2 rounded-xl bg-red-500/10 text-red-500 transition-all active:scale-95 touch-manipulation hover:bg-red-500/20"
+                            className="flex-1 min-w-0 flex flex-col items-center justify-center gap-0.5 p-1.5 rounded-xl bg-red-500/10 text-red-500 transition-all active:scale-95 touch-manipulation hover:bg-red-500/20"
                         >
-                            <Trash2 size={18} />
-                            <span className="text-[9px] font-bold uppercase truncate w-full text-center">APAGAR</span>
+                            <Trash2 size={16} />
+                            <span className="text-[8px] md:text-[9px] font-bold uppercase truncate w-full text-center">EXCLUIR</span>
                         </button>
                     </div>
                 </div>
