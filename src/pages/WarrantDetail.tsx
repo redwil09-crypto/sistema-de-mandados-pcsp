@@ -907,7 +907,7 @@ Equipe de Capturas - DIG / PCSP
             doc.setTextColor(255, 255, 255);
             doc.setFont('helvetica', 'bold');
             doc.setFontSize(12);
-            doc.text("RELATÓRIO DE INVESTIGAÇÃO POLICIAL", pageWidth / 2, y + 5, { align: 'center' });
+            doc.text("RELATÓRIO CAPTURAS", pageWidth / 2, y + 5, { align: 'center' });
             doc.setTextColor(0, 0, 0); // Reset Color
             y += 12;
 
@@ -926,18 +926,21 @@ Equipe de Capturas - DIG / PCSP
             doc.text(dateStr, pageWidth - margin, y, { align: 'right' });
             y += 6;
 
+            const isMinor = data?.type?.toLowerCase().includes('menores') || data?.type?.toLowerCase().includes('adolescente') || data?.type?.toLowerCase().includes('criança');
+
             const metaFields = [
-                { label: "Natureza:", value: data?.type || "Mandado de Prisão" },
+                { label: "Natureza:", value: data?.type || "Cumprimento de Mandado" },
                 { label: "Referência:", value: `Processo nº. ${data?.number}` },
                 { label: "Juízo de Direito:", value: capturasData.court },
-                { label: "Réu:", value: data?.name }
+                { label: isMinor ? "Adolescente:" : "Réu:", value: data?.name }
             ];
 
             metaFields.forEach(field => {
                 doc.setFont('helvetica', 'bolditalic');
-                const labelWidth = doc.getTextWidth(field.label + " ");
-                doc.text(field.label, margin, y);
+                const labelText = field.label + " ";
+                doc.text(labelText, margin, y);
 
+                const labelWidth = doc.getTextWidth(labelText);
                 doc.setFont('helvetica', 'italic');
                 doc.text(field.value, margin + labelWidth, y);
                 y += 6;
