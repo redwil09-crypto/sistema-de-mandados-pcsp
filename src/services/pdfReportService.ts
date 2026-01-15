@@ -65,11 +65,9 @@ export const generateWarrantPDF = async (
             y += 30;
         }
 
-        // Title
-        doc.setFontSize(14);
-        doc.setFont('helvetica', 'bold');
-        doc.text("RELATÓRIO OPERACIONAL UNIFICADO", pageWidth / 2, y, { align: 'center' });
-        y += 10;
+        // Title removed as requested
+        // doc.text("RELATÓRIO OPERACIONAL UNIFICADO", pageWidth / 2, y, { align: 'center' });
+        y += 5;
 
         // --- PHOTO & MAIN INFO ---
         const photoWidth = 40;
