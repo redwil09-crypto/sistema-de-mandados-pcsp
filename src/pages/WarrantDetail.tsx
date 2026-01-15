@@ -16,6 +16,7 @@ import Header from '../components/Header';
 import ConfirmModal from '../components/ConfirmModal';
 import VoiceInput from '../components/VoiceInput';
 import WarrantAuditLog from '../components/WarrantAuditLog';
+import { formatDate, getStatusColor } from '../utils/helpers';
 import { Warrant } from '../types';
 import { geocodeAddress } from '../services/geocodingService';
 import { generateWarrantPDF } from '../services/pdfReportService';
@@ -1172,9 +1173,9 @@ Equipe de Capturas - DIG / PCSP
                             <input
                                 type="text"
                                 className="text-sm text-text-light dark:text-text-dark bg-transparent border-none w-full focus:ring-1 focus:ring-primary/20 rounded px-1 -ml-1"
-                                value={localData.birthDate || ''}
+                                value={formatDate(localData.birthDate)}
                                 onChange={e => handleFieldChange('birthDate', e.target.value)}
-                                placeholder="YYYY-MM-DD ou DD/MM/YYYY"
+                                placeholder="DD/MM/YYYY"
                             />
                         </div>
                         <div>
@@ -1192,7 +1193,7 @@ Equipe de Capturas - DIG / PCSP
                             <input
                                 type="text"
                                 className="text-sm text-text-light dark:text-text-dark bg-transparent border-none w-full focus:ring-1 focus:ring-primary/20 rounded px-1 -ml-1"
-                                value={localData.issueDate || ''}
+                                value={formatDate(localData.issueDate)}
                                 onChange={e => handleFieldChange('issueDate', e.target.value)}
                                 placeholder="DD/MM/YYYY"
                             />
@@ -1202,7 +1203,7 @@ Equipe de Capturas - DIG / PCSP
                             <input
                                 type="text"
                                 className="text-sm text-text-light dark:text-text-dark bg-transparent border-none w-full focus:ring-1 focus:ring-primary/20 rounded px-1 -ml-1"
-                                value={localData.entryDate || ''}
+                                value={formatDate(localData.entryDate)}
                                 onChange={e => handleFieldChange('entryDate', e.target.value)}
                                 placeholder="DD/MM/YYYY"
                             />
@@ -1212,7 +1213,7 @@ Equipe de Capturas - DIG / PCSP
                             <input
                                 type="text"
                                 className="text-sm text-red-500 font-bold bg-transparent border-none w-full focus:ring-1 focus:ring-primary/20 rounded px-1 -ml-1"
-                                value={localData.expirationDate || ''}
+                                value={formatDate(localData.expirationDate)}
                                 onChange={e => handleFieldChange('expirationDate', e.target.value)}
                                 placeholder="DD/MM/YYYY"
                             />
@@ -1222,7 +1223,7 @@ Equipe de Capturas - DIG / PCSP
                             <input
                                 type="text"
                                 className="text-sm text-text-light dark:text-text-dark bg-transparent border-none w-full focus:ring-1 focus:ring-primary/20 rounded px-1 -ml-1"
-                                value={localData.dischargeDate || ''}
+                                value={formatDate(localData.dischargeDate)}
                                 onChange={e => handleFieldChange('dischargeDate', e.target.value)}
                                 placeholder="DD/MM/YYYY"
                             />

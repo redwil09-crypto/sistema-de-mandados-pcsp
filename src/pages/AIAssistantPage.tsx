@@ -2,12 +2,13 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { jsPDF } from 'jspdf';
+import { formatDate } from '../utils/helpers';
 import {
-    Home, Search, Filter, Gavel, Briefcase, FileUp,
-    Bot, Cpu, Camera, Save, RefreshCw, CheckCircle,
-    Printer, Database, AlertTriangle, Zap, Bell, Paperclip,
-    Mic, MicOff, ListTodo, ShieldAlert, History, Layers, Trash2,
-    User, Calendar, MapPin
+    Cpu, ListTodo, Search, Database, Plus, Trash2,
+    RefreshCw, Save, CheckCircle, Filter, Home, History,
+    Bell, Zap, Printer, User, Calendar, MapPin, Mic,
+    MicOff, Bot, Briefcase, FileUp, Gavel, AlertTriangle,
+    Paperclip, ShieldAlert, Layers, Sparkles
 } from 'lucide-react';
 import Header from '../components/Header';
 import ConfirmModal from '../components/ConfirmModal';
@@ -17,7 +18,7 @@ import { CRIME_OPTIONS } from '../data/constants';
 import { extractPdfData, extractFromText } from '../pdfExtractor';
 import { uploadFile, getPublicUrl } from '../supabaseStorage';
 import { analyzeWarrantData, isGeminiEnabled } from '../services/geminiService';
-import { Sparkles } from 'lucide-react';
+
 
 interface AIAssistantPageProps {
     onAdd: (w: Warrant) => Promise<boolean>;
@@ -693,7 +694,7 @@ const AIAssistantPage = ({ onAdd, warrants }: AIAssistantPageProps) => {
                                                     <label className="text-[10px] uppercase font-bold text-amber-500">Nascimento</label>
                                                     <input
                                                         type="text"
-                                                        value={extractedData.birthDate || ''}
+                                                        value={formatDate(extractedData.birthDate)}
                                                         onChange={(e) => handleExtractedDataChange('birthDate', e.target.value)}
                                                         placeholder="DD/MM/YYYY"
                                                         className="w-full bg-transparent border-b border-border-light dark:border-border-dark py-1 text-sm outline-none"
@@ -750,7 +751,7 @@ const AIAssistantPage = ({ onAdd, warrants }: AIAssistantPageProps) => {
                                                     <label className="text-[10px] uppercase font-bold text-amber-500">Expedição</label>
                                                     <input
                                                         type="text"
-                                                        value={extractedData.issueDate}
+                                                        value={formatDate(extractedData.issueDate)}
                                                         onChange={(e) => handleExtractedDataChange('issueDate', e.target.value)}
                                                         placeholder="DD/MM/YYYY"
                                                         className="w-full bg-transparent border-b border-border-light dark:border-border-dark py-1 text-sm outline-none"
@@ -760,7 +761,7 @@ const AIAssistantPage = ({ onAdd, warrants }: AIAssistantPageProps) => {
                                                     <label className="text-[10px] uppercase font-bold text-amber-500">Vencimento</label>
                                                     <input
                                                         type="text"
-                                                        value={extractedData.expirationDate}
+                                                        value={formatDate(extractedData.expirationDate)}
                                                         onChange={(e) => handleExtractedDataChange('expirationDate', e.target.value)}
                                                         placeholder="DD/MM/YYYY"
                                                         className="w-full bg-transparent border-b border-red-200 dark:border-red-900 py-1 text-sm font-bold text-red-500 outline-none"

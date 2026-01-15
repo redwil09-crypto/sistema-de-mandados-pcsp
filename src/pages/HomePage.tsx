@@ -9,6 +9,7 @@ import {
 import { generateWarrantPDF } from '../services/pdfReportService';
 import { Warrant } from '../types';
 import WarrantCard from '../components/WarrantCard';
+import { formatDate } from '../utils/helpers';
 import { EXPIRING_WARRANTS } from '../data/mockData';
 
 interface HomePageProps {
@@ -89,7 +90,7 @@ const HomePage = ({ isDark, toggleTheme, warrants, onUpdate, onDelete, routeWarr
                                             <div className="flex-1 min-w-0">
                                                 <p className="font-bold text-sm text-text-light dark:text-text-dark truncate">{item.name}</p>
                                                 <p className="text-xs text-text-secondary-light dark:text-text-secondary-dark">{item.type}</p>
-                                                <p className="text-[10px] text-gray-400 mt-0.5">Vence em: {item.date || item.expirationDate}</p>
+                                                <p className="text-[10px] text-gray-400 mt-0.5">Vence em: {formatDate(item.expirationDate || item.date)}</p>
                                             </div>
                                         </Link>
                                     ))}

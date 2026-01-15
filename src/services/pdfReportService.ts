@@ -3,6 +3,7 @@ import { jsPDF } from 'jspdf';
 import { toast } from 'sonner';
 import { Warrant } from '../types';
 import { uploadFile, getPublicUrl } from '../supabaseStorage';
+import { formatDate } from '../utils/helpers';
 
 export const generateWarrantPDF = async (
     data: Warrant,
@@ -179,8 +180,8 @@ export const generateWarrantPDF = async (
             ["Nº Processo:", data.number],
             ["Crime:", data.crime || "-"],
             ["Regime:", data.regime || "-"],
-            ["Expedição:", data.issueDate || "-"],
-            ["Vencimento:", data.expirationDate || "-"],
+            ["Expedição:", formatDate(data.issueDate)],
+            ["Vencimento:", formatDate(data.expirationDate)],
             ["Localização:", data.location || "-"],
         ]);
 

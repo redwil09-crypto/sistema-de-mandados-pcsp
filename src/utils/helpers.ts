@@ -17,12 +17,33 @@ export const getStatusColor = (status: string) => {
     }
 };
 
-export const formatDate = (dateString: string) => {
-    if (!dateString) return '';
-    if (dateString.includes('/')) return dateString;
-    const [year, month, day] = dateString.split('-');
-    if (!day) return dateString;
-    return `${day}/${month}/${year}`;
+export const formatDate = (dateString: string | undefined | null) => {
+    if (!dateString || dateString === '-' || dateString.trim() === '') return '';
+    // If it's already DD/MM/YYYY
+    if (dateString.includes('/') && dateString.length >= 10) return dateString;
+
+    // If it's YYYY-MM-DD
+    if (dateString.includes('-')) {
+        const parts = dateString.split('T')[0].split('-');
+        if (parts.length === 3) {
+            const [year, month, day] = parts;
+            if (year.length === 4) {
+                return `${day.padStart(2, '0')}/${month.padStart(2, '0')}/${year}`;
+            }
+        }
+    }
+
+    // Fallback attempt with JS Date
+    try {
+        const date = new Date(dateString);
+        if (!isNaN(date.getTime())) {
+            return date.toLocaleDateString('pt-BR');
+        }
+    } catch (e) {
+        // ignore
+    }
+
+    return dateString;
 };
 
 export const addDays = (dateStr: string, days: number): string => {
