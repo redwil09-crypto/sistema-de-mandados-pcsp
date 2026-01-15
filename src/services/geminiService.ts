@@ -142,3 +142,52 @@ export async function analyzeRawDiligence(warrantData: any, rawInfo: string) {
         return "Erro ao processar análise de inteligência.";
     }
 }
+
+export async function generateReportBody(warrantData: any, rawContent: string, instructions: string) {
+    if (!(await isGeminiEnabled())) return null;
+
+    try {
+        const model = (await genAI()).getGenerativeModel({ model: "gemini-1.5-flash" });
+
+        const prompt = `
+            Você é um Investigador de Polícia da DIG (Delegacia de Investigações Gerais) de Jacareí/SP, altamente experiente na redação de relatórios de diligências.
+            Sua missão é redigir o CORPO de um RELATÓRIO DE INVESTIGAÇÃO POLICIAL formal, utilizando os dados do mandado e o relato de campo fornecido.
+
+            DADOS DO MANDADO:
+            Nome do Alvo: ${warrantData.name}
+            Processo nº: ${warrantData.number}
+            RG: ${warrantData.rg || 'Não informado'}
+            CPF: ${warrantData.cpf || 'Não informado'}
+            Natureza/Crime: ${warrantData.crime || 'Não informado'}
+            Vara: ${warrantData.court || 'Jacareí/SP'}
+
+            RELATO BRUTO DAS DILIGÊNCIAS (LINHA DO TEMPO E OBSERVAÇÕES):
+            "${rawContent}"
+
+            INSTRUÇÕES ESPECÍFICAS DO POLICIAL:
+            "${instructions || 'Formalize o relatório seguindo o padrão da unidade.'}"
+
+            ESTILO E EXEMPLOS DE REFERÊNCIA (Siga este tom e estrutura):
+            - Para Mandados de Outra Cidade: "Esclarece-se que tal endereço encontra-se sob a competência territorial da (...) –, sendo, portanto, de atribuição daquela unidade policial as providências..."
+            - Para Diligências Negativas (Geral): "Foram realizadas verificações in loco em dias e horários diversos, ocasião em que se constatou ausência de sinais de habitação ou qualquer indício de presença recente do procurado no imóvel."
+            - Para Contato com Familiares: "Ao chegar ao local, os policiais foram atendidos por (...), o qual relatou que o alvo não reside mais no endereço... foi franqueado o acesso ao imóvel, sendo realizada busca em todos os cômodos..."
+            - Para Imóveis com Placas: "Constatando-se que o imóvel encontra-se com placas de 'aluga-se' e 'vende-se', sem qualquer movimentação que indicasse ocupação regular."
+
+            REGRAS CRÍTICAS:
+            1. NÃO invente nomes de policiais ou fatos que não estejam no relato bruto.
+            2. Se no relato bruto disser que o imóvel estava vazio, use termos como "ausência de sinais de habitação".
+            3. Use uma linguagem técnica policial: "in loco", "diligências encetadas", "proferiu palavras no sentido de", "franqueado o acesso", "restaram infrutíferas".
+            4. Se for pensão alimentícia (Prisão Civil), foque na busca por endereços ativos e vínculos locais.
+            5. O texto final deve ser coeso, sem repetições desnecessárias, e pronto para ser impresso em papel timbrado.
+            6. Retorne APENAS o texto do corpo do relatório, sem comentários.
+        `;
+
+        const result = await model.generateContent(prompt);
+        const response = await result.response;
+        return response.text().trim();
+    } catch (error) {
+        console.error("Erro ao gerar corpo do relatório:", error);
+        return null;
+    }
+}
+

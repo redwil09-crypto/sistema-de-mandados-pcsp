@@ -20,7 +20,7 @@ import { formatDate, getStatusColor } from '../utils/helpers';
 import { Warrant } from '../types';
 import { geocodeAddress } from '../services/geocodingService';
 import { generateWarrantPDF } from '../services/pdfReportService';
-import { analyzeRawDiligence } from '../services/geminiService';
+import { analyzeRawDiligence, generateReportBody } from '../services/geminiService';
 import { CRIME_OPTIONS, REGIME_OPTIONS } from '../data/constants';
 
 interface WarrantDetailProps {
@@ -61,8 +61,10 @@ const WarrantDetail = ({ warrants, onUpdate, onDelete, routeWarrants = [], onRou
         court: '',
         body: '',
         signer: 'William Campos A. Castro',
-        delegate: 'Luiz Antônio Cunha dos Santos'
+        delegate: 'Luiz Antônio Cunha dos Santos',
+        aiInstructions: ''
     });
+    const [isGeneratingAiReport, setIsGeneratingAiReport] = useState(false);
 
     const data = useMemo(() => warrants.find(w => w.id === id), [warrants, id]);
 
@@ -1443,7 +1445,7 @@ Equipe de Capturas - DIG / PCSP
                                     <FileText size={18} className="text-primary" />
                                 </div>
                                 <div>
-                                    <p className="text-xs font-black text-text-light dark:text-text-dark uppercase tracking-tight">Relatórios Gerados</p>
+                                    <p className="text-xs font-black text-text-light dark:text-text-dark uppercase tracking-tight">Relatórios</p>
                                     <p className="text-[10px] text-text-secondary-light/70 dark:text-text-dark/50 tracking-tight">Documentos de Inteligência</p>
                                 </div>
                             </div>
