@@ -124,3 +124,35 @@ export async function generateReportBody(warrantData: any, rawContent: string, i
     }
 }
 
+
+export async function analyzeWarrantData(text: string) {
+    if (!(await isGeminiEnabled())) return null;
+
+    try {
+        const model = (await genAI()).getGenerativeModel({ model: "gemini-1.5-flash" });
+
+        const prompt = `
+            Você é um analista de inteligência policial. 
+            Analise o seguinte texto extraído de um mandado judicial ou histórico policial e extraia:
+            1. Um resumo curto (máximo 2 linhas) do perigo ou modus operandi do alvo.
+            2. Tags de alerta (objetivas, ex: "Perigoso", "Risco de Fuga", "Armado", "Violência Doméstica").
+
+            TEXTO:
+            "${text}"
+
+            Responda APENAS em formato JSON:
+            {
+                "summary": "string",
+                "warnings": ["tag1", "tag2"]
+            }
+        `;
+
+        const result = await model.generateContent(prompt);
+        const response = await result.response;
+        const jsonStr = response.text().replace(/```json|```/g, '').trim();
+        return JSON.parse(jsonStr);
+    } catch (error) {
+        console.error("Erro na análise da IA:", error);
+        return null;
+    }
+}
