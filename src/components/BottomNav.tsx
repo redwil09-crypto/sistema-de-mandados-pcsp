@@ -14,18 +14,34 @@ const BottomNav = ({ routeCount = 0 }: BottomNavProps) => {
     const isActive = (path: string) => location.pathname === path;
 
     useEffect(() => {
-        supabase.auth.getUser().then(({ data: { user } }) => {
+        const getRole = async () => {
+            const { data: { user } } = await supabase.auth.getUser();
             if (user) {
-                supabase
+                // Check metadata first
+                if (user.user_metadata?.role === 'admin') {
+                    setIsAdmin(true);
+                    return;
+                }
+
+                // Then check profiles table
+                const { data } = await supabase
                     .from('profiles')
                     .select('role')
                     .eq('id', user.id)
-                    .single()
-                    .then(({ data }) => {
-                        if (data?.role === 'admin') setIsAdmin(true);
-                    });
+                    .single();
+
+                if (data?.role?.toLowerCase() === 'admin') {
+                    setIsAdmin(true);
+                }
             }
+        };
+        getRole();
+
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
+            getRole();
         });
+
+        return () => subscription.unsubscribe();
     }, []);
 
     const hideNav = ['/warrant-detail', '/new-warrant', '/ai-assistant'].some(p => location.pathname.startsWith(p));
@@ -34,7 +50,7 @@ const BottomNav = ({ routeCount = 0 }: BottomNavProps) => {
 
     return (
         <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-border-light bg-surface-light/95 backdrop-blur dark:bg-surface-dark/95 dark:border-border-dark pb-safe">
-            <div className="mx-auto flex h-16 max-w-md items-center justify-around px-4">
+            <div className="mx-auto flex h-16 w-full items-center justify-around px-4">
                 <Link to="/" className={`flex flex-col items-center gap-1 min-w-[50px] ${isActive('/') ? 'text-primary' : 'text-text-secondary-light dark:text-text-secondary-dark'}`}>
                     <Home size={22} strokeWidth={isActive('/') ? 2.5 : 2} />
                     <span className="text-[9px] font-bold">Início</span>

@@ -71,6 +71,7 @@ const WarrantDetail = ({ warrants, onUpdate, onDelete, routeWarrants = [], onRou
     const [localData, setLocalData] = useState<Partial<Warrant>>({});
     const [isConfirmSaveOpen, setIsConfirmSaveOpen] = useState(false);
     const [userId, setUserId] = useState<string | undefined>(undefined);
+    const [isAdmin, setIsAdmin] = useState(false);
 
     useEffect(() => {
         const checkAdmin = async () => {
@@ -1347,7 +1348,7 @@ Equipe de Capturas - DIG / PCSP
                     </div>
                 </div>
 
-                <div className="p-4 space-y-6 max-w-5xl mx-auto">
+                <div className="p-4 space-y-6 w-full">
                     {/* Operational Location Card */}
                     <div className="bg-surface-light dark:bg-surface-dark rounded-2xl shadow-sm border border-border-light dark:border-border-dark overflow-hidden transition-all hover:shadow-md">
                         <div className="p-4 border-b border-border-light dark:border-border-dark bg-gray-50/50 dark:bg-white/5 flex items-center justify-between">
@@ -1476,7 +1477,7 @@ Equipe de Capturas - DIG / PCSP
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
                         {/* 1. Mandado/Ofício/OS Section */}
                         <div className="bg-surface-light dark:bg-surface-dark rounded-2xl shadow-sm border border-border-light dark:border-border-dark overflow-hidden flex flex-col transition-all hover:shadow-md">
                             <div className="p-4 bg-gray-50/50 dark:bg-white/5 border-b border-border-light dark:border-border-dark flex justify-between items-center">
