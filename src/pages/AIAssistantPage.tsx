@@ -2,7 +2,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { jsPDF } from 'jspdf';
-import { formatDate } from '../utils/helpers';
+import { formatDate, maskDate } from '../utils/helpers';
 import {
     Cpu, ListTodo, Search, Database, Plus, Trash2,
     RefreshCw, Save, CheckCircle, Filter, Home, History,
@@ -75,7 +75,23 @@ const AIAssistantPage = ({ onAdd, warrants }: AIAssistantPageProps) => {
             const matchesCrime = filterCrime ? w.crime === filterCrime : true;
             const matchesRegime = filterRegime ? w.regime === filterRegime : true;
             const matchesStatus = filterStatus ? w.status === filterStatus : true;
-            const matchesDate = (!dateStart || (w.date || '') >= dateStart) && (!dateEnd || (w.date || '') <= dateEnd);
+
+            // Date comparison logic
+            let matchesDate = true;
+            if (dateStart || dateEnd) {
+                const wDateStr = w.date || '';
+                const wDate = wDateStr.includes('-') ? wDateStr.split('T')[0] : (wDateStr.includes('/') ? wDateStr.split('/').reverse().join('-') : '');
+
+                if (dateStart && dateStart.length === 10) {
+                    const startISO = dateStart.split('/').reverse().join('-');
+                    if (!wDate || wDate < startISO) matchesDate = false;
+                }
+                if (dateEnd && dateEnd.length === 10) {
+                    const endISO = dateEnd.split('/').reverse().join('-');
+                    if (!wDate || wDate > endISO) matchesDate = false;
+                }
+            }
+
             const matchesObservation = observationKeyword ? (w.observation || '').toLowerCase().includes(observationKeyword.toLowerCase()) : true;
 
             return matchesText && matchesCrime && matchesRegime && matchesStatus && matchesDate && matchesObservation;
@@ -109,14 +125,25 @@ const AIAssistantPage = ({ onAdd, warrants }: AIAssistantPageProps) => {
     };
 
     const handleExtractedDataChange = (field: string, value: any) => {
+        let finalValue = value;
+        if (['birthDate', 'issueDate', 'expirationDate'].includes(field)) {
+            finalValue = maskDate(value);
+        }
+
         setBatchResults(prev => {
             const newResults = [...prev];
-            const current = { ...newResults[currentIndex], [field]: value };
+            const current = { ...newResults[currentIndex], [field]: finalValue };
 
             // Auto-calculate age if birthDate changes
             if (field === 'birthDate') {
-                const birth = value ? (value.includes('/') ? new Date(value.split('/').reverse().join('-')) : new Date(value)) : null;
-                if (birth && !isNaN(birth.getTime())) {
+                const birthStr = finalValue;
+                let birth: Date | null = null;
+                if (birthStr && birthStr.length === 10) {
+                    const [d, m, y] = birthStr.split('/');
+                    birth = new Date(parseInt(y), parseInt(m) - 1, parseInt(d));
+                }
+
+                if (birth && !isNaN(birth.getTime()) && birth.getFullYear() > 1900) {
                     const today = new Date();
                     let age = today.getFullYear() - birth.getFullYear();
                     const m = today.getMonth() - birth.getMonth();
@@ -212,7 +239,15 @@ const AIAssistantPage = ({ onAdd, warrants }: AIAssistantPageProps) => {
                     const data = await extractPdfData(f);
                     // Anti-duplicity check
                     const isDuplicate = warrants.some(w => w.number === data.processNumber);
-                    results.push({ ...data, isDuplicate, tags: data.autoPriority || [] });
+                    const formattedData = {
+                        ...data,
+                        isDuplicate,
+                        tags: data.autoPriority || [],
+                        birthDate: formatDate(data.birthDate),
+                        issueDate: formatDate(data.issueDate),
+                        expirationDate: formatDate(data.expirationDate)
+                    };
+                    results.push(formattedData);
                 } catch (error: any) {
                     toast.error(`Erro no arquivo ${f.name}`);
                 }
@@ -236,7 +271,15 @@ const AIAssistantPage = ({ onAdd, warrants }: AIAssistantPageProps) => {
         try {
             const data = extractFromText(inputText, "Texto via Transferência");
             const isDuplicate = warrants.some(w => w.number === data.processNumber);
-            setBatchResults([{ ...data, isDuplicate, tags: data.autoPriority || [] }]);
+            const formattedData = {
+                ...data,
+                isDuplicate,
+                tags: data.autoPriority || [],
+                birthDate: formatDate(data.birthDate),
+                issueDate: formatDate(data.issueDate),
+                expirationDate: formatDate(data.expirationDate)
+            };
+            setBatchResults([formattedData]);
             setCurrentIndex(0);
             toast.success("Texto processado!");
             setStep('review');
@@ -676,7 +719,7 @@ const AIAssistantPage = ({ onAdd, warrants }: AIAssistantPageProps) => {
                                                     <label className="text-[10px] uppercase font-black text-amber-600 dark:text-amber-400/90">Nascimento</label>
                                                     <input
                                                         type="text"
-                                                        value={formatDate(extractedData.birthDate)}
+                                                        value={extractedData.birthDate || ''}
                                                         onChange={(e) => handleExtractedDataChange('birthDate', e.target.value)}
                                                         placeholder="DD/MM/YYYY"
                                                         className="w-full bg-transparent border-b border-border-light dark:border-border-dark py-1 text-sm outline-none"
@@ -743,7 +786,7 @@ const AIAssistantPage = ({ onAdd, warrants }: AIAssistantPageProps) => {
                                                     <label className="text-[10px] uppercase font-black text-amber-600 dark:text-amber-400/90">Expedição</label>
                                                     <input
                                                         type="text"
-                                                        value={formatDate(extractedData.issueDate)}
+                                                        value={extractedData.issueDate || ''}
                                                         onChange={(e) => handleExtractedDataChange('issueDate', e.target.value)}
                                                         placeholder="DD/MM/YYYY"
                                                         className="w-full bg-transparent border-b border-border-light dark:border-border-dark py-1 text-sm outline-none"
@@ -753,7 +796,7 @@ const AIAssistantPage = ({ onAdd, warrants }: AIAssistantPageProps) => {
                                                     <label className="text-[10px] uppercase font-black text-amber-600 dark:text-amber-400/90">Vencimento</label>
                                                     <input
                                                         type="text"
-                                                        value={formatDate(extractedData.expirationDate)}
+                                                        value={extractedData.expirationDate || ''}
                                                         onChange={(e) => handleExtractedDataChange('expirationDate', e.target.value)}
                                                         placeholder="DD/MM/YYYY"
                                                         className="w-full bg-transparent border-b border-red-200 dark:border-red-900 py-1 text-sm font-bold text-red-500 outline-none"
@@ -1019,6 +1062,28 @@ const AIAssistantPage = ({ onAdd, warrants }: AIAssistantPageProps) => {
                                             <option value="CUMPRIDO">Cumprido</option>
                                             <option value="PRESO">Preso</option>
                                         </select>
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label className="block text-xs font-medium text-text-secondary-light mb-1">Data Início</label>
+                                        <input
+                                            type="text"
+                                            value={dateStart}
+                                            onChange={(e) => setDateStart(maskDate(e.target.value))}
+                                            placeholder="DD/MM/YYYY"
+                                            className="w-full rounded-lg border-gray-200 text-xs p-2"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-medium text-text-secondary-light mb-1">Data Fim</label>
+                                        <input
+                                            type="text"
+                                            value={dateEnd}
+                                            onChange={(e) => setDateEnd(maskDate(e.target.value))}
+                                            placeholder="DD/MM/YYYY"
+                                            className="w-full rounded-lg border-gray-200 text-xs p-2"
+                                        />
                                     </div>
                                 </div>
                             </div>

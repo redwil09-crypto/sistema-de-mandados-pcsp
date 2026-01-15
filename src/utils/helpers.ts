@@ -18,9 +18,10 @@ export const getStatusColor = (status: string) => {
 };
 
 export const formatDate = (dateString: string | undefined | null) => {
-    if (!dateString || dateString === '-' || dateString.trim() === '') return '';
+    if (!dateString || dateString === '-' || dateString.trim() === '' || dateString === 'null') return '';
+    
     // If it's already DD/MM/YYYY
-    if (dateString.includes('/') && dateString.length >= 10) return dateString;
+    if (/^\d{2}\/\d{2}\/\d{4}$/.test(dateString)) return dateString;
 
     // If it's YYYY-MM-DD
     if (dateString.includes('-')) {
@@ -30,13 +31,16 @@ export const formatDate = (dateString: string | undefined | null) => {
             if (year.length === 4) {
                 return `${day.padStart(2, '0')}/${month.padStart(2, '0')}/${year}`;
             }
+            if (day.length === 4) { // handle DD-MM-YYYY if it exists
+                return `${year.padStart(2, '0')}/${month.padStart(2, '0')}/${day}`;
+            }
         }
     }
 
     // Fallback attempt with JS Date
     try {
         const date = new Date(dateString);
-        if (!isNaN(date.getTime())) {
+        if (!isNaN(date.getTime()) && date.getFullYear() > 1900) {
             return date.toLocaleDateString('pt-BR');
         }
     } catch (e) {
@@ -46,10 +50,29 @@ export const formatDate = (dateString: string | undefined | null) => {
     return dateString;
 };
 
+export const maskDate = (value: string): string => {
+    // Remove all non-digits
+    const digits = value.replace(/\D/g, '');
+    
+    // Limit to 8 digits
+    const limited = digits.substring(0, 8);
+    
+    // Apply mask DD/MM/YYYY
+    if (limited.length <= 2) return limited;
+    if (limited.length <= 4) return `${limited.substring(0, 2)}/${limited.substring(2)}`;
+    return `${limited.substring(0, 2)}/${limited.substring(2, 4)}/${limited.substring(4)}`;
+};
+
 export const addDays = (dateStr: string, days: number): string => {
     if (!dateStr) return '';
     try {
-        const date = new Date(dateStr);
+        let date: Date;
+        if (dateStr.includes('/')) {
+            const [d, m, y] = dateStr.split('/');
+            date = new Date(parseInt(y), parseInt(m) - 1, parseInt(d));
+        } else {
+            date = new Date(dateStr);
+        }
         date.setDate(date.getDate() + days);
         return date.toISOString().split('T')[0];
     } catch (e) {

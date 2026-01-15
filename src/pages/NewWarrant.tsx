@@ -14,6 +14,7 @@ import { uploadFile, getPublicUrl } from '../supabaseStorage';
 import VoiceInput from '../components/VoiceInput';
 import { geocodeAddress } from '../services/geocodingService';
 import { analyzeWarrantData, isGeminiEnabled } from '../services/geminiService';
+import { formatDate, maskDate } from '../utils/helpers';
 
 interface NewWarrantProps {
     onAdd: (w: Warrant) => Promise<boolean>;
@@ -101,10 +102,10 @@ const NewWarrant = ({ onAdd, onUpdate, warrants }: NewWarrantProps) => {
                     number: existing.number || '',
                     crime: existing.crime || '',
                     regime: existing.regime || '',
-                    issueDate: parseDate(existing.issueDate),
-                    entryDate: parseDate(existing.entryDate),
-                    expirationDate: parseDate(existing.expirationDate),
-                    dischargeDate: parseDate(existing.dischargeDate),
+                    issueDate: formatDate(existing.issueDate),
+                    entryDate: formatDate(existing.entryDate),
+                    expirationDate: formatDate(existing.expirationDate),
+                    dischargeDate: formatDate(existing.dischargeDate),
                     location: existing.location || '',
                     ifoodNumber: existing.ifoodNumber || '',
                     ifoodResult: existing.ifoodResult || '',
@@ -117,7 +118,7 @@ const NewWarrant = ({ onAdd, onUpdate, warrants }: NewWarrantProps) => {
                     latitude: existing.latitude,
                     longitude: existing.longitude,
                     tacticalSummary: existing.tacticalSummary ? existing.tacticalSummary.join('\n') : '',
-                    birthDate: parseDate(existing.birthDate),
+                    birthDate: formatDate(existing.birthDate),
                     age: existing.age || ''
                 });
 
@@ -175,13 +176,26 @@ const NewWarrant = ({ onAdd, onUpdate, warrants }: NewWarrantProps) => {
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
+        let finalValue = value;
+
+        // Apply masks for dates
+        if (['issueDate', 'entryDate', 'expirationDate', 'dischargeDate', 'birthDate'].includes(name)) {
+            finalValue = maskDate(value);
+        }
+
         setFormData(prev => {
-            const newState = { ...prev, [name]: value };
+            const newState = { ...prev, [name]: finalValue };
 
             // Auto-calculate age if birthDate changes
             if (name === 'birthDate') {
-                const birth = value ? (value.includes('/') ? new Date(value.split('/').reverse().join('-')) : new Date(value)) : null;
-                if (birth && !isNaN(birth.getTime())) {
+                const birthStr = finalValue;
+                let birth: Date | null = null;
+                if (birthStr && birthStr.length === 10) {
+                    const [d, m, y] = birthStr.split('/');
+                    birth = new Date(parseInt(y), parseInt(m) - 1, parseInt(d));
+                }
+
+                if (birth && !isNaN(birth.getTime()) && birth.getFullYear() > 1900) {
                     const today = new Date();
                     let age = today.getFullYear() - birth.getFullYear();
                     const m = today.getMonth() - birth.getMonth();
@@ -419,7 +433,7 @@ const NewWarrant = ({ onAdd, onUpdate, warrants }: NewWarrantProps) => {
                         </div>
                         <div>
                             <label className="block text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark mb-1">Data Nascimento</label>
-                            <input name="birthDate" value={formData.birthDate} onChange={handleChange} type="date" className="w-full rounded-lg border border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark p-2.5 text-sm text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none" />
+                            <input name="birthDate" value={formData.birthDate} onChange={handleChange} type="text" className="w-full rounded-lg border border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark p-2.5 text-sm text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none" placeholder="DD/MM/YYYY" />
                         </div>
                         <div>
                             <label className="block text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark mb-1">Idade Atual</label>
@@ -475,19 +489,19 @@ const NewWarrant = ({ onAdd, onUpdate, warrants }: NewWarrantProps) => {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
                             <label className="block text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark mb-1">Data Expedição</label>
-                            <input name="issueDate" value={formData.issueDate} onChange={handleChange} type="date" className="w-full rounded-lg border border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark p-2.5 text-sm text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none" />
+                            <input name="issueDate" value={formData.issueDate} onChange={handleChange} type="text" className="w-full rounded-lg border border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark p-2.5 text-sm text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none" placeholder="DD/MM/YYYY" />
                         </div>
                         <div>
                             <label className="block text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark mb-1">Entrada Capturas</label>
-                            <input name="entryDate" value={formData.entryDate} onChange={handleChange} type="date" className="w-full rounded-lg border border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark p-2.5 text-sm text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none" />
+                            <input name="entryDate" value={formData.entryDate} onChange={handleChange} type="text" className="w-full rounded-lg border border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark p-2.5 text-sm text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none" placeholder="DD/MM/YYYY" />
                         </div>
                         <div>
                             <label className="block text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark mb-1">Vencimento</label>
-                            <input name="expirationDate" value={formData.expirationDate} onChange={handleChange} type="date" className="w-full rounded-lg border border-red-200 dark:border-red-900 bg-background-light dark:bg-background-dark p-2.5 text-sm text-text-light dark:text-text-dark focus:ring-2 focus:ring-red-500 outline-none" />
+                            <input name="expirationDate" value={formData.expirationDate} onChange={handleChange} type="text" className="w-full rounded-lg border border-red-200 dark:border-red-900 bg-background-light dark:bg-background-dark p-2.5 text-sm text-text-light dark:text-text-dark focus:ring-2 focus:ring-red-500 outline-none" placeholder="DD/MM/YYYY" />
                         </div>
                         <div>
                             <label className="block text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark mb-1">Data Baixa</label>
-                            <input name="dischargeDate" value={formData.dischargeDate} onChange={handleChange} type="date" className="w-full rounded-lg border border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark p-2.5 text-sm text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none" />
+                            <input name="dischargeDate" value={formData.dischargeDate} onChange={handleChange} type="text" className="w-full rounded-lg border border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark p-2.5 text-sm text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none" placeholder="DD/MM/YYYY" />
                         </div>
                     </div>
                 </div>

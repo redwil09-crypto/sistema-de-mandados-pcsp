@@ -8,6 +8,7 @@ import { Warrant } from '../types';
 import { CRIME_OPTIONS, REGIME_OPTIONS } from '../data/constants';
 
 import { generateWarrantPDF } from '../services/pdfReportService';
+import { maskDate } from '../utils/helpers';
 
 interface AdvancedSearchProps {
     warrants: Warrant[];
@@ -53,7 +54,23 @@ const AdvancedSearch = ({ warrants, onUpdate, onDelete, routeWarrants = [], onRo
         const matchesCrime = filterCrime ? w.crime === filterCrime : true;
         const matchesRegime = filterRegime ? w.regime === filterRegime : true;
         const matchesStatus = filterStatus ? w.status === filterStatus : true;
-        const matchesDate = (!dateStart || (w.date && w.date >= dateStart)) && (!dateEnd || (w.date && w.date <= dateEnd));
+
+        // Date comparison logic
+        let matchesDate = true;
+        if (dateStart || dateEnd) {
+            const wDateStr = w.date || '';
+            const wDate = wDateStr.includes('-') ? wDateStr.split('T')[0] : (wDateStr.includes('/') ? wDateStr.split('/').reverse().join('-') : '');
+
+            if (dateStart && dateStart.length === 10) {
+                const startISO = dateStart.split('/').reverse().join('-');
+                if (!wDate || wDate < startISO) matchesDate = false;
+            }
+            if (dateEnd && dateEnd.length === 10) {
+                const endISO = dateEnd.split('/').reverse().join('-');
+                if (!wDate || wDate > endISO) matchesDate = false;
+            }
+        }
+
         const matchesObservation = observationKeyword ? (w.observation || '').toLowerCase().includes(observationKeyword.toLowerCase()) : true;
 
         return matchesText && matchesCrime && matchesRegime && matchesStatus && matchesDate && matchesObservation;
@@ -170,26 +187,26 @@ const AdvancedSearch = ({ warrants, onUpdate, onDelete, routeWarrants = [], onRo
                             </div>
                         </div>
                     </div>
-                    <div>
-                        <label className="block text-xs font-medium text-text-secondary-light dark:text-text-secondary-dark mb-1">Data de Emissão</label>
-                        <div className="flex gap-2">
-                            <div className="flex-1">
-                                <input
-                                    type="date"
-                                    value={dateStart}
-                                    onChange={(e) => setDateStart(e.target.value)}
-                                    className="w-full rounded-lg border border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark p-2 text-sm text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none"
-                                />
-                            </div>
-                            <span className="self-center text-gray-400">-</span>
-                            <div className="flex-1">
-                                <input
-                                    type="date"
-                                    value={dateEnd}
-                                    onChange={(e) => setDateEnd(e.target.value)}
-                                    className="w-full rounded-lg border border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark p-2 text-sm text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none"
-                                />
-                            </div>
+                    <label className="block text-xs font-medium text-text-secondary-light dark:text-text-secondary-dark mb-1">Data de Emissão (Início - Fim)</label>
+                    <div className="flex gap-2">
+                        <div className="flex-1">
+                            <input
+                                type="text"
+                                value={dateStart}
+                                onChange={(e) => setDateStart(maskDate(e.target.value))}
+                                placeholder="DD/MM/YYYY"
+                                className="w-full rounded-lg border border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark p-2 text-sm text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none"
+                            />
+                        </div>
+                        <span className="self-center text-gray-400">-</span>
+                        <div className="flex-1">
+                            <input
+                                type="text"
+                                value={dateEnd}
+                                onChange={(e) => setDateEnd(maskDate(e.target.value))}
+                                placeholder="DD/MM/YYYY"
+                                className="w-full rounded-lg border border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark p-2 text-sm text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none"
+                            />
                         </div>
                     </div>
                 </div>

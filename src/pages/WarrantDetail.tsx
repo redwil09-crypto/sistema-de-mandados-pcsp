@@ -16,7 +16,7 @@ import Header from '../components/Header';
 import ConfirmModal from '../components/ConfirmModal';
 import VoiceInput from '../components/VoiceInput';
 import WarrantAuditLog from '../components/WarrantAuditLog';
-import { formatDate, getStatusColor } from '../utils/helpers';
+import { formatDate, getStatusColor, maskDate } from '../utils/helpers';
 import { Warrant } from '../types';
 import { geocodeAddress } from '../services/geocodingService';
 import { generateWarrantPDF } from '../services/pdfReportService';
@@ -87,19 +87,36 @@ const WarrantDetail = ({ warrants, onUpdate, onDelete, routeWarrants = [], onRou
 
     useEffect(() => {
         if (data) {
-            setLocalData(data);
+            setLocalData({
+                ...data,
+                birthDate: formatDate(data.birthDate),
+                issueDate: formatDate(data.issueDate),
+                entryDate: formatDate(data.entryDate),
+                expirationDate: formatDate(data.expirationDate),
+                dischargeDate: formatDate(data.dischargeDate),
+            });
         }
     }, [data]);
 
     const hasChanges = useMemo(() => {
         if (!data) return false;
         const fields: (keyof Warrant)[] = [
-            'name', 'type', 'rg', 'cpf', 'number', 'crime', 'regime',
-            'location', 'ifoodNumber', 'ifoodResult', 'digOffice',
-            'issueDate', 'entryDate', 'expirationDate', 'dischargeDate', 'observation',
-            'birthDate', 'age'
+            'name', 'type', 'rg', 'cpf', 'number', 'crime', 'regime', 'location', 
+            'ifoodNumber', 'ifoodResult', 'digOffice', 'observation', 'age'
         ];
-        return fields.some(key => localData[key] !== data[key]);
+        
+        const basicChanges = fields.some(key => localData[key] !== data[key]);
+        if (basicChanges) return true;
+
+        const dateFields: (keyof Warrant)[] = [
+            'issueDate', 'entryDate', 'expirationDate', 'dischargeDate', 'birthDate'
+        ];
+        
+        return dateFields.some(key => {
+            const localVal = localData[key] ? formatDate(localData[key] as string) : '';
+            const dataVal = data[key] ? formatDate(data[key] as string) : '';
+            return localVal !== dataVal;
+        });
     }, [localData, data]);
 
     // Pre-fill report body when modal opens
@@ -148,13 +165,25 @@ const WarrantDetail = ({ warrants, onUpdate, onDelete, routeWarrants = [], onRou
     };
 
     const handleFieldChange = (field: keyof Warrant, value: any) => {
+        let finalValue = value;
+        // Apply masks for dates
+        if (['issueDate', 'entryDate', 'expirationDate', 'dischargeDate', 'birthDate'].includes(field as string)) {
+            finalValue = maskDate(value);
+        }
+
         setLocalData(prev => {
-            const newState = { ...prev, [field]: value };
+            const newState = { ...prev, [field]: finalValue };
 
             // Auto-calculate age if birthDate changes
             if (field === 'birthDate') {
-                const birth = value ? (value.includes('/') ? new Date(value.split('/').reverse().join('-')) : new Date(value)) : null;
-                if (birth && !isNaN(birth.getTime())) {
+                const birthStr = finalValue;
+                let birth: Date | null = null;
+                if (birthStr && birthStr.length === 10) {
+                    const [d, m, y] = birthStr.split('/');
+                    birth = new Date(parseInt(y), parseInt(m) - 1, parseInt(d));
+                }
+                
+                if (birth && !isNaN(birth.getTime()) && birth.getFullYear() > 1900) {
                     const today = new Date();
                     let age = today.getFullYear() - birth.getFullYear();
                     const m = today.getMonth() - birth.getMonth();
@@ -1211,7 +1240,7 @@ Equipe de Capturas - DIG / PCSP
                             <input
                                 type="text"
                                 className="text-sm text-text-light dark:text-text-dark bg-transparent border-none w-full focus:ring-1 focus:ring-primary/20 rounded px-1 -ml-1 border-b border-transparent hover:border-gray-200 dark:hover:border-white/10"
-                                value={formatDate(localData.birthDate)}
+                                value={localData.birthDate ? formatDate(localData.birthDate) : ''}
                                 onChange={e => handleFieldChange('birthDate', e.target.value)}
                                 placeholder="DD/MM/YYYY"
                             />
@@ -1280,7 +1309,7 @@ Equipe de Capturas - DIG / PCSP
                             <input
                                 type="text"
                                 className="text-sm text-text-light dark:text-text-dark bg-transparent border-none w-full focus:ring-1 focus:ring-primary/20 rounded px-1 -ml-1"
-                                value={formatDate(localData.issueDate)}
+                                value={localData.issueDate ? formatDate(localData.issueDate) : ''}
                                 onChange={e => handleFieldChange('issueDate', e.target.value)}
                                 placeholder="DD/MM/YYYY"
                             />
@@ -1290,7 +1319,7 @@ Equipe de Capturas - DIG / PCSP
                             <input
                                 type="text"
                                 className="text-sm text-text-light dark:text-text-dark bg-transparent border-none w-full focus:ring-1 focus:ring-primary/20 rounded px-1 -ml-1"
-                                value={formatDate(localData.entryDate)}
+                                value={localData.entryDate ? formatDate(localData.entryDate) : ''}
                                 onChange={e => handleFieldChange('entryDate', e.target.value)}
                                 placeholder="DD/MM/YYYY"
                             />
@@ -1300,7 +1329,7 @@ Equipe de Capturas - DIG / PCSP
                             <input
                                 type="text"
                                 className="text-sm text-red-500 font-bold bg-transparent border-none w-full focus:ring-1 focus:ring-primary/20 rounded px-1 -ml-1"
-                                value={formatDate(localData.expirationDate)}
+                                value={localData.expirationDate ? formatDate(localData.expirationDate) : ''}
                                 onChange={e => handleFieldChange('expirationDate', e.target.value)}
                                 placeholder="DD/MM/YYYY"
                             />
@@ -1310,7 +1339,7 @@ Equipe de Capturas - DIG / PCSP
                             <input
                                 type="text"
                                 className="text-sm text-text-light dark:text-text-dark bg-transparent border-none w-full focus:ring-1 focus:ring-primary/20 rounded px-1 -ml-1"
-                                value={formatDate(localData.dischargeDate)}
+                                value={localData.dischargeDate ? formatDate(localData.dischargeDate) : ''}
                                 onChange={e => handleFieldChange('dischargeDate', e.target.value)}
                                 placeholder="DD/MM/YYYY"
                             />
