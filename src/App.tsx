@@ -220,7 +220,7 @@ function App() {
                         />} />
 
                         <Route path="/stats" element={<Stats warrants={warrants} />} />
-                        <Route path="/intel" element={<IntelCenter warrants={warrants} />} />
+                        <Route path="/intel" element={<IntelCenter warrants={warrants} onAdd={handleAddWarrant} />} />
                         <Route path="/profile" element={<Profile />} />
                         <Route path="/ai-assistant" element={<AIAssistantPage onAdd={handleAddWarrant} warrants={warrants} />} />
                         <Route path="/map" element={<OperationalMap warrants={warrants} onUpdate={handleUpdateWarrant} />} />
