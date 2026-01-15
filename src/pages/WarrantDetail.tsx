@@ -534,6 +534,22 @@ Equipe de Capturas - DIG / PCSP
         }
     };
 
+    const handleDeleteAttachment = async (urlToDelete: string) => {
+        if (!data) return;
+
+        const confirmResult = window.confirm("Tem certeza que deseja excluir este documento?");
+        if (!confirmResult) return;
+
+        const updatedAttachments = (data.attachments || []).filter(url => url !== urlToDelete);
+        const success = await onUpdate(data.id, { attachments: updatedAttachments });
+
+        if (success) {
+            toast.success("Documento excluído com sucesso!");
+        } else {
+            toast.error("Erro ao excluir documento.");
+        }
+    };
+
     const handleDelete = () => {
         setIsDeleteConfirmOpen(true);
     };
@@ -1426,160 +1442,168 @@ Equipe de Capturas - DIG / PCSP
                     </div>
                 </div>
 
-                {/* 1. Mandado/Ofício/OS Section */}
-                <div className="bg-surface-light dark:bg-surface-dark p-4 rounded-xl shadow-sm border border-border-light dark:border-border-dark space-y-4">
-                    <div className="flex justify-between items-center bg-gray-50 dark:bg-white/5 p-3 rounded-xl border border-border-light dark:border-border-dark">
-                        <div className="flex items-center gap-2">
-                            <div className="p-2 bg-primary/10 rounded-lg">
-                                <Paperclip size={18} className="text-primary" />
-                            </div>
-                            <div>
-                                <p className="text-xs font-black text-text-light dark:text-text-dark uppercase tracking-tight">Dossiê de Documentos</p>
-                                <p className="text-[10px] text-text-secondary-light">Mandados, Ofícios e OS</p>
-                            </div>
-                        </div>
-                        <label htmlFor="detail-attach-upload" className="bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] font-bold px-3 py-2 rounded-lg flex items-center gap-1.5 transition-all active:scale-95 shadow-lg shadow-indigo-500/20 cursor-pointer">
-                            <Plus size={14} /> ANEXAR
-                            <input
-                                id="detail-attach-upload"
-                                type="file"
-                                className="hidden"
-                                onChange={(e) => handleAttachFile(e, 'attachments')}
-                                disabled={isUploadingFile}
-                            />
-                        </label>
-                    </div>
-
-                    {data.attachments && data.attachments.filter(att =>
-                        !att.includes('/reports/') &&
-                        !att.includes('/ifoodDocs/')
-                    ).length > 0 ? (
-                        <ul className="space-y-2">
-                            {data.attachments
-                                .filter(att =>
-                                    !att.includes('/reports/') &&
-                                    !att.includes('/ifoodDocs/')
-                                )
-                                .map((att, idx) => {
-                                    const isUrl = att.startsWith('http');
-                                    return (
-                                        <li key={idx}
-                                            className="flex items-center justify-between p-3 bg-white dark:bg-black/20 rounded-xl border border-border-light dark:border-border-dark group hover:border-primary/50 transition-all hover:shadow-md"
-                                        >
-                                            <div className="flex items-center gap-3 overflow-hidden flex-1 cursor-pointer"
-                                                onClick={() => isUrl ? window.open(att, '_blank') : toast.info(`Arquivo de referência: ${att}. Anexe o PDF para visualizar.`)}>
-                                                <div className="p-2 bg-gray-50 dark:bg-white/5 rounded-lg border border-border-light dark:border-border-dark group-hover:bg-primary/5 transition-colors">
-                                                    <Paperclip size={16} className="text-primary" />
-                                                </div>
-                                                <div className="flex flex-col truncate">
-                                                    <span className="text-xs font-bold text-text-light dark:text-text-dark truncate">
-                                                        {att.split('/').pop()?.split('_').slice(1).join('_') || att}
-                                                    </span>
-                                                    <span className="text-[9px] text-text-secondary-light uppercase font-bold opacity-60">Documento Oficial</span>
-                                                </div>
-                                            </div>
-                                            {isUrl ? (
-                                                <a
-                                                    href={att}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="text-[10px] font-bold text-primary hover:underline bg-primary/10 px-3 py-1.5 rounded-lg transition-colors hover:bg-primary/20"
-                                                >
-                                                    ABRIR
-                                                </a>
-                                            ) : (
-                                                <span className="text-[9px] text-gray-400 font-bold uppercase tracking-widest bg-gray-100 dark:bg-white/5 px-2 py-1 rounded">REF</span>
-                                            )}
-                                        </li>
-                                    );
-                                })}
-                        </ul>
-                    ) : (
-                        <div className="py-8 text-center flex flex-col items-center gap-2 opacity-50">
-                            <Paperclip size={32} className="text-gray-400" />
-                            <p className="text-xs font-bold uppercase tracking-widest text-gray-400">Nenhum documento</p>
-                        </div>
-                    )}
-                </div>
-
-                {/* 2. Relatórios Section */}
-                <div className="bg-surface-light dark:bg-surface-dark p-4 rounded-xl shadow-sm border border-border-light dark:border-border-dark space-y-4">
-                    <div className="flex flex-col gap-3 bg-gray-50 dark:bg-white/5 p-3 rounded-xl border border-border-light dark:border-border-dark">
-                        <div className="flex justify-between items-center">
-                            <div className="flex items-center gap-2">
-                                <div className="p-2 bg-primary/10 rounded-lg">
-                                    <FileText size={18} className="text-primary" />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* 1. Mandado/Ofício/OS Section */}
+                    <div className="bg-surface-light dark:bg-surface-dark p-1 rounded-xl shadow-sm border border-border-light dark:border-border-dark flex flex-col">
+                        <div className="p-4 space-y-4 flex-1">
+                            <div className="flex justify-between items-center bg-gray-50 dark:bg-white/5 p-3 rounded-xl border border-border-light dark:border-border-dark min-h-[64px]">
+                                <div className="flex items-center gap-2">
+                                    <div className="p-2 bg-blue-500/10 rounded-lg">
+                                        <Paperclip size={18} className="text-blue-500" />
+                                    </div>
+                                    <div>
+                                        <p className="text-xs font-black text-text-light dark:text-text-dark uppercase tracking-tight leading-none mb-1">Mandado / Ofício / OS</p>
+                                        <p className="text-[10px] text-text-secondary-light leading-none">Documentos Oficiais</p>
+                                    </div>
                                 </div>
-                                <div>
-                                    <p className="text-xs font-black text-text-light dark:text-text-dark uppercase tracking-tight">Relatórios</p>
-                                    <p className="text-[10px] text-text-secondary-light/70 dark:text-text-dark/50 tracking-tight">Documentos de Inteligência</p>
-                                </div>
+                                <label htmlFor="detail-attach-upload" className="bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-bold px-3 py-2 rounded-lg flex items-center gap-1.5 transition-all active:scale-95 shadow-lg shadow-blue-500/20 cursor-pointer shrink-0">
+                                    <Plus size={14} /> ADICIONAR
+                                    <input
+                                        id="detail-attach-upload"
+                                        type="file"
+                                        className="hidden"
+                                        onChange={(e) => handleAttachFile(e, 'attachments')}
+                                        disabled={isUploadingFile}
+                                    />
+                                </label>
                             </div>
-                        </div>
-                        <div className="flex gap-2">
-                            <label htmlFor="report-upload" className="flex-1 bg-gray-600 hover:bg-gray-700 text-white text-[10px] font-bold px-3 py-2 rounded-lg flex items-center justify-center gap-1.5 transition-all active:scale-95 shadow-lg shadow-gray-500/20 cursor-pointer">
-                                <Plus size={14} /> ANEXAR PDF
-                                <input
-                                    id="report-upload"
-                                    type="file"
-                                    className="hidden"
-                                    onChange={(e) => handleAttachFile(e, 'reports')}
-                                    disabled={isUploadingFile}
-                                />
-                            </label>
-                            <button
-                                onClick={handleOpenCapturasModal}
-                                className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] font-bold px-3 py-2 rounded-lg flex items-center justify-center gap-1.5 transition-all active:scale-95 shadow-lg shadow-indigo-500/20"
-                            >
-                                <Plus size={14} /> GERAR RELATÓRIO
-                            </button>
+
+                            <div className="space-y-2 min-h-[120px]">
+                                {data.attachments && data.attachments.filter(att => 
+                                    !att.includes('/reports/') && !att.includes('/ifoodDocs/')
+                                ).length > 0 ? (
+                                    <ul className="space-y-2">
+                                        {data.attachments
+                                            .filter(att => !att.includes('/reports/') && !att.includes('/ifoodDocs/'))
+                                            .map((att, idx) => {
+                                                const isUrl = att.startsWith('http');
+                                                const fileName = att.split('/').pop()?.split('_').slice(1).join('_') || att;
+                                                return (
+                                                    <li key={idx}
+                                                        className="flex items-center justify-between p-3 bg-white dark:bg-black/20 rounded-xl border border-border-light dark:border-border-dark group hover:border-primary/50 transition-all"
+                                                    >
+                                                        <div className="flex items-center gap-3 overflow-hidden flex-1 cursor-pointer"
+                                                            onClick={() => isUrl ? window.open(att, '_blank') : toast.info(`Arquivo de referência: ${att}.`)}>
+                                                            <div className="truncate flex flex-col">
+                                                                <span className="text-xs font-bold text-text-light dark:text-text-dark truncate leading-none mb-1">{fileName}</span>
+                                                                <span className="text-[9px] text-text-secondary-light/60 uppercase font-bold tracking-widest">Oficial</span>
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex items-center gap-3 shrink-0">
+                                                            {isUrl && (
+                                                                <button 
+                                                                    onClick={() => window.open(att, '_blank')}
+                                                                    className="text-[10px] font-black text-primary hover:underline hover:scale-110 transition-transform"
+                                                                >
+                                                                    Ver
+                                                                </button>
+                                                            )}
+                                                            <button 
+                                                                onClick={(e) => { e.stopPropagation(); handleDeleteAttachment(att); }}
+                                                                className="text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 p-1.5 rounded-lg transition-all hover:scale-110"
+                                                                title="Excluir"
+                                                            >
+                                                                <X size={16} />
+                                                            </button>
+                                                        </div>
+                                                    </li>
+                                                );
+                                            })}
+                                    </ul>
+                                ) : (
+                                    <div className="py-8 text-center flex flex-col items-center gap-2 opacity-30 border-2 border-dashed border-border-light dark:border-border-dark rounded-xl h-full justify-center">
+                                        <Plus size={24} className="text-gray-400" />
+                                        <p className="text-[10px] font-bold uppercase text-gray-400">Adicionar Documento</p>
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </div>
 
-                    {data.attachments && data.attachments.some(report => report.includes('/reports/')) ? (
-                        <ul className="space-y-2">
-                            {data.attachments
-                                .filter(report => report.includes('/reports/'))
-                                .map((report, idx) => {
-                                    const isUrl = report.startsWith('http');
-                                    return (
-                                        <li key={idx}
-                                            className="flex items-center justify-between p-3 bg-white dark:bg-black/20 rounded-xl border border-border-light dark:border-border-dark group hover:border-primary/50 transition-all hover:shadow-md"
+                    {/* 2. Relatórios Section */}
+                    <div className="bg-surface-light dark:bg-surface-dark p-1 rounded-xl shadow-sm border border-border-light dark:border-border-dark flex flex-col">
+                        <div className="p-4 space-y-4 flex-1">
+                            <div className="flex flex-col gap-3 bg-gray-50 dark:bg-white/5 p-3 rounded-xl border border-border-light dark:border-border-dark min-h-[64px] justify-center">
+                                <div className="flex justify-between items-center">
+                                    <div className="flex items-center gap-2">
+                                        <div className="p-2 bg-indigo-500/10 rounded-lg">
+                                            <FileText size={18} className="text-indigo-500" />
+                                        </div>
+                                        <div>
+                                            <p className="text-xs font-black text-text-light dark:text-text-dark uppercase tracking-tight leading-none mb-1">Relatórios</p>
+                                            <p className="text-[10px] text-text-secondary-light/70 dark:text-text-dark/50 tracking-tight leading-none">Inteligência</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <label htmlFor="report-upload" className="bg-gray-600 hover:bg-gray-700 text-white text-[10px] font-bold px-3 py-2 rounded-lg flex items-center justify-center gap-1.5 transition-all active:scale-95 cursor-pointer shadow-lg shadow-gray-500/10 shrink-0">
+                                            <Plus size={14} /> ADICIONAR
+                                            <input
+                                                id="report-upload"
+                                                type="file"
+                                                className="hidden"
+                                                onChange={(e) => handleAttachFile(e, 'reports')}
+                                                disabled={isUploadingFile}
+                                            />
+                                        </label>
+                                        <button
+                                            onClick={handleOpenCapturasModal}
+                                            className="bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] font-bold px-3 py-2 rounded-lg flex items-center justify-center gap-1.5 transition-all active:scale-95 shadow-lg shadow-indigo-500/10 shrink-0"
                                         >
-                                            <div className="flex items-center gap-3 overflow-hidden flex-1 cursor-pointer"
-                                                onClick={() => isUrl ? window.open(report, '_blank') : toast.info(`Arquivo de referência: ${report}. Anexe o PDF para visualizar.`)}>
-                                                <div className="p-2 bg-gray-50 dark:bg-white/5 rounded-lg border border-border-light dark:border-border-dark group-hover:bg-primary/5 transition-colors">
-                                                    <FileText size={16} className="text-primary" />
-                                                </div>
-                                                <div className="flex flex-col truncate">
-                                                    <span className="text-xs font-bold text-text-light dark:text-text-dark whitespace-nowrap">Relatório #{idx + 1}</span>
-                                                    <span className="text-[9px] text-text-secondary-light truncate">
-                                                        {report.split('/').pop()?.split('_').pop() || report}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                            {isUrl ? (
-                                                <a
-                                                    href={report}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="text-[10px] font-bold text-primary hover:underline bg-primary/10 px-3 py-1.5 rounded-lg transition-colors hover:bg-primary/20"
-                                                >
-                                                    VER PDF
-                                                </a>
-                                            ) : (
-                                                <span className="text-[9px] text-gray-400 font-bold uppercase tracking-widest bg-gray-100 dark:bg-white/5 px-2 py-1 rounded">REF</span>
-                                            )}
-                                        </li>
-                                    );
-                                })}
-                        </ul>
-                    ) : (
-                        <div className="py-8 text-center flex flex-col items-center gap-2 opacity-50">
-                            <FileText size={32} className="text-gray-400" />
-                            <p className="text-xs font-bold uppercase tracking-widest text-gray-400">Sem relatórios</p>
+                                            <Plus size={14} /> GERAR
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="space-y-2 min-h-[120px]">
+                                {data.attachments && data.attachments.some(report => report.includes('/reports/')) ? (
+                                    <ul className="space-y-2">
+                                        {data.attachments
+                                            .filter(report => report.includes('/reports/'))
+                                            .map((report, idx) => {
+                                                const isUrl = report.startsWith('http');
+                                                const fileName = report.split('/').pop()?.split('_').pop() || report;
+                                                return (
+                                                    <li key={idx}
+                                                        className="flex items-center justify-between p-3 bg-white dark:bg-black/20 rounded-xl border border-border-light dark:border-border-dark group hover:border-primary/50 transition-all shadow-sm"
+                                                    >
+                                                        <div className="flex items-center gap-3 overflow-hidden flex-1 cursor-pointer"
+                                                            onClick={() => isUrl ? window.open(report, '_blank') : toast.info(`Arquivo: ${report}`)}>
+                                                            <div className="truncate flex flex-col">
+                                                                <span className="text-xs font-bold text-text-light dark:text-text-dark truncate leading-none mb-1">Relatório #{idx + 1}</span>
+                                                                <span className="text-[9px] text-text-secondary-light truncate leading-none">{fileName}</span>
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex items-center gap-3 shrink-0">
+                                                            {isUrl && (
+                                                                <button 
+                                                                    onClick={() => window.open(report, '_blank')}
+                                                                    className="text-[10px] font-black text-primary hover:underline hover:scale-110 transition-transform"
+                                                                >
+                                                                    Ver
+                                                                </button>
+                                                            )}
+                                                            <button 
+                                                                onClick={(e) => { e.stopPropagation(); handleDeleteAttachment(report); }}
+                                                                className="text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 p-1.5 rounded-lg transition-all hover:scale-110"
+                                                                title="Excluir"
+                                                            >
+                                                                <X size={16} />
+                                                            </button>
+                                                        </div>
+                                                    </li>
+                                                );
+                                            })}
+                                    </ul>
+                                ) : (
+                                    <div className="py-8 text-center flex flex-col items-center gap-2 opacity-30 border-2 border-dashed border-border-light dark:border-border-dark rounded-xl h-full justify-center">
+                                        <Plus size={24} className="text-gray-400" />
+                                        <p className="text-[10px] font-bold uppercase text-gray-400">Adicionar Relatório</p>
+                                    </div>
+                                )}
+                            </div>
                         </div>
-                    )}
+                    </div>
                 </div>
 
                 {/* 3. Investigação Section */}
@@ -1617,6 +1641,37 @@ Equipe de Capturas - DIG / PCSP
                     </div>
 
                     <div className="grid grid-cols-1 gap-4">
+                        {/* Display iFood Documents */}
+                        {data.attachments && data.attachments.some(att => att.includes('/ifoodDocs/')) && (
+                            <div className="bg-white dark:bg-black/20 p-3 rounded-xl border border-border-light dark:border-border-dark">
+                                <p className="text-[10px] text-text-secondary-light dark:text-text-dark/70 uppercase font-black tracking-widest mb-2 px-1">Documentos em Anexo</p>
+                                <ul className="space-y-2">
+                                    {data.attachments
+                                        .filter(att => att.includes('/ifoodDocs/'))
+                                        .map((att, idx) => {
+                                            const isUrl = att.startsWith('http');
+                                            const fileName = att.split('/').pop()?.split('_').slice(1).join('_') || att;
+                                            return (
+                                                <li key={idx} className="flex items-center justify-between p-2 bg-gray-50 dark:bg-white/5 rounded-lg border border-border-light dark:border-border-dark">
+                                                    <span className="text-xs font-bold text-text-light dark:text-text-dark truncate flex-1">{fileName}</span>
+                                                    <div className="flex items-center gap-2">
+                                                        {isUrl && (
+                                                            <button onClick={() => window.open(att, '_blank')} className="text-[10px] font-bold text-primary hover:underline">Ver</button>
+                                                        )}
+                                                        <button 
+                                                            onClick={(e) => { e.stopPropagation(); handleDeleteAttachment(att); }}
+                                                            className="text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 p-1 rounded transition-colors"
+                                                        >
+                                                            <X size={14} />
+                                                        </button>
+                                                    </div>
+                                                </li>
+                                            );
+                                        })}
+                                </ul>
+                            </div>
+                        )}
+
                         <div className="bg-white dark:bg-black/20 p-3 rounded-xl border border-border-light dark:border-border-dark">
                             <p className="text-[10px] text-text-secondary-light dark:text-text-dark/70 uppercase font-black tracking-widest mb-2 px-1">Ofício iFood nº</p>
                             <input

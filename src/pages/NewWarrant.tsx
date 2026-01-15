@@ -160,6 +160,9 @@ const NewWarrant = ({ onAdd, onUpdate, warrants }: NewWarrantProps) => {
     };
 
     const handleRemoveOldFile = (index: number, type: 'reports' | 'attachments') => {
+        const confirmResult = window.confirm("Tem certeza que deseja excluir este documento?");
+        if (!confirmResult) return;
+
         setFormData(prev => {
             const list = type === 'reports' ? [...(prev.reports || [])] : [...(prev.attachments || [])];
             list.splice(index, 1);
@@ -598,71 +601,85 @@ const NewWarrant = ({ onAdd, onUpdate, warrants }: NewWarrantProps) => {
                 </div>
 
                 {/* Files Section */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="bg-surface-light dark:bg-surface-dark p-4 rounded-xl shadow-sm border border-border-light dark:border-border-dark space-y-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Mandado/Ofício/OS Section */}
+                    <div className="bg-surface-light dark:bg-surface-dark p-4 rounded-xl shadow-sm border border-border-light dark:border-border-dark space-y-4">
                         <h3 className="font-bold text-text-light dark:text-text-dark text-sm flex items-center gap-2">
-                            <FileCheck size={16} className="text-primary" /> Relatórios
-                        </h3>
-                        <div className="flex flex-col gap-2">
-                            {formData.reports?.map((url, idx) => (
-                                <div key={`old-${idx}`} className="flex items-center justify-between p-2 bg-gray-50 dark:bg-white/5 rounded-lg text-xs">
-                                    <span className="truncate flex-1">Relatório {idx + 1}</span>
-                                    <div className="flex items-center gap-2">
-                                        <Link to={url} target="_blank" className="text-primary font-bold">Ver</Link>
-                                        <button
-                                            type="button"
-                                            onClick={() => handleRemoveOldFile(idx, 'reports')}
-                                            className="text-red-500 hover:text-red-700 p-1"
-                                            title="Remover anexo existente"
-                                        >
-                                            <X size={14} />
-                                        </button>
-                                    </div>
-                                </div>
-                            ))}
-                            {reportsFiles.map((f, idx) => (
-                                <div key={`new-${idx}`} className="flex items-center justify-between p-2 bg-green-50 dark:bg-green-900/10 rounded-lg text-xs">
-                                    <span className="truncate flex-1 text-green-700 dark:text-green-400">{f.name}</span>
-                                    <button type="button" onClick={() => removeNewFile(idx, 'reports')} className="text-red-500"><X size={14} /></button>
-                                </div>
-                            ))}
-                            <label htmlFor="report-upload" className="flex items-center justify-center gap-2 w-full py-2.5 border-2 border-dashed border-border-light dark:border-border-dark rounded-lg text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark hover:border-primary hover:text-primary transition-colors cursor-pointer">
-                                <Plus size={16} /> Adicionar Relatório
-                                <input id="report-upload" type="file" onChange={(e) => handleFileAdd(e, 'reports')} className="hidden" multiple />
-                            </label>
-                        </div>
-                    </div>
-
-                    <div className="bg-surface-light dark:bg-surface-dark p-4 rounded-xl shadow-sm border border-border-light dark:border-border-dark space-y-3">
-                        <h3 className="font-bold text-text-light dark:text-text-dark text-sm flex items-center gap-2">
-                            <Paperclip size={16} className="text-primary" /> Mandado / Ofício / Ordem de Serviço
+                            <Paperclip size={16} className="text-primary" /> Mandado / Ofício / OS
                         </h3>
                         <div className="flex flex-col gap-2">
                             {formData.attachments?.map((url, idx) => (
-                                <div key={`old-att-${idx}`} className="flex items-center justify-between p-2 bg-gray-50 dark:bg-white/5 rounded-lg text-xs">
-                                    <span className="truncate flex-1">Documento {idx + 1}</span>
-                                    <div className="flex items-center gap-2">
-                                        <Link to={url} target="_blank" className="text-primary font-bold">Ver</Link>
+                                <div key={`old-att-${idx}`} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-white/5 rounded-xl text-xs border border-border-light dark:border-border-dark group">
+                                    <span className="truncate flex-1 font-bold">Documento {idx + 1}</span>
+                                    <div className="flex items-center gap-3">
+                                        <button
+                                            type="button"
+                                            onClick={() => window.open(url, '_blank')}
+                                            className="text-primary font-black hover:underline"
+                                        >
+                                            Ver
+                                        </button>
                                         <button
                                             type="button"
                                             onClick={() => handleRemoveOldFile(idx, 'attachments')}
-                                            className="text-red-500 hover:text-red-700 p-1"
-                                            title="Remover documento existente"
+                                            className="text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 p-1.5 rounded-lg transition-all"
+                                            title="Excluir"
                                         >
-                                            <X size={14} />
+                                            <X size={16} />
                                         </button>
                                     </div>
                                 </div>
                             ))}
                             {attachmentsFiles.map((f, idx) => (
-                                <div key={`new-att-${idx}`} className="flex items-center justify-between p-2 bg-green-50 dark:bg-green-900/10 rounded-lg text-xs">
-                                    <span className="truncate flex-1 text-green-700 dark:text-green-400">{f.name}</span>
-                                    <button type="button" onClick={() => removeNewFile(idx, 'attachments')} className="text-red-500"><X size={14} /></button>
+                                <div key={`new-att-${idx}`} className="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-900/10 rounded-xl text-xs border border-blue-200 dark:border-blue-800">
+                                    <span className="truncate flex-1 text-blue-700 dark:text-blue-400 font-bold">{f.name}</span>
+                                    <button type="button" onClick={() => removeNewFile(idx, 'attachments')} className="text-red-500 p-1.5"><X size={16} /></button>
                                 </div>
                             ))}
-                            <label htmlFor="attachment-upload" className="flex items-center justify-center gap-2 w-full py-2.5 border-2 border-dashed border-border-light dark:border-border-dark rounded-lg text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark hover:border-primary hover:text-primary transition-colors cursor-pointer">
-                                <Plus size={16} /> Adicionar Documento
+                            <label htmlFor="attachment-upload" className="flex items-center justify-center gap-2 w-full py-3 bg-gray-50 dark:bg-white/5 border-2 border-dashed border-border-light dark:border-border-dark rounded-xl text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark hover:border-primary hover:text-primary transition-colors cursor-pointer mt-2">
+                                <Plus size={16} /> ADICIONAR DOCUMENTO
                                 <input id="attachment-upload" type="file" onChange={(e) => handleFileAdd(e, 'attachments')} className="hidden" multiple />
+                            </label>
+                        </div>
+                    </div>
+
+                    {/* Reports Section */}
+                    <div className="bg-surface-light dark:bg-surface-dark p-4 rounded-xl shadow-sm border border-border-light dark:border-border-dark space-y-4">
+                        <h3 className="font-bold text-text-light dark:text-text-dark text-sm flex items-center gap-2">
+                            <FileCheck size={16} className="text-primary" /> Relatórios
+                        </h3>
+                        <div className="flex flex-col gap-2">
+                            {formData.reports?.map((url, idx) => (
+                                <div key={`old-${idx}`} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-white/5 rounded-xl text-xs border border-border-light dark:border-border-dark group">
+                                    <span className="truncate flex-1 font-bold">Relatório {idx + 1}</span>
+                                    <div className="flex items-center gap-3">
+                                        <button
+                                            type="button"
+                                            onClick={() => window.open(url, '_blank')}
+                                            className="text-primary font-black hover:underline"
+                                        >
+                                            Ver
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => handleRemoveOldFile(idx, 'reports')}
+                                            className="text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 p-1.5 rounded-lg transition-all"
+                                            title="Excluir"
+                                        >
+                                            <X size={16} />
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
+                            {reportsFiles.map((f, idx) => (
+                                <div key={`new-${idx}`} className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-900/10 rounded-xl text-xs border border-green-200 dark:border-green-800">
+                                    <span className="truncate flex-1 text-green-700 dark:text-green-400 font-bold">{f.name}</span>
+                                    <button type="button" onClick={() => removeNewFile(idx, 'reports')} className="text-red-500 p-1.5"><X size={16} /></button>
+                                </div>
+                            ))}
+                            <label htmlFor="report-upload" className="flex items-center justify-center gap-2 w-full py-3 bg-gray-50 dark:bg-white/5 border-2 border-dashed border-border-light dark:border-border-dark rounded-xl text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark hover:border-primary hover:text-primary transition-colors cursor-pointer mt-2">
+                                <Plus size={16} /> ADICIONAR RELATÓRIO
+                                <input id="report-upload" type="file" onChange={(e) => handleFileAdd(e, 'reports')} className="hidden" multiple />
                             </label>
                         </div>
                     </div>
