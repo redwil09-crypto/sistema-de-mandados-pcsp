@@ -414,6 +414,14 @@ const NewWarrant = ({ onAdd, onUpdate, warrants }: NewWarrantProps) => {
                             <label className="block text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark mb-1">CPF</label>
                             <input name="cpf" value={formData.cpf} onChange={handleChange} type="text" className="w-full rounded-lg border border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark p-2.5 text-sm text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none" placeholder="000.000.000-00" />
                         </div>
+                        <div>
+                            <label className="block text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark mb-1">Data Nascimento</label>
+                            <input name="birthDate" value={formData.birthDate} onChange={handleChange} type="date" className="w-full rounded-lg border border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark p-2.5 text-sm text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none" />
+                        </div>
+                        <div>
+                            <label className="block text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark mb-1">Idade Atual</label>
+                            <input name="age" value={formData.age} onChange={handleChange} type="text" className="w-full rounded-lg border border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark p-2.5 text-sm text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none" placeholder="Ex: 25 anos" />
+                        </div>
                     </div>
                 </div>
 
@@ -463,14 +471,6 @@ const NewWarrant = ({ onAdd, onUpdate, warrants }: NewWarrantProps) => {
                     </h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
-                            <label className="block text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark mb-1">Data Nascimento</label>
-                            <input name="birthDate" value={formData.birthDate} onChange={handleChange} type="date" className="w-full rounded-lg border border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark p-2.5 text-sm text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none" />
-                        </div>
-                        <div>
-                            <label className="block text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark mb-1">Idade Atual</label>
-                            <input name="age" value={formData.age} onChange={handleChange} type="text" className="w-full rounded-lg border border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark p-2.5 text-sm text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none" placeholder="Ex: 25 anos" />
-                        </div>
-                        <div>
                             <label className="block text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark mb-1">Data Expedição</label>
                             <input name="issueDate" value={formData.issueDate} onChange={handleChange} type="date" className="w-full rounded-lg border border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark p-2.5 text-sm text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none" />
                         </div>
@@ -492,10 +492,56 @@ const NewWarrant = ({ onAdd, onUpdate, warrants }: NewWarrantProps) => {
                 {/* Location */}
                 <div className="bg-surface-light dark:bg-surface-dark p-4 rounded-xl shadow-sm border border-border-light dark:border-border-dark space-y-3">
                     <h3 className="font-bold text-text-light dark:text-text-dark text-sm flex items-center gap-2">
-                        <MapPin size={16} className="text-primary" /> Endereço
+                        <MapPin size={16} className="text-primary" /> Endereço e Localização
                     </h3>
                     <div>
-                        <input name="location" value={formData.location} onChange={handleChange} type="text" className="w-full rounded-lg border border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark p-2.5 text-sm text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none" placeholder="Rua, Número, Bairro, Cidade" />
+                        <label className="block text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark mb-1">Endereço (Texto)</label>
+                        <div className="flex gap-2">
+                            <input name="location" value={formData.location} onChange={handleChange} type="text" className="flex-1 rounded-lg border border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark p-2.5 text-sm text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none" placeholder="Rua, Número, Bairro, Cidade" />
+                            <button
+                                type="button"
+                                onClick={async () => {
+                                    if (!formData.location) return toast.error("Informe um endereço primeiro");
+                                    const tid = toast.loading("Buscando coordenadas...");
+                                    const res = await geocodeAddress(formData.location);
+                                    if (res) {
+                                        setFormData(prev => ({ ...prev, latitude: res.lat, longitude: res.lng }));
+                                        toast.success("Coordenadas obtidas!", { id: tid });
+                                    } else {
+                                        toast.error("Endereço não encontrado", { id: tid });
+                                    }
+                                }}
+                                className="bg-primary/10 text-primary p-2.5 rounded-lg hover:bg-primary/20 transition-colors"
+                                title="Buscar Coordenadas"
+                            >
+                                <RefreshCw size={18} />
+                            </button>
+                        </div>
+                    </div>
+                    <div>
+                        <label className="block text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark mb-1">Coordenadas GPS (Lat, Long)</label>
+                        <input
+                            name="coords"
+                            value={formData.latitude && formData.longitude ? `${formData.latitude}, ${formData.longitude}` : ''}
+                            onChange={(e) => {
+                                const val = e.target.value;
+                                if (!val) {
+                                    setFormData(prev => ({ ...prev, latitude: undefined, longitude: undefined }));
+                                    return;
+                                }
+                                const matches = val.match(/-?\d+\.\d+/g);
+                                if (matches && matches.length >= 2) {
+                                    setFormData(prev => ({
+                                        ...prev,
+                                        latitude: parseFloat(matches[0]),
+                                        longitude: parseFloat(matches[1])
+                                    }));
+                                }
+                            }}
+                            type="text"
+                            className="w-full rounded-lg border border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark p-2.5 text-sm font-mono text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none"
+                            placeholder="Ex: -23.31, -45.96"
+                        />
                     </div>
                 </div>
 

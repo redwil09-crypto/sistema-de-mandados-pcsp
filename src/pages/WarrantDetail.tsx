@@ -1104,7 +1104,7 @@ Equipe de Capturas - DIG / PCSP
                         <div>
                             <p className="text-xs text-text-secondary-light dark:text-text-secondary-dark uppercase font-bold">RG</p>
                             <input
-                                className="text-sm font-mono text-text-light dark:text-text-dark bg-transparent border-none w-full focus:ring-1 focus:ring-primary/20 rounded px-1 -ml-1"
+                                className="text-sm font-mono text-text-light dark:text-text-dark bg-transparent border-none w-full focus:ring-1 focus:ring-primary/20 rounded px-1 -ml-1 border-b border-transparent hover:border-gray-200 dark:hover:border-white/10"
                                 value={localData.rg || ''}
                                 onChange={e => handleFieldChange('rg', e.target.value)}
                                 placeholder="Não Informado"
@@ -1113,10 +1113,30 @@ Equipe de Capturas - DIG / PCSP
                         <div>
                             <p className="text-xs text-text-secondary-light dark:text-text-secondary-dark uppercase font-bold">CPF</p>
                             <input
-                                className="text-sm font-mono text-text-light dark:text-text-dark bg-transparent border-none w-full focus:ring-1 focus:ring-primary/20 rounded px-1 -ml-1"
+                                className="text-sm font-mono text-text-light dark:text-text-dark bg-transparent border-none w-full focus:ring-1 focus:ring-primary/20 rounded px-1 -ml-1 border-b border-transparent hover:border-gray-200 dark:hover:border-white/10"
                                 value={localData.cpf || ''}
                                 onChange={e => handleFieldChange('cpf', e.target.value)}
                                 placeholder="Não Informado"
+                            />
+                        </div>
+                        <div>
+                            <p className="text-xs text-text-secondary-light dark:text-text-secondary-dark uppercase font-bold">Nascimento</p>
+                            <input
+                                type="text"
+                                className="text-sm text-text-light dark:text-text-dark bg-transparent border-none w-full focus:ring-1 focus:ring-primary/20 rounded px-1 -ml-1 border-b border-transparent hover:border-gray-200 dark:hover:border-white/10"
+                                value={formatDate(localData.birthDate)}
+                                onChange={e => handleFieldChange('birthDate', e.target.value)}
+                                placeholder="DD/MM/YYYY"
+                            />
+                        </div>
+                        <div>
+                            <p className="text-xs text-text-secondary-light dark:text-text-secondary-dark uppercase font-bold">Idade Atual</p>
+                            <input
+                                type="text"
+                                className="text-sm text-text-light dark:text-text-dark bg-transparent border-none w-full focus:ring-1 focus:ring-primary/20 rounded px-1 -ml-1 border-b border-transparent hover:border-gray-200 dark:hover:border-white/10"
+                                value={localData.age || ''}
+                                onChange={e => handleFieldChange('age', e.target.value)}
+                                placeholder="Ex: 25 anos"
                             />
                         </div>
                     </div>
@@ -1168,26 +1188,6 @@ Equipe de Capturas - DIG / PCSP
                         <Calendar size={18} className="text-primary" /> Datas
                     </h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                            <p className="text-[10px] text-text-secondary-light dark:text-text-secondary-dark uppercase font-bold">Nascimento</p>
-                            <input
-                                type="text"
-                                className="text-sm text-text-light dark:text-text-dark bg-transparent border-none w-full focus:ring-1 focus:ring-primary/20 rounded px-1 -ml-1"
-                                value={formatDate(localData.birthDate)}
-                                onChange={e => handleFieldChange('birthDate', e.target.value)}
-                                placeholder="DD/MM/YYYY"
-                            />
-                        </div>
-                        <div>
-                            <p className="text-[10px] text-text-secondary-light dark:text-text-secondary-dark uppercase font-bold">Idade Atual</p>
-                            <input
-                                type="text"
-                                className="text-sm text-text-light dark:text-text-dark bg-transparent border-none w-full focus:ring-1 focus:ring-primary/20 rounded px-1 -ml-1"
-                                value={localData.age || ''}
-                                onChange={e => handleFieldChange('age', e.target.value)}
-                                placeholder="Ex: 25 anos"
-                            />
-                        </div>
                         <div>
                             <p className="text-[10px] text-text-secondary-light dark:text-text-secondary-dark uppercase font-bold">Expedição</p>
                             <input
@@ -1259,92 +1259,90 @@ Equipe de Capturas - DIG / PCSP
                         </div>
                     )}
 
-                    <div className="p-3 bg-gray-50 dark:bg-white/5 rounded-lg border border-border-light dark:border-border-dark space-y-3">
-                        <div className="flex items-start justify-between gap-3">
-                            <div className="flex-1">
-                                <p className="text-[10px] text-text-secondary-light dark:text-text-secondary-dark uppercase font-bold mb-1">Endereço (Texto)</p>
-                                <textarea
-                                    className="text-sm text-text-light dark:text-text-dark font-medium bg-transparent border-none w-full focus:ring-1 focus:ring-primary/20 rounded px-1 -ml-1 resize-none"
-                                    value={localData.location || ''}
-                                    rows={2}
-                                    onChange={e => handleFieldChange('location', e.target.value)}
-                                    placeholder="Endereço não informado"
-                                />
-                            </div>
-                            <div className="flex gap-2 shrink-0 pt-5">
-                                <button
-                                    title="Recalcular Geolocalização"
-                                    onClick={async () => {
-                                        const addr = localData.location || data.location;
-                                        if (!addr) return toast.error("Informe um endereço primeiro");
-                                        const tid = toast.loading("Buscando coordenadas...");
-                                        const res = await geocodeAddress(addr);
-                                        if (res) {
-                                            // Atualiza o estado local e o banco de dados
-                                            setLocalData(prev => ({ ...prev, latitude: res.lat, longitude: res.lng }));
-                                            await onUpdate(data.id, { latitude: res.lat, longitude: res.lng });
-                                            toast.success("Mapa atualizado!", { id: tid });
-                                        } else {
-                                            // Se não achar, limpa as coordenadas para forçar "Não Mapeado"
-                                            setLocalData(prev => ({ ...prev, latitude: null, longitude: null }));
-                                            await onUpdate(data.id, { latitude: null, longitude: null });
-                                            toast.error("Endereço não encontrado no mapa", { id: tid });
-                                        }
-                                    }}
-                                    className="flex items-center justify-center bg-white dark:bg-surface-dark border border-border-light dark:border-border-dark shadow-sm w-10 h-10 rounded-lg text-amber-600 hover:bg-gray-50 dark:hover:bg-white/5 transition-all active:scale-95"
-                                >
-                                    <RotateCcw size={18} />
-                                </button>
-                                <button
-                                    title="Abrir Mapa"
-                                    onClick={() => data.location && window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(data.location)}`, '_blank')}
-                                    className="flex items-center justify-center bg-white dark:bg-surface-dark border border-border-light dark:border-border-dark shadow-sm w-10 h-10 rounded-lg text-primary hover:bg-gray-50 dark:hover:bg-white/5 transition-all active:scale-95"
-                                >
-                                    <Map size={18} />
-                                </button>
-                                <button
-                                    title={routeWarrants.includes(data.id) ? "Remover da Rota" : "Adicionar à Rota"}
-                                    onClick={() => onRouteToggle?.(data.id)}
-                                    className={`flex items-center justify-center border shadow-sm w-10 h-10 rounded-lg transition-all active:scale-95 ${routeWarrants.includes(data.id)
-                                        ? 'bg-indigo-600 border-indigo-600 text-white'
-                                        : 'bg-white dark:bg-surface-dark border-border-light dark:border-border-dark text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/10'
-                                        }`}
-                                >
-                                    <RouteIcon size={18} />
-                                </button>
+                    <div className="p-3 bg-gray-50 dark:bg-white/5 rounded-lg border border-border-light dark:border-border-dark space-y-4">
+                        <div>
+                            <p className="text-[10px] text-text-secondary-light dark:text-text-secondary-dark uppercase font-bold mb-2">Endereço (Texto)</p>
+                            <div className="flex items-start justify-between gap-3">
+                                <div className="flex-1 bg-white dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-lg p-2">
+                                    <textarea
+                                        className="text-sm text-text-light dark:text-text-dark font-medium bg-transparent border-none w-full focus:ring-0 rounded resize-none min-h-[60px]"
+                                        value={localData.location || ''}
+                                        rows={2}
+                                        onChange={e => handleFieldChange('location', e.target.value)}
+                                        placeholder="Endereço não informado"
+                                    />
+                                </div>
+                                <div className="flex flex-col gap-2 shrink-0">
+                                    <button
+                                        title="Recalcular Geolocalização"
+                                        onClick={async () => {
+                                            const addr = localData.location || data.location;
+                                            if (!addr) return toast.error("Informe um endereço primeiro");
+                                            const tid = toast.loading("Buscando coordenadas...");
+                                            const res = await geocodeAddress(addr);
+                                            if (res) {
+                                                setLocalData(prev => ({ ...prev, latitude: res.lat, longitude: res.lng }));
+                                                await onUpdate(data.id, { latitude: res.lat, longitude: res.lng });
+                                                toast.success("Coordenadas obtidas!", { id: tid });
+                                            } else {
+                                                setLocalData(prev => ({ ...prev, latitude: null, longitude: null }));
+                                                await onUpdate(data.id, { latitude: null, longitude: null });
+                                                toast.error("Endereço não encontrado", { id: tid });
+                                            }
+                                        }}
+                                        className="flex items-center justify-center bg-white dark:bg-surface-dark border border-border-light dark:border-border-dark shadow-sm w-10 h-10 rounded-lg text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/10 transition-all active:scale-95"
+                                    >
+                                        <RotateCcw size={18} />
+                                    </button>
+                                    <button
+                                        title="Abrir no Google Maps"
+                                        onClick={() => data.location && window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(data.location)}`, '_blank')}
+                                        className="flex items-center justify-center bg-white dark:bg-surface-dark border border-border-light dark:border-border-dark shadow-sm w-10 h-10 rounded-lg text-primary hover:bg-blue-50 dark:hover:bg-primary/10 transition-all active:scale-95"
+                                    >
+                                        <Map size={18} />
+                                    </button>
+                                </div>
                             </div>
                         </div>
 
                         <div className="border-t border-border-light dark:border-border-dark pt-3">
-                            <p className="text-[10px] text-text-secondary-light dark:text-text-secondary-dark uppercase font-bold mb-1">Coordenadas GPS (Latitude, Longitude)</p>
-                            <input
-                                type="text"
-                                className="text-sm font-mono text-text-light dark:text-text-dark bg-transparent border-none w-full focus:ring-1 focus:ring-primary/20 rounded px-1 -ml-1 outline-none"
-                                value={localData.latitude !== undefined && localData.longitude !== undefined && localData.latitude !== null && localData.longitude !== null ? `${localData.latitude}, ${localData.longitude}` : ''}
-                                onChange={e => {
-                                    const val = e.target.value;
-                                    if (!val) {
-                                        handleFieldChange('latitude', null);
-                                        handleFieldChange('longitude', null);
-                                        return;
-                                    }
-
-                                    // Regex robusto para extrair números decimais (positivos ou negativos)
-                                    // Isso lida com: (-23.31, -45.96), -23.31 -45.96, lat: -23.31 lng: -45.96 etc
-                                    const matches = val.match(/-?\d+\.\d+/g);
-
-                                    if (matches && matches.length >= 2) {
-                                        const lat = parseFloat(matches[0]);
-                                        const lng = parseFloat(matches[1]);
-
-                                        if (!isNaN(lat) && !isNaN(lng)) {
-                                            // Atualiza ambos de uma vez para evitar disparos parciais
-                                            setLocalData(prev => ({ ...prev, latitude: lat, longitude: lng }));
-                                        }
-                                    }
-                                }}
-                                placeholder="Cole aqui o que copiar do Google Maps: -23.31, -45.96"
-                            />
+                            <p className="text-[10px] text-text-secondary-light dark:text-text-secondary-dark uppercase font-bold mb-2">Coordenadas GPS (Lat, Long)</p>
+                            <div className="flex items-center gap-3">
+                                <div className="flex-1 bg-white dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-lg p-3">
+                                    <input
+                                        type="text"
+                                        className="text-sm font-mono text-text-light dark:text-text-dark bg-transparent border-none w-full focus:ring-0 outline-none"
+                                        value={localData.latitude !== undefined && localData.longitude !== undefined && localData.latitude !== null && localData.longitude !== null ? `${localData.latitude}, ${localData.longitude}` : ''}
+                                        onChange={e => {
+                                            const val = e.target.value;
+                                            if (!val) {
+                                                setLocalData(prev => ({ ...prev, latitude: null, longitude: null }));
+                                                return;
+                                            }
+                                            const matches = val.match(/-?\d+\.\d+/g);
+                                            if (matches && matches.length >= 2) {
+                                                const lat = parseFloat(matches[0]);
+                                                const lng = parseFloat(matches[1]);
+                                                if (!isNaN(lat) && !isNaN(lng)) {
+                                                    setLocalData(prev => ({ ...prev, latitude: lat, longitude: lng }));
+                                                }
+                                            }
+                                        }}
+                                        placeholder="Ex: -23.31, -45.96"
+                                    />
+                                </div>
+                                <button
+                                    title={routeWarrants.includes(data.id) ? "Remover da Rota" : "Adicionar à Rota"}
+                                    onClick={() => onRouteToggle?.(data.id)}
+                                    className={`flex items-center justify-center border shadow-sm w-12 h-12 rounded-xl transition-all active:scale-95 ${routeWarrants.includes(data.id)
+                                        ? 'bg-indigo-600 border-indigo-600 text-white shadow-indigo-500/20 shadow-lg'
+                                        : 'bg-white dark:bg-surface-dark border-border-light dark:border-border-dark text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/10'
+                                        }`}
+                                >
+                                    <RouteIcon size={20} />
+                                </button>
+                            </div>
+                            <p className="text-[9px] text-text-secondary-light mt-2 italic">* Você pode colar coordenadas formatadas do Google Maps aqui.</p>
                         </div>
                     </div>
                 </div>
