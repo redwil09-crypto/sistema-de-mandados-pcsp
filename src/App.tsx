@@ -30,10 +30,9 @@ import { createWarrant, getWarrants, updateWarrant as updateWarrantDb, deleteWar
 import { Warrant } from './types';
 
 import { Toaster, toast } from 'sonner';
-import { useLocation as useRouteLocation } from 'react-router-dom';
 
 function ScrollToTop() {
-    const { pathname } = useRouteLocation();
+    const { pathname } = useLocation();
     useEffect(() => {
         window.scrollTo(0, 0);
     }, [pathname]);
@@ -53,7 +52,6 @@ function App() {
         const saved = localStorage.getItem('routeWarrants');
         return saved ? JSON.parse(saved) : [];
     });
-
 
     // Check active session on mount
     useEffect(() => {
@@ -173,9 +171,6 @@ function App() {
         });
     }, [warrants]);
 
-    // Determine if BottomNav should be hidden
-    const hideNav = ['/warrant-detail', '/new-warrant', '/ai-assistant'].some(p => location.pathname.startsWith(p));
-
     if (loading) {
         return (
             <div className="flex min-h-screen items-center justify-center bg-background-dark">
@@ -190,62 +185,87 @@ function App() {
 
     return (
         <HashRouter>
+            <AppContent
+                isDark={isDark}
+                toggleTheme={toggleTheme}
+                warrants={warrants}
+                prisonWarrants={prisonWarrants}
+                searchWarrants={searchWarrants}
+                priorityWarrants={priorityWarrants}
+                selectedRouteWarrants={selectedRouteWarrants}
+                routeWarrants={routeWarrants}
+                toggleRouteWarrant={toggleRouteWarrant}
+                handleUpdateWarrant={handleUpdateWarrant}
+                handleDeleteWarrant={handleDeleteWarrant}
+                handleAddWarrant={handleAddWarrant}
+            />
+        </HashRouter>
+    );
+}
+
+function AppContent({
+    isDark, toggleTheme, warrants, prisonWarrants, searchWarrants,
+    priorityWarrants, selectedRouteWarrants, routeWarrants,
+    toggleRouteWarrant, handleUpdateWarrant, handleDeleteWarrant, handleAddWarrant
+}: any) {
+    const location = useLocation();
+    const hideNav = ['/warrant-detail', '/new-warrant', '/ai-assistant'].some(p => location.pathname.startsWith(p));
+
+    return (
+        <div className="min-h-screen bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark transition-colors duration-200">
             <ScrollToTop />
             <Toaster richColors position="top-right" />
-            <div className="min-h-screen bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark transition-colors duration-200">
-
-                <React.Suspense fallback={
-                    <div className="flex h-[80vh] items-center justify-center">
-                        <div className="flex flex-col items-center gap-4">
-                            <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent shadow-lg shadow-primary/20"></div>
-                            <span className="text-[10px] font-black text-primary uppercase tracking-[0.2em] animate-pulse">Sincronizando Módulos...</span>
-                        </div>
+            <React.Suspense fallback={
+                <div className="flex h-[80vh] items-center justify-center">
+                    <div className="flex flex-col items-center gap-4">
+                        <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent shadow-lg shadow-primary/20"></div>
+                        <span className="text-[10px] font-black text-primary uppercase tracking-[0.2em] animate-pulse">Sincronizando Módulos...</span>
                     </div>
-                }>
-                    <Routes>
-                        <Route path="/" element={<HomePage isDark={isDark} toggleTheme={toggleTheme} warrants={warrants} onUpdate={handleUpdateWarrant} onDelete={handleDeleteWarrant} routeWarrants={routeWarrants} onRouteToggle={toggleRouteWarrant} />} />
+                </div>
+            }>
+                <Routes>
+                    <Route path="/" element={<HomePage isDark={isDark} toggleTheme={toggleTheme} warrants={warrants} onUpdate={handleUpdateWarrant} onDelete={handleDeleteWarrant} routeWarrants={routeWarrants} onRouteToggle={toggleRouteWarrant} />} />
 
-                        {/* Main Routes */}
-                        <Route path="/warrant-list" element={<WarrantList warrants={prisonWarrants} onUpdate={handleUpdateWarrant} onDelete={handleDeleteWarrant} routeWarrants={routeWarrants} onRouteToggle={toggleRouteWarrant} />} />
-                        <Route path="/advanced-search" element={<AdvancedSearch warrants={warrants} onUpdate={handleUpdateWarrant} onDelete={handleDeleteWarrant} routeWarrants={routeWarrants} onRouteToggle={toggleRouteWarrant} />} />
-                        <Route path="/recents" element={<RecentActivityPage warrants={warrants} onUpdate={handleUpdateWarrant} onDelete={handleDeleteWarrant} routeWarrants={routeWarrants} onRouteToggle={toggleRouteWarrant} />} />
-                        <Route path="/minor-search" element={<MinorSearch warrants={searchWarrants} onUpdate={handleUpdateWarrant} onDelete={handleDeleteWarrant} routeWarrants={routeWarrants} onRouteToggle={toggleRouteWarrant} />} />
-                        <Route path="/priority-list" element={<PriorityList warrants={priorityWarrants} onUpdate={handleUpdateWarrant} onDelete={handleDeleteWarrant} routeWarrants={routeWarrants} onRouteToggle={toggleRouteWarrant} />} />
+                    {/* Main Routes */}
+                    <Route path="/warrant-list" element={<WarrantList warrants={prisonWarrants} onUpdate={handleUpdateWarrant} onDelete={handleDeleteWarrant} routeWarrants={routeWarrants} onRouteToggle={toggleRouteWarrant} />} />
+                    <Route path="/advanced-search" element={<AdvancedSearch warrants={warrants} onUpdate={handleUpdateWarrant} onDelete={handleDeleteWarrant} routeWarrants={routeWarrants} onRouteToggle={toggleRouteWarrant} />} />
+                    <Route path="/recents" element={<RecentActivityPage warrants={warrants} onUpdate={handleUpdateWarrant} onDelete={handleDeleteWarrant} routeWarrants={routeWarrants} onRouteToggle={toggleRouteWarrant} />} />
+                    <Route path="/minor-search" element={<MinorSearch warrants={searchWarrants} onUpdate={handleUpdateWarrant} onDelete={handleDeleteWarrant} routeWarrants={routeWarrants} onRouteToggle={toggleRouteWarrant} />} />
+                    <Route path="/priority-list" element={<PriorityList warrants={priorityWarrants} onUpdate={handleUpdateWarrant} onDelete={handleDeleteWarrant} routeWarrants={routeWarrants} onRouteToggle={toggleRouteWarrant} />} />
 
-                        {/* specialized pages */}
-                        <Route path="/route-planner" element={<RoutePlanner
-                            warrants={selectedRouteWarrants}
-                            onRouteToggle={toggleRouteWarrant}
-                            onUpdate={handleUpdateWarrant}
-                        />} />
+                    {/* specialized pages */}
+                    <Route path="/route-planner" element={<RoutePlanner
+                        warrants={selectedRouteWarrants}
+                        onRouteToggle={toggleRouteWarrant}
+                        onUpdate={handleUpdateWarrant}
+                    />} />
 
-                        <Route path="/stats" element={<Stats warrants={warrants} />} />
-                        <Route path="/intel" element={<IntelCenter warrants={warrants} />} />
-                        <Route path="/profile" element={<Profile />} />
-                        <Route path="/ai-assistant" element={<AIAssistantPage onAdd={handleAddWarrant} warrants={warrants} />} />
-                        <Route path="/map" element={<OperationalMap warrants={warrants} onUpdate={handleUpdateWarrant} />} />
+                    <Route path="/stats" element={<Stats warrants={warrants} />} />
+                    <Route path="/intel" element={<IntelCenter warrants={warrants} />} />
+                    <Route path="/profile" element={<Profile />} />
+                    <Route path="/ai-assistant" element={<AIAssistantPage onAdd={handleAddWarrant} warrants={warrants} />} />
+                    <Route path="/map" element={<OperationalMap warrants={warrants} onUpdate={handleUpdateWarrant} />} />
 
-                        {/* Detail and Creation */}
-                        <Route path="/warrant-detail/:id" element={<WarrantDetail
-                            warrants={warrants}
-                            onUpdate={handleUpdateWarrant}
-                            onDelete={handleDeleteWarrant}
-                            onRouteToggle={toggleRouteWarrant}
-                            routeWarrants={routeWarrants}
-                        />} />
-                        <Route path="/new-warrant" element={<NewWarrant
-                            onAdd={handleAddWarrant}
-                            onUpdate={handleUpdateWarrant}
-                            warrants={warrants}
-                        />} />
+                    {/* Detail and Creation */}
+                    <Route path="/warrant-detail/:id" element={<WarrantDetail
+                        warrants={warrants}
+                        onUpdate={handleUpdateWarrant}
+                        onDelete={handleDeleteWarrant}
+                        onRouteToggle={toggleRouteWarrant}
+                        routeWarrants={routeWarrants}
+                    />} />
+                    <Route path="/new-warrant" element={<NewWarrant
+                        onAdd={handleAddWarrant}
+                        onUpdate={handleUpdateWarrant}
+                        warrants={warrants}
+                    />} />
 
-                        <Route path="*" element={<Navigate to="/" replace />} />
-                    </Routes>
-                </React.Suspense>
+                    <Route path="*" element={<Navigate to="/" replace />} />
+                </Routes>
+            </React.Suspense>
 
-                {!hideNav && <BottomNav routeCount={routeWarrants.length} />}
-            </div>
-        </HashRouter>
+            {!hideNav && <BottomNav routeCount={routeWarrants.length} />}
+        </div>
     );
 }
 

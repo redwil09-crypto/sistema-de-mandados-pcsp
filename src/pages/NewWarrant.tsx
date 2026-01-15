@@ -4,7 +4,7 @@ import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import {
     User, Gavel, Calendar, MapPin, Bike, FileCheck,
     Paperclip, X, Plus, Bot, ChevronRight, Camera,
-    AlertTriangle, Zap, Bell, RefreshCw, Eye, Sparkles, Map
+    AlertTriangle, Zap, Bell, RefreshCw, Eye, Sparkles, Map as MapIcon
 } from 'lucide-react';
 import { toast } from 'sonner';
 import Header from '../components/Header';
@@ -562,7 +562,7 @@ const NewWarrant = ({ onAdd, onUpdate, warrants }: NewWarrantProps) => {
                                         to="/map"
                                         className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-lg text-[10px] font-black flex items-center justify-center gap-2 transition-all shadow-lg shadow-indigo-500/20 uppercase"
                                     >
-                                        <Map size={14} /> Confirmar no MAPA OPS
+                                        <MapIcon size={14} /> Confirmar no MAPA OPS
                                     </Link>
                                 )}
                             </div>
