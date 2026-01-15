@@ -1144,7 +1144,7 @@ Equipe de Capturas - DIG / PCSP
             />
             <div className="p-4 pb-4 space-y-4">
 
-                <div className="bg-surface-light dark:bg-surface-dark p-4 rounded-xl shadow-sm border border-border-light dark:border-border-dark">
+                <div className="bg-surface-light dark:bg-surface-dark p-4 rounded-2xl shadow-sm border border-border-light dark:border-border-dark">
                     <div className="flex gap-4">
                         <div className="shrink-0">
                             <img
@@ -1213,7 +1213,7 @@ Equipe de Capturas - DIG / PCSP
                     </div>
                 </div>
 
-                <div className="bg-surface-light dark:bg-surface-dark p-4 rounded-xl shadow-sm border border-border-light dark:border-border-dark">
+                <div className="bg-surface-light dark:bg-surface-dark p-4 rounded-2xl shadow-sm border border-border-light dark:border-border-dark">
                     <h3 className="font-bold text-text-light dark:text-text-dark mb-3 flex items-center gap-2">
                         <User size={18} className="text-primary" /> Dados Pessoais
                     </h3>
@@ -1259,7 +1259,7 @@ Equipe de Capturas - DIG / PCSP
                     </div>
                 </div>
 
-                <div className="bg-surface-light dark:bg-surface-dark p-4 rounded-xl shadow-sm border border-border-light dark:border-border-dark">
+                <div className="bg-surface-light dark:bg-surface-dark p-4 rounded-2xl shadow-sm border border-border-light dark:border-border-dark">
                     <div className="flex justify-between items-center mb-3">
                         <h3 className="font-bold text-text-light dark:text-text-dark flex items-center gap-2">
                             <Gavel size={18} className="text-primary" /> Processual
@@ -1300,7 +1300,7 @@ Equipe de Capturas - DIG / PCSP
                     </div>
                 </div>
 
-                <div className="bg-surface-light dark:bg-surface-dark p-4 rounded-xl shadow-sm border border-border-light dark:border-border-dark">
+                <div className="bg-surface-light dark:bg-surface-dark p-4 rounded-2xl shadow-sm border border-border-light dark:border-border-dark">
                     <h3 className="font-bold text-text-light dark:text-text-dark mb-3 flex items-center gap-2">
                         <Calendar size={18} className="text-primary" /> Datas
                     </h3>

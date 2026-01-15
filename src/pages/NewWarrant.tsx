@@ -4,7 +4,7 @@ import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import {
     User, Gavel, Calendar, MapPin, Bike, FileCheck,
     Paperclip, X, Plus, Bot, ChevronRight, Camera,
-    AlertTriangle, Zap, Bell, RefreshCw, Eye, Sparkles, Map as MapIcon, ExternalLink
+    AlertTriangle, Zap, Bell, RefreshCw, Eye, Sparkles, Map as MapIcon, ExternalLink, Search
 } from 'lucide-react';
 import { toast } from 'sonner';
 import Header from '../components/Header';
@@ -380,7 +380,7 @@ const NewWarrant = ({ onAdd, onUpdate, warrants }: NewWarrantProps) => {
             </div>
 
             <div className="px-4 mt-4">
-                <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl border border-blue-100 dark:border-blue-900/30 flex items-center gap-3">
+                <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-2xl border border-blue-100 dark:border-blue-900/30 flex items-center gap-3">
                     <Bot size={24} className="text-blue-600 dark:text-blue-400" />
                     <div className="flex-1">
                         <h4 className="font-bold text-sm text-blue-800 dark:text-blue-300">Usar Assistente IA</h4>
@@ -414,7 +414,7 @@ const NewWarrant = ({ onAdd, onUpdate, warrants }: NewWarrantProps) => {
                 </div>
 
                 {/* Personal Data */}
-                <div className="bg-surface-light dark:bg-surface-dark p-4 rounded-xl shadow-sm border border-border-light dark:border-border-dark space-y-3">
+                <div className="bg-surface-light dark:bg-surface-dark p-4 rounded-2xl shadow-sm border border-border-light dark:border-border-dark space-y-3">
                     <h3 className="font-bold text-text-light dark:text-text-dark text-sm flex items-center gap-2">
                         <User size={16} className="text-primary" /> Dados do Alvo
                     </h3>
@@ -443,7 +443,7 @@ const NewWarrant = ({ onAdd, onUpdate, warrants }: NewWarrantProps) => {
                 </div>
 
                 {/* Process Data */}
-                <div className="bg-surface-light dark:bg-surface-dark p-4 rounded-xl shadow-sm border border-border-light dark:border-border-dark space-y-3">
+                <div className="bg-surface-light dark:bg-surface-dark p-4 rounded-2xl shadow-sm border border-border-light dark:border-border-dark space-y-3">
                     <h3 className="font-bold text-text-light dark:text-text-dark text-sm flex items-center gap-2">
                         <Gavel size={16} className="text-primary" /> Processual
                     </h3>
@@ -482,7 +482,7 @@ const NewWarrant = ({ onAdd, onUpdate, warrants }: NewWarrantProps) => {
                 </div>
 
                 {/* Dates */}
-                <div className="bg-surface-light dark:bg-surface-dark p-4 rounded-xl shadow-sm border border-border-light dark:border-border-dark space-y-3">
+                <div className="bg-surface-light dark:bg-surface-dark p-4 rounded-2xl shadow-sm border border-border-light dark:border-border-dark space-y-3">
                     <h3 className="font-bold text-text-light dark:text-text-dark text-sm flex items-center gap-2">
                         <Calendar size={16} className="text-primary" /> Datas
                     </h3>
@@ -621,7 +621,7 @@ const NewWarrant = ({ onAdd, onUpdate, warrants }: NewWarrantProps) => {
                 </div>
 
                 {/* Investigation (iFood / DIG) */}
-                <div className="bg-surface-light dark:bg-surface-dark p-4 rounded-xl shadow-sm border border-border-light dark:border-border-dark space-y-3">
+                <div className="bg-surface-light dark:bg-surface-dark p-4 rounded-2xl shadow-sm border border-border-light dark:border-border-dark space-y-3">
                     <h3 className="font-bold text-text-light dark:text-text-dark text-sm flex items-center gap-2">
                         <Bike size={16} className="text-primary" /> Investigação
                     </h3>
@@ -640,7 +640,7 @@ const NewWarrant = ({ onAdd, onUpdate, warrants }: NewWarrantProps) => {
                 {/* Files Section */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* Mandado/Ofício/OS Section */}
-                    <div className="bg-surface-light dark:bg-surface-dark p-4 rounded-xl shadow-sm border border-border-light dark:border-border-dark space-y-4">
+                    <div className="bg-surface-light dark:bg-surface-dark p-4 rounded-2xl shadow-sm border border-border-light dark:border-border-dark space-y-4">
                         <h3 className="font-bold text-text-light dark:text-text-dark text-sm flex items-center gap-2">
                             <Paperclip size={16} className="text-primary" /> Mandado / Ofício / OS
                         </h3>
@@ -681,7 +681,7 @@ const NewWarrant = ({ onAdd, onUpdate, warrants }: NewWarrantProps) => {
                     </div>
 
                     {/* Reports Section */}
-                    <div className="bg-surface-light dark:bg-surface-dark p-4 rounded-xl shadow-sm border border-border-light dark:border-border-dark space-y-4">
+                    <div className="bg-surface-light dark:bg-surface-dark p-4 rounded-2xl shadow-sm border border-border-light dark:border-border-dark space-y-4">
                         <h3 className="font-bold text-text-light dark:text-text-dark text-sm flex items-center gap-2">
                             <FileCheck size={16} className="text-primary" /> Relatórios
                         </h3>
@@ -724,7 +724,7 @@ const NewWarrant = ({ onAdd, onUpdate, warrants }: NewWarrantProps) => {
 
 
                 {/* Observations */}
-                <div className="bg-surface-light dark:bg-surface-dark p-4 rounded-xl shadow-sm border border-border-light dark:border-border-dark space-y-3">
+                <div className="bg-surface-light dark:bg-surface-dark p-4 rounded-2xl shadow-sm border border-border-light dark:border-border-dark space-y-3">
                     <h3 className="font-bold text-text-light dark:text-text-dark text-sm flex items-center gap-2">
                         <Eye size={16} className="text-primary" /> Observações
                     </h3>
@@ -737,7 +737,7 @@ const NewWarrant = ({ onAdd, onUpdate, warrants }: NewWarrantProps) => {
                 </div>
 
                 {/* Priority Selection */}
-                <div className="bg-surface-light dark:bg-surface-dark p-4 rounded-xl shadow-sm border border-border-light dark:border-border-dark space-y-3">
+                <div className="bg-surface-light dark:bg-surface-dark p-4 rounded-2xl shadow-sm border border-border-light dark:border-border-dark space-y-3">
                     <h3 className="font-bold text-text-light dark:text-text-dark text-sm flex items-center gap-2">
                         <AlertTriangle size={16} className="text-primary" /> Prioridade
                     </h3>
