@@ -1689,7 +1689,7 @@ Equipe de Capturas - DIG / PCSP
                                     </div>
                                 ))
                             ) : (
-                                <div className="text-center py-10 bg-gray-50/50 dark:bg-black/10 rounded-2xl border-2 border-dashed border-border-light dark:border-border-dark">
+                                <div className="text-center py-10 bg-gray-50/50 dark:bg-black/10 rounded-xl border-2 border-dashed border-border-light dark:border-border-dark">
                                     <MessageSquare size={40} className="mx-auto text-gray-300 dark:text-gray-700 mb-3" />
                                     <p className="text-xs text-text-secondary-light font-bold">Nenhum registro tático disponível para este alvo.</p>
                                     <p className="text-[10px] text-text-secondary-light/60 mt-1">Use o campo acima para registrar diligências.</p>
