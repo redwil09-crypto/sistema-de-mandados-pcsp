@@ -20,6 +20,16 @@ export default function AuditPage() {
                 return;
             }
 
+            // 1. Check metadata
+            if (user.user_metadata?.role === 'admin') {
+                setIsAdmin(true);
+                const auditData = await getAllAuditLogs();
+                setLogs(auditData);
+                setLoading(false);
+                return;
+            }
+
+            // 2. Check profiles
             const { data: profile } = await supabase
                 .from('profiles')
                 .select('role')
@@ -97,8 +107,8 @@ export default function AuditPage() {
                                 <div className="flex items-start justify-between mb-3">
                                     <div className="flex items-center gap-2">
                                         <div className={`px-2 py-1 rounded text-[9px] font-black uppercase tracking-widest ${log.action === 'CREATE' ? 'bg-green-500/10 text-green-500' :
-                                                log.action === 'UPDATE' ? 'bg-blue-500/10 text-blue-500' :
-                                                    'bg-red-500/10 text-red-500'
+                                            log.action === 'UPDATE' ? 'bg-blue-500/10 text-blue-500' :
+                                                'bg-red-500/10 text-red-500'
                                             }`}>
                                             {translateAction(log.action)}
                                         </div>
