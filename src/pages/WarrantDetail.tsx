@@ -864,23 +864,33 @@ Equipe de Capturas - DIG / PCSP
 
             // 1. OUTRA CIDADE / CIRCUNSCRIÇÃO (Exemplo 1 e 2)
             const isAnotherCity = address && (
-                addrLower.includes('são sebastião') || addrLower.includes('sjc') || addrLower.includes('são josé dos campos') ||
-                addrLower.includes('mg') || addrLower.includes('rj') || (addrLower.includes('sp') && !addrLower.includes('jacareí')) ||
-                (!addrLower.includes('jacareí') && addrLower.trim().length > 10)
+                (addrLower.includes('são sebastião') ||
+                    addrLower.includes('sjc') ||
+                    addrLower.includes('são josé dos campos') ||
+                    addrLower.includes('são paulo') ||
+                    addrLower.includes('caçapava') ||
+                    addrLower.includes('taubaté') ||
+                    addrLower.includes('mg') ||
+                    addrLower.includes('rj') ||
+                    addrLower.includes('pr') ||
+                    addrLower.includes('sc') ||
+                    addrLower.includes('rs')) &&
+                !addrLower.includes('jacareí')
             );
 
+            // 1. OUTRA CIDADE / CIRCUNSCRIÇÃO
             if (isAnotherCity) {
                 return `Em cumprimento ao solicitado, informo que, após diligências realizadas, constatou-se que o endereço indicado no mandado em nome do réu ${name}, situado na ${address}, não pertence à área de circunscrição desta Seccional de Jacareí/SP.\n\nEsclarece-se que tal endereço encontra-se sob a competência territorial de outra unidade policial, sendo, portanto, de atribuição daquela unidade as providências relativas ao cumprimento da ordem judicial.\n\nDiante do exposto, encaminha-se o presente relatório para conhecimento e encaminhamentos cabíveis.`;
             }
 
-            // 2. CONTATO COM GENITORA / FAMILIARES (Exemplo 3)
-            if (fullText.includes('mãe') || fullText.includes('genitora') || fullText.includes('pai') || fullText.includes('familia')) {
-                return `Em cumprimento ao Mandado de Prisão referente ao Processo nº ${process}, foram realizadas diligências no endereço indicado como possível residência do réu ${name}, situado na ${address}.\n\nAo chegar ao local, a equipe de Jacareí/SP foi atendida por familiares do procurado, os quais relataram que o mesmo não reside mais no endereço há longo lapso temporal, não mantendo contato e não possuindo informações que possam contribuir para sua localização. Após apresentação do mandado judicial, foi franqueado o acesso ao imóvel, sendo realizada busca em todos os cômodos da residência, sem êxito.\n\nPor fim, consultas atualizadas nos sistemas policiais não apontaram novos endereços ou vínculos deste réu nesta cidade. Diante disso, as diligências foram encerradas sem êxito.`;
+            // 2. CONTATO COM GENITORA / FAMILIARES / MUDOU-SE (Exemplo 3)
+            if (fullText.includes('mãe') || fullText.includes('genitora') || fullText.includes('pai') || fullText.includes('familia') || fullText.includes('não reside') || fullText.includes('mudou')) {
+                return `Em cumprimento ao Mandado de Prisão referente ao Processo nº ${process}, foram realizadas diligências no endereço indicado como possível residência do réu ${name}, situado na ${address}.\n\nAo chegar ao local, a equipe de Jacareí/SP foi atendida por moradores/familiares do procurado, os quais relataram que o mesmo não reside mais no endereço há longo lapso temporal, não mantendo contato e não possuindo informações que possam contribuir para sua localização. Após apresentação do mandado judicial, foi franqueado o acesso ao imóvel, sendo realizada busca em todos os cômodos da residência, sem êxito.\n\nPor fim, consultas atualizadas nos sistemas policiais não apontaram novos endereços ou vínculos deste réu nesta cidade. Diante disso, as diligências foram encerradas sem êxito.`;
             }
 
             // 3. IMÓVEL COM PLACAS (Exemplo 13)
-            if (fullText.includes('aluga') || fullText.includes('vende') || fullText.includes('placa')) {
-                return `Em cumprimento ao mandado de prisão expedido nos autos do processo nº ${process}, em desfavor de ${name}, esta equipe de Jacareí/SP realizou diligências no endereço indicado — ${address}.\n\nForam efetuadas visitas em dias e horários distintos, constatando-se que o imóvel encontra-se com placas de “aluga-se” ou “vende-se”, sem qualquer movimentação que indicasse a presença de moradores ou ocupação regular da residência no momento das verificações.\n\nAté o momento, não foram obtidos elementos que indiquem o paradeiro do procurado, permanecendo negativas as diligências nesta Comarca.`;
+            if (fullText.includes('aluga') || fullText.includes('vende') || fullText.includes('placa') || fullText.includes('desabitado') || fullText.includes('vazio')) {
+                return `Em cumprimento ao mandado de prisão expedido nos autos do processo nº ${process}, em desfavor de ${name}, esta equipe de Jacareí/SP realizou diligências no endereço indicado — ${address}.\n\nForam efetuadas visitas em dias e horários distintos, constatando-se que o imóvel encontra-se com placas de “aluga-se” ou “vende-se” (ou encontra-se visivelmente desabitado), sem qualquer movimentação que indicasse a presença de moradores ou ocupação regular da residência no momento das verificações.\n\nAté o momento, não foram obtidos elementos que indiquem o paradeiro do procurado, permanecendo negativas as diligências nesta Comarca.`;
             }
 
             // 4. PENSÃO ALIMENTÍCIA / SISTEMAS (Exemplo 2)
@@ -889,12 +899,12 @@ Equipe de Capturas - DIG / PCSP
             }
 
             // 5. NEGATIVA GERAL / VIZINHOS (Exemplo 9, 10, 11)
-            if (fullText.includes('vizinho') || fullText.includes('entrevista') || fullText.includes('morador')) {
+            if (fullText.includes('vizinho') || fullText.includes('entrevista') || fullText.includes('morador') || fullText.includes('desconhece')) {
                 return `Em cumprimento ao mandado expedido nos autos do processo nº ${process}, em desfavor de ${name}, esta equipe procedeu a diligências no endereço indicado — ${address}.\n\nForam realizadas verificações in loco em dias e horários diversos, ocasião em que se constatou ausência de sinais de habitação ou indício de presença recente do procurado no imóvel. Procedeu-se à entrevista com moradores lindeiros, os quais informaram que há considerável lapso temporal não visualizam o requerido naquela localidade, bem como desconhecem seu atual paradeiro.\n\nAdicionalmente, foram efetuadas consultas nos sistemas policiais disponíveis, não sendo identificados novos endereços ou informações úteis à sua localização. Diante do exposto, as diligências restaram infrutíferas nesta cidade de Jacareí/SP.`;
             }
 
             // 6. FALLBACK: PADRÃO FORMAL (Exemplo 4)
-            return `Registra-se o presente para dar cumprimento ao Mandado de Prisão expedido em desfavor de ${name}, nos autos do processo nº ${process}, oriundo da Comarca de Jacareí/SP.\n\nA equipe desta especializada procedeu às diligências nos endereços vinculados ao réu. Em todos os locais indicados, foram efetuadas verificações em dias e horários distintos; contudo, em todas as ocasiões o imóvel encontrava-se fechado e sem movimentação ou presença de moradores.\n\nAté o presente momento, não foi possível localizar o investigado, restando negativas as diligências realizadas por esta equipe para cumprimento da ordem judicial em Jacareí/SP.`;
+            return `Registra-se o presente para dar cumprimento ao Mandado de Prisão expedido em desfavor de ${name}, nos autos do processo nº ${process}, oriundo da Comarca de Jacareí/SP.\n\nA equipe desta especializada procedeu às diligências nos endereços vinculados ao réu, notadamente na ${address}. Em todos os locais indicados, foram efetuadas verificações em dias e horários distintos; contudo, em todas as ocasiões o imóvel encontrava-se fechado e sem movimentação ou presença de moradores.\n\nAté o presente momento, não foi possível localizar o investigado, restando negativas as diligências realizadas por esta equipe para cumprimento da ordem judicial em Jacareí/SP.`;
         };
 
         setCapturasData(prev => ({
@@ -1241,7 +1251,7 @@ Equipe de Capturas - DIG / PCSP
                             <input
                                 type="text"
                                 className="text-sm text-text-light dark:text-text-dark bg-transparent border-none w-full focus:ring-1 focus:ring-primary/20 rounded px-1 -ml-1 border-b border-transparent hover:border-gray-200 dark:hover:border-white/10"
-                                value={localData.birthDate ? formatDate(localData.birthDate) : ''}
+                                value={localData.birthDate || ''}
                                 onChange={e => handleFieldChange('birthDate', e.target.value)}
                                 placeholder="DD/MM/YYYY"
                             />
@@ -1310,7 +1320,7 @@ Equipe de Capturas - DIG / PCSP
                             <input
                                 type="text"
                                 className="text-sm text-text-light dark:text-text-dark bg-transparent border-none w-full focus:ring-1 focus:ring-primary/20 rounded px-1 -ml-1"
-                                value={localData.issueDate ? formatDate(localData.issueDate) : ''}
+                                value={localData.issueDate || ''}
                                 onChange={e => handleFieldChange('issueDate', e.target.value)}
                                 placeholder="DD/MM/YYYY"
                             />
@@ -1320,7 +1330,7 @@ Equipe de Capturas - DIG / PCSP
                             <input
                                 type="text"
                                 className="text-sm text-text-light dark:text-text-dark bg-transparent border-none w-full focus:ring-1 focus:ring-primary/20 rounded px-1 -ml-1"
-                                value={localData.entryDate ? formatDate(localData.entryDate) : ''}
+                                value={localData.entryDate || ''}
                                 onChange={e => handleFieldChange('entryDate', e.target.value)}
                                 placeholder="DD/MM/YYYY"
                             />
@@ -1330,7 +1340,7 @@ Equipe de Capturas - DIG / PCSP
                             <input
                                 type="text"
                                 className="text-sm text-red-500 font-bold bg-transparent border-none w-full focus:ring-1 focus:ring-primary/20 rounded px-1 -ml-1"
-                                value={localData.expirationDate ? formatDate(localData.expirationDate) : ''}
+                                value={localData.expirationDate || ''}
                                 onChange={e => handleFieldChange('expirationDate', e.target.value)}
                                 placeholder="DD/MM/YYYY"
                             />
@@ -1340,7 +1350,7 @@ Equipe de Capturas - DIG / PCSP
                             <input
                                 type="text"
                                 className="text-sm text-text-light dark:text-text-dark bg-transparent border-none w-full focus:ring-1 focus:ring-primary/20 rounded px-1 -ml-1"
-                                value={localData.dischargeDate ? formatDate(localData.dischargeDate) : ''}
+                                value={localData.dischargeDate || ''}
                                 onChange={e => handleFieldChange('dischargeDate', e.target.value)}
                                 placeholder="DD/MM/YYYY"
                             />
