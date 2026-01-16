@@ -267,6 +267,38 @@ export const getAllAuditLogs = async () => {
     }
 };
 
+// Delete a single audit log
+export const deleteAuditLog = async (id: string): Promise<boolean> => {
+    try {
+        const { error } = await supabase
+            .from('audit_logs')
+            .delete()
+            .eq('id', id);
+
+        if (error) throw error;
+        return true;
+    } catch (error) {
+        console.error('Error deleting audit log:', error);
+        return false;
+    }
+};
+
+// Delete multiple audit logs
+export const deleteAuditLogs = async (ids: string[]): Promise<boolean> => {
+    try {
+        const { error } = await supabase
+            .from('audit_logs')
+            .delete()
+            .in('id', ids);
+
+        if (error) throw error;
+        return true;
+    } catch (error) {
+        console.error('Error deleting audit logs:', error);
+        return false;
+    }
+};
+
 export const translateAction = (action: string) => {
     switch (action.toUpperCase()) {
         case 'CREATE': return 'CRIAÇÃO';
@@ -274,4 +306,47 @@ export const translateAction = (action: string) => {
         case 'DELETE': return 'EXCLUSÃO';
         default: return action;
     }
+};
+
+export const translateField = (field: string) => {
+    const map: Record<string, string> = {
+        name: 'Nome',
+        rg: 'RG',
+        cpf: 'CPF',
+        crime: 'Crime',
+        regime: 'Regime',
+        status: 'Status',
+        location: 'Endereço',
+        issue_date: 'Data Expedição',
+        issueDate: 'Data Expedição',
+        entry_date: 'Data Entrada',
+        entryDate: 'Data Entrada',
+        expiration_date: 'Data Validade',
+        expirationDate: 'Data Validade',
+        birth_date: 'Data Nascimento',
+        birthDate: 'Data Nascimento',
+        mother_name: 'Nome da Mãe',
+        father_name: 'Nome do Pai',
+        description: 'Descrição',
+        observation: 'Observação',
+        priority: 'Prioridade',
+        tags: 'Tags',
+        img: 'Foto',
+        ifood_number: 'Nº Ofício iFood',
+        ifoodNumber: 'Nº Ofício iFood',
+        ifood_result: 'Resultado iFood',
+        ifoodResult: 'Resultado iFood',
+        dig_office: 'Ofício DIG',
+        digOffice: 'Ofício DIG',
+        number: 'Nº Processo',
+        type: 'Tipo de Mandado',
+        tacticalSummary: 'Sumário Tático',
+        tactical_summary: 'Sumário Tático',
+        latitude: 'Latitude',
+        longitude: 'Longitude',
+        age: 'Idade',
+        dischargeDate: 'Data Baixa',
+        discharge_date: 'Data Baixa'
+    };
+    return map[field] || field;
 };
