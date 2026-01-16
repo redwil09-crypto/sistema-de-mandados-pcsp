@@ -50,13 +50,13 @@ const BottomNav = ({ routeCount = 0 }: BottomNavProps) => {
 
     return (
         <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-border-light bg-surface-light/95 backdrop-blur dark:bg-surface-dark/95 dark:border-border-dark pb-safe">
-            <div className="mx-auto flex h-16 w-full items-center px-1">
-                <Link to="/" className={`flex-1 flex flex-col items-center justify-center gap-1 ${isActive('/') ? 'text-primary' : 'text-text-secondary-light dark:text-text-secondary-dark'}`}>
+            <div className="mx-auto flex h-16 w-full items-center justify-center gap-6 px-4">
+                <Link to="/" className={`flex flex-col items-center gap-1 min-w-[50px] ${isActive('/') ? 'text-primary' : 'text-text-secondary-light dark:text-text-secondary-dark'}`}>
                     <Home size={22} strokeWidth={isActive('/') ? 2.5 : 2} />
                     <span className="text-[9px] font-bold">Início</span>
                 </Link>
 
-                <Link to="/advanced-search" className={`flex-1 flex flex-col items-center justify-center gap-1 ${isActive('/advanced-search') ? 'text-primary' : 'text-text-secondary-light dark:text-text-secondary-dark'}`}>
+                <Link to="/advanced-search" className={`flex flex-col items-center gap-1 min-w-[50px] ${isActive('/advanced-search') ? 'text-primary' : 'text-text-secondary-light dark:text-text-secondary-dark'}`}>
                     <Search size={22} strokeWidth={isActive('/advanced-search') ? 2.5 : 2} />
                     <span className="text-[9px] font-bold">Busca</span>
                 </Link>
@@ -65,20 +65,20 @@ const BottomNav = ({ routeCount = 0 }: BottomNavProps) => {
                     href="https://portalbnmp.cnj.jus.br/#/pesquisa-peca"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex-1 flex flex-col items-center justify-center gap-1 text-text-secondary-light dark:text-text-secondary-dark"
+                    className="flex flex-col items-center gap-1 min-w-[50px] text-text-secondary-light dark:text-text-secondary-dark"
                 >
                     <ShieldCheck size={22} />
                     <span className="text-[9px] font-bold">BNMP</span>
                 </a>
 
                 {isAdmin && (
-                    <Link to="/audit" className={`flex-1 flex flex-col items-center justify-center gap-1 ${isActive('/audit') ? 'text-primary' : 'text-text-secondary-light dark:text-text-secondary-dark'}`}>
+                    <Link to="/audit" className={`flex flex-col items-center gap-1 min-w-[50px] ${isActive('/audit') ? 'text-primary' : 'text-text-secondary-light dark:text-text-secondary-dark'}`}>
                         <ClipboardList size={22} strokeWidth={isActive('/audit') ? 2.5 : 2} />
                         <span className="text-[9px] font-bold">ADM</span>
                     </Link>
                 )}
 
-                <Link to="/profile" className={`flex-1 flex flex-col items-center justify-center gap-1 ${isActive('/profile') ? 'text-primary' : 'text-text-secondary-light dark:text-text-secondary-dark'}`}>
+                <Link to="/profile" className={`flex flex-col items-center gap-1 min-w-[50px] ${isActive('/profile') ? 'text-primary' : 'text-text-secondary-light dark:text-text-secondary-dark'}`}>
                     <User size={22} strokeWidth={isActive('/profile') ? 2.5 : 2} />
                     <span className="text-[9px] font-bold">Perfil</span>
                 </Link>

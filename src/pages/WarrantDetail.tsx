@@ -1348,7 +1348,7 @@ Equipe de Capturas - DIG / PCSP
                     </div>
                 </div>
 
-                <div className="p-4 space-y-6 w-full">
+                <div className="space-y-6 w-full">
                     {/* Operational Location Card */}
                     <div className="bg-surface-light dark:bg-surface-dark rounded-xl shadow-sm border border-border-light dark:border-border-dark overflow-hidden transition-all hover:shadow-md">
                         <div className="p-4 border-b border-border-light dark:border-border-dark bg-gray-50/50 dark:bg-white/5 flex items-center justify-between">

@@ -352,12 +352,12 @@ const CompactStat = ({ label, value, icon, color, highlight }: any) => {
     };
 
     return (
-        <div className={`p-3 rounded-2xl border ${colorMap[color]} group hover:bg-slate-800/40 transition-all ${highlight ? 'ring-1 ring-rose-500/20' : ''}`}>
-            <div className="flex items-center justify-between mb-1">
-                <span className="opacity-60 group-hover:scale-110 transition-transform">{icon}</span>
-                <span className="text-lg font-black tracking-tighter">{value}</span>
+        <div className={`p-4 rounded-2xl border ${colorMap[color]} group hover:bg-slate-800/40 transition-all ${highlight ? 'ring-1 ring-rose-500/20' : ''}`}>
+            <div className="flex items-center justify-between mb-2">
+                <span className="opacity-80 group-hover:scale-110 transition-transform">{icon}</span>
+                <span className="text-2xl md:text-3xl font-black tracking-tighter">{value}</span>
             </div>
-            <p className="text-[8px] font-black uppercase tracking-tighter opacity-60 leading-none">{label}</p>
+            <p className="text-[10px] md:text-xs font-black uppercase tracking-tight opacity-70 leading-tight">{label}</p>
         </div>
     );
 };
