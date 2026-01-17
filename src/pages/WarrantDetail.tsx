@@ -295,80 +295,94 @@ const WarrantDetail = ({ warrants, onUpdate, onDelete, routeWarrants = [], onRou
     const aiTimeSuggestion = useMemo(() => {
         if (!data) return null;
 
-        // Coleta textos: Prioriza localData.observation para refletir o que o usuário está digitando agora
-        const timelineTexts = (data.diligentHistory || []).map(h => h.notes).join(' ');
-        const allText = `${data.ifoodResult || ''} ${localData.observation || data.observation || ''} ${timelineTexts}`.toLowerCase();
+        // 1. Consolidação de Informações (Observações + Histórico de Investigação + iFood)
+        const historyNotes = (data.diligentHistory || []).map(h => h.notes).join(' ');
+        const rawObservation = localData.observation || data.observation || '';
+        const combinedIntel = `${rawObservation} ${historyNotes} ${data.ifoodResult || ''}`.toLowerCase();
 
-        const summary = Array.isArray(data.tacticalSummary)
-            ? data.tacticalSummary.join(' ')
-            : (data.tacticalSummary || '');
-
-        let suggestion = "Início da Manhã (05:00 - 06:30)";
+        // 2. Variáveis de Saída (Heurística Policial)
+        let suggestion = "Início da Manhã (05:45 - 06:30)";
+        let reason = "Padrão operacional padrão para maximizar surpresa e segurança jurídica (art. 5º XI CF).";
+        let strategy = "Cerco perimetral; abordagem silenciosa; conferência de via de fuga nos fundos.";
         let confidence = "Média";
-        let reason = "Horário padrão de segurança jurídica e tática para cumprimento de mandados residenciais.";
-        let strategy = "Abordagem padrão: cerco perimetral e entrada coordenada.";
 
-        // 1. Detecção de Horário Específico (Ultra Abrangente)
-        // Pega quase qualquer menção de horário: "19:00", "7h", "as 8", "pelas 15:30", "14hs", "20 hrs"
-        const specificTimeRegex = /(?:[àa]s|ás|pelas?|cerca\s+de|chega|sai|visto|as|entre|\b[àa]s\b|\b[áa]s\b)?\s*(\d{1,2})(?:[h:]|[\s]?hs|[\s]?horas?|[\s]?hrs|:)(\d{2})?\b/i;
-        const timeMatch = allText.match(specificTimeRegex);
+        // 3. EXTRAÇÃO DE HORÁRIOS (REGEX AVANÇADO)
+        // Detecta: "chega por volta das 19", "sai às 6", "visto 22:30", "15hs na frente", etc.
+        const timeRegex = /(?:[àa]s|ás|pelas?|cerca\s+de|chega\s+|sai\s+|visto\s+|movimentação\s+|as\s*|na\s*)\s*(\d{1,2})(?:[h:]|[:\s]?(?:hs|horas?|hrs|min))(\d{2})?\b/gi;
+        const matches = [...combinedIntel.matchAll(timeRegex)];
 
-        if (timeMatch) {
-            const hour = parseInt(timeMatch[1]);
-            const minutes = timeMatch[2] || '00';
-            const timeStr = `${hour.toString().padStart(2, '0')}:${minutes}`;
+        if (matches.length > 0) {
+            // Pega o último horário citado (geralmente o informe mais recente)
+            const lastMatch = matches[matches.length - 1];
+            const hour = parseInt(lastMatch[1]);
+            const minutes = lastMatch[2] || '00';
+            const caughtTime = `${hour.toString().padStart(2, '0')}:${minutes}`;
 
-            // Só processa se for uma hora válida (0-23)
-            if (hour >= 0 && hour <= 23) {
-                if (hour >= 18 || hour <= 4) {
-                    suggestion = `Cerca de ${timeStr} (Período Noturno)`;
-                    reason = `Identificado horário específico (${timeStr}) em textos de observação ou investigação.`;
-                    strategy = "Vigilância velada; luzes apagadas e aproximação silenciosa.";
-                    confidence = "Alta";
-                } else if (hour >= 5 && hour <= 8) {
-                    suggestion = `Cerca de ${timeStr} (Início do Dia)`;
-                    reason = `O alvo costuma se movimentar ou sair do local por volta das ${timeStr}.`;
-                    strategy = "Interceptação no momento da saída (portão/veículo).";
-                    confidence = "Alta";
-                } else {
-                    suggestion = `Foco às ${timeStr}`;
-                    reason = `Horário citado como ponto de presença ou atividade registrada.`;
-                    strategy = "Diligência de impacto no horário exato de maior probabilidade.";
-                    confidence = "Alta";
-                }
-                return { suggestion, confidence, reason, strategy };
+            if (hour >= 19 || hour <= 4) {
+                suggestion = `Janela Noturna / Retorno (${caughtTime})`;
+                reason = `Informes de campo indicam presença ou chegada do alvo no período noturno (${caughtTime}).`;
+                strategy = "Vigilância velada por 30min antes do horário; interceptação preferencialmente no desembarque do veículo.";
+                confidence = "Alta";
+            } else if (hour >= 5 && hour <= 8) {
+                suggestion = `Saída Antecipada (${caughtTime})`;
+                reason = `Alvo demonstra hábito de saída ou movimentação matinal flagrada em diligência por volta das ${caughtTime}.`;
+                strategy = "Posicionamento tático às 05:00; bloquear saída de garagem para evitar perseguição.";
+                confidence = "Alta";
+            } else {
+                suggestion = `Horário Crítico Citado: ${caughtTime}`;
+                reason = `Diligências apontam este horário específico como ponto recorrente de presença do alvo no imóvel.`;
+                strategy = "Abordagem cirúrgica no horário de presença confirmada; equipe em dois níveis (entrada e contenção).";
+                confidence = "Alta";
             }
         }
 
-        // 2. Dicionário Ampliado de Insights Investigativos
-        const patterns = [
-            { terms: ['janta', 'noite', 'noitinha'], suggestion: 'Noite (19:00 - 21:00)', reason: 'Presença noturna vinculada a refeição ou retorno.', strategy: 'Abordagem residencial noturna.' },
-            { terms: ['trabalha', 'serviço', 'emprego'], suggestion: 'Pós-Comercial (18:30+)', reason: 'O alvo possui vínculo laboral ativo detectado.', strategy: 'Aguardar retorno do trabalho.' },
-            { terms: ['madrugada', 'madruga', 'noitão'], suggestion: 'Madrugada (03:30 - 05:00)', reason: 'Evidências de hábitos notívagos ou retorno tardio.', strategy: 'Uso de superioridade numérica e surpresa total.' },
-            { terms: ['almoço', 'almoça', 'meio dia'], suggestion: 'Almoço (12:00 - 13:30)', reason: 'Hábito de almoçar no local identificado.', strategy: 'Simular entrega ou aproveitar abertura do portão.' },
-            { terms: ['academia', 'treino'], suggestion: 'Janela de Treino', reason: 'Alvo frequenta academia habitualmente.', strategy: 'Interceptação no trajeto se mapeado.' },
-            { terms: ['escola', 'filho', 'criança', 'creche'], suggestion: 'Manhã Tardia (08:30+)', reason: 'Presença de crianças. Priorizar segurança de terceiros.', strategy: 'Abordagem pós-saída escolar dos dependentes.' },
-            { terms: ['dorme', 'sono', 'deitado'], suggestion: 'Manhã (08:00 - 10:00)', reason: 'O alvo costuma dormir até mais tarde ou trabalha à noite.', strategy: 'Aproveitar o período de sono profundo.' },
-            { terms: ['moto', 'veículo', 'carro'], suggestion: 'Momento de Saída/Entrada', reason: 'Uso frequente de veículo para deslocamento.', strategy: 'Bloqueio de via e abordagem em veículo/garagem.' },
-            { terms: ['final de semana', 'sábado', 'domingo', 'fds'], suggestion: 'FDS (08:00 - 11:00)', reason: 'Alvo costuma estar presente nos finais de semana.', strategy: 'Equipe de campana tática.' }
-        ];
+        // 4. ANÁLISE DE PERFIL E RISCO (PENSAMENTO TÁTICO)
+        // O sistema deve ler "entre as linhas" de termos policiais
 
-        for (const p of patterns) {
-            if (p.terms.some(t => allText.includes(t))) {
-                return { suggestion: p.suggestion, confidence: "Alta", reason: p.reason, strategy: p.strategy };
+        // A. Perfil Fugitivo / Esperto
+        if (combinedIntel.includes('olheiro') || combinedIntel.includes('fuga') || combinedIntel.includes('câmera') || combinedIntel.includes('monitora')) {
+            strategy = "EQUIPE DE ELITE: Uso de veículos descaracterizados; infiltração a pé; neutralização de câmeras/olheiros antes da incursão principal.";
+            reason += " Alvo monitora a rua ou possui sistema de alerta prévio.";
+        }
+
+        // B. Perfil Violento / Resistência
+        if (combinedIntel.includes('arma') || combinedIntel.includes('ameaça') || combinedIntel.includes('violento') || combinedIntel.includes('perigoso') || combinedIntel.includes('facção')) {
+            strategy = "FORÇA MÁXIMA: Escudo balístico; arrombamento tático imediato (breaching); contenção de curta distância.";
+            reason += " Alta periculosidade detectada; risco de resistência armada.";
+            confidence = "Muito Alta";
+        }
+
+        // C. Perfil Trabalho / Rotina
+        if (combinedIntel.includes('trabalha') || combinedIntel.includes('serviço') || combinedIntel.includes('ubereats') || combinedIntel.includes('entregador')) {
+            if (!suggestion.includes('Horário')) {
+                suggestion = "Pós-Horário Comercial (18:45 - 20:15)";
+                reason = "Alvo possui rotina de trabalho externo; baixa probabilidade de presença durante o dia.";
+                strategy = "Campana para confirmar entrada no imóvel; abordagem na chave.";
             }
         }
 
-        // 3. iFood Intelligence (Sempre priorizando volumes altos)
-        if (data.ifoodResult && data.ifoodResult.length > 25) {
-            suggestion = "Janela de Delivery (Reforçada)";
-            reason = "Padrão de consumo iFood indica permanência estável no local.";
-            strategy = "Monitorar moto-entregadores para confirmar unidade exata.";
-            return { suggestion, confidence: "Alta", reason, strategy };
+        // D. Perfil Familiar (Zelo Operacional)
+        if (combinedIntel.includes('criança') || combinedIntel.includes('filho') || combinedIntel.includes('escola') || combinedIntel.includes('bebê')) {
+            strategy += " [CUIDADO: Presença de menores no local. Priorizar abordagem externa ou negociação calma se possível para evitar trauma].";
+        }
+
+        // E. Dados do iFood (Padrão de Consumo)
+        if (data.ifoodResult && data.ifoodResult.length > 30) {
+            if (confidence !== "Alta") {
+                suggestion = combinedIntel.includes('almoço') ? "Intervalo de Almoço (12:00 - 13:00)" : "Jantar / Pedidos (19:30 - 21:00)";
+                reason = "Frequência de pedidos delivery sugere presença fixa para recebimento no imóvel nestas janelas.";
+                strategy = "Simular entrega de aplicativo para facilitar abertura do portão ou porta principal.";
+                confidence = "Alta";
+            }
+        }
+
+        // 5. Ajuste de Prioridade caso seja B.A (Busca e Apreensão)
+        if (data.type?.includes('BUSCA')) {
+            strategy = "Busca minuciosa: Focar em celulares, anotações de tráfico e fundos falsos; manter alvo algemado em local seguro durante revista.";
         }
 
         return { suggestion, confidence, reason, strategy };
-    }, [data, localData.observation]);
+    }, [data, localData.observation, (data.diligentHistory || []).length]);
 
     if (!data) {
         return (
