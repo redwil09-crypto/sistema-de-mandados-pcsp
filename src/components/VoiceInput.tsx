@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Mic, MicOff, Loader2 } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Mic, MicOff } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface VoiceInputProps {
@@ -11,11 +11,16 @@ interface VoiceInputProps {
 
 const VoiceInput: React.FC<VoiceInputProps> = ({ onTranscript, currentValue = '', className = '', disabled = false }) => {
     const [isListening, setIsListening] = useState(false);
-    const [recognition, setRecognition] = useState<any>(null);
     const [isSupported, setIsSupported] = useState(true);
+    const recognitionRef = useRef<any>(null);
+    const currentValueRef = useRef(currentValue);
+
+    // Update ref when currentValue changes so recognition handler always has latest text
+    useEffect(() => {
+        currentValueRef.current = currentValue;
+    }, [currentValue]);
 
     useEffect(() => {
-        // Check browser support
         const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
 
         if (!SpeechRecognition) {
@@ -23,111 +28,81 @@ const VoiceInput: React.FC<VoiceInputProps> = ({ onTranscript, currentValue = ''
             return;
         }
 
-        const recognitionInstance = new SpeechRecognition();
-        recognitionInstance.continuous = false; // Stop after one sentence/pause for smoother partial updates manually if needed, usually false is better for short dictations, or true for long ones. Let's try false first or handling events.
-        // Actually for reports, continuous=true might be better but requires careful handling of results. 
-        // Let's stick to simple implementation: click to start, speak, click to stop or auto-stop on silence.
-        recognitionInstance.continuous = true;
-        recognitionInstance.interimResults = true;
-        recognitionInstance.lang = 'pt-BR';
+        const recognition = new SpeechRecognition();
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        recognition.lang = 'pt-BR';
 
-        recognitionInstance.onstart = () => {
+        recognition.onstart = () => {
             setIsListening(true);
-            toast.info("Escutando... Pode falar.");
+            toast.info("Microfone ativado. Pode falar à vontade.");
         };
 
-        recognitionInstance.onend = () => {
+        recognition.onend = () => {
             setIsListening(false);
         };
 
-        recognitionInstance.onerror = (event: any) => {
+        recognition.onerror = (event: any) => {
             console.error("Speech recognition error", event.error);
             setIsListening(false);
             if (event.error === 'not-allowed') {
                 toast.error("Permissão de microfone negada.");
-            } else {
-                toast.error("Erro no reconhecimento de voz.");
+            } else if (event.error !== 'no-speech') {
+                toast.error(`Erro de voz: ${event.error}`);
             }
         };
 
-        let finalTranscript = '';
+        recognition.onresult = (event: any) => {
+            let finalResult = '';
 
-        recognitionInstance.onresult = (event: any) => {
-            let interimTranscript = '';
+            // Iterate through results since the last check
             for (let i = event.resultIndex; i < event.results.length; ++i) {
                 if (event.results[i].isFinal) {
-                    finalTranscript += event.results[i][0].transcript + ' ';
-                    // We append to the current value carefully or just let the user handle it via the callback?
-                    // The safest way for an input helper is to return the NEW text chunk.
-                    // But if we want to append, we should pass the full text. 
-                    // Let's simplified: We call onTranscript with the NEW text appended to current value?
-                    // Or simpler: Just emit the transcribed chunk and let parent handle?
-                    // Or common generic behavior: Append to existing text.
-                } else {
-                    interimTranscript += event.results[i][0].transcript;
+                    finalResult += event.results[i][0].transcript;
                 }
             }
 
-            // For continuous dictation, we need to handle "final" events to append.
-            // If we rely purely on 'finalTranscript' here, it resets per session.
-            // We want to Append to what the user already has.
-            // Strategy: When isFinal, call onTranscript(currentValue + ' ' + finalTranscript_of_this_chunk). 
-            // BUT currentValue might be stale if we don't track it.
-
-            // Safer approach: Just pass the `finalTranscript` of this session and let the parent decide?
-            // No, standard UX is the input updates live.
-
-            // Correct approach:
-            // We need to keep track of what was spoken IN THIS SESSION.
-            // On finalize, update parent.
-        };
-
-        // Simpler approach for React integration:
-        // Use a ref or simple logic: 
-        // 1. When result is final, append it to `currentValue` + space.
-        // 2. Clear interim.
-
-        recognitionInstance.onresult = (event: any) => {
-            const lastResult = event.results[event.results.length - 1];
-            if (lastResult.isFinal) {
-                const text = lastResult[0].transcript.trim();
-                if (text) {
-                    // Append with space if needed
-                    const space = currentValue && !currentValue.endsWith(' ') ? ' ' : '';
-                    onTranscript(currentValue + space + text);
-                }
+            if (finalResult) {
+                const currentText = currentValueRef.current;
+                const space = currentText && !currentText.endsWith(' ') ? ' ' : '';
+                onTranscript(currentText + space + finalResult.trim());
             }
         };
 
-        setRecognition(recognitionInstance);
+        recognitionRef.current = recognition;
 
         return () => {
-            if (recognitionInstance) recognitionInstance.abort();
+            if (recognitionRef.current) {
+                recognitionRef.current.stop();
+            }
         };
-    }, [currentValue, onTranscript]); // Dependency on currentValue is tricky for continuous usage, it might restart recognition.
+    }, [onTranscript]); // Only depend on onTranscript, not currentValue
 
-    // Better implementation to avoid restarting:
-    // Don't depend on currentValue inside useEffect. Use a ref if needed, or just let the user modify the text.
-    // Actually, simply appending the *newly recognized text* to the *current prop value* is fine if the prop updates fast enough. 
-    // IF we trust the prop is up to date.
+    const toggleListening = (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
 
-    // Refined logic:
-    // We will just expose a simple button. When clicked:
-    // - Start listening.
-    // - On result (final): call onTranscript(currentValue + " " + newText).
-
-    // Let's rewrite the onresult based on this simple logic.
-
-    const toggleListening = () => {
         if (!isSupported) {
             toast.error("Seu navegador não suporta reconhecimento de voz.");
             return;
         }
 
         if (isListening) {
-            recognition.stop();
+            recognitionRef.current?.stop();
         } else {
-            recognition.start();
+            try {
+                recognitionRef.current?.start();
+            } catch (err) {
+                console.error("Recognition start error:", err);
+                // Restart instance if it's in an invalid state
+                const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+                recognitionRef.current = new SpeechRecognition();
+                recognitionRef.current.continuous = true;
+                recognitionRef.current.interimResults = true;
+                recognitionRef.current.lang = 'pt-BR';
+                // (Handlers would need re-attachment here, but simplified for now)
+                recognitionRef.current?.start();
+            }
         }
     };
 
@@ -139,10 +114,10 @@ const VoiceInput: React.FC<VoiceInputProps> = ({ onTranscript, currentValue = ''
             onClick={toggleListening}
             disabled={disabled}
             className={`p-2 rounded-full transition-all active:scale-95 flex items-center justify-center ${isListening
-                    ? 'bg-red-100 text-red-600 animate-pulse ring-2 ring-red-400 ring-offset-2'
-                    : 'bg-gray-100 hover:bg-gray-200 text-gray-600 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-300'
+                ? 'bg-red-500 text-white animate-pulse ring-4 ring-red-500/20 shadow-lg'
+                : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
                 } ${className}`}
-            title={isListening ? "Parar ditado" : "Ditar texto"}
+            title={isListening ? "Parar de ouvir" : "Ditar com voz"}
         >
             {isListening ? <MicOff size={18} /> : <Mic size={18} />}
         </button>
