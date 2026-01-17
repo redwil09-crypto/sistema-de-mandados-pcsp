@@ -1780,37 +1780,6 @@ Equipe de Capturas - DIG / PCSP
                     />
                 </div>
 
-                {/* AI Intelligence Card */}
-                {aiTimeSuggestion && (
-                    <div className="bg-indigo-600 rounded-xl shadow-lg overflow-hidden border border-indigo-500 transition-all hover:shadow-indigo-500/20">
-                        <div className="p-4 bg-white/10 backdrop-blur-sm border-b border-white/10 flex items-center justify-between">
-                            <h3 className="font-bold text-white text-sm flex items-center gap-2">
-                                <Sparkles size={18} className="text-amber-300" /> Inteligência Operacional (Antigravity IA)
-                            </h3>
-                            <span className={`text-[9px] font-black px-2 py-0.5 rounded-full border border-white/20 text-white uppercase tracking-widest ${aiTimeSuggestion.confidence === 'Alta' ? 'bg-green-500/30' : 'bg-amber-500/30'
-                                }`}>
-                                Confiança {aiTimeSuggestion.confidence}
-                            </span>
-                        </div>
-                        <div className="p-5 space-y-4">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="bg-white/5 p-3 rounded-lg border border-white/5">
-                                    <p className="text-[10px] font-black text-indigo-200 uppercase tracking-widest mb-1">Janela Sugerida</p>
-                                    <p className="text-white font-bold text-base">{aiTimeSuggestion.suggestion}</p>
-                                </div>
-                                <div className="bg-white/5 p-3 rounded-lg border border-white/5">
-                                    <p className="text-[10px] font-black text-indigo-200 uppercase tracking-widest mb-1">Estratégia Recomendada</p>
-                                    <p className="text-white text-sm font-medium italic">"{(aiTimeSuggestion as any).strategy}"</p>
-                                </div>
-                            </div>
-                            <div className="bg-black/20 p-3 rounded-lg border border-white/5">
-                                <p className="text-[10px] font-black text-indigo-200 uppercase tracking-widest mb-1">Análise Técnica</p>
-                                <p className="text-white/90 text-[11px] leading-relaxed">{aiTimeSuggestion.reason}</p>
-                            </div>
-                        </div>
-                    </div>
-                )}
-
                 {/* Sticky Save Changes Bar */}
                 {hasChanges && (
                     <div className="fixed bottom-[100px] left-4 right-4 p-4 bg-primary/95 dark:bg-primary/90 backdrop-blur-md rounded-xl z-[60] flex gap-3 animate-in slide-in-from-bottom duration-300 shadow-2xl">
