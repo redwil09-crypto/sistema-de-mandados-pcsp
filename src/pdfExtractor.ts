@@ -351,49 +351,77 @@ const determineMandadoType = (text: string): { type: string; category: 'prison' 
 };
 
 const extractCrime = (text: string): string => {
-    const crimes = [
-        "Ameaça/Injuria/Briga/Lesão", "Armas", "Drogas/Trafico", "Furto", "Roubo",
-        "Lesão corporal", "Homicídio", "Crimes Sexuais (Estupro)", "Pensão alimenticia",
-        "Receptação", "Corrupção", "Violencia domestica", "Estelionato", "Crimes de Trânsito",
-        "Porte Ilegal de Arma de Fogo", "Feminicídio", "Crimes Virtuais", "Ato Infracional",
-        "Sequestro/Cárcere Privado"
-    ];
-
     const lowerText = text.toLowerCase();
 
-    // Regra especial: pensão alimentícia (evitando falso positivo com "Polícia Civil")
-    const hasAlimentos = lowerText.includes('alimentos');
-    const hasPrisaoCivil = lowerText.includes('prisão civil') || lowerText.includes('prisao civil') || lowerText.includes('debito alimentar') || lowerText.includes('dívida de alimentos');
+    // 1. Procurar por campos explícitos e artigos da legislação
+    // Capitulação, Assunto ou Artigo
+    const lawArticlePattern = /(?:Assunto|Natureza|Capitula[çc][ãa]o|Incorreu\s+no(?:s)?\s+Artigo(?:s)?|Tipifica[çc][ãa]o|Artigo\(s\))[:\s\d]*([0-9]{2,4})/i;
+    const articleMatch = text.match(lawArticlePattern);
 
-    if (hasAlimentos || hasPrisaoCivil) {
-        return "Pensão alimenticia";
-    }
-
-    for (const crime of crimes) {
-        // Pega a primeira parte se houver barra (ex: Roubo/Furto -> Roubo)
-        const parts = crime.split('/');
-        for (const p of parts) {
-            const keyword = p.split(' ')[0].toLowerCase().replace(/[()]/g, '');
-            if (keyword.length > 3 && lowerText.includes(keyword)) return crime;
-        }
-    }
-
-    // Fallback: procura por numerais de artigos (ex: Art. 155, Artigo 121)
-    const articlePattern = /(?:Art\.?|Artigo)[:\s]*([0-9]{2,4})/i;
-    const articleMatch = text.match(articlePattern);
     if (articleMatch && articleMatch[1]) {
-        return `Artigo: ${articleMatch[1]}`;
+        const art = articleMatch[1];
+        if (art === '157') return "Roubo";
+        if (art === '155') return "Furto";
+        if (art === '33' || art === '35') return "Drogas/Trafico";
+        if (art === '121') return "Homicídio";
+        if (art === '129') return "Lesão corporal";
+        if (art === '213' || art === '217') return "Crimes Sexuais (Estupro)";
+        if (art === '180') return "Receptação";
+        if (art === '171') return "Estelionato";
+        if (art === '147') return "Ameaça/Injuria/Briga/Lesão";
+        if (art === '14' || art === '16') return "Armas";
+        if (art === '302' || art === '303') return "Crimes de Trânsito";
+    }
+
+    // 2. Busca por palavras-chave específicas com fronteiras de palavra (\b)
+    const specificRules = [
+        { crime: "Pensão alimenticia", keywords: [/\bpens[ãa]o\b/i, /\baliment[íi]cia\b/i, /\bd[ée]bito\s+alimentar\b/i, /\bd[íi]vida\s+de\s+alimentos\b/i, /\bpris[ãa]o\s+civil\b/i] },
+        { crime: "Homicídio", keywords: [/\bhomic[íi]dio\b/i, /\bmatar\b/i, /\bassassinato\b/i] },
+        { crime: "Feminicídio", keywords: [/\bfeminic[íi]dio\b/i] },
+        { crime: "Roubo", keywords: [/\broubo\b/i, /\bassalto\b/i, /\bart\.?\s*157\b/i] },
+        { crime: "Furto", keywords: [/\bfurto\b/i, /\bart\.?\s*155\b/i] },
+        { crime: "Drogas/Trafico", keywords: [/\btr[áa]fico\b/i, /\bentorpecente\b/i, /\bdrogas\b/i, /\bart\.?\s*33\b/i] },
+        { crime: "Violencia domestica", keywords: [/\bmaria\s+da\s+penha\b/i, /\bviol[êe]ncia\s+dom[ée]stica\b/i] },
+        { crime: "Crimes Sexuais (Estupro)", keywords: [/\bestupro\b/i, /\blasc[íi]via\b/i, /\bdignidade\s+sexual\b/i, /\bestupro\s+de\s+vulner[áa]vel\b/i] },
+        { crime: "Armas", keywords: [/\barma\s+de\s+fogo\b/i, /\bporte\s+ilegal\b/i, /\bposse\s+de\s+arma\b/i] },
+        { crime: "Estelionato", keywords: [/\bestelionato\b/i, /\bfraude\b/i, /\bart\.?\s*171\b/i] },
+        { crime: "Receptação", keywords: [/\brecepta[çc][ãa]o\b/i, /\bart\.?\s*180\b/i] },
+        { crime: "Ameaça/Injuria/Briga/Lesão", keywords: [/\bamea[çc]a\b/i, /\binj[úu]ria\b/i, /\bdifama[çc][ãa]o\b/i, /\bkalan[úu]nia\b/i] },
+        { crime: "Crimes de Trânsito", keywords: [/\btr[âa]nsito\b/i, /\bcodingo\s+de\s+transito\b/i, /\bembriaguez\b/i] },
+    ];
+
+    for (const rule of specificRules) {
+        if (rule.keywords.some(kw => kw.test(text))) {
+            // Se encontrou "pensão" ou "alimentos", verifica se não é apenas o nome da vara
+            if (rule.crime === "Pensão alimenticia") {
+                // Se só tem "alimentos" mas tem "roubo" ou "tráfico" em algum lugar, ignora alimentos
+                if (/\broubo\b|\btr[áa]fico\b|\bhomic[íi]dio\b/i.test(text)) continue;
+
+                // Se a palavra aparecer apenas no começo (primeiros 500 chars - cabeçalho da Vara) e não houver palavras de execução
+                const first500 = text.substring(0, 500).toLowerCase();
+                const totalOccurrences = (text.toLowerCase().match(/alimentos/g) || []).length;
+                if (totalOccurrences === 1 && first500.includes('alimentos') && !/\bexecu[çc][ãa]o\b|\bd[ée]bito\b|\bd[íi]vida\b|\bpris[ãa]o\s+civil\b/i.test(text)) {
+                    continue;
+                }
+            }
+            return rule.crime;
+        }
     }
 
     return 'Outros';
 };
 
 const extractRegime = (text: string, category: 'prison' | 'search', crime: string): string => {
-    const lowerText = text.toLowerCase();
+    // Limpar o texto de termos que geram falsos positivos de regime
+    let cleanTextForRegime = text.replace(/Pol[íi]cia\s+Civil/gi, '---')
+        .replace(/Justi[çc]a\s+Civil/gi, '---')
+        .replace(/C[íi]vel/gi, '---');
+
+    const lowerText = cleanTextForRegime.toLowerCase();
 
     // Regra para Busca e Apreensão: permite Audiência de Justificativa ou padrão Localização
     if (category === 'search') {
-        if (lowerText.includes('audiência de justificativa') || lowerText.includes('audiência de justificativa')) {
+        if (/\baudi[êe]ncia\s+de\s+justificativa\b/i.test(text)) {
             return "Audiência de Justificativa";
         }
         return 'Localização';
@@ -402,14 +430,21 @@ const extractRegime = (text: string, category: 'prison' | 'search', crime: strin
     // Regra especial: se for Pensão Alimenticia, o regime é Civil
     if (crime === "Pensão alimenticia") return "Civil";
 
-    const regimes = [
-        "Fechado", "Aberto", "Civil", "Semiaberto", "Preventiva",
-        "Temporária", "Of. Cobrança", "Contramandado", "Localização", "Outro"
+    const regimeRules = [
+        { label: "Fechado", pattern: /\bfechado\b/i },
+        { label: "Semiaberto", pattern: /\bsemiaberto\b|\bsemi-aberto\b/i },
+        { label: "Aberto", pattern: /\baberto\b/i },
+        { label: "Preventiva", pattern: /\bpreventiva\b/i },
+        { label: "Temporária", pattern: /\btempor[áa]ria\b/i },
+        { label: "Contramandado", pattern: /\bcontramandado\b/i },
     ];
 
-    for (const regime of regimes) {
-        if (lowerText.includes(regime.toLowerCase())) return regime;
+    for (const rule of regimeRules) {
+        if (rule.pattern.test(lowerText)) return rule.label;
     }
+
+    // Se mencionar Civil isolado (e não for Polícia Civil)
+    if (/\bcivil\b/i.test(lowerText)) return "Civil";
 
     return 'Outro';
 };
