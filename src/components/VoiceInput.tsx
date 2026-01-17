@@ -13,10 +13,12 @@ const VoiceInput: React.FC<VoiceInputProps> = ({ onTranscript, currentValue = ''
     const [isListening, setIsListening] = useState(false);
     const [isSupported, setIsSupported] = useState(true);
     const recognitionRef = useRef<any>(null);
-    const currentValueRef = useRef(currentValue);
     const shouldBeListeningRef = useRef(false);
+    const baselineTextRef = useRef(''); // The text that was there before this session started
+    const currentValueRef = useRef(currentValue);
+    const restartTimeoutRef = useRef<any>(null);
 
-    // Update ref when currentValue changes so recognition handler always has latest text
+    // Keep currentValueRef in sync with the prop
     useEffect(() => {
         currentValueRef.current = currentValue;
     }, [currentValue]);
@@ -33,49 +35,75 @@ const VoiceInput: React.FC<VoiceInputProps> = ({ onTranscript, currentValue = ''
         recognition.continuous = true;
         recognition.interimResults = true;
         recognition.lang = 'pt-BR';
+        recognition.maxAlternatives = 1;
 
         recognition.onstart = () => {
             setIsListening(true);
             shouldBeListeningRef.current = true;
+            console.log("Voice: Recognition started");
         };
 
         recognition.onend = () => {
-            // AUTO-RESTART LOGIC: If it was supposed to be listening, restart it
+            console.log("Voice: Recognition ended. shouldBeListening:", shouldBeListeningRef.current);
+
             if (shouldBeListeningRef.current) {
-                try {
-                    recognition.start();
-                } catch (e) {
-                    console.error("Failed to auto-restart recognition", e);
-                    setIsListening(false);
-                }
+                // Clear any existing timeout
+                if (restartTimeoutRef.current) clearTimeout(restartTimeoutRef.current);
+
+                // Keep trying to restart with a small delay
+                restartTimeoutRef.current = setTimeout(() => {
+                    if (shouldBeListeningRef.current) {
+                        try {
+                            // Update baseline to current text before restarting session
+                            // to avoid losing what was already transcribed or duplicating it
+                            baselineTextRef.current = currentValueRef.current;
+
+                            recognition.start();
+                        } catch (e) {
+                            console.log("Voice: Restart failed, re-initializing instance");
+                            const newRec = setupRecognition();
+                            if (newRec) {
+                                recognitionRef.current = newRec;
+                                try { newRec.start(); } catch (err) { console.error("Voice: Critical start failure", err); }
+                            }
+                        }
+                    }
+                }, 300);
             } else {
                 setIsListening(false);
             }
         };
 
         recognition.onerror = (event: any) => {
-            if (event.error === 'no-speech') return; // Ignore no-speech errors to stay open
+            console.error("Voice: Speech recognition error", event.error);
 
-            console.error("Speech recognition error", event.error);
+            if (event.error === 'no-speech') return;
+
             if (event.error === 'not-allowed') {
                 toast.error("Permissão de microfone negada.");
                 shouldBeListeningRef.current = false;
                 setIsListening(false);
+                return;
+            }
+
+            if (event.error === 'network') {
+                toast.error("Erro de conexão no reconhecimento de voz.");
             }
         };
 
         recognition.onresult = (event: any) => {
-            let finalResult = '';
-            for (let i = event.resultIndex; i < event.results.length; ++i) {
+            // We use the results list which accumulates in continuous mode
+            let sessionTranscript = '';
+            for (let i = 0; i < event.results.length; ++i) {
                 if (event.results[i].isFinal) {
-                    finalResult += event.results[i][0].transcript;
+                    sessionTranscript += event.results[i][0].transcript;
                 }
             }
 
-            if (finalResult) {
-                const currentText = currentValueRef.current;
-                const space = currentText && !currentText.endsWith(' ') ? ' ' : '';
-                onTranscript(currentText + space + finalResult.trim());
+            if (sessionTranscript) {
+                const baseline = baselineTextRef.current;
+                const space = baseline && !baseline.endsWith(' ') ? ' ' : '';
+                onTranscript(baseline + space + sessionTranscript.trim());
             }
         };
 
@@ -90,11 +118,12 @@ const VoiceInput: React.FC<VoiceInputProps> = ({ onTranscript, currentValue = ''
 
         return () => {
             shouldBeListeningRef.current = false;
+            if (restartTimeoutRef.current) clearTimeout(restartTimeoutRef.current);
             if (recognitionRef.current) {
-                recognitionRef.current.stop();
+                try { recognitionRef.current.stop(); } catch (e) { }
             }
         };
-    }, [onTranscript]);
+    }, []);
 
     const toggleListening = (e: React.MouseEvent) => {
         e.preventDefault();
@@ -107,14 +136,24 @@ const VoiceInput: React.FC<VoiceInputProps> = ({ onTranscript, currentValue = ''
 
         if (isListening) {
             shouldBeListeningRef.current = false;
+            if (restartTimeoutRef.current) clearTimeout(restartTimeoutRef.current);
             recognitionRef.current?.stop();
-            toast.success("Ditado finalizado.");
+            toast.success("Ditado pausado.");
         } else {
+            // Set baseline for the new session
+            baselineTextRef.current = currentValue;
+
             // Re-setup on start to ensure clean state
             recognitionRef.current = setupRecognition();
             shouldBeListeningRef.current = true;
-            recognitionRef.current?.start();
-            toast.info("Microfone aberto. Só desligará quando você apertar novamente.");
+
+            try {
+                recognitionRef.current?.start();
+                toast.info("Microfone ligado. Pode ditar...");
+            } catch (err) {
+                console.error("Voice: Start error", err);
+                toast.error("Erro ao iniciar microfone.");
+            }
         }
     };
 
