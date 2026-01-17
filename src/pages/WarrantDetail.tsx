@@ -574,7 +574,12 @@ Equipe de Capturas - DIG / PCSP
         if (!confirmResult) return;
 
         const updatedAttachments = (data.attachments || []).filter(url => url !== urlToDelete);
-        const success = await onUpdate(data.id, { attachments: updatedAttachments });
+        const updatedReports = (data.reports || []).filter(url => url !== urlToDelete);
+
+        const success = await onUpdate(data.id, {
+            attachments: updatedAttachments,
+            reports: updatedReports
+        });
 
         if (success) {
             toast.success("Documento excluído com sucesso!");

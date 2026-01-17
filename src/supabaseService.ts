@@ -257,7 +257,7 @@ export const getAllAuditLogs = async () => {
             .from('audit_logs')
             .select('*')
             .order('created_at', { ascending: false })
-            .limit(200);
+            .limit(500);
 
         if (error) throw error;
         return data;
