@@ -49,8 +49,13 @@ function App() {
     const [loading, setLoading] = useState(true);
     const [warrants, setWarrants] = useState<Warrant[]>([]);
     const [routeWarrants, setRouteWarrants] = useState<string[]>(() => {
-        const saved = localStorage.getItem('routeWarrants');
-        return saved ? JSON.parse(saved) : [];
+        try {
+            const saved = localStorage.getItem('routeWarrants');
+            return saved ? JSON.parse(saved) : [];
+        } catch (e) {
+            console.error("Error parsing routeWarrants from localStorage", e);
+            return [];
+        }
     });
 
     // Check active session on mount

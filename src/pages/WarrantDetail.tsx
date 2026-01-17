@@ -382,7 +382,7 @@ const WarrantDetail = ({ warrants, onUpdate, onDelete, routeWarrants = [], onRou
         }
 
         return { suggestion, confidence, reason, strategy };
-    }, [data, localData.observation, (data.diligentHistory || []).length]);
+    }, [data, localData.observation, data?.diligentHistory?.length]);
 
     if (!data) {
         return (
