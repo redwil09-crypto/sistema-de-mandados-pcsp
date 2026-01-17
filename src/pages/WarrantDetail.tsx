@@ -1478,22 +1478,22 @@ Equipe de Capturas - DIG / PCSP
                                                 {file.split('/').pop()?.replace(/^\d+_/, '') || `Documento ${idx + 1}`}
                                             </span>
                                         </div>
-                                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <div className="flex items-center gap-1">
                                             <a
                                                 href={getPublicUrl(file)}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                className="p-1.5 text-primary hover:bg-primary/10 rounded-md transition-colors"
+                                                className="p-2.5 text-primary hover:bg-primary/10 rounded-lg transition-colors"
                                                 title="Visualizar"
                                             >
-                                                <ExternalLink size={14} />
+                                                <ExternalLink size={18} />
                                             </a>
                                             <button
                                                 onClick={() => handleDeleteAttachment(file)}
-                                                className="p-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-md transition-colors"
+                                                className="p-2.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-lg transition-colors"
                                                 title="Excluir"
                                             >
-                                                <Trash2 size={14} />
+                                                <Trash2 size={18} />
                                             </button>
                                         </div>
                                     </div>
@@ -1577,22 +1577,22 @@ Equipe de Capturas - DIG / PCSP
                                                 {file.split('/').pop()?.replace(/^\d+_/, '') || 'Relatório de Inteligência'}
                                             </span>
                                         </div>
-                                        <div className="flex items-center gap-2">
+                                        <div className="flex items-center gap-1">
                                             <a
                                                 href={getPublicUrl(file)}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                className="p-2 text-primary hover:bg-primary/10 rounded-lg transition-colors"
+                                                className="p-2.5 text-primary hover:bg-primary/10 rounded-lg transition-colors"
                                                 title="Visualizar"
                                             >
-                                                <ExternalLink size={16} />
+                                                <ExternalLink size={20} />
                                             </a>
                                             <button
                                                 onClick={() => handleDeleteAttachment(file)}
-                                                className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-lg transition-colors"
+                                                className="p-2.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-lg transition-colors"
                                                 title="Excluir"
                                             >
-                                                <Trash2 size={16} />
+                                                <Trash2 size={20} />
                                             </button>
                                         </div>
                                     </div>
@@ -1679,7 +1679,7 @@ Equipe de Capturas - DIG / PCSP
                                                 </div>
                                                 <button
                                                     onClick={() => handleDeleteDiligence(h.id)}
-                                                    className="opacity-0 group-hover:opacity-100 p-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-lg transition-all"
+                                                    className="p-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-lg transition-all"
                                                 >
                                                     <Trash2 size={14} />
                                                 </button>

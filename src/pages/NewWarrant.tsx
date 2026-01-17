@@ -405,7 +405,7 @@ const NewWarrant = ({ onAdd, onUpdate, warrants }: NewWarrantProps) => {
                             </>
                         )}
                         {photoPreview && (
-                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                            <div className="absolute inset-0 bg-black/40 flex items-center justify-center transition-opacity">
                                 <span className="text-white text-[10px] font-bold">Trocar Foto</span>
                             </div>
                         )}
@@ -649,13 +649,14 @@ const NewWarrant = ({ onAdd, onUpdate, warrants }: NewWarrantProps) => {
                                 <div key={`old-att-${idx}`} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-white/5 rounded-xl text-xs border border-border-light dark:border-border-dark group">
                                     <span className="truncate flex-1 font-bold">Documento {idx + 1}</span>
                                     <div className="flex items-center gap-3">
-                                        <button
-                                            type="button"
-                                            onClick={() => window.open(url, '_blank')}
-                                            className="text-primary font-black hover:underline"
+                                        <a
+                                            href={getPublicUrl(url)}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-primary font-black hover:underline p-2 text-xs"
                                         >
                                             Ver
-                                        </button>
+                                        </a>
                                         <button
                                             type="button"
                                             onClick={() => handleRemoveOldFile(idx, 'attachments')}
@@ -690,13 +691,14 @@ const NewWarrant = ({ onAdd, onUpdate, warrants }: NewWarrantProps) => {
                                 <div key={`old-${idx}`} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-white/5 rounded-xl text-xs border border-border-light dark:border-border-dark group">
                                     <span className="truncate flex-1 font-bold">Relatório {idx + 1}</span>
                                     <div className="flex items-center gap-3">
-                                        <button
-                                            type="button"
-                                            onClick={() => window.open(url, '_blank')}
-                                            className="text-primary font-black hover:underline"
+                                        <a
+                                            href={getPublicUrl(url)}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-primary font-black hover:underline p-2 text-xs"
                                         >
                                             Ver
-                                        </button>
+                                        </a>
                                         <button
                                             type="button"
                                             onClick={() => handleRemoveOldFile(idx, 'reports')}

@@ -43,6 +43,9 @@ export const uploadFile = async (file: File, path: string): Promise<string | nul
  * @returns A URL pública do arquivo
  */
 export const getPublicUrl = (path: string): string => {
+    if (!path) return '';
+    if (path.startsWith('http')) return path;
+
     const { data } = supabase.storage
         .from(BUCKET_NAME)
         .getPublicUrl(path);
