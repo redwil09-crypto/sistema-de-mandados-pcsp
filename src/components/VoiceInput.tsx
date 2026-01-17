@@ -13,17 +13,10 @@ const VoiceInput: React.FC<VoiceInputProps> = ({ onTranscript, currentValue = ''
     const [isListening, setIsListening] = useState(false);
     const [isSupported, setIsSupported] = useState(true);
     const recognitionRef = useRef<any>(null);
-    const shouldBeListeningRef = useRef(false);
-    const baselineTextRef = useRef(''); // The text that was there before this session started
-    const currentValueRef = useRef(currentValue);
-    const restartTimeoutRef = useRef<any>(null);
+    const startTextRef = useRef(''); // Text present when mic was clicked
+    const lastFinalTranscriptRef = useRef(''); // To track what we've already sent to parent
 
-    // Keep currentValueRef in sync with the prop
-    useEffect(() => {
-        currentValueRef.current = currentValue;
-    }, [currentValue]);
-
-    const setupRecognition = () => {
+    const initRecognition = () => {
         const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
 
         if (!SpeechRecognition) {
@@ -35,92 +28,63 @@ const VoiceInput: React.FC<VoiceInputProps> = ({ onTranscript, currentValue = ''
         recognition.continuous = true;
         recognition.interimResults = true;
         recognition.lang = 'pt-BR';
-        recognition.maxAlternatives = 1;
 
         recognition.onstart = () => {
             setIsListening(true);
-            shouldBeListeningRef.current = true;
-            console.log("Voice: Recognition started");
+            startTextRef.current = currentValue;
+            lastFinalTranscriptRef.current = '';
         };
 
-        recognition.onend = () => {
-            console.log("Voice: Recognition ended. shouldBeListening:", shouldBeListeningRef.current);
+        recognition.onresult = (event: any) => {
+            let sessionFinalTranscript = '';
+            let interimTranscript = '';
 
-            if (shouldBeListeningRef.current) {
-                // Clear any existing timeout
-                if (restartTimeoutRef.current) clearTimeout(restartTimeoutRef.current);
+            for (let i = event.resultIndex; i < event.results.length; ++i) {
+                if (event.results[i].isFinal) {
+                    sessionFinalTranscript += event.results[i][0].transcript;
+                } else {
+                    interimTranscript += event.results[i][0].transcript;
+                }
+            }
 
-                // Keep trying to restart with a small delay
-                restartTimeoutRef.current = setTimeout(() => {
-                    if (shouldBeListeningRef.current) {
-                        try {
-                            // Update baseline to current text before restarting session
-                            // to avoid losing what was already transcribed or duplicating it
-                            baselineTextRef.current = currentValueRef.current;
+            if (sessionFinalTranscript || interimTranscript) {
+                const base = startTextRef.current;
+                const space = base && !base.endsWith(' ') ? ' ' : '';
 
-                            recognition.start();
-                        } catch (e) {
-                            console.log("Voice: Restart failed, re-initializing instance");
-                            const newRec = setupRecognition();
-                            if (newRec) {
-                                recognitionRef.current = newRec;
-                                try { newRec.start(); } catch (err) { console.error("Voice: Critical start failure", err); }
-                            }
-                        }
-                    }
-                }, 300);
-            } else {
-                setIsListening(false);
+                // We only send the FINAL bits to the parent to avoid jitter and cursor jumping
+                // If you want real-time interim, it's riskier for repetitions.
+                // Let's stick to appending finalized chunks for stability like "standard" mics.
+                if (sessionFinalTranscript) {
+                    // Update startText for the NEXT chunk so we don't repeat the current one
+                    const newText = base + space + sessionFinalTranscript.trim();
+                    onTranscript(newText);
+                    startTextRef.current = newText;
+                }
             }
         };
 
         recognition.onerror = (event: any) => {
-            console.error("Voice: Speech recognition error", event.error);
-
-            if (event.error === 'no-speech') return;
-
+            console.error("Voice Error:", event.error);
             if (event.error === 'not-allowed') {
-                toast.error("Permissão de microfone negada.");
-                shouldBeListeningRef.current = false;
-                setIsListening(false);
-                return;
+                toast.error("Acesso ao microfone negado.");
             }
-
-            if (event.error === 'network') {
-                toast.error("Erro de conexão no reconhecimento de voz.");
-            }
+            setIsListening(false);
         };
 
-        recognition.onresult = (event: any) => {
-            // We use the results list which accumulates in continuous mode
-            let sessionTranscript = '';
-            for (let i = 0; i < event.results.length; ++i) {
-                if (event.results[i].isFinal) {
-                    sessionTranscript += event.results[i][0].transcript;
-                }
-            }
-
-            if (sessionTranscript) {
-                const baseline = baselineTextRef.current;
-                const space = baseline && !baseline.endsWith(' ') ? ' ' : '';
-                onTranscript(baseline + space + sessionTranscript.trim());
-            }
+        recognition.onend = () => {
+            setIsListening(false);
         };
 
         return recognition;
     };
 
     useEffect(() => {
-        const recognition = setupRecognition();
-        if (recognition) {
-            recognitionRef.current = recognition;
-        }
+        const rec = initRecognition();
+        if (rec) recognitionRef.current = rec;
 
         return () => {
-            shouldBeListeningRef.current = false;
-            if (restartTimeoutRef.current) clearTimeout(restartTimeoutRef.current);
             if (recognitionRef.current) {
-                try { recognitionRef.current.stop(); } catch (e) { }
+                recognitionRef.current.stop();
             }
         };
     }, []);
@@ -130,30 +94,18 @@ const VoiceInput: React.FC<VoiceInputProps> = ({ onTranscript, currentValue = ''
         e.stopPropagation();
 
         if (!isSupported) {
-            toast.error("Seu navegador não suporta reconhecimento de voz.");
+            toast.error("Navegador não suporta voz.");
             return;
         }
 
         if (isListening) {
-            shouldBeListeningRef.current = false;
-            if (restartTimeoutRef.current) clearTimeout(restartTimeoutRef.current);
             recognitionRef.current?.stop();
-            toast.success("Ditado pausado.");
         } else {
-            // Set baseline for the new session
-            baselineTextRef.current = currentValue;
-
-            // Re-setup on start to ensure clean state
-            recognitionRef.current = setupRecognition();
-            shouldBeListeningRef.current = true;
-
-            try {
-                recognitionRef.current?.start();
-                toast.info("Microfone ligado. Pode ditar...");
-            } catch (err) {
-                console.error("Voice: Start error", err);
-                toast.error("Erro ao iniciar microfone.");
-            }
+            // Re-init to clear any stale state
+            const rec = initRecognition();
+            recognitionRef.current = rec;
+            startTextRef.current = currentValue;
+            rec?.start();
         }
     };
 
