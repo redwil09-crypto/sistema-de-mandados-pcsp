@@ -295,9 +295,9 @@ const WarrantDetail = ({ warrants, onUpdate, onDelete, routeWarrants = [], onRou
     const aiTimeSuggestion = useMemo(() => {
         if (!data) return null;
 
-        // Coleta todos os textos de investigação, observação e iFood
+        // Coleta textos: Prioriza localData.observation para refletir o que o usuário está digitando agora
         const timelineTexts = (data.diligentHistory || []).map(h => h.notes).join(' ');
-        const allText = `${data.ifoodResult || ''} ${data.observation || ''} ${timelineTexts}`.toLowerCase();
+        const allText = `${data.ifoodResult || ''} ${localData.observation || data.observation || ''} ${timelineTexts}`.toLowerCase();
 
         const summary = Array.isArray(data.tacticalSummary)
             ? data.tacticalSummary.join(' ')
@@ -308,9 +308,9 @@ const WarrantDetail = ({ warrants, onUpdate, onDelete, routeWarrants = [], onRou
         let reason = "Horário padrão de segurança jurídica e tática para cumprimento de mandados residenciais.";
         let strategy = "Abordagem padrão: cerco perimetral e entrada coordenada.";
 
-        // 1. Detecção de Horário Específico (Mais abrangente)
-        // Pega: "às 19", "ás 19:30", "pelas 18h", "cerca de 20hs", "chega 21:00", "porta as 07"
-        const specificTimeRegex = /(?:[àa]s|ás|pelas?|cerca\s+de|chega|sai|visto|as)\s*(\d{1,2})(?:[h:]|[\s]?hs|[\s]?horas?)(\d{2})?/i;
+        // 1. Detecção de Horário Específico (Ultra Abrangente)
+        // Pega quase qualquer menção de horário: "19:00", "7h", "as 8", "pelas 15:30", "14hs", "20 hrs"
+        const specificTimeRegex = /(?:[àa]s|ás|pelas?|cerca\s+de|chega|sai|visto|as|entre|\b[àa]s\b|\b[áa]s\b)?\s*(\d{1,2})(?:[h:]|[\s]?hs|[\s]?horas?|[\s]?hrs|:)(\d{2})?\b/i;
         const timeMatch = allText.match(specificTimeRegex);
 
         if (timeMatch) {
@@ -318,70 +318,57 @@ const WarrantDetail = ({ warrants, onUpdate, onDelete, routeWarrants = [], onRou
             const minutes = timeMatch[2] || '00';
             const timeStr = `${hour.toString().padStart(2, '0')}:${minutes}`;
 
-            if (hour >= 18 || hour <= 4) {
-                suggestion = `Cerca de ${timeStr} (Período Noturno)`;
-                reason = `O alvo foi especificamente citado nos registros como presente ou chegando neste horário (${timeStr}).`;
-                strategy = "Aguardar chegada em ponto cego; evitar abordagem com o veículo em movimento se possível.";
-                confidence = "Alta";
-            } else if (hour >= 5 && hour <= 8) {
-                suggestion = `Cerca de ${timeStr} (Saída Matinal)`;
-                reason = `Registro de campo indica saída ou movimentação logo cedo (${timeStr}).`;
-                strategy = "Posicionamento 30min antes do horário citado; priorizar interceptação no portão.";
-                confidence = "Alta";
-            } else {
-                suggestion = `Horário Citado: ${timeStr}`;
-                reason = `Horário detectado em análise de texto como ponto de referência para a presença do alvo.`;
-                strategy = "Diligência de confirmação visual antes da abordagem definitiva.";
-                confidence = "Alta";
+            // Só processa se for uma hora válida (0-23)
+            if (hour >= 0 && hour <= 23) {
+                if (hour >= 18 || hour <= 4) {
+                    suggestion = `Cerca de ${timeStr} (Período Noturno)`;
+                    reason = `Identificado horário específico (${timeStr}) em textos de observação ou investigação.`;
+                    strategy = "Vigilância velada; luzes apagadas e aproximação silenciosa.";
+                    confidence = "Alta";
+                } else if (hour >= 5 && hour <= 8) {
+                    suggestion = `Cerca de ${timeStr} (Início do Dia)`;
+                    reason = `O alvo costuma se movimentar ou sair do local por volta das ${timeStr}.`;
+                    strategy = "Interceptação no momento da saída (portão/veículo).";
+                    confidence = "Alta";
+                } else {
+                    suggestion = `Foco às ${timeStr}`;
+                    reason = `Horário citado como ponto de presença ou atividade registrada.`;
+                    strategy = "Diligência de impacto no horário exato de maior probabilidade.";
+                    confidence = "Alta";
+                }
+                return { suggestion, confidence, reason, strategy };
             }
-            return { suggestion, confidence, reason, strategy };
         }
 
-        // 2. Detecção de Hábitos e Mensagens Subjacentes
-        const keywords = [
-            { term: 'janta', suggestion: 'Noite (19:00 - 20:30)', reason: 'Menção a horário de refeição noturna.', strategy: 'Abordagem residencial padrão.' },
-            { term: 'academia', suggestion: 'Manhã ou Noite', reason: 'Rotina de exercícios detectada.', strategy: 'Monitorar trajeto casa-academia.' },
-            { term: 'trabalha de noite', suggestion: 'Manhã (09:00 - 11:00)', reason: 'Alvo trabalha no período noturno, deve dormir pela manhã.', strategy: 'Incursão silenciosa; alvo provavelmente em repouso profundo.' },
-            { term: 'dorme', suggestion: 'Manhã (08:00 - 10:00)', reason: 'Indicação de sono tardio.', strategy: 'Surpreender o alvo ainda em repouso.' },
-            { term: 'buscando', suggestion: 'Saída/Entrada Escolar', reason: 'Alvo busca ou leva dependentes em horários escolares.', strategy: 'Evitar abordagem na frente de crianças (zelar pela segurança de terceiros).' }
+        // 2. Dicionário Ampliado de Insights Investigativos
+        const patterns = [
+            { terms: ['janta', 'noite', 'noitinha'], suggestion: 'Noite (19:00 - 21:00)', reason: 'Presença noturna vinculada a refeição ou retorno.', strategy: 'Abordagem residencial noturna.' },
+            { terms: ['trabalha', 'serviço', 'emprego'], suggestion: 'Pós-Comercial (18:30+)', reason: 'O alvo possui vínculo laboral ativo detectado.', strategy: 'Aguardar retorno do trabalho.' },
+            { terms: ['madrugada', 'madruga', 'noitão'], suggestion: 'Madrugada (03:30 - 05:00)', reason: 'Evidências de hábitos notívagos ou retorno tardio.', strategy: 'Uso de superioridade numérica e surpresa total.' },
+            { terms: ['almoço', 'almoça', 'meio dia'], suggestion: 'Almoço (12:00 - 13:30)', reason: 'Hábito de almoçar no local identificado.', strategy: 'Simular entrega ou aproveitar abertura do portão.' },
+            { terms: ['academia', 'treino'], suggestion: 'Janela de Treino', reason: 'Alvo frequenta academia habitualmente.', strategy: 'Interceptação no trajeto se mapeado.' },
+            { terms: ['escola', 'filho', 'criança', 'creche'], suggestion: 'Manhã Tardia (08:30+)', reason: 'Presença de crianças. Priorizar segurança de terceiros.', strategy: 'Abordagem pós-saída escolar dos dependentes.' },
+            { terms: ['dorme', 'sono', 'deitado'], suggestion: 'Manhã (08:00 - 10:00)', reason: 'O alvo costuma dormir até mais tarde ou trabalha à noite.', strategy: 'Aproveitar o período de sono profundo.' },
+            { terms: ['moto', 'veículo', 'carro'], suggestion: 'Momento de Saída/Entrada', reason: 'Uso frequente de veículo para deslocamento.', strategy: 'Bloqueio de via e abordagem em veículo/garagem.' },
+            { terms: ['final de semana', 'sábado', 'domingo', 'fds'], suggestion: 'FDS (08:00 - 11:00)', reason: 'Alvo costuma estar presente nos finais de semana.', strategy: 'Equipe de campana tática.' }
         ];
 
-        for (const kw of keywords) {
-            if (allText.includes(kw.term)) {
-                return { suggestion: kw.suggestion, confidence: "Alta", reason: kw.reason, strategy: kw.strategy };
+        for (const p of patterns) {
+            if (p.terms.some(t => allText.includes(t))) {
+                return { suggestion: p.suggestion, confidence: "Alta", reason: p.reason, strategy: p.strategy };
             }
         }
 
-        // 3. Fallbacks de Hábitos Gerais
-        if (allText.includes('final de semana') || allText.includes('sábado') || allText.includes('domingo')) {
-            suggestion = "Fim de Semana (07:00 - 09:00)";
-            reason = "Presença provável em casa durante o repouso semanal.";
-            strategy = "Vigilância de vizinhança para confirmar veículos na garagem.";
-            confidence = "Alta";
-        } else if (allText.includes('madrugada') || summary.toLowerCase().includes('noturno') || allText.includes('noite')) {
-            suggestion = "Madrugada (03:30 - 05:00)";
-            reason = "Evidências de hábitos notívagos ou retorno tardio.";
-            strategy = "Corte de energia/luz se possível; abordagem com superioridade numérica.";
-            confidence = "Alta";
-        } else if (allText.includes('cedo') || allText.includes('cedinho')) {
-            suggestion = "Madrugada Antecipada (04:15 - 05:15)";
-            reason = "Alvo conhecido por sair antes do horário padrão de cumprimento.";
-            strategy = "Antecipar cerco em 40 minutos do horário padrão.";
-            confidence = "Alta";
-        } else if (allText.includes('almoço') || (data.ifoodResult?.toLowerCase().includes('12:') || data.ifoodResult?.toLowerCase().includes('13:'))) {
-            suggestion = "Meio-dia (11:50 - 12:45)";
-            reason = "Padrão de entregas iFood ou refeição captado.";
-            strategy = "Simular entrega ou aproveitar abertura do portão para recebimento.";
-            confidence = "Alta";
-        } else if (data.ifoodResult && data.ifoodResult.length > 30) {
-            suggestion = "Noite (20:00 - 21:30)";
-            reason = "Frequência de pedidos iFood em dias de semana indica permanência noturna.";
-            strategy = "Identificar entregadores para localizar ponto exato de entrada.";
-            confidence = "Alta";
+        // 3. iFood Intelligence (Sempre priorizando volumes altos)
+        if (data.ifoodResult && data.ifoodResult.length > 25) {
+            suggestion = "Janela de Delivery (Reforçada)";
+            reason = "Padrão de consumo iFood indica permanência estável no local.";
+            strategy = "Monitorar moto-entregadores para confirmar unidade exata.";
+            return { suggestion, confidence: "Alta", reason, strategy };
         }
 
         return { suggestion, confidence, reason, strategy };
-    }, [data]);
+    }, [data, localData.observation]);
 
     if (!data) {
         return (
