@@ -14,18 +14,19 @@ const VoiceInput: React.FC<VoiceInputProps> = ({ onTranscript, currentValue = ''
     const [isSupported, setIsSupported] = useState(true);
     const recognitionRef = useRef<any>(null);
     const currentValueRef = useRef(currentValue);
+    const shouldBeListeningRef = useRef(false);
 
     // Update ref when currentValue changes so recognition handler always has latest text
     useEffect(() => {
         currentValueRef.current = currentValue;
     }, [currentValue]);
 
-    useEffect(() => {
+    const setupRecognition = () => {
         const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
 
         if (!SpeechRecognition) {
             setIsSupported(false);
-            return;
+            return null;
         }
 
         const recognition = new SpeechRecognition();
@@ -35,27 +36,36 @@ const VoiceInput: React.FC<VoiceInputProps> = ({ onTranscript, currentValue = ''
 
         recognition.onstart = () => {
             setIsListening(true);
-            toast.info("Microfone ativado. Pode falar à vontade.");
+            shouldBeListeningRef.current = true;
         };
 
         recognition.onend = () => {
-            setIsListening(false);
+            // AUTO-RESTART LOGIC: If it was supposed to be listening, restart it
+            if (shouldBeListeningRef.current) {
+                try {
+                    recognition.start();
+                } catch (e) {
+                    console.error("Failed to auto-restart recognition", e);
+                    setIsListening(false);
+                }
+            } else {
+                setIsListening(false);
+            }
         };
 
         recognition.onerror = (event: any) => {
+            if (event.error === 'no-speech') return; // Ignore no-speech errors to stay open
+
             console.error("Speech recognition error", event.error);
-            setIsListening(false);
             if (event.error === 'not-allowed') {
                 toast.error("Permissão de microfone negada.");
-            } else if (event.error !== 'no-speech') {
-                toast.error(`Erro de voz: ${event.error}`);
+                shouldBeListeningRef.current = false;
+                setIsListening(false);
             }
         };
 
         recognition.onresult = (event: any) => {
             let finalResult = '';
-
-            // Iterate through results since the last check
             for (let i = event.resultIndex; i < event.results.length; ++i) {
                 if (event.results[i].isFinal) {
                     finalResult += event.results[i][0].transcript;
@@ -69,14 +79,22 @@ const VoiceInput: React.FC<VoiceInputProps> = ({ onTranscript, currentValue = ''
             }
         };
 
-        recognitionRef.current = recognition;
+        return recognition;
+    };
+
+    useEffect(() => {
+        const recognition = setupRecognition();
+        if (recognition) {
+            recognitionRef.current = recognition;
+        }
 
         return () => {
+            shouldBeListeningRef.current = false;
             if (recognitionRef.current) {
                 recognitionRef.current.stop();
             }
         };
-    }, [onTranscript]); // Only depend on onTranscript, not currentValue
+    }, [onTranscript]);
 
     const toggleListening = (e: React.MouseEvent) => {
         e.preventDefault();
@@ -88,21 +106,15 @@ const VoiceInput: React.FC<VoiceInputProps> = ({ onTranscript, currentValue = ''
         }
 
         if (isListening) {
+            shouldBeListeningRef.current = false;
             recognitionRef.current?.stop();
+            toast.success("Ditado finalizado.");
         } else {
-            try {
-                recognitionRef.current?.start();
-            } catch (err) {
-                console.error("Recognition start error:", err);
-                // Restart instance if it's in an invalid state
-                const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-                recognitionRef.current = new SpeechRecognition();
-                recognitionRef.current.continuous = true;
-                recognitionRef.current.interimResults = true;
-                recognitionRef.current.lang = 'pt-BR';
-                // (Handlers would need re-attachment here, but simplified for now)
-                recognitionRef.current?.start();
-            }
+            // Re-setup on start to ensure clean state
+            recognitionRef.current = setupRecognition();
+            shouldBeListeningRef.current = true;
+            recognitionRef.current?.start();
+            toast.info("Microfone aberto. Só desligará quando você apertar novamente.");
         }
     };
 
