@@ -193,7 +193,11 @@ export const generateWarrantPDF = async (
 
 
         if (aiTimeSuggestion) {
-            intelFields.push(["Janela Operacional:", `${aiTimeSuggestion.suggestion} - ${aiTimeSuggestion.reason}`]);
+            intelFields.push(["Janela Operacional:", `${aiTimeSuggestion.suggestion}`]);
+            intelFields.push(["Fundamentação:", `${aiTimeSuggestion.reason}`]);
+            if ((aiTimeSuggestion as any).strategy) {
+                intelFields.push(["Estratégia Sugerida:", `${(aiTimeSuggestion as any).strategy}`]);
+            }
         }
 
         drawSection("Análise e Observações", intelFields);

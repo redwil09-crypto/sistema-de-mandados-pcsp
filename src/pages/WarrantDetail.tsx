@@ -294,29 +294,93 @@ const WarrantDetail = ({ warrants, onUpdate, onDelete, routeWarrants = [], onRou
 
     const aiTimeSuggestion = useMemo(() => {
         if (!data) return null;
-        // Logic: if ifood result exists, or tactical summary mentions "madrugada" etc.
-        const notes = (data.ifoodResult || '') + (data.observation || '');
+
+        // Coleta todos os textos de investigação, observação e iFood
+        const timelineTexts = (data.diligentHistory || []).map(h => h.notes).join(' ');
+        const allText = `${data.ifoodResult || ''} ${data.observation || ''} ${timelineTexts}`.toLowerCase();
+
         const summary = Array.isArray(data.tacticalSummary)
             ? data.tacticalSummary.join(' ')
             : (data.tacticalSummary || '');
 
         let suggestion = "Início da Manhã (05:00 - 06:30)";
-        let confidence = "Alta";
-        let reason = "Padrão operacional padrão para cumprimento de prisão.";
+        let confidence = "Média";
+        let reason = "Horário padrão de segurança jurídica e tática para cumprimento de mandados residenciais.";
+        let strategy = "Abordagem padrão: cerco perimetral e entrada coordenada.";
 
-        if (notes.toLowerCase().includes('madrugada') || summary.toLowerCase().includes('noturno')) {
-            suggestion = "Madrugada (03:00 - 05:00)";
-            reason = "Menções a atividade noturna detectadas no sumário.";
-        } else if (notes.toLowerCase().includes('almoço') || notes.toLowerCase().includes('tarde')) {
-            suggestion = "Horário de Almoço (11:30 - 13:30)";
-            reason = "Padrão de entregas detectedo em análise de horários iFood.";
-        } else if (data.ifoodResult && data.ifoodResult.length > 20) {
-            suggestion = "Início da Manhã (05:45 - 06:15)";
-            confidence = "Muito Alta";
-            reason = "Cruzamento de dados iFood com atividade residencial.";
+        // 1. Detecção de Horário Específico (Mais abrangente)
+        // Pega: "às 19", "ás 19:30", "pelas 18h", "cerca de 20hs", "chega 21:00", "porta as 07"
+        const specificTimeRegex = /(?:[àa]s|ás|pelas?|cerca\s+de|chega|sai|visto|as)\s*(\d{1,2})(?:[h:]|[\s]?hs|[\s]?horas?)(\d{2})?/i;
+        const timeMatch = allText.match(specificTimeRegex);
+
+        if (timeMatch) {
+            const hour = parseInt(timeMatch[1]);
+            const minutes = timeMatch[2] || '00';
+            const timeStr = `${hour.toString().padStart(2, '0')}:${minutes}`;
+
+            if (hour >= 18 || hour <= 4) {
+                suggestion = `Cerca de ${timeStr} (Período Noturno)`;
+                reason = `O alvo foi especificamente citado nos registros como presente ou chegando neste horário (${timeStr}).`;
+                strategy = "Aguardar chegada em ponto cego; evitar abordagem com o veículo em movimento se possível.";
+                confidence = "Alta";
+            } else if (hour >= 5 && hour <= 8) {
+                suggestion = `Cerca de ${timeStr} (Saída Matinal)`;
+                reason = `Registro de campo indica saída ou movimentação logo cedo (${timeStr}).`;
+                strategy = "Posicionamento 30min antes do horário citado; priorizar interceptação no portão.";
+                confidence = "Alta";
+            } else {
+                suggestion = `Horário Citado: ${timeStr}`;
+                reason = `Horário detectado em análise de texto como ponto de referência para a presença do alvo.`;
+                strategy = "Diligência de confirmação visual antes da abordagem definitiva.";
+                confidence = "Alta";
+            }
+            return { suggestion, confidence, reason, strategy };
         }
 
-        return { suggestion, confidence, reason };
+        // 2. Detecção de Hábitos e Mensagens Subjacentes
+        const keywords = [
+            { term: 'janta', suggestion: 'Noite (19:00 - 20:30)', reason: 'Menção a horário de refeição noturna.', strategy: 'Abordagem residencial padrão.' },
+            { term: 'academia', suggestion: 'Manhã ou Noite', reason: 'Rotina de exercícios detectada.', strategy: 'Monitorar trajeto casa-academia.' },
+            { term: 'trabalha de noite', suggestion: 'Manhã (09:00 - 11:00)', reason: 'Alvo trabalha no período noturno, deve dormir pela manhã.', strategy: 'Incursão silenciosa; alvo provavelmente em repouso profundo.' },
+            { term: 'dorme', suggestion: 'Manhã (08:00 - 10:00)', reason: 'Indicação de sono tardio.', strategy: 'Surpreender o alvo ainda em repouso.' },
+            { term: 'buscando', suggestion: 'Saída/Entrada Escolar', reason: 'Alvo busca ou leva dependentes em horários escolares.', strategy: 'Evitar abordagem na frente de crianças (zelar pela segurança de terceiros).' }
+        ];
+
+        for (const kw of keywords) {
+            if (allText.includes(kw.term)) {
+                return { suggestion: kw.suggestion, confidence: "Alta", reason: kw.reason, strategy: kw.strategy };
+            }
+        }
+
+        // 3. Fallbacks de Hábitos Gerais
+        if (allText.includes('final de semana') || allText.includes('sábado') || allText.includes('domingo')) {
+            suggestion = "Fim de Semana (07:00 - 09:00)";
+            reason = "Presença provável em casa durante o repouso semanal.";
+            strategy = "Vigilância de vizinhança para confirmar veículos na garagem.";
+            confidence = "Alta";
+        } else if (allText.includes('madrugada') || summary.toLowerCase().includes('noturno') || allText.includes('noite')) {
+            suggestion = "Madrugada (03:30 - 05:00)";
+            reason = "Evidências de hábitos notívagos ou retorno tardio.";
+            strategy = "Corte de energia/luz se possível; abordagem com superioridade numérica.";
+            confidence = "Alta";
+        } else if (allText.includes('cedo') || allText.includes('cedinho')) {
+            suggestion = "Madrugada Antecipada (04:15 - 05:15)";
+            reason = "Alvo conhecido por sair antes do horário padrão de cumprimento.";
+            strategy = "Antecipar cerco em 40 minutos do horário padrão.";
+            confidence = "Alta";
+        } else if (allText.includes('almoço') || (data.ifoodResult?.toLowerCase().includes('12:') || data.ifoodResult?.toLowerCase().includes('13:'))) {
+            suggestion = "Meio-dia (11:50 - 12:45)";
+            reason = "Padrão de entregas iFood ou refeição captado.";
+            strategy = "Simular entrega ou aproveitar abertura do portão para recebimento.";
+            confidence = "Alta";
+        } else if (data.ifoodResult && data.ifoodResult.length > 30) {
+            suggestion = "Noite (20:00 - 21:30)";
+            reason = "Frequência de pedidos iFood em dias de semana indica permanência noturna.";
+            strategy = "Identificar entregadores para localizar ponto exato de entrada.";
+            confidence = "Alta";
+        }
+
+        return { suggestion, confidence, reason, strategy };
     }, [data]);
 
     if (!data) {
@@ -1704,7 +1768,7 @@ Equipe de Capturas - DIG / PCSP
                     </div>
                 </div>
 
-                <div className="bg-surface-light dark:bg-surface-dark p-4 rounded-xl shadow-sm border border-border-light dark:border-border-dark">
+                <div className="bg-surface-light dark:bg-surface-dark p-4 rounded-xl shadow-sm border border-border-light dark:border-border-dark whitespace-pre-wrap">
                     <h3 className="font-bold text-text-light dark:text-text-dark mb-3 flex items-center gap-2">
                         <MessageSquare size={18} className="text-primary" /> Observações
                     </h3>
@@ -1715,6 +1779,37 @@ Equipe de Capturas - DIG / PCSP
                         placeholder="Adicione observações importantes aqui..."
                     />
                 </div>
+
+                {/* AI Intelligence Card */}
+                {aiTimeSuggestion && (
+                    <div className="bg-indigo-600 rounded-xl shadow-lg overflow-hidden border border-indigo-500 transition-all hover:shadow-indigo-500/20">
+                        <div className="p-4 bg-white/10 backdrop-blur-sm border-b border-white/10 flex items-center justify-between">
+                            <h3 className="font-bold text-white text-sm flex items-center gap-2">
+                                <Sparkles size={18} className="text-amber-300" /> Inteligência Operacional (Antigravity IA)
+                            </h3>
+                            <span className={`text-[9px] font-black px-2 py-0.5 rounded-full border border-white/20 text-white uppercase tracking-widest ${aiTimeSuggestion.confidence === 'Alta' ? 'bg-green-500/30' : 'bg-amber-500/30'
+                                }`}>
+                                Confiança {aiTimeSuggestion.confidence}
+                            </span>
+                        </div>
+                        <div className="p-5 space-y-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="bg-white/5 p-3 rounded-lg border border-white/5">
+                                    <p className="text-[10px] font-black text-indigo-200 uppercase tracking-widest mb-1">Janela Sugerida</p>
+                                    <p className="text-white font-bold text-base">{aiTimeSuggestion.suggestion}</p>
+                                </div>
+                                <div className="bg-white/5 p-3 rounded-lg border border-white/5">
+                                    <p className="text-[10px] font-black text-indigo-200 uppercase tracking-widest mb-1">Estratégia Recomendada</p>
+                                    <p className="text-white text-sm font-medium italic">"{(aiTimeSuggestion as any).strategy}"</p>
+                                </div>
+                            </div>
+                            <div className="bg-black/20 p-3 rounded-lg border border-white/5">
+                                <p className="text-[10px] font-black text-indigo-200 uppercase tracking-widest mb-1">Análise Técnica</p>
+                                <p className="text-white/90 text-[11px] leading-relaxed">{aiTimeSuggestion.reason}</p>
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 {/* Sticky Save Changes Bar */}
                 {hasChanges && (
