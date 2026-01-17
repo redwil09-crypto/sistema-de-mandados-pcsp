@@ -1514,7 +1514,38 @@ Equipe de Capturas - DIG / PCSP
                     </div>
                 </div>
 
-                {/* 5. Mandado / Ofício / OS */}
+                {/* 5. Investigação iFood */}
+                <div className="bg-surface-light dark:bg-surface-dark rounded-xl shadow-sm border border-border-light dark:border-border-dark overflow-hidden transition-all hover:shadow-md">
+                    <div className="p-4 border-b border-border-light dark:border-border-dark bg-gray-50/50 dark:bg-white/5">
+                        <h3 className="font-bold text-text-light dark:text-text-dark text-sm flex items-center gap-2">
+                            <Bike size={18} className="text-primary" /> Investigação iFood
+                        </h3>
+                    </div>
+                    <div className="p-5 space-y-4">
+                        <div>
+                            <label className="block text-[10px] font-black text-text-secondary-light dark:text-text-dark/40 uppercase tracking-widest px-1 mb-1">Ofício iFood nº</label>
+                            <input
+                                type="text"
+                                className="w-full rounded-xl border border-border-light dark:border-border-dark bg-white dark:bg-black/20 p-3 text-sm text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary/20 focus:border-primary/50 outline-none transition-all shadow-sm"
+                                value={localData.ifoodNumber || ''}
+                                onChange={e => handleFieldChange('ifoodNumber', e.target.value)}
+                                placeholder="Ex: OF-123/2024"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-[10px] font-black text-text-secondary-light dark:text-text-dark/40 uppercase tracking-widest px-1 mb-1">Resultado iFood</label>
+                            <textarea
+                                className="w-full rounded-xl border border-border-light dark:border-border-dark bg-white dark:bg-black/20 p-3 text-sm text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary/20 focus:border-primary/50 outline-none transition-all shadow-sm resize-none min-h-[80px]"
+                                value={localData.ifoodResult || ''}
+                                rows={3}
+                                onChange={e => handleFieldChange('ifoodResult', e.target.value)}
+                                placeholder="Resultado da quebra de sigilo..."
+                            />
+                        </div>
+                    </div>
+                </div>
+
+                {/* 6. Mandado / Ofício / OS */}
                 <div className="bg-surface-light dark:bg-surface-dark rounded-xl shadow-sm border border-border-light dark:border-border-dark overflow-hidden transition-all hover:shadow-md">
                     <div className="p-4 border-b border-border-light dark:border-border-dark bg-gray-50/50 dark:bg-white/5 flex items-center justify-between">
                         <h3 className="font-bold text-text-light dark:text-text-dark text-sm flex items-center gap-2">
@@ -1578,7 +1609,7 @@ Equipe de Capturas - DIG / PCSP
                     </div>
                 </div>
 
-                {/* 6. Relatórios de Inteligência */}
+                {/* 7. Relatórios de Inteligência */}
                 <div className="bg-surface-light dark:bg-surface-dark rounded-xl shadow-sm border border-border-light dark:border-border-dark overflow-hidden transition-all hover:shadow-md">
                     <div className="p-4 border-b border-border-light dark:border-border-dark bg-gray-50/50 dark:bg-white/5 flex items-center justify-between">
                         <h3 className="font-bold text-text-light dark:text-text-dark text-sm flex items-center gap-2">
@@ -1679,7 +1710,7 @@ Equipe de Capturas - DIG / PCSP
                     </div>
                 </div>
 
-                {/* 7. Investigação */}
+                {/* 8. Investigação e Linha do Tempo */}
                 <div className="bg-surface-light dark:bg-surface-dark rounded-xl shadow-sm border border-border-light dark:border-border-dark overflow-hidden transition-all hover:shadow-md">
                     <div className="p-4 border-b border-border-light dark:border-border-dark bg-gray-50/50 dark:bg-white/5 flex items-center justify-between">
                         <h3 className="font-bold text-text-light dark:text-text-dark text-sm flex items-center gap-2">
