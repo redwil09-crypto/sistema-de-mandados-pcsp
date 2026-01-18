@@ -1035,6 +1035,48 @@ Equipe de Capturas - DIG / PCSP
         setIsCapturasModalOpen(true);
     };
 
+    const handleRefreshAiReport = async () => {
+        if (!data) return;
+        setIsGeneratingAiReport(true);
+        const toastId = toast.loading("IA Reajustando texto...");
+        try {
+            const historyText = (data.diligentHistory || []).map(h =>
+                `${new Date(h.date).toLocaleDateString()} - ${h.notes}`
+            ).join('\n');
+            const instructions = capturasData.aiInstructions;
+            // Include current manual edits/body context
+            const currentBody = capturasData.body;
+
+            const rawContent = `
+                DADOS DO ALVO: ${data.name} (Processo: ${data.number})
+                ENDEREÇO: ${data.location}
+                
+                HISTÓRICO COMPLETO DE DILIGÊNCIAS:
+                ${historyText}
+
+                OBSERVAÇÕES ADICIONAIS:
+                ${data.observation || ''}
+
+                ---
+                TEXTO ATUAL DO RELATÓRIO (para referência/ajuste):
+                ${currentBody}
+            `;
+
+            const result = await generateReportBody(data, rawContent, instructions);
+            if (result) {
+                setCapturasData(prev => ({ ...prev, body: result }));
+                toast.success("Texto reescrito com sucesso!", { id: toastId });
+            } else {
+                toast.error("Falha ao gerar texto.", { id: toastId });
+            }
+        } catch (error) {
+            console.error("AI Refresh Error:", error);
+            toast.error("Erro na comunicação com a IA.", { id: toastId });
+        } finally {
+            setIsGeneratingAiReport(false);
+        }
+    };
+
     const handleGenerateCapturasPDF = async () => {
         try {
             const doc = new jsPDF();
