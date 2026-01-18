@@ -1704,55 +1704,14 @@ Equipe de Capturas - DIG / PCSP
                                 </label>
                             </div>
                             <button
-                                onClick={() => setIsDraftOpen(!isDraftOpen)}
-                                className={`px-3 py-2 text-[10px] font-black uppercase rounded-lg transition-all flex items-center gap-1 shadow-lg active:scale-95 ${isDraftOpen
-                                    ? 'bg-red-500 text-white shadow-red-500/20 hover:bg-red-600'
-                                    : 'bg-primary text-white shadow-primary/20 hover:opacity-90'
-                                    }`}
+                                onClick={handleOpenCapturasModal}
+                                className="px-3 py-2 bg-primary text-white text-[10px] font-black uppercase rounded-lg hover:opacity-90 transition-all flex items-center gap-1 shadow-lg shadow-primary/20 active:scale-95"
                             >
-                                <Sparkles size={14} /> {isDraftOpen ? 'FECHAR' : 'GERAR'}
+                                <Sparkles size={14} /> GERAR
                             </button>
                         </div>
                     </div>
                     <div className="p-4">
-                        {isDraftOpen && (
-                            <div className="mb-6 p-4 bg-gray-100 dark:bg-white/5 border border-primary/20 rounded-xl animate-in zoom-in-95 duration-200">
-                                <div className="mb-4 pb-4 border-b border-gray-200 dark:border-white/10">
-                                    <div className="flex justify-between items-center mb-1">
-                                        <label className="block text-[10px] font-black uppercase text-text-secondary-light dark:text-text-dark/60">Instruções para a IA (Gerador de Relatórios)</label>
-                                    </div>
-                                    <div className="flex gap-2 items-start">
-                                        <button
-                                            onClick={() => setIsAiReportModalOpen(true)}
-                                            className="w-full h-[50px] bg-primary text-white rounded-lg shadow-md font-bold text-xs uppercase flex items-center justify-center gap-2 hover:bg-primary/90 transition-all active:scale-95"
-                                        >
-                                            <Sparkles size={16} /> ABRIR ASSISTENTE DE RELATÓRIOS (IA)
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <div className="flex flex-wrap justify-between items-center gap-2 mb-3">
-                                    <span className="text-[10px] font-bold uppercase text-primary">Pré-visualização do Relatório</span>
-                                    <div className="flex gap-2">
-                                        <button onClick={handleCopyReportDraft} className="text-[9px] bg-slate-500 text-white px-2 py-1.5 rounded-lg shadow-sm font-bold flex items-center gap-1 active:scale-95 transition-all">
-                                            <Copy size={12} /> COPIAR
-                                        </button>
-                                        <button onClick={handleDownloadReportPDF} className="text-[9px] bg-indigo-600 text-white px-2 py-1.5 rounded-lg shadow-sm font-bold flex items-center gap-1 active:scale-95 transition-all">
-                                            <FileText size={12} /> BAIXAR PDF
-                                        </button>
-                                        <button onClick={handlePrintReport} className="text-[9px] bg-emerald-600 text-white px-2 py-1.5 rounded-lg shadow-sm font-bold flex items-center gap-1 active:scale-95 transition-all">
-                                            <Printer size={12} /> IMPRIMIR
-                                        </button>
-                                    </div>
-                                </div>
-                                <div className="p-3 bg-white dark:bg-black/40 rounded-lg border border-border-light dark:border-border-dark max-h-80 overflow-y-auto">
-                                    <pre className="text-[10px] font-mono whitespace-pre-wrap leading-tight text-text-light dark:text-text-dark">
-                                        {getReportText()}
-                                    </pre>
-                                </div>
-                            </div>
-                        )}
-
                         {data.reports && data.reports.length > 0 ? (
                             <div className="grid grid-cols-1 gap-2">
                                 {data.reports.map((file: string, idx: number) => (
@@ -2019,70 +1978,6 @@ Equipe de Capturas - DIG / PCSP
                     />
                 )
             }
-
-            {isAiReportModalOpen && (
-                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4 animate-in fade-in duration-200">
-                    <div className="bg-white dark:bg-surface-dark w-full max-w-2xl rounded-2xl shadow-2xl border border-border-light dark:border-border-dark flex flex-col max-h-[90vh] overflow-hidden">
-                        <div className="p-5 border-b border-border-light dark:border-border-dark flex justify-between items-center bg-gray-50 dark:bg-black/20">
-                            <div className="flex items-center gap-3">
-                                <div className="p-2 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg text-indigo-600 dark:text-indigo-400">
-                                    <Sparkles size={20} />
-                                </div>
-                                <div>
-                                    <h3 className="text-lg font-bold text-gray-900 dark:text-white leading-none">Assistente de Relatórios IA</h3>
-                                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Gere relatórios formais e jurídicos em segundos</p>
-                                </div>
-                            </div>
-                            <button
-                                onClick={() => setIsAiReportModalOpen(false)}
-                                className="p-2 hover:bg-gray-200 dark:hover:bg-white/10 rounded-lg text-gray-500 transition-colors"
-                            >
-                                <X size={20} />
-                            </button>
-                        </div>
-
-                        <div className="p-6 overflow-y-auto space-y-5">
-                            <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl border border-blue-100 dark:border-blue-800/30">
-                                <h4 className="text-xs font-bold text-blue-700 dark:text-blue-300 uppercase mb-2 flex items-center gap-2">
-                                    <Bot size={14} /> Como funciona:
-                                </h4>
-                                <p className="text-xs text-blue-800 dark:text-blue-200 leading-relaxed">
-                                    A IA analisará todo o histórico de diligências, os dados do mandado e suas observações para criar um texto formal no padrão da DIG. Você pode dar instruções específicas abaixo.
-                                </p>
-                            </div>
-
-                            <div>
-                                <label className="block text-xs font-black uppercase text-gray-500 dark:text-gray-400 mb-2">Instruções Específicas (Opcional)</label>
-                                <textarea
-                                    className="w-full bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-border-dark rounded-xl p-4 text-sm outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all resize-none"
-                                    value={aiReportInstructions}
-                                    onChange={e => setAiReportInstructions(e.target.value)}
-                                    placeholder="Ex: 'Enfatizar que o alvo não reside mais no local', 'Mencionar que a mãe do alvo atendeu a equipe', 'Solicitar expedição de novo mandado'..."
-                                    rows={4}
-                                />
-                            </div>
-
-                            <div className="flex justify-end gap-3 pt-2">
-                                <button
-                                    onClick={() => setIsAiReportModalOpen(false)}
-                                    className="px-4 py-3 rounded-xl font-bold text-xs text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/5 transition-all"
-                                >
-                                    CANCELAR
-                                </button>
-                                <button
-                                    onClick={() => {
-                                        setIsAiReportModalOpen(false);
-                                        handleGenerateAIReport();
-                                    }}
-                                    className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow-lg shadow-indigo-600/20 font-bold text-xs flex items-center gap-2 transition-all active:scale-95"
-                                >
-                                    <Zap size={16} className="fill-white" /> GERAR RELATÓRIO AGORA
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
 
             {
                 isFinalizeModalOpen && (
