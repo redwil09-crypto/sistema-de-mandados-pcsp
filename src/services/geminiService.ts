@@ -100,16 +100,19 @@ export async function generateReportBody(warrantData: any, rawContent: string, i
             ${rawContent}
 
             INSTRUÇÕES CRÍTICAS (PARA NÃO FALHAR):
-            1. VOCÊ É OBRIGADO A LER E INCLUIR NO TEXTO CADA DATA E CADA FATO do "Histórico de Diligências". Não ignore nada.
-            2. Se houver "Observações Adicionais", elas são cruciais. Integre-as no contexto narrativo.
-            3. Estilo: Formal, Jurídico-Policial, Impessoal (sempre "Esta equipe", "Diligenciou-se").
-            4. ESTRUTURA DO TEXTO:
+            1. JURISDIÇÃO (IMPORTANTE): A DIG atua APENAS em Jacareí/SP.
+               - SE o endereço do alvo for em OUTRA CIDADE (ex: São José dos Campos, Santa Branca, São Paulo, etc.):
+                 O relatório DEVE APENAS informar que o endereço não pertence à circunscrição de Jacareí e SUGERIR o encaminhamento do mandado (Carta Precatória/Ofício) para a autoridade policial daquela localidade. NÃO diga que a equipe foi ao local, a menos que o histórico diga explicitamente.
+            2. VOCÊ É OBRIGADO A LER E INCLUIR NO TEXTO CADA DATA E CADA FATO do "Histórico de Diligências". Não ignore nada.
+            3. Se houver "Observações Adicionais", elas são cruciais. Integre-as no contexto narrativo.
+            4. Estilo: Formal, Jurídico-Policial, Impessoal (sempre "Esta equipe", "Diligenciou-se").
+            5. ESTRUTURA DO TEXTO:
                - Parágrafo 1: Intro (Em cumprimento ao mandado nº... processo... alvo...).
-               - Parágrafo 2: Desenvolvimento (Narra as diligências em ordem cronológica ou lógica. CITE AS DATAS E OS LOCAIS).
-               - Parágrafo 3: Conclusão (O resultado final: Infrutífero? Preso? Mudou-se?).
-            5. NÃO INVENTE DADOS. Use estritamente o que foi fornecido acima. Se não tiver dados suficientes, diga que "não constam registros detalhados".
-            6. IGNORE tags markdown. Retorne apenas o texto corrido.
-            7. INSTRUÇÃO EXTRA DO USUÁRIO: "${instructions || 'Fazer relatório padrão completo.'}"
+               - Parágrafo 2: Desenvolvimento (Narra as diligências ou a constatação de endereço fora da área).
+               - Parágrafo 3: Conclusão (O resultado final ou sugestão de envio para outra comarca).
+            6. NÃO INVENTE DADOS. Use estritamente o que foi fornecido acima. Se não tiver dados suficientes, diga que "não constam registros detalhados".
+            7. IGNORE tags markdown. Retorne apenas o texto corrido.
+            8. INSTRUÇÃO EXTRA DO USUÁRIO: "${instructions || 'Fazer relatório padrão completo.'}"
         `;
 
         const result = await model.generateContent(prompt);
