@@ -53,6 +53,9 @@ const WarrantDetail = ({ warrants, onUpdate, onDelete, routeWarrants = [], onRou
     const [isUploadingFile, setIsUploadingFile] = useState(false);
     const [isAnalyzingDiligence, setIsAnalyzingDiligence] = useState(false);
     const [aiDiligenceResult, setAiDiligenceResult] = useState<string | null>(null);
+    const [aiReportInstructions, setAiReportInstructions] = useState('');
+    const [aiReportResult, setAiReportResult] = useState<string | null>(null);
+    const [isGeneratingReport, setIsGeneratingReport] = useState(false);
 
     const [activeDetailTab, setActiveDetailTab] = useState<'documents' | 'reports' | 'investigation' | 'timeline'>('documents');
     const [isCapturasModalOpen, setIsCapturasModalOpen] = useState(false);
@@ -500,7 +503,11 @@ const WarrantDetail = ({ warrants, onUpdate, onDelete, routeWarrants = [], onRou
         }
     };
 
+
+
     const getReportText = () => {
+        if (aiReportResult) return aiReportResult; // Use AI result if available
+
         return `
 DELEGACIA DE INVESTIGAÇÕES GERAIS - DIG/PCSP
 RELATÓRIO DE DILIGÊNCIA OPERACIONAL
@@ -527,6 +534,33 @@ DATA DO RELATÓRIO: ${new Date().toLocaleDateString('pt-BR')} às ${new Date().t
 ___________________________________
 Equipe de Capturas - DIG / PCSP
         `.trim();
+    };
+
+    const handleGenerateAIReport = async () => {
+        if (!data) return;
+        setIsGeneratingReport(true);
+        const toastId = toast.loading("Gerando relatório com IA...");
+        try {
+            // Aggregate history for context
+            const historyText = (data.diligentHistory || []).map(h =>
+                `${new Date(h.date).toLocaleDateString()} - ${h.notes}`
+            ).join('\n');
+            const rawContent = `Histórico de Diligências:\n${historyText}\n\nObservações: ${data.observation || ''}`;
+
+            const result = await generateReportBody(data, rawContent, aiReportInstructions);
+            if (result) {
+                setAiReportResult(result);
+                toast.success("Relatório gerado com sucesso!", { id: toastId });
+                if (!isDraftOpen) setIsDraftOpen(true);
+            } else {
+                toast.error("Erro ao gerar relatório.", { id: toastId });
+            }
+        } catch (error) {
+            console.error("AI Report Error:", error);
+            toast.error("Erro na geração.", { id: toastId });
+        } finally {
+            setIsGeneratingReport(false);
+        }
     };
 
     const handleCopyReportDraft = () => {
@@ -1682,6 +1716,29 @@ Equipe de Capturas - DIG / PCSP
                     <div className="p-4">
                         {isDraftOpen && (
                             <div className="mb-6 p-4 bg-gray-100 dark:bg-white/5 border border-primary/20 rounded-xl animate-in zoom-in-95 duration-200">
+                                <div className="mb-4 pb-4 border-b border-gray-200 dark:border-white/10">
+                                    <div className="flex justify-between items-center mb-1">
+                                        <label className="block text-[10px] font-black uppercase text-text-secondary-light dark:text-text-dark/60">Instruções para a IA (Gerador de Relatórios)</label>
+                                    </div>
+                                    <div className="flex gap-2 items-start">
+                                        <textarea
+                                            className="flex-1 bg-white dark:bg-black/20 border border-border-light dark:border-border-dark rounded-lg p-2 text-xs outline-none focus:ring-2 focus:ring-primary/50 resize-none"
+                                            value={aiReportInstructions}
+                                            onChange={e => setAiReportInstructions(e.target.value)}
+                                            placeholder="Descreua o foco do relatório (ex: 'Detalhar que o alvo mudou de endereço' ou 'Formalizar abordagem sem êxito')..."
+                                            rows={2}
+                                        />
+                                        <button
+                                            onClick={handleGenerateAIReport}
+                                            disabled={isGeneratingReport}
+                                            className="h-[50px] px-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg shadow-md font-bold text-[10px] uppercase flex flex-col items-center justify-center gap-1 transition-all active:scale-95 disabled:opacity-50 min-w-[100px]"
+                                        >
+                                            <Sparkles size={14} className={isGeneratingReport ? "animate-spin" : ""} />
+                                            {isGeneratingReport ? "Gerando..." : "Gerar Texto"}
+                                        </button>
+                                    </div>
+                                </div>
+
                                 <div className="flex flex-wrap justify-between items-center gap-2 mb-3">
                                     <span className="text-[10px] font-bold uppercase text-primary">Pré-visualização do Relatório</span>
                                     <div className="flex gap-2">
