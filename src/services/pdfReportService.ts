@@ -271,3 +271,141 @@ export const generateWarrantPDF = async (
         toast.error("Erro ao montar PDF.");
     }
 };
+
+export const generateIfoodOfficePDF = async (
+    data: Warrant,
+    onUpdate?: (id: string, updates: Partial<Warrant>) => Promise<boolean>
+) => {
+    if (!data) return;
+    try {
+        const doc = new jsPDF();
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const margin = 20;
+        let y = 20;
+
+        // --- HEADER ---
+        try {
+            const badgePC = new Image();
+            badgePC.src = './brasao_pcsp_nova.png';
+
+            await new Promise((resolve) => {
+                badgePC.onload = () => resolve(true);
+                badgePC.onerror = () => {
+                    badgePC.src = './brasao_pcsp_colorido.png';
+                    badgePC.onload = () => resolve(true);
+                    badgePC.onerror = () => resolve(false);
+                };
+            });
+
+            const imgProps = doc.getImageProperties(badgePC);
+            const badgeH = 25;
+            const badgeW = (imgProps.width * badgeH) / imgProps.height;
+
+            doc.addImage(badgePC, 'PNG', margin, y, badgeW, badgeH);
+
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(9);
+            const textX = margin + badgeW + 5;
+            const headerLines = [
+                "SECRETARIA DA SEGURANÇA PÚBLICA",
+                "POLÍCIA CIVIL DO ESTADO DE SÃO PAULO",
+                "DEPARTAMENTO DE POLÍCIA JUDICIÁRIA DE SÃO PAULO INTERIOR",
+                "DEINTER 1 - SÃO JOSÉ DOS CAMPOS",
+                "DELEGACIA SECCIONAL DE POLÍCIA DE JACAREÍ",
+                "DELEGACIA DE INVESTIGAÇÕES GERAIS DE JACAREÍ"
+            ];
+
+            headerLines.forEach((line, index) => {
+                doc.text(line, textX, y + 4 + (index * 4));
+            });
+
+            doc.setLineWidth(0.5);
+            doc.line(margin, y + badgeH + 5, pageWidth - margin, y + badgeH + 5);
+            y += badgeH + 20;
+
+        } catch (e) {
+            console.error("Badge load error", e);
+            y += 30;
+        }
+
+        // --- TITLE ---
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'bold');
+        doc.text("OFÍCIO DE REQUISIÇÃO DE DADOS", pageWidth / 2, y, { align: 'center' });
+        y += 10;
+
+        // --- DESTINATÁRIO ---
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'bold');
+        doc.text("Ao: IFOOD.COM AGÊNCIA DE RESTAURANTES ONLINE S.A.", margin, y);
+        y += 5;
+        doc.setFont('helvetica', 'normal');
+        doc.text("Departamento Jurídico / Compliance", margin, y);
+        y += 15;
+
+        // --- BODY ---
+        doc.setFontSize(10);
+        doc.text("Assunto: Requisição de Dados Cadastrais e Registros de Acesso", margin, y);
+        y += 10;
+
+        const bodyText = `Pelo presente, com fundamento na Lei 12.830/2013 e no interesse do Inquérito Policial em epígrafe, REQUISITO a Vossa Senhoria o fornecimento, no prazo improrrogável de 05 (cinco) dias, dos dados cadastrais completos (nome, CPF, telefones, e-mails, endereços de entrega cadastrados e histórico de pedidos com geolocalização se houver) vinculados ao investigado abaixo qualificado:`;
+        const splitBody = doc.splitTextToSize(bodyText, pageWidth - (margin * 2));
+        doc.text(splitBody, margin, y);
+        y += (splitBody.length * 5) + 10;
+
+        // --- SUBJECT DETAILS ---
+        doc.setFillColor(240, 240, 240);
+        doc.rect(margin, y, pageWidth - (margin * 2), 35, 'F');
+        doc.setFont('helvetica', 'bold');
+
+        let detailY = y + 7;
+        doc.text(`NOME: ${data.name.toUpperCase()}`, margin + 5, detailY);
+        detailY += 7;
+        doc.text(`RG: ${data.rg || "NÃO INFORMADO"}`, margin + 5, detailY);
+        detailY += 7;
+        doc.text(`CPF: ${data.cpf || "NÃO INFORMADO"}`, margin + 5, detailY);
+
+        y += 45;
+
+        // --- CLOSING ---
+        const closingText = `As informações deverão ser encaminhadas para o e-mail oficial desta unidade (dig.jacarei@policiacivil.sp.gov.br) em formato PDF ou planilha eletrônica. 
+        
+Ressalto que o descumprimento injustificado desta requisição poderá acarretar a responsabilidade penal por Crime de Desobediência (art. 330 do CP), sem prejuízo de outras sanções cabíveis.`;
+        const splitClosing = doc.splitTextToSize(closingText, pageWidth - (margin * 2));
+        doc.setFont('helvetica', 'normal');
+        doc.text(splitClosing, margin, y);
+        y += 40;
+
+        // --- DATE AND SIGNATURE ---
+        const today = new Date().toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' });
+        doc.text(`Jacareí, ${today}.`, margin, y);
+        y += 20;
+
+        doc.line(pageWidth / 2 - 40, y, pageWidth / 2 + 40, y);
+        doc.setFont('helvetica', 'bold');
+        doc.text("Autoridade Policial", pageWidth / 2, y + 5, { align: 'center' });
+        doc.setFont('helvetica', 'normal');
+        doc.text("Delegacia de Investigações Gerais de Jacareí", pageWidth / 2, y + 10, { align: 'center' });
+
+        // Save
+        const fileName = `Oficio_iFood_${data.name.replace(/\s+/g, '_')}.pdf`;
+        doc.save(fileName);
+        toast.success("Ofício iFood gerado com sucesso!");
+
+        if (onUpdate) {
+            const pdfBlob = doc.output('blob');
+            const pdfFile = new File([pdfBlob], fileName, { type: 'application/pdf' });
+            const path = `ifoodDocs/${data.id}/${Date.now()}_${fileName}`;
+            const uploadedPath = await uploadFile(pdfFile, path);
+            if (uploadedPath) {
+                const url = getPublicUrl(uploadedPath);
+                const currentAttachments = data.attachments || [];
+                await onUpdate(data.id, { attachments: [...currentAttachments, url] });
+            }
+        }
+
+    } catch (error) {
+        console.error("Erro ao gerar Ofício iFood:", error);
+        toast.error("Erro ao gerar ofício.");
+    }
+};

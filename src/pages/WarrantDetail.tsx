@@ -19,7 +19,7 @@ import WarrantAuditLog from '../components/WarrantAuditLog';
 import { formatDate, getStatusColor, maskDate } from '../utils/helpers';
 import { Warrant } from '../types';
 import { geocodeAddress } from '../services/geocodingService';
-import { generateWarrantPDF } from '../services/pdfReportService';
+import { generateWarrantPDF, generateIfoodOfficePDF } from '../services/pdfReportService';
 import { analyzeRawDiligence, generateReportBody } from '../services/geminiService';
 import { CRIME_OPTIONS, REGIME_OPTIONS } from '../data/constants';
 
@@ -652,6 +652,19 @@ Equipe de Capturas - DIG / PCSP
             toast.error("Erro ao excluir documento.");
         }
     };
+
+    const handleGenerateIfoodOffice = async () => {
+        if (!data) return;
+        const toastId = toast.loading("Gerando Ofício iFood...");
+        try {
+            await generateIfoodOfficePDF(data, onUpdate);
+            toast.dismiss(toastId);
+        } catch (error) {
+            console.error(error);
+            toast.error("Erro ao gerar ofício", { id: toastId });
+        }
+    };
+
 
     const handleDelete = () => {
         setIsDeleteConfirmOpen(true);
@@ -1521,20 +1534,18 @@ Equipe de Capturas - DIG / PCSP
                             <Bike size={18} className="text-primary" /> Investigação iFood
                         </h3>
                         <div className="flex gap-2">
-                            <a
-                                href="https://sigilo.ifood.com.br"
-                                target="_blank"
-                                rel="noopener noreferrer"
+                            <button
+                                onClick={handleGenerateIfoodOffice}
                                 className="px-3 py-1.5 bg-red-600 text-white text-[10px] font-black uppercase rounded-lg hover:bg-red-700 transition-all flex items-center gap-1 shadow-sm active:scale-95"
                             >
-                                <ExternalLink size={14} /> PORTAL
-                            </a>
+                                <FileText size={14} /> GERAR OFÍCIO
+                            </button>
                             <div className="relative">
                                 <input
                                     type="file"
                                     id="ifood-upload"
                                     className="hidden"
-                                    onChange={(e) => e.target.files && handleAttachFile(e, 'attachments')}
+                                    onChange={(e) => e.target.files && handleAttachFile(e, 'ifoodDocs')}
                                     disabled={isUploadingFile}
                                 />
                                 <label
