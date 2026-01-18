@@ -1516,10 +1516,35 @@ Equipe de Capturas - DIG / PCSP
 
                 {/* 5. Investigação iFood */}
                 <div className="bg-surface-light dark:bg-surface-dark rounded-xl shadow-sm border border-border-light dark:border-border-dark overflow-hidden transition-all hover:shadow-md">
-                    <div className="p-4 border-b border-border-light dark:border-border-dark bg-gray-50/50 dark:bg-white/5">
+                    <div className="p-4 border-b border-border-light dark:border-border-dark bg-gray-50/50 dark:bg-white/5 flex items-center justify-between">
                         <h3 className="font-bold text-text-light dark:text-text-dark text-sm flex items-center gap-2">
                             <Bike size={18} className="text-primary" /> Investigação iFood
                         </h3>
+                        <div className="flex gap-2">
+                            <a
+                                href="https://sigilo.ifood.com.br"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="px-3 py-1.5 bg-red-600 text-white text-[10px] font-black uppercase rounded-lg hover:bg-red-700 transition-all flex items-center gap-1 shadow-sm active:scale-95"
+                            >
+                                <ExternalLink size={14} /> PORTAL
+                            </a>
+                            <div className="relative">
+                                <input
+                                    type="file"
+                                    id="ifood-upload"
+                                    className="hidden"
+                                    onChange={(e) => e.target.files && handleAttachFile(e, 'attachments')}
+                                    disabled={isUploadingFile}
+                                />
+                                <label
+                                    htmlFor="ifood-upload"
+                                    className={`px-3 py-1.5 bg-primary/10 text-primary text-[10px] font-black uppercase rounded-lg cursor-pointer hover:bg-primary/20 transition-all flex items-center gap-1 ${isUploadingFile ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                >
+                                    <Plus size={14} /> ANEXAR
+                                </label>
+                            </div>
+                        </div>
                     </div>
                     <div className="p-5 space-y-4">
                         <div>
