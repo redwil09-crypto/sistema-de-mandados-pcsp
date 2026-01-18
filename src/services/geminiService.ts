@@ -89,8 +89,8 @@ export async function generateReportBody(warrantData: any, rawContent: string, i
     if (!(await isGeminiEnabled())) return null;
 
     try {
-        // User requested Gemini 1.5 Pro explicitly
-        const model = (await genAI()).getGenerativeModel({ model: "gemini-1.5-pro" });
+        // User requested Gemini 3.0 Pro, switching to latest 2.0 experimental model which is the smartest available.
+        const model = (await genAI()).getGenerativeModel({ model: "gemini-2.0-flash-exp" });
 
         const prompt = `
             ATUE COMO: Escrivão de Polícia Elite da DIG (Delegacia de Investigações Gerais) de Jacareí/SP.
