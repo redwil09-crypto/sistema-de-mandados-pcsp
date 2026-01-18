@@ -964,41 +964,48 @@ Equipe de Capturas - DIG / PCSP
     const handleOpenCapturasModal = () => {
         if (!data) return;
 
+        // Use localData (current unsaved edits) over saved data to ensure WYSIWYG
+        const currentData = { ...data, ...localData };
+
         const generateIntelligentReportBody = () => {
-            const name = data.name.toUpperCase();
-            const process = data.number;
-            const address = data.location || '';
-            const history = data.diligentHistory || [];
-            const observations = data.observation || '';
-            const crime = (data.crime || '').toLowerCase();
+            const name = currentData.name.toUpperCase();
+            const process = currentData.number;
+            const address = currentData.location || '';
+            const history = currentData.diligentHistory || [];
+            const observations = currentData.observation || '';
+            const crime = (currentData.crime || '').toLowerCase();
 
             // Intelligence safety check
             if (history.length === 0 && !observations.trim()) {
-                return "[AVISO: NÃO HÁ INFORMAÇÕES RELEVANTES NA LINHA DO TEMPO OU OBSERVAÇÕES PARA GERAR O RELATÓRIO. POR FAVOR, REGISTRE AS DILIGÊNCIAS PRIMEIRO.]";
+                return "[AVISO: NÃO HÁ INFORMAÇÕES RELEVANTES NA LINHA DO TEMPO OU OBSERVAÇÕES PARA GERAR O RELATÓRIO DO ZERO. POR FAVOR, REGISTRE AS DILIGÊNCIAS PRIMEIRO OU USE O BOTÃO DE IA PARA CRIAR COM BASE NO QUE TIVER.]";
             }
 
             const fullText = (history.map(h => (h.notes || '')).join(' ') + ' ' + observations).toLowerCase();
             const addrLower = address.toLowerCase();
 
-            // 1. OUTRA CIDADE / CIRCUNSCRIÇÃO (Exemplo 1 e 2)
+            // 1. OUTRA CIDADE / CIRCUNSCRIÇÃO
+            // Detecta se é outra cidade E se NÃO é Jacareí
             const isAnotherCity = address && (
-                (addrLower.includes('são sebastião') ||
+                !addrLower.includes('jacareí') && (
+                    addrLower.includes('são sebastião') ||
                     addrLower.includes('sjc') ||
                     addrLower.includes('são josé dos campos') ||
                     addrLower.includes('são paulo') ||
                     addrLower.includes('caçapava') ||
                     addrLower.includes('taubaté') ||
+                    addrLower.includes('santa branca') ||
+                    addrLower.includes('igaratá') ||
+                    addrLower.includes('paraibuna') ||
                     addrLower.includes('mg') ||
                     addrLower.includes('rj') ||
                     addrLower.includes('pr') ||
                     addrLower.includes('sc') ||
-                    addrLower.includes('rs')) &&
-                !addrLower.includes('jacareí')
+                    addrLower.includes('rs')
+                )
             );
 
-            // 1. OUTRA CIDADE / CIRCUNSCRIÇÃO
             if (isAnotherCity) {
-                return `Em cumprimento ao solicitado, informo que, após diligências realizadas, constatou-se que o endereço indicado no mandado em nome do réu ${name}, situado na ${address}, não pertence à área de circunscrição desta Seccional de Jacareí/SP.\n\nEsclarece-se que tal endereço encontra-se sob a competência territorial de outra unidade policial, sendo, portanto, de atribuição daquela unidade as providências relativas ao cumprimento da ordem judicial.\n\nDiante do exposto, encaminha-se o presente relatório para conhecimento e encaminhamentos cabíveis.`;
+                return `Em cumprimento ao solicitado, informo que, a despeito do mandado expedido, constatou-se que o endereço do réu ${name} (${address}) não pertence à circunscrição desta Seccional de Jacareí/SP.\n\nConsiderando a competência territorial, sugere-se o encaminhamento da ordem judicial (via Carta Precatória ou Ofício) à autoridade policial daquela localidade para as devidas providências, uma vez que esta equipe atua exclusivamente nos limites deste município.\n\nNada mais havendo, encaminha-se o presente.`;
             }
 
             // 2. CONTATO COM GENITORA / FAMILIARES / MUDOU-SE (Exemplo 3)
@@ -1038,7 +1045,7 @@ Equipe de Capturas - DIG / PCSP
 
         setCapturasData(prev => ({
             ...prev,
-            reportNumber: data.fulfillmentReport || `001/DIG/${new Date().getFullYear()}`,
+            reportNumber: currentData.fulfillmentReport || `001/DIG/${new Date().getFullYear()}`,
             court: '1ª Vara da Família e Sucessões de Jacareí/SP',
             body: generateIntelligentReportBody(),
             aiInstructions: ''
@@ -1051,7 +1058,10 @@ Equipe de Capturas - DIG / PCSP
         setIsGeneratingAiReport(true);
         const toastId = toast.loading("IA Reajustando texto...");
         try {
-            const historyText = (data.diligentHistory || []).map(h =>
+            // Use localData here too!
+            const currentData = { ...data, ...localData };
+
+            const historyText = (currentData.diligentHistory || []).map(h =>
                 `${new Date(h.date).toLocaleDateString()} - ${h.notes}`
             ).join('\n');
             const instructions = capturasData.aiInstructions;
@@ -1059,21 +1069,21 @@ Equipe de Capturas - DIG / PCSP
             const currentBody = capturasData.body;
 
             const rawContent = `
-                DADOS DO ALVO: ${data.name} (Processo: ${data.number})
-                ENDEREÇO: ${data.location}
-                
-                HISTÓRICO COMPLETO DE DILIGÊNCIAS:
+                DADOS DO ALVO: ${currentData.name} (Processo: ${currentData.number})
+                ENDEREÇO DO MANDADO: ${currentData.location}
+
+                HISTÓRICO COMPLETO DE DILIGÊNCIAS (Considerar TUDO):
                 ${historyText}
 
-                OBSERVAÇÕES ADICIONAIS:
-                ${data.observation || ''}
+                OBSERVAÇÕES ADICIONAIS (CRUCIAL):
+                ${currentData.observation || 'Nenhuma observação extra.'}
 
                 ---
                 TEXTO ATUAL DO RELATÓRIO (para referência/ajuste):
                 ${currentBody}
             `;
 
-            const result = await generateReportBody(data, rawContent, instructions);
+            const result = await generateReportBody(currentData, rawContent, instructions);
             if (result) {
                 setCapturasData(prev => ({ ...prev, body: result }));
                 toast.success("Texto reescrito com sucesso!", { id: toastId });

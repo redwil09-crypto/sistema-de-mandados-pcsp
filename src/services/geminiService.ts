@@ -100,19 +100,22 @@ export async function generateReportBody(warrantData: any, rawContent: string, i
             ${rawContent}
 
             INSTRUÇÕES CRÍTICAS (PARA NÃO FALHAR):
-            1. JURISDIÇÃO (IMPORTANTE): A DIG atua APENAS em Jacareí/SP.
-               - SE o endereço do alvo for em OUTRA CIDADE (ex: São José dos Campos, Santa Branca, São Paulo, etc.):
-                 O relatório DEVE APENAS informar que o endereço não pertence à circunscrição de Jacareí e SUGERIR o encaminhamento do mandado (Carta Precatória/Ofício) para a autoridade policial daquela localidade. NÃO diga que a equipe foi ao local, a menos que o histórico diga explicitamente.
-            2. VOCÊ É OBRIGADO A LER E INCLUIR NO TEXTO CADA DATA E CADA FATO do "Histórico de Diligências". Não ignore nada.
-            3. Se houver "Observações Adicionais", elas são cruciais. Integre-as no contexto narrativo.
-            4. Estilo: Formal, Jurídico-Policial, Impessoal (sempre "Esta equipe", "Diligenciou-se").
-            5. ESTRUTURA DO TEXTO:
-               - Parágrafo 1: Intro (Em cumprimento ao mandado nº... processo... alvo...).
-               - Parágrafo 2: Desenvolvimento (Narra as diligências ou a constatação de endereço fora da área).
-               - Parágrafo 3: Conclusão (O resultado final ou sugestão de envio para outra comarca).
-            6. NÃO INVENTE DADOS. Use estritamente o que foi fornecido acima. Se não tiver dados suficientes, diga que "não constam registros detalhados".
-            7. IGNORE tags markdown. Retorne apenas o texto corrido.
-            8. INSTRUÇÃO EXTRA DO USUÁRIO: "${instructions || 'Fazer relatório padrão completo.'}"
+            1. JURISDIÇÃO (REGRAS DE FERRO):
+               - A DIG atua APENAS em Jacareí/SP.
+               - SE o endereço for OUTRA CIDADE: O texto DEVE dizer que "o endereço não pertence à circunscrição de Jacareí" e SUGERIR "encaminhamento da ordem (Carta Precatória/Ofício)". NÃO diga que a equipe foi lá.
+            2. LEITURA OBRIGATÓRIA:
+               - Você PRECISA citar as DATAS e FATOS do "Histórico de Diligências".
+               - Você PRECISA incluir as "Observações Adicionais".
+            3. ESTILO (CLONE ESTES EXEMPLOS):
+               - CASO PADRÃO (Não achou ninguém):
+                 "Em cumprimento ao mandado expedido nos autos do processo nº (...), esta equipe diligenciou ao endereço (...). No local, em diversas ocasiões, imóvel fechado, sem atendimento. Vizinhos relataram que desconhecem o paradeiro do réu. Pesquisas nos sistemas também restaram negativas."
+               - CASO "MUDOU-SE" (Mãe/Familiares atenderam):
+                 "No local, a equipe foi atendida por familiares (ou moradores), que informaram que o alvo NÃO reside mais ali há longo lapso temporal e não mantêm contato. Foi franqueado acesso, nada ilícito localizado."
+               - CASO "OUTRA CIDADE":
+                 "Em cumprimento ao solicitado, verifica-se que o endereço (...) situa-se em outra comarca, fora da circunscrição desta DIG de Jacareí. Sugere-se o encaminhamento à delegacia local."
+            4. NUNCA INVENTE DADOS.
+            5. Retorne APENAS o texto do corpo do relatório.
+            6. INSTRUÇÃO EXTRA DO USUÁRIO: "${instructions || 'Seguir os modelos acima.'}"
         `;
 
         const result = await model.generateContent(prompt);
