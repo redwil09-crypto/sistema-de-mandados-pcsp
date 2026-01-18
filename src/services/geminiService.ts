@@ -89,30 +89,27 @@ export async function generateReportBody(warrantData: any, rawContent: string, i
     if (!(await isGeminiEnabled())) return null;
 
     try {
+        // User requested Gemini 1.5 Pro explicitly
         const model = (await genAI()).getGenerativeModel({ model: "gemini-1.5-pro" });
 
         const prompt = `
-            Você é um Investigador de Polícia da DIG (Delegacia de Investigações Gerais) de Jacareí/SP, especialista em redação técnica e jurídica.
-            Sua missão é transformar um relato bruto de diligências em um CORPO de RELATÓRIO DE INVESTIGAÇÃO POLICIAL elegante, formal e direto.
+            ATUE COMO: Escrivão de Polícia Elite da DIG (Delegacia de Investigações Gerais) de Jacareí/SP.
+            TAREFA: Redigir o "Corpo do Relatório de Investigação" (Diligência de Captura) para um processo judicial.
 
-            DADOS E HISTÓRICO BRUTO:
-            "${rawContent}"
+            DADOS COMPLETOS DO CASO:
+            ${rawContent}
 
-            REGRAS DE OURO (LEIA COM ATENÇÃO):
-            1. PROIBIDO usar cabeçalhos técnicos como "--- INFORMAÇÕES DE CAMPO ---", "OBSERVAÇÕES" ou "DILIGÊNCIAS:". 
-            2. INTEGRE todas as informações (histórico, observações e dados do mandado) em um texto ÚNICO e FLUIDO.
-            3. Use o "estilo DIG Jacareí" (Formal, Jurídico e Profissional): 
-               - "Em cumprimento ao mandado expedido nos autos do processo nº..."
-               - "Esta equipe procedeu às diligências encetadas no endereço..."
-               - "Restaram infrutíferas as buscas no local..."
-               - "Foi franqueado o acesso ao imóvel pela Sra. (...)"
-            4. Se o endereço for em outra cidade, destaque que não pertence à circunscrição mas que as buscas foram tentadas ou sistemas consultados.
-            5. NÃO use marcadores (bullets) ou listas, a menos que seja para enumerar endereços específicos verificados. Prefira parágrafos bem estruturados.
-            6. Se houver comandos extras do policial, integre-os: "${instructions || 'Formalize o texto.'}"
-            7. Retorne APENAS o texto do corpo do relatório, pronto para o PDF.
-
-            EXEMPLO DE TOM DESEJADO:
-            "Em cumprimento ao mandado expedido nos autos do processo nº (...), esta equipe diligenciou ao endereço (...). No local, constatou-se que o imóvel apresenta sinais de desocupação, com placas de locação, não sendo possível estabelecer contato com moradores. Em pesquisas complementares aos sistemas policiais, verificou-se que o réu (...)"
+            INSTRUÇÕES CRÍTICAS (PARA NÃO FALHAR):
+            1. VOCÊ É OBRIGADO A LER E INCLUIR NO TEXTO CADA DATA E CADA FATO do "Histórico de Diligências". Não ignore nada.
+            2. Se houver "Observações Adicionais", elas são cruciais. Integre-as no contexto narrativo.
+            3. Estilo: Formal, Jurídico-Policial, Impessoal (sempre "Esta equipe", "Diligenciou-se").
+            4. ESTRUTURA DO TEXTO:
+               - Parágrafo 1: Intro (Em cumprimento ao mandado nº... processo... alvo...).
+               - Parágrafo 2: Desenvolvimento (Narra as diligências em ordem cronológica ou lógica. CITE AS DATAS E OS LOCAIS).
+               - Parágrafo 3: Conclusão (O resultado final: Infrutífero? Preso? Mudou-se?).
+            5. NÃO INVENTE DADOS. Use estritamente o que foi fornecido acima. Se não tiver dados suficientes, diga que "não constam registros detalhados".
+            6. IGNORE tags markdown. Retorne apenas o texto corrido.
+            7. INSTRUÇÃO EXTRA DO USUÁRIO: "${instructions || 'Fazer relatório padrão completo.'}"
         `;
 
         const result = await model.generateContent(prompt);
