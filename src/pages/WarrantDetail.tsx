@@ -1022,7 +1022,18 @@ Equipe de Capturas - DIG / PCSP
             }
 
             // 6. FALLBACK: PADRÃO FORMAL (Exemplo 4)
-            return `Registra-se o presente para dar cumprimento ao Mandado de Prisão expedido em desfavor de ${name}, nos autos do processo nº ${process}, oriundo da Comarca de Jacareí/SP.\n\nA equipe desta especializada procedeu às diligências nos endereços vinculados ao réu, notadamente na ${address}. Em todos os locais indicados, foram efetuadas verificações em dias e horários distintos; contudo, em todas as ocasiões o imóvel encontrava-se fechado e sem movimentação ou presença de moradores.\n\nAté o presente momento, não foi possível localizar o investigado, restando negativas as diligências realizadas por esta equipe para cumprimento da ordem judicial em Jacareí/SP.`;
+            // Se caiu aqui, é porque nenhuma condição específica foi atendida.
+            // Vamos montar um texto genérico mas INCLUINDO as informações reais.
+
+            const diligentHistoryText = history.length > 0
+                ? `Constam as seguintes diligências realizadas: ${history.map(h => `${new Date(h.date).toLocaleDateString()} - ${h.notes}`).join('; ')}.`
+                : '';
+
+            const obsText = observations
+                ? `Observa-se ainda que: ${observations}.`
+                : '';
+
+            return `Registra-se o presente para dar cumprimento ao Mandado de Prisão expedido em desfavor de ${name}, nos autos do processo nº ${process}, oriundo da Comarca de Jacareí/SP.\n\nA equipe desta especializada procedeu às diligências nos endereços vinculados ao réu, notadamente na ${address}. \n\n${diligentHistoryText}\n\n${obsText}\n\nAté o presente momento, não foi possível localizar o investigado, restando negativas as diligências realizadas por esta equipe para cumprimento da ordem judicial em Jacareí/SP.`;
         };
 
         setCapturasData(prev => ({

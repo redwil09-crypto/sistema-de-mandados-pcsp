@@ -89,7 +89,7 @@ export async function generateReportBody(warrantData: any, rawContent: string, i
     if (!(await isGeminiEnabled())) return null;
 
     try {
-        const model = (await genAI()).getGenerativeModel({ model: "gemini-1.5-flash" });
+        const model = (await genAI()).getGenerativeModel({ model: "gemini-1.5-pro" });
 
         const prompt = `
             Você é um Investigador de Polícia da DIG (Delegacia de Investigações Gerais) de Jacareí/SP, especialista em redação técnica e jurídica.
