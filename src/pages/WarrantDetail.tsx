@@ -128,54 +128,81 @@ const WarrantDetail = ({ warrants, onUpdate, onDelete, routeWarrants = [], onRou
         }
     }, [isCapturasModalOpen, data]);
 
-    const handleResetReportData = () => {
-        if (!data) return;
-        const currentData = { ...data, ...localData };
-        const historyArray = Array.isArray(data.diligentHistory) ? data.diligentHistory : [];
+    const buildComprehensiveReportContext = (currentData: Warrant & Partial<Warrant>) => {
+        // Formatter helper
+        const fmtDate = (d: string) => {
+            if (!d) return 'N/I';
+            if (d.includes('/')) return d;
+            const [y, m, day] = d.split('-');
+            return `${day}/${m}/${y}`;
+        }
+
+        const historyArray = Array.isArray(currentData.diligentHistory) ? currentData.diligentHistory : [];
         const historyText = historyArray
             .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-            .map(h => {
-                const d = new Date(h.date);
-                const dateHeader = !isNaN(d.getTime()) ? d.toLocaleDateString('pt-BR') : 'Data N/I';
-                return `${dateHeader} - ${h.notes}`;
-            }).join('\n');
+            .map(h => `[${fmtDate(h.date)}] ${h.notes} (Tipo: ${h.type || 'Geral'})`)
+            .join('\n');
 
-        const observationText = currentData.observation || '';
-        const combined = `HISTÓRICO DE DILIGÊNCIAS:\n${historyText || 'Nenhuma diligência registrada.'}\n\nOBSERVAÇÕES ADICIONAIS:\n${observationText || 'Nenhuma observação.'}`.trim();
+        return `
+            DADOS DO PROCESSO:
+            - Alvo: ${currentData.name} (RG: ${currentData.rg || 'N/I'}, CPF: ${currentData.cpf || 'N/I'})
+            - Processo: ${currentData.number}
+            - Vara/Fórum: ${currentData.court || capturasData.court || 'Não especificado'}
+            - Crime: ${currentData.crime}
+            - Pena/Regime: ${currentData.regime || 'N/I'}
+            - Data Expedição: ${currentData.issueDate ? fmtDate(currentData.issueDate as string) : 'N/I'}
+            - Validade: ${currentData.expirationDate ? fmtDate(currentData.expirationDate as string) : 'N/I'}
+
+            LOCALIZAÇÃO DO ALVO:
+            - Endereço Cadastrado: ${currentData.location}
+            - Coordenadas: ${currentData.latitude}, ${currentData.longitude}
+
+            HISTÓRICO OPERACIONAL (DILIGÊNCIAS):
+            ${historyText || 'Nenhuma diligência registrada no sistema ainda.'}
+
+            OBSERVAÇÕES DE INTELIGÊNCIA:
+            ${currentData.observation || 'Nenhuma observação registrada.'}
+
+            OUTROS DADOS:
+            - Status Atual: ${currentData.status}
+            - Resultado iFood: ${currentData.ifoodResult || 'N/A'}
+        `.replace(/^\s+/gm, '').trim();
+    };
+
+    const handleResetReportData = () => {
+        if (!data) return;
+        const currentData = { ...data, ...localData } as Warrant & Partial<Warrant>;
+        const context = buildComprehensiveReportContext(currentData);
+
+        const defaultBody = `RELATÓRIO DE INVESTIGAÇÃO\n\n${context}\n\nCONCLUSÃO:\n[Aguardando análise da autoridade policial...]`;
 
         setCapturasData(prev => ({
             ...prev,
-            body: combined,
+            body: defaultBody,
             reportNumber: currentData.fulfillmentReport || prev.reportNumber || `001/DIG/${new Date().getFullYear()}`,
             court: prev.court || 'Vara Criminal de Jacareí/SP'
         }));
-        toast.info("Dados recarregados no rascunho.");
+        toast.info("Dados completos carregados no rascunho de IA.");
     };
 
     const handleRefreshAiReport = async () => {
         if (!data) return;
         setIsGeneratingAiReport(true);
-        const toastId = toast.loading("🤖 Gerando texto profissional...");
+        const toastId = toast.loading("🤖 Analisando todo o caso e redigindo...");
+
         try {
-            const currentData = { ...data, ...localData };
-            const historyArray = Array.isArray(data.diligentHistory) ? data.diligentHistory : [];
-            const historyText = historyArray.map(h =>
-                `${new Date(h.date).toLocaleDateString('pt-BR')} - ${h.notes}`
-            ).join('\n');
+            const currentData = { ...data, ...localData } as Warrant & Partial<Warrant>;
+            const fullContext = buildComprehensiveReportContext(currentData);
 
             const rawContent = `
-                DADOS DO ALVO: ${currentData.name}
-                HISTÓRICO:
-                ${historyText}
-                
-                OBSERVAÇÕES:
-                ${currentData.observation || 'Nenhuma.'}
-                
-                RASCUNHO PARA AJUSTE:
+                ${fullContext}
+
+                RASCUNHO/TEXTO ATUAL DO AGENTE:
                 ${capturasData.body}
             `;
 
             const result = await generateReportBody(currentData, rawContent, capturasData.aiInstructions);
+
             if (result && !result.startsWith("Erro ao processar")) {
                 setCapturasData(prev => ({ ...prev, body: result }));
                 toast.success("Relatório gerado com sucesso!", { id: toastId });
