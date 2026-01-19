@@ -103,34 +103,31 @@ export async function generateReportBody(warrantData: any, rawContent: string, i
 
         const prompt = `
             ATUE COMO: Escrivão de Polícia Elite da DIG (Delegacia de Investigações Gerais) de Jacareí/SP.
-            TAREFA: Redigir o "Corpo do Relatório de Investigação" (Diligência de Captura) para um processo judicial.
+            
+            OBJETIVO: REESCREVER e CORRIGIR o Relatório de Investigação abaixo com base nas estritas ordens do Delegado (Usuário).
 
-            DADOS COMPLETOS DO CASO:
+            ==================== DADOS DO CASO ====================
             ${rawContent}
+            =======================================================
 
-            INSTRUÇÕES CRÍTICAS (PARA NÃO FALHAR):
-            1. JURISDIÇÃO (REGRAS DE FERRO):
-               - A DIG atua APENAS em Jacareí/SP.
-               - SE o endereço for OUTRA CIDADE: O texto DEVE dizer que "o endereço não pertence à circunscrição de Jacareí" e SUGERIR "encaminhamento da ordem (Carta Precatória/Ofício)". NÃO diga que a equipe foi lá.
-            2. LEITURA OBRIGATÓRIA:
-               - Você PRECISA citar as DATAS e FATOS do "Histórico de Diligências".
-               - Você PRECISA incluir as "Observações Adicionais".
-            3. ESTILO (CLONE ESTES EXEMPLOS):
-               - CASO PADRÃO (Não achou ninguém):
-                 "Em cumprimento ao mandado expedido nos autos do processo nº (...), esta equipe diligenciou ao endereço (...). No local, em diversas ocasiões, imóvel fechado, sem atendimento. Vizinhos relataram que desconhecem o paradeiro do réu. Pesquisas nos sistemas também restaram negativas."
-               - CASO "MUDOU-SE" (Mãe/Familiares atenderam):
-                 "No local, a equipe foi atendida por familiares (ou moradores), que informaram que o alvo NÃO reside mais ali há longo lapso temporal e não mantêm contato. Foi franqueado acesso, nada ilícito localizado."
-               - CASO "OUTRA CIDADE":
-                 "Em cumprimento ao solicitado, verifica-se que o endereço (...) situa-se em outra comarca, fora da circunscrição desta DIG de Jacareí. Sugere-se o encaminhamento à delegacia local."
-            4. NUNCA INVENTE DADOS.
-            5. Retorne APENAS o texto do corpo do relatório.
-            6. IGNORE tags markdown. Retorne apenas o texto corrido.
-            7. INSTRUÇÃO EXTRA DO USUÁRIO: "${instructions || 'Seguir os modelos acima.'}"
+            ORDEM PRIORITÁRIA DO DELEGADO (USUÁRIO):
+            "${instructions ? instructions.toUpperCase() : 'REVISAR E FORMALIZAR O TEXTO.'}"
+
+            REGRAS DE EXECUÇÃO:
+            1. OBEDIÊNCIA TOTAL: Se o delegado pediu para mudar, mudar. Se pediu para encurtar, encurte. Se pediu para mudar o tom, mude.
+            2. NÃO SE PRENDA AO TEXTO ATUAL: O texto atual é apenas um rascunho. Você DEVE melhorá-lo.
+            3. DADOS OBRIGATÓRIOS:
+               - Mantenha as DATAS e LOCAIS citados no Histórico.
+               - Se for OUTRA CIDADE: Sugira encaminhamento (Carta Precatória).
+            4. ESTILO: Formal, Impessoal, Jurídico.
+
+            SAÍDA:
+            Apenas o novo texto do corpo do relatório.
         `;
 
         const result = await model.generateContent(prompt);
         const response = await result.response;
-        return response.text().trim().replace(/^(Corpo do Relatório|Texto):/i, '');
+        return response.text().trim().replace(/^(Corpo do Relatório|Texto|Resposta):/i, '');
     } catch (error: any) {
         console.error("Erro ao gerar corpo do relatório:", error);
         // Throwing error to be caught by the caller for UI display
@@ -148,22 +145,22 @@ export async function analyzeWarrantData(text: string) {
         const prompt = `
             Você é um analista de inteligência policial. 
             Analise o seguinte texto extraído de um mandado judicial ou histórico policial e extraia:
-            1. Um resumo curto (máximo 2 linhas) do perigo ou modus operandi do alvo.
-            2. Tags de alerta (objetivas, ex: "Perigoso", "Risco de Fuga", "Armado", "Violência Doméstica").
+        1. Um resumo curto(máximo 2 linhas) do perigo ou modus operandi do alvo.
+            2. Tags de alerta(objetivas, ex: "Perigoso", "Risco de Fuga", "Armado", "Violência Doméstica").
 
             TEXTO:
-            "${text}"
+        "${text}"
 
             Responda APENAS em formato JSON:
-            {
-                "summary": "string",
+        {
+            "summary": "string",
                 "warnings": ["tag1", "tag2"]
-            }
+        }
         `;
 
         const result = await model.generateContent(prompt);
         const response = await result.response;
-        const jsonStr = response.text().replace(/```json|```/g, '').trim();
+        const jsonStr = response.text().replace(/```json | ```/g, '').trim();
         return JSON.parse(jsonStr);
     } catch (error) {
         console.error("Erro na análise da IA:", error);
