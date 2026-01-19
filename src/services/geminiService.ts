@@ -24,15 +24,16 @@ const fetchGlobalKey = async () => {
 };
 
 const getGeminiKey = async () => {
-    // Prioridade 1: LocalStorage (Chave pessoal)
-    const localKey = localStorage.getItem('gemini_api_key');
-    if (localKey) return localKey;
+    // TEMPORARY DEBUG: Ignorando localStorage para garantir que a nova chave .env seja usada
+    // const localKey = localStorage.getItem('gemini_api_key');
+    // if (localKey) return localKey;
 
-    // Prioridade 2: Variável de ambiente (Build time)
+    // Prioridade 1: Variável de ambiente (FORCE NEW KEY)
     const envKey = import.meta.env.VITE_GEMINI_API_KEY;
+    console.log("DEBUG GEMINI: Usando chave do arquivo .env:", envKey ? "Sim (Começa com " + envKey.substring(0, 5) + ")" : "Não encontrada");
     if (envKey) return envKey;
 
-    // Prioridade 3: Banco de dados (Compartilhada)
+    // Prioridade 2: Banco de dados (Compartilhada)
     return await fetchGlobalKey();
 };
 
@@ -49,14 +50,7 @@ const genAI = async () => {
 
     let key = await getGeminiKey();
 
-    // FALLBACK DE SEGURANÇA: Se não achou chave, tenta usar a variável de ambiente diretamente
     if (!key) {
-        console.warn("Chave não encontrada no storage/banco. Tentando fallback .env...");
-        key = import.meta.env.VITE_GEMINI_API_KEY;
-    }
-
-    if (!key) {
-        // Log para ajudar o usuário a debugar (não expor em prod, mas aqui é essencial)
         console.error("DEBUG: Nenhuma chave API encontrada. Verifique .env ou Configurações.");
         throw new Error("Chave API do Gemini não configurada. Vá em configurações e adicione.");
     }
