@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Model Version Check</title>
+</head>
+
+<body>
+    <h1>API Version Test</h1>
+    <div id="logs"></div>
+    <script>
+        const apiKey = 'AIzaSyAy4egv1X54dvbM7wtWI9xvAkHPTpa8NOM';
+
+        function log(msg) {
+            const div = document.createElement('div');
+            div.innerText = msg;
+            document.getElementById('logs').appendChild(div);
+        }
+
+        async function test(model, version) {
+            const url = `https://generativelanguage.googleapis.com/${version}/models/${model}:generateContent?key=${apiKey}`;
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ contents: [{ parts: [{ text: "Hello" }] }] })
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    log(`✅ ${model} (${version}): OK`);
+                } else {
+                    log(`❌ ${model} (${version}): ${data.error?.message || response.statusText}`);
+                }
+            } catch (e) {
+                log(`❌ ${model} (${version}): Error ${e.message}`);
+            }
+        }
+
+        async function run() {
+            // Test 2.5-flash on both versions
+            await test('gemini-2.5-flash', 'v1beta');
+            await test('gemini-2.5-flash', 'v1');
+
+            // Test backup 1.5-flash-8b
+            await test('gemini-1.5-flash-8b', 'v1beta');
+        }
+
+        run();
+    </script>
+</body>
+
+</html>
