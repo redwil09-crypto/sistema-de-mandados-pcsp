@@ -89,8 +89,8 @@ export async function generateReportBody(warrantData: any, rawContent: string, i
     if (!(await isGeminiEnabled())) return null;
 
     try {
-        // Reverting to stable production model as experimental model was failing
-        const model = (await genAI()).getGenerativeModel({ model: "gemini-1.5-pro" });
+        // Switching to Gemini 1.5 Flash for maximum stability and speed while maintaining high quality via prompt.
+        const model = (await genAI()).getGenerativeModel({ model: "gemini-1.5-flash" });
 
         const prompt = `
             ATUE COMO: Escrivão de Polícia Elite da DIG (Delegacia de Investigações Gerais) de Jacareí/SP.
@@ -115,15 +115,17 @@ export async function generateReportBody(warrantData: any, rawContent: string, i
                  "Em cumprimento ao solicitado, verifica-se que o endereço (...) situa-se em outra comarca, fora da circunscrição desta DIG de Jacareí. Sugere-se o encaminhamento à delegacia local."
             4. NUNCA INVENTE DADOS.
             5. Retorne APENAS o texto do corpo do relatório.
-            6. INSTRUÇÃO EXTRA DO USUÁRIO: "${instructions || 'Seguir os modelos acima.'}"
+            6. IGNORE tags markdown. Retorne apenas o texto corrido.
+            7. INSTRUÇÃO EXTRA DO USUÁRIO: "${instructions || 'Seguir os modelos acima.'}"
         `;
 
         const result = await model.generateContent(prompt);
         const response = await result.response;
         return response.text().trim().replace(/^(Corpo do Relatório|Texto):/i, '');
-    } catch (error) {
+    } catch (error: any) {
         console.error("Erro ao gerar corpo do relatório:", error);
-        return null;
+        // Throwing error to be caught by the caller for UI display
+        throw new Error(error.message || "Erro desconhecido na IA");
     }
 }
 

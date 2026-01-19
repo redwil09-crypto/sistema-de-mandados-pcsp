@@ -1090,9 +1090,9 @@ Equipe de Capturas - DIG / PCSP
             } else {
                 toast.error("Falha ao gerar texto.", { id: toastId });
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error("AI Refresh Error:", error);
-            toast.error("Erro na comunicação com a IA.", { id: toastId });
+            toast.error(`Erro na IA: ${error.message || 'Falha de comunicação'}`, { id: toastId });
         } finally {
             setIsGeneratingAiReport(false);
         }
