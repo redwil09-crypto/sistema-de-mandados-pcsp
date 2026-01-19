@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Full Flow Diagnosis</title>
+</head>
+
+<body>
+    <h1>Testing Full AI Flow</h1>
+    <div id="logs"></div>
+
+    <script type="importmap">
+      {
+        "imports": {
+          "@google/generative-ai": "https://esm.run/@google/generative-ai"
+        }
+      }
+    </script>
+
+    <script type="module">
+        import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from "@google/generative-ai";
+
+        const apiKey = 'AIzaSyAy4egv1X54dvbM7wtWI9xvAkHPTpa8NOM';
+
+        function log(msg) {
+            const div = document.createElement('div');
+            // Adding timestamp
+            div.innerText = `[${new Date().toLocaleTimeString()}] ${msg}`;
+            document.getElementById('logs').appendChild(div);
+            // Also console log for safety
+            console.log(msg);
+        }
+
+        async function testFlow() {
+            log("Starting full flow test...");
+
+            try {
+                // Initialize GenAI
+                log("Initializing GoogleGenerativeAI...");
+                const genAI = new GoogleGenerativeAI(apiKey);
+
+                // Configure Model 2.5-flash with safety settings exactly as in code
+                log("Configuring model gemini-2.5-flash...");
+                const model = genAI.getGenerativeModel({
+                    model: "gemini-2.5-flash",
+                    safetySettings: [
+                        { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_NONE },
+                        { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_NONE },
+                        { category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold: HarmBlockThreshold.BLOCK_NONE },
+                        { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_NONE },
+                    ]
+                });
+
+                // Prepare Dummy Data (mimicking a typical warrant context)
+                const warrantData = {
+                    name: "FULANO DE TAL",
+                    number: "1500000-00.2024.8.26.0000",
+                    location: "Rua Exemplo, 123, Centro",
+                    observation: "Indivíduo perigoso, visto com veículo vermelho."
+                };
+
+                const rawContent = `
+                    DADOS DO ALVO: ${warrantData.name} (Processo: ${warrantData.number})
+                    ENDEREÇO DO MANDADO: ${warrantData.location}
+
+                    HISTÓRICO COMPLETO DE DILIGÊNCIAS (Considerar TUDO):
+                    01/01/2026 - Tentativa de captura frustrada.
+                    02/01/2026 - Veículo avistado no bairro vizinho.
+
+                    OBSERVAÇÕES ADICIONAIS (CRUCIAL):
+                    ${warrantData.observation}
+
+                    ---
+                    TEXTO ATUAL DO RELATÓRIO (para referência/ajuste):
+                    O acusado não foi localizado.
+                `;
+
+                const instructions = "Melhore este relatório, seja formal.";
+
+                const prompt = `
+                    ATUE COMO: Escrivão de Polícia Elite da DIG (Delegacia de Investigações Gerais) de Jacareí/SP.
+                    
+                    OBJETIVO: REESCREVER e CORRIGIR o Relatório de Investigação abaixo com base nas estritas ordens do Delegado (Usuário).
+
+                    ==================== DADOS DO CASO ====================
+                    ${rawContent}
+                    =======================================================
+
+                    ORDEM PRIORITÁRIA DO DELEGADO (USUÁRIO):
+                    "${instructions.toUpperCase()}"
+
+                    REGRAS DE EXECUÇÃO:
+                    1. OBEDIÊNCIA TOTAL: Se o delegado pediu para mudar, mudar. Se pediu para encurtar, encurte. Se pediu para mudar o tom, mude.
+                    2. NÃO SE PRENDA AO TEXTO ATUAL: O texto atual é apenas um rascunho. Você DEVE melhorá-lo.
+                    3. DADOS OBRIGATÓRIOS:
+                       - Mantenha as DATAS e LOCAIS citados no Histórico.
+                       - Se for OUTRA CIDADE: Sugira encaminhamento (Carta Precatória).
+                    4. ESTILO: Formal, Impessoal, Jurídico.
+
+                    SAÍDA:
+                    Apenas o novo texto do corpo do relatório.
+                `;
+
+                log("Sending generateContent request...");
+                const result = await model.generateContent(prompt);
+
+                log("Waiting for response...");
+                const response = await result.response;
+                const text = response.text();
+
+                if (text && text.length > 10) {
+                    log("✅ SUCCESS! Generated Text:");
+                    log(text.substring(0, 200) + "...");
+                } else {
+                    log("⚠️ Warning: Text seems empty or too short.");
+                    log("Full response text: " + text);
+                }
+
+            } catch (e) {
+                log(`❌ FATAL ERROR: ${e.message}`);
+                console.error(e); // Dump full object to console
+                if (e.response) {
+                    log("API Response details: " + JSON.stringify(e.response));
+                }
+            }
+        }
+
+        testFlow();
+    </script>
+</body>
+
+</html>
