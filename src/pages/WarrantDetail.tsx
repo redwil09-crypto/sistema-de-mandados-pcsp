@@ -127,57 +127,66 @@ const WarrantDetail = ({ warrants, onUpdate, onDelete, routeWarrants = [], onRou
     // Pre-fill report body when modal opens
     useEffect(() => {
         if (isCapturasModalOpen && data && !capturasData.body) {
-            const timelineText = data.diligentHistory?.map(d => `${d.date} - ${d.notes}`).join('\n') || '';
-            const observationText = data.observation || '';
-            const combined = `DILIGÊNCIAS:\n${timelineText}\n\nOBSERVAÇÕES:\n${observationText}`.trim();
-
-            setCapturasData(prev => ({
-                ...prev,
-                body: combined
-            }));
+            handleResetReportData();
         }
     }, [isCapturasModalOpen, data]);
 
+    const handleResetReportData = () => {
+        if (!data) return;
+        // Merge with localData to catch any unsaved changes in diligences or observations
+        const currentData = { ...data, ...localData };
+
+        const historyText = (currentData.diligentHistory || []).map(h =>
+            `${new Date(h.date).toLocaleDateString('pt-BR')} - ${h.notes}`
+        ).join('\n');
+
+        const observationText = currentData.observation || '';
+        const combined = `DILIGÊNCIAS REALIZADAS:\n${historyText}\n\nOBSERVAÇÕES ADICIONAIS:\n${observationText}`.trim();
+
+        setCapturasData(prev => ({
+            ...prev,
+            body: combined,
+            reportNumber: currentData.fulfillmentReport || prev.reportNumber || `001/DIG/${new Date().getFullYear()}`,
+            court: prev.court || 'Vara Criminal de Jacareí/SP'
+        }));
+        toast.info("Dados do histórico atualizados no rascunho.");
+    };
+
     const handleRefreshAiReport = async () => {
-        if (!data) {
-            console.error("DEBUG UI: Data is null");
-            return;
-        }
-
-        console.log("DEBUG UI: Starting AI Report Refresh", {
-            instructions: capturasData.aiInstructions,
-            hasDiligence: !!data.diligentHistory,
-            historyLength: data.diligentHistory?.length
-        });
-
+        if (!data) return;
         setIsGeneratingAiReport(true);
-        const toastId = toast.loading("IA formatando relatório profissional...");
-
+        const toastId = toast.loading("IA Reajustando texto...");
         try {
-            const timelineText = data.diligentHistory?.map(d => `${d.date} - ${d.notes}`).join('\n') || '';
-            const observationText = data.observation || '';
-            const rawContent = `DILIGÊNCIAS:\n${timelineText}\n\nOBSERVAÇÕES:\n${observationText}`.trim();
+            const currentData = { ...data, ...localData };
+            const historyText = (currentData.diligentHistory || []).map(h =>
+                `${new Date(h.date).toLocaleDateString('pt-BR')} - ${h.notes}`
+            ).join('\n');
+            const instructions = capturasData.aiInstructions;
+            const currentBody = capturasData.body;
 
-            console.log("DEBUG UI: Sending content to Gemini:", rawContent);
+            const rawContent = `
+                DADOS DO ALVO: ${currentData.name}
+                ENDEREÇO: ${currentData.location}
+                HISTÓRICO DE DILIGÊNCIAS:
+                ${historyText}
 
-            const formattedBody = await generateReportBody(
-                { ...data, court: capturasData.court },
-                rawContent,
-                capturasData.aiInstructions
-            );
+                OBSERVAÇÕES:
+                ${currentData.observation || 'Nenhuma.'}
 
-            console.log("DEBUG UI: Gemini Response:", formattedBody);
+                TEXTO ATUAL DO RASCUNHO (Melhorar este texto):
+                ${currentBody}
+            `;
 
-            if (formattedBody) {
-                setCapturasData(prev => ({ ...prev, body: formattedBody }));
-                toast.success("Relatório formatado pela IA!", { id: toastId });
+            const result = await generateReportBody(currentData, rawContent, instructions);
+            if (result && !result.startsWith("Erro")) {
+                setCapturasData(prev => ({ ...prev, body: result }));
+                toast.success("Texto reescrito com sucesso!", { id: toastId });
             } else {
-                console.warn("DEBUG UI: Gemini returned empty body");
-                toast.error("IA não conseguiu processar. Tente novamente.", { id: toastId });
+                toast.error(result || "IA não conseguiu processar.", { id: toastId });
             }
-        } catch (err: any) {
-            console.error("DEBUG UI: Error in handleRefreshAiReport:", err);
-            toast.error(`Erro na IA: ${err.message || 'Erro desconhecido'}`, { id: toastId });
+        } catch (error: any) {
+            console.error("AI Refresh Error:", error);
+            toast.error(`Erro na IA: ${error.message || 'Falha de comunicação'}`, { id: toastId });
         } finally {
             setIsGeneratingAiReport(false);
         }
@@ -1790,11 +1799,17 @@ Equipe de Capturas - DIG / PCSP
                         {isCapturasModalOpen && (
                             <div className="mt-6 border-t border-border-light dark:border-border-dark pt-6 animate-in slide-in-from-top-4 duration-300">
                                 <div className="space-y-4">
-                                    <div className="flex items-center gap-2 mb-2">
-                                        <div className="p-2 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg">
+                                    <div className="p-2 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg flex items-center justify-between w-full">
+                                        <div className="flex items-center gap-2">
                                             <FileText size={20} className="text-indigo-600 dark:text-indigo-400" />
+                                            <h4 className="text-base font-bold text-text-light dark:text-text-dark">Gerador de Relatório Profissional</h4>
                                         </div>
-                                        <h4 className="text-base font-bold text-text-light dark:text-text-dark">Gerador de Relatório Profissional</h4>
+                                        <button
+                                            onClick={handleResetReportData}
+                                            className="text-[9px] font-black uppercase px-2 py-1 bg-white dark:bg-white/10 rounded border border-indigo-200 dark:border-indigo-800 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 transition-all flex items-center gap-1 shadow-sm active:scale-95"
+                                        >
+                                            <RotateCcw size={10} /> RECARREGAR DADOS BRUTOS
+                                        </button>
                                     </div>
 
                                     <div className="grid grid-cols-2 gap-4">
