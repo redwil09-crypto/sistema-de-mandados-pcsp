@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Gemini Test</title>
+</head>
+
+<body>
+    <h1>Testing Gemini API</h1>
+    <div id="result">Running...</div>
+    <script>
+        async function testGemini() {
+            const apiKey = 'AIzaSyDX9hFIUtSzn2qP5T6Es8zqZmzvhntL5rU';
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+            const data = {
+                contents: [{
+                    parts: [{ text: "Explain how to make a sandwich in 1 sentence." }]
+                }]
+            };
+
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+                console.log(JSON.stringify(result, null, 2));
+
+                if (response.ok) {
+                    document.getElementById('result').innerText = 'Success: ' + result.candidates[0].content.parts[0].text;
+                } else {
+                    document.getElementById('result').innerText = 'Error: ' + JSON.stringify(result);
+                }
+            } catch (error) {
+                document.getElementById('result').innerText = 'Network/Code Error: ' + error.message;
+            }
+        }
+
+        testGemini();
+    </script>
+</body>
+
+</html>

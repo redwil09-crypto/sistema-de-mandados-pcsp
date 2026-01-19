@@ -71,9 +71,9 @@ export async function analyzeRawDiligence(warrantData: any, rawInfo: string) {
 
     try {
         const genAIInstance = await genAI();
-        // Standardizing on 1.5-flash for stability and removing safety filters for police context
+        // Standardizing on 2.0-flash for stability and removing safety filters for police context
         const model = genAIInstance.getGenerativeModel({
-            model: "gemini-1.5-flash",
+            model: "gemini-2.0-flash",
             safetySettings: [
                 { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_NONE },
                 { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_NONE },
@@ -115,10 +115,10 @@ export async function generateReportBody(warrantData: any, rawContent: string, i
     if (!(await isGeminiEnabled())) return null;
 
     try {
-        // Switching to Gemini 1.5 Flash for maximum stability and speed
+        // Switching to Gemini 2.0 Flash for maximum stability and speed
         const genAIInstance = await genAI();
         const model = genAIInstance.getGenerativeModel({
-            model: "gemini-1.5-flash",
+            model: "gemini-2.0-flash",
             safetySettings: [
                 { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_NONE },
                 { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_NONE },
@@ -167,8 +167,8 @@ export async function analyzeWarrantData(text: string) {
 
     try {
         const genAIInstance = await genAI();
-        // Standardizing on 1.5-flash for stability
-        const model = genAIInstance.getGenerativeModel({ model: "gemini-1.5-flash" });
+        // Standardizing on 2.0-flash for stability
+        const model = genAIInstance.getGenerativeModel({ model: "gemini-2.0-flash" });
 
         const prompt = `
             Você é um analista de inteligência policial. 
