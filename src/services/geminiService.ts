@@ -5,11 +5,13 @@ import { supabase } from "../supabaseClient";
 let cachedGlobalKey: string | null = null;
 const MODELS_TO_TRY = [
     "gemini-1.5-flash",
+    "gemini-1.5-flash-001",
+    "gemini-1.5-flash-002",
+    "gemini-1.5-flash-8b",
     "gemini-1.5-pro",
-    "gemini-1.5-flash-latest",
-    "gemini-1.5-pro-latest",
+    "gemini-1.5-pro-001",
     "gemini-pro",
-    "gemini-2.0-flash-exp"
+    "gemini-1.0-pro"
 ];
 
 const fetchGlobalKey = async () => {
@@ -58,7 +60,7 @@ const genAI = async () => {
 // Helper to attempt generation with fallback models
 async function tryGenerateContent(prompt: string, options: any = {}): Promise<string> {
     const genAIInstance = await genAI();
-    let lastError: any = null;
+    const errors: string[] = [];
 
     for (const modelName of MODELS_TO_TRY) {
         try {
@@ -80,17 +82,20 @@ async function tryGenerateContent(prompt: string, options: any = {}): Promise<st
             if (text) return text;
 
         } catch (error: any) {
-            console.warn(`DEBUG GEMINI: Falha com ${modelName}:`, error.message);
-            lastError = error;
-            // If it's 404, 500, or 429, continue to next model.
-            // If it's 403 (Invalid Key), we stop because it's probably the key.
+            const msg = `[${modelName}]: ${error.message}`;
+            console.warn(`DEBUG GEMINI: ${msg}`);
+            errors.push(msg);
+
+            // Critical auth errors - stop trying
             if (error.message.includes("403") && (error.message.includes("API key") || error.message.includes("invalid"))) {
-                throw error;
+                throw new Error("Chave de API Inválida (403). Verifique suas configurações.");
             }
         }
     }
 
-    throw lastError || new Error("Falha ao gerar conteúdo com todos os modelos disponíveis.");
+    // If we got here, all models failed
+    console.error("DEBUG GEMINI: Todos os modelos falharam.", errors);
+    throw new Error(`Falha em todos os modelos. Detalhes: ${errors.map(e => e.split(':')[0] + ' ' + (e.includes('404') ? '(404)' : '(Erro)')).join(', ')}`);
 }
 
 export async function analyzeRawDiligence(warrantData: any, rawInfo: string) {
