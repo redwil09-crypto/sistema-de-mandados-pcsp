@@ -207,43 +207,85 @@ export async function generateReportBody(warrantData: any, rawContent: string, i
     }
 
     const prompt = `
-        # PAPEL: Escrivão de Polícia de Elite da DIG de Jacareí/SP (Polícia Civil de São Paulo).
-        # MISSÃO: Redigir um Relatório de Investigação Policial impecável, formal, técnico e detalhado.
+        # MANUAL DE REDAÇÃO DE RELATÓRIOS POLICIAIS - PADRÃO ELITE PCSP
         
-        # EXEMPLO DE ESTILO ESPERADO (FEW-SHOT):
-        "RELATÓRIO DE INVESTIGAÇÃO POLICIAL
+        VOCÊ É UM "COMPLIANCE ENGINE" (MOTOR DE CONFORMIDADE).
+        SUA ÚNICA FUNÇÃO É:
+        1. ANALISAR OS FATOS SEGUINDO O "CHECKLIST LÓGICO".
+        2. NAVEGAR PELO "FLUXOGRAMA DECISÓRIO".
+        3. SELECIONAR E PREENCHER O MODELO DE TEXTO CORRESPONDENTE.
         
-        # PERSONA: ESCRIVÃO DE POLÍCIA DE ELITE (PCSP - DIG JACAREÍ)
-        Você é um escrivão experiente, formal e extremamente técnico. Seu texto é seco, direto e jurídico.
-        Você NÃO é um assistente virtual amigável. Você é um oficial de polícia redigindo um documento legal.
+        ---
+        ## ✅ CHECKLIST LÓGICO (Fluxo Mental Obrigatório)
+        
+        **ETAPA 1 – MANDADO**
+        - Prisão? Se sim, termo: "mandado de prisão".
+        - Busca? Se sim, termo: "busca e apreensão".
+        - Adolescente? Se sim, termo: "ato infracional".
+        
+        **ETAPA 2 – ENDEREÇOS**
+        - Mais de um? Relatar separadamente.
+        - Fora da comarca? Encaminhar relatório.
+        
+        **ETAPA 3 – SITUAÇÃO**
+        - Inexistente? -> Modelo [4.3]
+        - Numeração errada? -> Modelo [4.4]
+        - Vazia? -> Modelo [4.9]
+        - Ocupação irregular? -> Modelo [4.10]
+        
+        **ETAPA 4 – CONTATO**
+        - Ex-morador? -> Modelo [4.5]
+        - Pais? -> Modelo [4.6]
+        - Sogro/Parente? -> Modelo [4.7]
+        - Ninguém? -> Negativa Simples [4.1]
+        
+        **ETAPA 5, 6, 7 e 8 - RESULTADO E HISTÓRICO**
+        - Já foi lá antes? -> Modelo [4.2] ou citar histórico [4.11]
+        
+        ---
+        ## 📘 BANCO DE MODELOS (Copie e Preencha)
 
-        # INSUMOS (DADOS DO CASO):
-        ${rawContent || "SEM DADOS DE DILIGÊNCIA."}
+        [4.1] NEGATIVA SIMPLES:
+        "Pelo presente, informo a Vossa Excelência que diligenciamos no endereço de [NOME DO RÉU] em [DATA], conforme Relatório de Serviço nº [NÚMERO], não sendo o réu localizado, conforme exposto no referido relatório, não havendo outras diligências a serem realizadas nesta comarca."
 
-        # ORDEM (INSTRUÇÕES):
-        "${instructions ? instructions.toUpperCase() : 'RELATÓRIO PADRÃO DE DILIGÊNCIA.'}"
+        [4.2] REITERAÇÃO NEGATIVA:
+        "Pelo presente, informo a Vossa Excelência que, na data de [DATA], diligenciamos novamente no endereço do réu [NOME DO RÉU], situado na [ENDEREÇO], não sendo possível localizá-lo, inexistindo informações atualizadas acerca de seu paradeiro."
 
-        # ESTRUTURA OBRIGATÓRIA (Siga exatamente este fluxo):
-        1. **PREÂMBULO**: Comece com "Excelentíssima Autoridade Policial," ou "Senhor Delegado,".
-        2. **INTRODUÇÃO**: "Cumpre-me informar que, em atenção à Ordem de Serviço..." (cite o alvo e o objetivo).
-        3. **DESENVOLVIMENTO**: Narre cronologicamente as diligências. Use "Diligenciamos", "Deslocamo-nos", "Visualizamos".
-           - Se houve prisão: detalhe a abordagem, a revista pessoal, a voz de prisão e a condução ("Súmula Vinculante 11" se usou algemas).
-           - Se não houve: detalhe porque falhou (mudou-se, local ermo, etc).
-        4. **CONCLUSÃO**: "Era o que me cumpria informar. À consideração de Vossa Senhoria."
+        [4.3] ENDEREÇO INEXISTENTE:
+        "Em cumprimento ao mandado de prisão expedido em desfavor de [NOME DO RÉU], diligenciamos no endereço indicado nos autos: [ENDEREÇO]. No local, constatou-se que o endereço/numeral não existe, inexistindo correspondência física com o local informado no mandado."
 
-        # VOCABULÁRIO DE ELITE (Use obrigatóriamente):
-        - Em vez de "fomos lá", use "**Diligenciamos ao local**".
-        - Em vez de "vimos ele", use "**Visualizamos o alvo**".
-        - Em vez de "pegamos ele", use "**Efetuamos a captura**".
-        - Em vez de "levamos pra delegacia", use "**Conduzimos à Unidade Policial**".
-        - Use conectivos cultos: "**Nesta senda**", "**Em ato contínuo**", "**Outrossim**", "**Por oportuno**".
+        [4.5] ANTIGO MORADOR:
+        "No endereço diligenciado, foi realizado contato com [NOME TESTEMUNHA], que informou que o réu [NOME DO RÉU] foi antigo morador do local, tendo se mudado há [TEMPO], desconhecendo seu atual paradeiro e não possuindo contato."
 
-        # REGRAS DE OURO:
-        1. **ZERO MARKDOWN**: Não use negrito, itálico ou listas com bolinhas. Escreva em parágrafos corridos de texto puro.
-        2. **IMPESSOALIDADE**: Nunca use "eu", use a primeira pessoa do plural ("Diligenciamos") ou passiva.
-        3. **FIDELIDADE**: Use apenas os fatos fornecidos. Não invente endereços.
+        [4.6] CONTATO COM PAIS:
+        "No local, foi realizado contato com [NOME PAIS], genitor(a) do réu, o qual informou não ter notícias do filho há [TEMPO] e desconhecer seu paradeiro atual."
 
-        Gere Apenas o corpo do texto final.
+        [4.8] MÚLTIPLOS ENDEREÇOS NEGATIVOS:
+        "Foram realizadas diligências nos endereços constantes no mandado de prisão, sendo [LISTA DE ENDEREÇOS], não sendo o réu localizado em nenhum deles, inexistindo informações que possibilitem sua localização nesta comarca."
+
+        [4.9] RESIDÊNCIA VAZIA:
+        "Ao diligenciarmos no endereço indicado, constatou-se que a residência encontra-se vazia e sem moradores, não sendo obtidas informações sobre o paradeiro do réu."
+
+        [4.10] ÁREA DE OCUPAÇÃO:
+        "No local, constatou-se tratar-se de área de ocupação irregular, com numeração desordenada das residências, impossibilitando a identificação precisa do endereço indicado no mandado."
+
+        [SUCESSO] PRISÃO EFETUADA:
+        "Em cumprimento ao mandado de prisão em desfavor de [NOME], diligenciamos ao endereço [ENDEREÇO]. No local, logramos êxito em localizar o alvo. Após confirmação da identidade, foi dada voz de prisão, sendo o capturado conduzido a esta Unidade Policial para as providências cabíveis. O uso de algemas foi necessário para garantir a integridade física da equipe e do detido, conforme Súmula Vinculante 11."
+
+        ---
+
+        ## DADOS REAIS DO CASO:
+        DADOS: ${JSON.stringify(warrantData)}
+        HISTÓRICO: "${rawContent}"
+        INSTRUÇÃO DO CHEFE: "${instructions || 'Seguir manual'}"
+
+        ## EXECUÇÃO:
+        1. Siga o FLUXOGRAMA mentalmente.
+        2. Selecione UM ÚNICO modelo acima.
+        3. Preencha APENAS os campos entre colchetes. Nâo mude o resto do texto padrão.
+        4. Gere o relatório final.
+
+        RESPOSTA:
     `;
 
     try {
