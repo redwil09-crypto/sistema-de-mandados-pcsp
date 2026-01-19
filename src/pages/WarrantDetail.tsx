@@ -2204,25 +2204,44 @@ Equipe de Capturas - DIG / PCSP
                                         </div>
                                     </div>
 
-                                    <div className="bg-indigo-50 dark:bg-indigo-900/10 p-3 rounded-xl border border-indigo-100 dark:border-indigo-500/20 space-y-2">
-                                        <div className="flex items-center justify-between">
-                                            <label className="block text-xs font-black text-indigo-600 dark:text-indigo-400 uppercase">✨ IA PRO - AJUSTAR TEXTO</label>
+                                    <div className="bg-indigo-50 dark:bg-indigo-900/10 p-4 rounded-xl border border-indigo-100 dark:border-indigo-500/20 space-y-3">
+                                        <div className="flex items-center gap-2 mb-1">
+                                            <Sparkles size={16} className="text-indigo-600" />
+                                            <label className="block text-xs font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest">
+                                                IA PRO - ASSISTENTE DE REDAÇÃO
+                                            </label>
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <input
+                                                type="text"
+                                                placeholder="Ex: 'Faça o texto mais formal', 'Mencione que o alvo fugiu', 'Resuma em 2 parágrafos'..."
+                                                value={capturasData.aiInstructions}
+                                                onChange={e => setCapturasData({ ...capturasData, aiInstructions: e.target.value })}
+                                                className="w-full bg-white dark:bg-black/20 border border-indigo-200 dark:border-indigo-500/30 rounded-lg p-3 text-xs text-text-light dark:text-text-dark outline-none focus:ring-2 focus:ring-indigo-500 transition-all placeholder:text-gray-400"
+                                            />
+
                                             <button
                                                 onClick={handleRefreshAiReport}
                                                 disabled={isGeneratingAiReport}
-                                                className="p-1.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 active:scale-95 transition-all disabled:opacity-50"
-                                                title="Refazer com IA"
+                                                className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-bold text-xs uppercase tracking-wide shadow-md shadow-indigo-500/20 active:scale-95 transition-all disabled:opacity-70 flex items-center justify-center gap-2"
                                             >
-                                                <RefreshCw size={14} className={isGeneratingAiReport ? 'animate-spin' : ''} />
+                                                {isGeneratingAiReport ? (
+                                                    <>
+                                                        <RefreshCw size={14} className="animate-spin" />
+                                                        PROCESSANDO INTELIGÊNCIA...
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <Sparkles size={14} />
+                                                        GERAR / REESCREVER TEXTO COM IA
+                                                    </>
+                                                )}
                                             </button>
                                         </div>
-                                        <input
-                                            type="text"
-                                            placeholder="Ex: 'Faça mais curto', 'Foque no carro citado', 'Refaça modo negativo'..."
-                                            value={capturasData.aiInstructions}
-                                            onChange={e => setCapturasData({ ...capturasData, aiInstructions: e.target.value })}
-                                            className="w-full bg-white dark:bg-black/20 border border-indigo-200 dark:border-indigo-500/30 rounded-lg p-2 text-xs text-text-light dark:text-text-dark outline-none focus:ring-1 focus:ring-indigo-500"
-                                        />
+                                        <p className="text-[10px] text-indigo-600/60 dark:text-indigo-400/60 text-center">
+                                            A IA usará o histórico de diligências e suas instruções para escrever o relatório abaixo.
+                                        </p>
                                     </div>
 
                                     <div>
