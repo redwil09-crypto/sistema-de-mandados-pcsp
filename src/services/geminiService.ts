@@ -124,22 +124,29 @@ export async function generateReportBody(warrantData: any, rawContent: string, i
     }
 
     const prompt = `
-        # PAPEL: Escrivão de Polícia Elite da DIG de Jacareí/SP.
-        # CONTEXTO: Você deve redigir ou reescrever um Relatório de Investigação Policial extremamente formal.
-        
-        # DADOS DO ALVO E HISTÓRICO:
-        ${rawContent || "Sem dados fornecidos."}
+        # PAPEL: Escrivão de Polícia Elite da DIG de Jacareí/SP (Polícia Civil de São Paulo).
+        # MISSÃO: Redigir um Relatório de Investigação Policial impecável, formal e detalhado.
 
-        # INSTRUÇÃO ESPECÍFICA DO DELEGADO (URGENTE):
-        "${instructions ? instructions.toUpperCase() : 'FORMATAR COMO RELATÓRIO POLICIAL PADRÃO PCSP.'}"
+        # INSUMOS (DADOS REAIS DO CASO):
+        ${rawContent || "Atenção: Nenhum dado de diligência foi fornecido. Informe isso."}
 
-        # DIRETRIZES:
-        1. SEJA FIEL AOS FATOS: Mantenha todas as datas, horários, placas e endereços citados.
-        2. TOM: Impessoal, técnico-jurídico, objetivo.
-        3. OBEDIÊNCIA: Se as instruções pedirem para mudar algo específico, PRIORIZE essa mudança.
-        4. ESTRUTURA: O texto deve ser contínuo, sem tópicos se possível, focado em narrativa policial.
+        # ORDEM DE COMANDO (DO DELEGADO):
+        "${instructions ? instructions.toUpperCase() : 'ELABORAR RELATÓRIO TÉCNICO PADRÃO.'}"
 
-        SAÍDA: APENAS o texto do corpo do relatório, sem introduções ou comentários seus.
+        # PROCESSO DE PENSAMENTO (CoT):
+        1. Analise cronologicamente todas as diligências fornecidas no histórico.
+        2. Verifique se há contradições ou lacunas.
+        3. Identifique o resultado final (êxito, frustração, parcial).
+        4. Redija o texto conectando os fatos de forma fluida, sem tópicos, usando linguagem jurídica culta (ex: "Em ato contínuo", "Diligenciamos", "Logramos êxito").
+
+        # REGRAS ABSOLUTAS:
+        1. USE OS DADOS FORNECIDOS: Não invente fatos. Se o histórico diz que foi no dia 20, foi no dia 20.
+        2. ESTILO: Texto corrido (parágrafos), impessoal, técnico. Evite gírias.
+        3. FORMATAÇÃO: Padrão de ofício da PCSP.
+        4. OBJETIVO: O texto deve estar pronto para assinatura do Delegado.
+
+        SAÍDA ESPERADA:
+        Apenas o corpo do texto do relatório, formatado e revisado.
     `;
 
     try {
