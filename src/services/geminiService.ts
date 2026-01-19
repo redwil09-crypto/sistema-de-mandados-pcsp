@@ -50,7 +50,7 @@ export async function analyzeRawDiligence(warrantData: any, rawInfo: string) {
         const genAIInstance = await genAI();
         // Standardizing on 2.5-flash
         const model = genAIInstance.getGenerativeModel({
-            model: "gemini-1.5-flash",
+            model: "gemini-2.0-flash",
             safetySettings: [
                 { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_NONE },
                 { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_NONE },
@@ -97,7 +97,7 @@ export async function generateReportBody(warrantData: any, rawContent: string, i
 
         const genAIInstance = await genAI();
         const model = genAIInstance.getGenerativeModel({
-            model: "gemini-1.5-flash",
+            model: "gemini-2.0-flash",
             safetySettings: [
                 { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_NONE },
                 { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_NONE },
@@ -156,7 +156,7 @@ export async function analyzeWarrantData(text: string) {
     try {
         const genAIInstance = await genAI();
         // Standardizing on 2.5-flash
-        const model = genAIInstance.getGenerativeModel({ model: "gemini-1.5-flash" });
+        const model = genAIInstance.getGenerativeModel({ model: "gemini-2.0-flash" });
 
         const prompt = `
             Você é um analista de inteligência policial. 
