@@ -93,50 +93,81 @@ const generateContentViaFetch = async (model: string, prompt: string, key: strin
     throw new Error("Resposta da IA vazia ou inválida.");
 };
 
+// Função para descobrir dinamicamente qual modelo está disponível para esta chave
+const getBestAvailableModel = async (key: string): Promise<string> => {
+    try {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${key}`);
+        if (!response.ok) return "gemini-1.5-flash"; // Fallback cego se falhar a lista
+
+        const data = await response.json();
+        if (!data.models) return "gemini-1.5-flash";
+
+        // Filtra modelos que geram conteúdo e são da família Gemini 1.5 ou Pro
+        const availableParams = data.models
+            .filter((m: any) => m.supportedGenerationMethods.includes("generateContent"))
+            .map((m: any) => m.name.replace("models/", ""));
+
+        console.log("DEBUG GEMINI: Modelos disponíveis para esta chave:", availableParams);
+
+        // Ordem de preferência
+        const preference = [
+            "gemini-1.5-flash",
+            "gemini-1.5-flash-latest",
+            "gemini-1.5-pro",
+            "gemini-1.5-pro-latest",
+            "gemini-pro",
+            "gemini-1.0-pro"
+        ];
+
+        // Tenta achar o melhor
+        for (const pref of preference) {
+            if (availableParams.includes(pref)) return pref;
+        }
+
+        // Se nenhum da preferência estiver, pega o primeiro gemini que achar
+        const anyGemini = availableParams.find((n: string) => n.includes("gemini"));
+        return anyGemini || "gemini-1.5-flash";
+
+    } catch (e) {
+        console.warn("DEBUG GEMINI: Falha ao listar modelos, usando fallback padrão.");
+        return "gemini-1.5-flash";
+    }
+};
+
 // Helper to attempt generation with fallback models
 async function tryGenerateContent(prompt: string, options: any = {}): Promise<string> {
     const key = await getGeminiKey();
     if (!key) throw new Error("Chave API não encontrada. Configure no Perfil.");
 
-    const errors: string[] = [];
+    // 1. Descobre qual modelo funciona para esta chave
+    const modelName = await getBestAvailableModel(key);
+    console.log(`DEBUG GEMINI: Usando modelo detectado: ${modelName}`);
 
-    // Priorize 1.5 Flash -> 1.5 Pro -> Pro 1.0
-    const strategies = [
-        "gemini-1.5-flash",
-        "gemini-1.5-pro",
-        "gemini-pro"
-    ];
+    // 2. Tenta gerar com o modelo descoberto
+    try {
+        const text = await generateContentViaFetch(modelName, prompt, key);
+        if (text) return text;
+    } catch (error: any) {
+        console.error(`DEBUG GEMINI: Falha com modelo ${modelName}:`, error);
 
-    for (const modelName of strategies) {
-        try {
-            console.log(`DEBUG GEMINI: Tentando via FETCH com ${modelName}...`);
-            const text = await generateContentViaFetch(modelName, prompt, key);
-            if (text) return text;
-        } catch (error: any) {
-            const msg = `[${modelName}]: ${error.message}`;
-            console.warn(`DEBUG GEMINI: ${msg}`);
-            errors.push(msg);
-
-            // Se for erro de chave/permissão, não adianta tentar outros
-            if (error.message.includes("API_KEY_INVALID") || error.message.includes("403") || error.message.includes("400")) {
-                throw new Error("Sua chave API é inválida ou expirou. Verifique no Google AI Studio.");
+        // Se falhar (ex: sobrecarga), tenta um fallback hardcoded básico apenas por garantia
+        if (modelName !== 'gemini-pro') {
+            try {
+                console.log("DEBUG GEMINI: Tentando fallback para gemini-pro...");
+                return await generateContentViaFetch("gemini-pro", prompt, key);
+            } catch (e) {
+                // ignora e lanca o erro original
             }
         }
+
+        const msg = error.message || "Erro desconhecido";
+        if (msg.includes("403") || msg.includes("API_KEY") || msg.includes("not found")) {
+            throw new Error(`Erro de Acesso (${modelName}): Verifique se sua Chave API suporta este modelo. Detalhe: ${msg}`);
+        }
+        throw new Error(`Falha na IA (${modelName}): ${msg}`);
     }
 
-    // Fallback: Tenta via SDK se o fetch falhar (improvável, mas segurança)
-    try {
-        console.log("DEBUG GEMINI: Tentando via SDK fallback...");
-        const genAI = new GoogleGenerativeAI(key);
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-        const result = await model.generateContent(prompt);
-        return result.response.text();
-    } catch (sdkError: any) {
-        errors.push(`[SDK]: ${sdkError.message}`);
-    }
-
-    console.error("DEBUG GEMINI: Todas as tentativas falharam.", errors);
-    throw new Error(`Falha na IA. Detalhes: ${errors.join(" | ")}`);
+    throw new Error("Falha ao gerar resposta.");
 }
 
 export async function analyzeRawDiligence(warrantData: any, rawInfo: string) {
