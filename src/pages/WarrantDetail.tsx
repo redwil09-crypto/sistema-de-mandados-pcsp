@@ -53,9 +53,6 @@ const WarrantDetail = ({ warrants, onUpdate, onDelete, routeWarrants = [], onRou
     const [isUploadingFile, setIsUploadingFile] = useState(false);
     const [isAnalyzingDiligence, setIsAnalyzingDiligence] = useState(false);
     const [aiDiligenceResult, setAiDiligenceResult] = useState<string | null>(null);
-    const [aiReportInstructions, setAiReportInstructions] = useState('');
-    const [aiReportResult, setAiReportResult] = useState<string | null>(null);
-    const [isGeneratingReport, setIsGeneratingReport] = useState(false);
     const [isAiReportModalOpen, setIsAiReportModalOpen] = useState(false);
 
     const [activeDetailTab, setActiveDetailTab] = useState<'documents' | 'reports' | 'investigation' | 'timeline'>('documents');
@@ -133,15 +130,18 @@ const WarrantDetail = ({ warrants, onUpdate, onDelete, routeWarrants = [], onRou
 
     const handleResetReportData = () => {
         if (!data) return;
-        // Merge with localData to catch any unsaved changes in diligences or observations
         const currentData = { ...data, ...localData };
-
-        const historyText = (currentData.diligentHistory || []).map(h =>
-            `${new Date(h.date).toLocaleDateString('pt-BR')} - ${h.notes}`
-        ).join('\n');
+        const historyArray = Array.isArray(data.diligentHistory) ? data.diligentHistory : [];
+        const historyText = historyArray
+            .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+            .map(h => {
+                const d = new Date(h.date);
+                const dateHeader = !isNaN(d.getTime()) ? d.toLocaleDateString('pt-BR') : 'Data N/I';
+                return `${dateHeader} - ${h.notes}`;
+            }).join('\n');
 
         const observationText = currentData.observation || '';
-        const combined = `DILIGÊNCIAS REALIZADAS:\n${historyText}\n\nOBSERVAÇÕES ADICIONAIS:\n${observationText}`.trim();
+        const combined = `HISTÓRICO DE DILIGÊNCIAS:\n${historyText || 'Nenhuma diligência registrada.'}\n\nOBSERVAÇÕES ADICIONAIS:\n${observationText || 'Nenhuma observação.'}`.trim();
 
         setCapturasData(prev => ({
             ...prev,
@@ -149,44 +149,42 @@ const WarrantDetail = ({ warrants, onUpdate, onDelete, routeWarrants = [], onRou
             reportNumber: currentData.fulfillmentReport || prev.reportNumber || `001/DIG/${new Date().getFullYear()}`,
             court: prev.court || 'Vara Criminal de Jacareí/SP'
         }));
-        toast.info("Dados do histórico atualizados no rascunho.");
+        toast.info("Dados recarregados no rascunho.");
     };
 
     const handleRefreshAiReport = async () => {
         if (!data) return;
         setIsGeneratingAiReport(true);
-        const toastId = toast.loading("IA Reajustando texto...");
+        const toastId = toast.loading("🤖 Gerando texto profissional...");
         try {
             const currentData = { ...data, ...localData };
-            const historyText = (currentData.diligentHistory || []).map(h =>
+            const historyArray = Array.isArray(data.diligentHistory) ? data.diligentHistory : [];
+            const historyText = historyArray.map(h =>
                 `${new Date(h.date).toLocaleDateString('pt-BR')} - ${h.notes}`
             ).join('\n');
-            const instructions = capturasData.aiInstructions;
-            const currentBody = capturasData.body;
 
             const rawContent = `
                 DADOS DO ALVO: ${currentData.name}
-                ENDEREÇO: ${currentData.location}
-                HISTÓRICO DE DILIGÊNCIAS:
+                HISTÓRICO:
                 ${historyText}
-
+                
                 OBSERVAÇÕES:
                 ${currentData.observation || 'Nenhuma.'}
-
-                TEXTO ATUAL DO RASCUNHO (Melhorar este texto):
-                ${currentBody}
+                
+                RASCUNHO PARA AJUSTE:
+                ${capturasData.body}
             `;
 
-            const result = await generateReportBody(currentData, rawContent, instructions);
-            if (result && !result.startsWith("Erro")) {
+            const result = await generateReportBody(currentData, rawContent, capturasData.aiInstructions);
+            if (result && !result.startsWith("Erro ao processar")) {
                 setCapturasData(prev => ({ ...prev, body: result }));
-                toast.success("Texto reescrito com sucesso!", { id: toastId });
+                toast.success("Relatório gerado com sucesso!", { id: toastId });
             } else {
-                toast.error(result || "IA não conseguiu processar.", { id: toastId });
+                toast.error(result || "Falha ao gerar texto.", { id: toastId });
             }
         } catch (error: any) {
             console.error("AI Refresh Error:", error);
-            toast.error(`Erro na IA: ${error.message || 'Falha de comunicação'}`, { id: toastId });
+            toast.error(`Erro: ${error.message || 'Falha na comunicação'}`, { id: toastId });
         } finally {
             setIsGeneratingAiReport(false);
         }
@@ -560,32 +558,7 @@ Equipe de Capturas - DIG / PCSP
         `.trim();
     };
 
-    const handleGenerateAIReport = async () => {
-        if (!data) return;
-        setIsGeneratingReport(true);
-        const toastId = toast.loading("Gerando relatório com IA...");
-        try {
-            // Aggregate history for context
-            const historyText = (data.diligentHistory || []).map(h =>
-                `${new Date(h.date).toLocaleDateString()} - ${h.notes}`
-            ).join('\n');
-            const rawContent = `Histórico de Diligências:\n${historyText}\n\nObservações: ${data.observation || ''}`;
 
-            const result = await generateReportBody(data, rawContent, aiReportInstructions);
-            if (result) {
-                setAiReportResult(result);
-                toast.success("Relatório gerado com sucesso!", { id: toastId });
-                if (!isDraftOpen) setIsDraftOpen(true);
-            } else {
-                toast.error("Erro ao gerar relatório.", { id: toastId });
-            }
-        } catch (error) {
-            console.error("AI Report Error:", error);
-            toast.error("Erro na geração.", { id: toastId });
-        } finally {
-            setIsGeneratingReport(false);
-        }
-    };
 
     const handleCopyReportDraft = () => {
         const text = getReportText();

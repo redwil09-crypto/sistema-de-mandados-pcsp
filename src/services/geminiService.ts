@@ -107,27 +107,22 @@ export async function generateReportBody(warrantData: any, rawContent: string, i
         });
 
         const prompt = `
-            ATUE COMO: Escrivão de Polícia Elite da DIG (Delegacia de Investigações Gerais) de Jacareí/SP.
+            # PAPEL: Escrivão de Polícia Elite da DIG de Jacareí/SP.
+            # CONTEXTO: Você deve redigir ou reescrever um Relatório de Investigação Policial extremamente formal.
             
-            OBJETIVO: REESCREVER e CORRIGIR o Relatório de Investigação abaixo com base nas estritas ordens do Delegado (Usuário).
+            # DADOS DO ALVO E HISTÓRICO:
+            ${rawContent || "Sem dados fornecidos."}
 
-            ==================== DADOS DO CASO ====================
-            ${rawContent || "Sem dados de diligência fornecidos."}
-            =======================================================
+            # INSTRUÇÃO ESPECÍFICA DO DELEGADO (URGENTE):
+            "${instructions ? instructions.toUpperCase() : 'FORMATAR COMO RELATÓRIO POLICIAL PADRÃO PCSP.'}"
 
-            ORDEM PRIORITÁRIA DO DELEGADO (USUÁRIO):
-            "${instructions ? instructions.toUpperCase() : 'REVISAR E FORMALIZAR O TEXTO.'}"
+            # DIRETRIZES:
+            1. SEJA FIEL AOS FATOS: Mantenha todas as datas, horários, placas e endereços citados.
+            2. TOM: Impessoal, técnico-jurídico, objetivo.
+            3. OBEDIÊNCIA: Se as instruções pedirem para mudar algo específico, PRIORIZE essa mudança.
+            4. ESTRUTURA: O texto deve ser contínuo, sem tópicos se possível, focado em narrativa policial.
 
-            REGRAS DE EXECUÇÃO:
-            1. OBEDIÊNCIA TOTAL: Se o delegado pediu para mudar, mudar. Se pediu para encurtar, encurte. Se pediu para mudar o tom, mude.
-            2. NÃO SE PRENDA AO TEXTO ATUAL: O texto atual é apenas um rascunho. Você DEVE melhorá-lo.
-            3. DADOS OBRIGATÓRIOS:
-               - Mantenha as DATAS e LOCAIS citados no Histórico.
-               - Se for OUTRA CIDADE: Sugira encaminhamento (Carta Precatória).
-            4. ESTILO: Formal, Impessoal, Jurídico.
-
-            SAÍDA:
-            Apenas o novo texto do corpo do relatório.
+            SAÍDA: APENAS o texto do corpo do relatório, sem introduções ou comentários seus.
         `;
 
         console.log("DEBUG GEMINI: Prompt Sent:", prompt.substring(0, 100) + "...");
