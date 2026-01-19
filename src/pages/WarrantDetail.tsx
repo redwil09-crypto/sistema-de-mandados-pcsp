@@ -1067,50 +1067,7 @@ Equipe de Capturas - DIG / PCSP
         setIsCapturasModalOpen(true);
     };
 
-    const handleRefreshAiReport = async () => {
-        if (!data) return;
-        setIsGeneratingAiReport(true);
-        const toastId = toast.loading("IA Reajustando texto...");
-        try {
-            // Use localData here too!
-            const currentData = { ...data, ...localData };
 
-            const historyText = (currentData.diligentHistory || []).map(h =>
-                `${new Date(h.date).toLocaleDateString()} - ${h.notes}`
-            ).join('\n');
-            const instructions = capturasData.aiInstructions;
-            // Include current manual edits/body context
-            const currentBody = capturasData.body;
-
-            const rawContent = `
-                DADOS DO ALVO: ${currentData.name} (Processo: ${currentData.number})
-                ENDEREÇO DO MANDADO: ${currentData.location}
-
-                HISTÓRICO COMPLETO DE DILIGÊNCIAS (Considerar TUDO):
-                ${historyText}
-
-                OBSERVAÇÕES ADICIONAIS (CRUCIAL):
-                ${currentData.observation || 'Nenhuma observação extra.'}
-
-                ---
-                TEXTO ATUAL DO RELATÓRIO (para referência/ajuste):
-                ${currentBody}
-            `;
-
-            const result = await generateReportBody(currentData, rawContent, instructions);
-            if (result) {
-                setCapturasData(prev => ({ ...prev, body: result }));
-                toast.success("Texto reescrito com sucesso!", { id: toastId });
-            } else {
-                toast.error("Falha ao gerar texto.", { id: toastId });
-            }
-        } catch (error: any) {
-            console.error("AI Refresh Error:", error);
-            toast.error(`Erro na IA: ${error.message || 'Falha de comunicação'}`, { id: toastId });
-        } finally {
-            setIsGeneratingAiReport(false);
-        }
-    };
 
     const handleGenerateCapturasPDF = async () => {
         try {

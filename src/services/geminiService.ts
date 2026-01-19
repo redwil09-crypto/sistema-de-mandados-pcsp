@@ -24,16 +24,7 @@ const fetchGlobalKey = async () => {
 };
 
 const getGeminiKey = async () => {
-    // 1. Tenta chave global do banco (prioridade para empresas)
-    // const globalKey = await fetchGlobalKey();
-    // if (globalKey) return globalKey;
-
-    // 2. Tenta chave pessoal do localStorage
-    const localKey = localStorage.getItem('gemini_api_key');
-    if (localKey) return localKey;
-
-    // 3. HARDCODED FALLBACK (Segurança Garantida)
-    // Se tudo falhar, usa esta chave que sabemos que funciona
+    // FORCE HARDCODED KEY to avoid invalid keys in localStorage/Env
     return "AIzaSyAy4egv1X54dvbM7wtWI9xvAkHPTpa8NOM";
 };
 
