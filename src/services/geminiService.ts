@@ -97,11 +97,13 @@ export async function analyzeRawDiligence(warrantData: any, rawInfo: string) {
     }
 }
 
-export async function generateReportBody(warrantData: any, rawContent: string, instructions: string) {
-    if (!(await isGeminiEnabled())) return null;
-
+export async function generateReportBody(warrantData: any, rawContent: string, instructions: string): Promise<string> {
     try {
-        // Switching to Gemini 2.5 Flash for most recent efficient model
+        if (!(await isGeminiEnabled())) {
+            console.warn("DEBUG GEMINI: AI not enabled");
+            return "Erro: IA não habilitada ou sem chave.";
+        }
+
         const genAIInstance = await genAI();
         const model = genAIInstance.getGenerativeModel({
             model: "gemini-2.5-flash",
@@ -119,7 +121,7 @@ export async function generateReportBody(warrantData: any, rawContent: string, i
             OBJETIVO: REESCREVER e CORRIGIR o Relatório de Investigação abaixo com base nas estritas ordens do Delegado (Usuário).
 
             ==================== DADOS DO CASO ====================
-            ${rawContent}
+            ${rawContent || "Sem dados de diligência fornecidos."}
             =======================================================
 
             ORDEM PRIORITÁRIA DO DELEGADO (USUÁRIO):
@@ -137,13 +139,22 @@ export async function generateReportBody(warrantData: any, rawContent: string, i
             Apenas o novo texto do corpo do relatório.
         `;
 
+        console.log("DEBUG GEMINI: Prompt Sent:", prompt.substring(0, 100) + "...");
+
         const result = await model.generateContent(prompt);
         const response = await result.response;
-        return response.text().trim().replace(/^(Corpo do Relatório|Texto|Resposta):/i, '');
+        const text = response.text();
+
+        console.log("DEBUG GEMINI: Raw Response received:", text ? text.substring(0, 50) + "..." : "EMPTY");
+
+        if (!text) return "Erro: A IA retornou uma resposta vazia.";
+
+        // Simple cleanup, avoiding aggressive regex
+        return text.trim();
+
     } catch (error: any) {
-        console.error("Erro ao gerar corpo do relatório:", error);
-        // Throwing error to be caught by the caller for UI display
-        throw new Error(error.message || "Erro desconhecido na IA");
+        console.error("DEBUG GEMINI: Fatal Error in generateReportBody:", error);
+        return `Erro ao processar: ${error.message}`;
     }
 }
 
