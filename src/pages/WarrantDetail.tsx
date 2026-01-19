@@ -169,12 +169,12 @@ const WarrantDetail = ({ warrants, onUpdate, onDelete, routeWarrants = [], onRou
         `.replace(/^\s+/gm, '').trim();
     };
 
-    const handleResetReportData = () => {
+    const handleResetReportData = async () => {
         if (!data) return;
         const currentData = { ...data, ...localData } as Warrant & Partial<Warrant>;
         const context = buildComprehensiveReportContext(currentData);
 
-        const defaultBody = `RELATÓRIO DE INVESTIGAÇÃO\n\n${context}\n\nCONCLUSÃO:\n[Aguardando análise da autoridade policial...]`;
+        const defaultBody = `RELATÓRIO DE INVESTIGAÇÃO\n\n${context}\n\nCONCLUSÃO:\n[Aguardando análise...]`;
 
         setCapturasData(prev => ({
             ...prev,
@@ -182,7 +182,28 @@ const WarrantDetail = ({ warrants, onUpdate, onDelete, routeWarrants = [], onRou
             reportNumber: currentData.fulfillmentReport || prev.reportNumber || `001/DIG/${new Date().getFullYear()}`,
             court: prev.court || 'Vara Criminal de Jacareí/SP'
         }));
-        toast.info("Dados completos carregados no rascunho de IA.");
+
+        // Auto-run AI to apply templates immediately
+        setIsGeneratingAiReport(true);
+        const toastId = toast.loading("🤖 Aplicando modelo de Escrivão de Elite...");
+
+        try {
+            const rawContent = `${context}\n\nRASCUNHO INICIAL:\n${defaultBody}`;
+
+            const result = await generateReportBody(currentData, rawContent, 'Aplicar estritamente o manual de modelos.');
+
+            if (result && !result.startsWith("Erro")) {
+                setCapturasData(prev => ({ ...prev, body: result }));
+                toast.success("Relatório gerado com sucesso!", { id: toastId });
+            } else {
+                toast.error("IA falhou, mantendo rascunho.", { id: toastId });
+            }
+        } catch (e: any) {
+            console.error(e);
+            toast.error("Erro na geração automática.", { id: toastId });
+        } finally {
+            setIsGeneratingAiReport(false);
+        }
     };
 
     const handleRefreshAiReport = async () => {
@@ -1286,8 +1307,8 @@ Equipe de Capturas - DIG / PCSP
                 const uploadedPath = await uploadFile(pdfFile, path);
                 if (uploadedPath) {
                     const url = getPublicUrl(uploadedPath);
-                    const currentAttachments = data.attachments || [];
-                    await onUpdate(data.id, { attachments: [...currentAttachments, url] });
+                    const currentReports = data.reports || [];
+                    await onUpdate(data.id, { reports: [...currentReports, url] });
                     toast.success("Relatório salvo no banco!", { id: toastId });
                 }
             } catch (err) {
