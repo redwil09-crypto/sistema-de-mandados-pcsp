@@ -51,56 +51,92 @@ export const isGeminiEnabled = async () => {
     return !!key;
 };
 
-const genAI = async () => {
-    const key = await getGeminiKey();
-    if (!key) throw new Error("API Key do Gemini não encontrada. Configure-a no seu Perfil.");
-    return new GoogleGenerativeAI(key);
+const generateContentViaFetch = async (model: string, prompt: string, key: string) => {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
+
+    const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            contents: [{
+                parts: [{ text: prompt }]
+            }],
+            safetySettings: [
+                { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
+                { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
+                { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" },
+                { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" }
+            ]
+        })
+    });
+
+    if (!response.ok) {
+        let errorBody = await response.text();
+        try {
+            const jsonError = JSON.parse(errorBody);
+            if (jsonError.error) {
+                errorBody = `${jsonError.error.status || response.status} - ${jsonError.error.message}`;
+            }
+        } catch (e) {
+            // Raw text
+        }
+        throw new Error(errorBody);
+    }
+
+    const data = await response.json();
+    if (data.candidates && data.candidates.length > 0 && data.candidates[0].content) {
+        return data.candidates[0].content.parts[0].text;
+    }
+
+    throw new Error("Resposta da IA vazia ou inválida.");
 };
 
 // Helper to attempt generation with fallback models
 async function tryGenerateContent(prompt: string, options: any = {}): Promise<string> {
-    const genAIInstance = await genAI();
+    const key = await getGeminiKey();
+    if (!key) throw new Error("Chave API não encontrada. Configure no Perfil.");
+
     const errors: string[] = [];
 
-    for (const modelName of MODELS_TO_TRY) {
+    // Priorize 1.5 Flash -> 1.5 Pro -> Pro 1.0
+    const strategies = [
+        "gemini-1.5-flash",
+        "gemini-1.5-pro",
+        "gemini-pro"
+    ];
+
+    for (const modelName of strategies) {
         try {
-            console.log(`DEBUG GEMINI: Tentando modelo ${modelName}...`);
-            const model = genAIInstance.getGenerativeModel({
-                model: modelName,
-                safetySettings: [
-                    { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_NONE },
-                    { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_NONE },
-                    { category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold: HarmBlockThreshold.BLOCK_NONE },
-                    { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_NONE },
-                ],
-                ...options
-            });
-
-            const result = await model.generateContent(prompt);
-            const response = await result.response;
-            const text = response.text();
+            console.log(`DEBUG GEMINI: Tentando via FETCH com ${modelName}...`);
+            const text = await generateContentViaFetch(modelName, prompt, key);
             if (text) return text;
-
         } catch (error: any) {
             const msg = `[${modelName}]: ${error.message}`;
             console.warn(`DEBUG GEMINI: ${msg}`);
             errors.push(msg);
 
-            // Critical auth errors - stop trying
-            if (
-                error.message.includes("403") ||
-                error.message.includes("API key") ||
-                error.message.includes("expired") ||
-                error.message.includes("INVALID_ARGUMENT")
-            ) {
-                throw new Error("Sua Chave de API expirou ou é inválida. Por favor, gere uma nova chave no Google AI Studio e atualize no seu Perfil.");
+            // Se for erro de chave/permissão, não adianta tentar outros
+            if (error.message.includes("API_KEY_INVALID") || error.message.includes("403") || error.message.includes("400")) {
+                throw new Error("Sua chave API é inválida ou expirou. Verifique no Google AI Studio.");
             }
         }
     }
 
-    // If we got here, all models failed
-    console.error("DEBUG GEMINI: Todos os modelos falharam.", errors);
-    throw new Error(`Falha em todos os modelos. Detalhes: ${errors.map(e => e.split(':')[0] + ' ' + (e.includes('404') ? '(404)' : '(Erro)')).join(', ')}`);
+    // Fallback: Tenta via SDK se o fetch falhar (improvável, mas segurança)
+    try {
+        console.log("DEBUG GEMINI: Tentando via SDK fallback...");
+        const genAI = new GoogleGenerativeAI(key);
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        const result = await model.generateContent(prompt);
+        return result.response.text();
+    } catch (sdkError: any) {
+        errors.push(`[SDK]: ${sdkError.message}`);
+    }
+
+    console.error("DEBUG GEMINI: Todas as tentativas falharam.", errors);
+    throw new Error(`Falha na IA. Detalhes: ${errors.join(" | ")}`);
 }
 
 export async function analyzeRawDiligence(warrantData: any, rawInfo: string) {
