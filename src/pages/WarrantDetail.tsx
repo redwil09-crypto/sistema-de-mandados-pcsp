@@ -139,7 +139,16 @@ const WarrantDetail = ({ warrants, onUpdate, onDelete, routeWarrants = [], onRou
     }, [isCapturasModalOpen, data]);
 
     const handleRefreshAiReport = async () => {
-        if (!data) return;
+        if (!data) {
+            console.error("DEBUG UI: Data is null");
+            return;
+        }
+
+        console.log("DEBUG UI: Starting AI Report Refresh", {
+            instructions: capturasData.aiInstructions,
+            hasDiligence: !!data.diligentHistory,
+            historyLength: data.diligentHistory?.length
+        });
 
         setIsGeneratingAiReport(true);
         const toastId = toast.loading("IA formatando relatório profissional...");
@@ -149,21 +158,26 @@ const WarrantDetail = ({ warrants, onUpdate, onDelete, routeWarrants = [], onRou
             const observationText = data.observation || '';
             const rawContent = `DILIGÊNCIAS:\n${timelineText}\n\nOBSERVAÇÕES:\n${observationText}`.trim();
 
+            console.log("DEBUG UI: Sending content to Gemini:", rawContent);
+
             const formattedBody = await generateReportBody(
                 { ...data, court: capturasData.court },
                 rawContent,
                 capturasData.aiInstructions
             );
 
+            console.log("DEBUG UI: Gemini Response:", formattedBody);
+
             if (formattedBody) {
                 setCapturasData(prev => ({ ...prev, body: formattedBody }));
                 toast.success("Relatório formatado pela IA!", { id: toastId });
             } else {
+                console.warn("DEBUG UI: Gemini returned empty body");
                 toast.error("IA não conseguiu processar. Tente novamente.", { id: toastId });
             }
-        } catch (err) {
-            console.error("Erro IA:", err);
-            toast.error("Erro ao conectar com a IA.", { id: toastId });
+        } catch (err: any) {
+            console.error("DEBUG UI: Error in handleRefreshAiReport:", err);
+            toast.error(`Erro na IA: ${err.message || 'Erro desconhecido'}`, { id: toastId });
         } finally {
             setIsGeneratingAiReport(false);
         }
