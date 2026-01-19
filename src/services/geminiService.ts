@@ -87,8 +87,13 @@ async function tryGenerateContent(prompt: string, options: any = {}): Promise<st
             errors.push(msg);
 
             // Critical auth errors - stop trying
-            if (error.message.includes("403") && (error.message.includes("API key") || error.message.includes("invalid"))) {
-                throw new Error("Chave de API Inválida (403). Verifique suas configurações.");
+            if (
+                error.message.includes("403") ||
+                error.message.includes("API key") ||
+                error.message.includes("expired") ||
+                error.message.includes("INVALID_ARGUMENT")
+            ) {
+                throw new Error("Sua Chave de API expirou ou é inválida. Por favor, gere uma nova chave no Google AI Studio e atualize no seu Perfil.");
             }
         }
     }
