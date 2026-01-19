@@ -1781,10 +1781,10 @@ Equipe de Capturas - DIG / PCSP
                                 </label>
                             </div>
                             <button
-                                onClick={handleOpenCapturasModal}
-                                className="px-3 py-2 bg-primary text-white text-[10px] font-black uppercase rounded-lg hover:opacity-90 transition-all flex items-center gap-1 shadow-lg shadow-primary/20 active:scale-95"
+                                onClick={() => setIsCapturasModalOpen(!isCapturasModalOpen)}
+                                className={`px-3 py-2 text-[10px] font-black uppercase rounded-lg transition-all flex items-center gap-1 shadow-lg active:scale-95 ${isCapturasModalOpen ? 'bg-indigo-100 text-indigo-700' : 'bg-primary text-white shadow-primary/20'}`}
                             >
-                                <Sparkles size={14} /> GERAR
+                                <Sparkles size={14} /> {isCapturasModalOpen ? 'OCULTAR GERADOR' : 'NOVO RELATÓRIO'}
                             </button>
                         </div>
                     </div>
@@ -1827,6 +1827,124 @@ Equipe de Capturas - DIG / PCSP
                                     <p className="text-[10px] uppercase font-black tracking-widest">Nenhum relatório de inteligência</p>
                                 </div>
                             )
+                        )}
+
+                        {/* Inline Report Generator */}
+                        {isCapturasModalOpen && (
+                            <div className="mt-6 border-t border-border-light dark:border-border-dark pt-6 animate-in slide-in-from-top-4 duration-300">
+                                <div className="space-y-4">
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <div className="p-2 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg">
+                                            <FileText size={20} className="text-indigo-600 dark:text-indigo-400" />
+                                        </div>
+                                        <h4 className="text-base font-bold text-text-light dark:text-text-dark">Gerador de Relatório Profissional</h4>
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark uppercase mb-1">Número do Relatório</label>
+                                            <input
+                                                type="text"
+                                                value={capturasData.reportNumber}
+                                                onChange={e => setCapturasData({ ...capturasData, reportNumber: e.target.value })}
+                                                className="w-full bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg p-3 text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none text-xs"
+                                                placeholder="Ex: 001/2026"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark uppercase mb-1">Juízo de Direito</label>
+                                            <input
+                                                type="text"
+                                                value={capturasData.court}
+                                                onChange={e => setCapturasData({ ...capturasData, court: e.target.value })}
+                                                className="w-full bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg p-3 text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none text-xs"
+                                                placeholder="Vara Criminal..."
+                                            />
+                                        </div>
+                                    </div>
+
+                                    {/* AI PRO SECTION */}
+                                    <div className="bg-indigo-50 dark:bg-indigo-900/10 p-4 rounded-xl border border-indigo-100 dark:border-indigo-500/20 space-y-3">
+                                        <div className="flex items-center gap-2 mb-1">
+                                            <Sparkles size={16} className="text-indigo-600" />
+                                            <label className="block text-xs font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest">
+                                                IA PRO - ASSISTENTE DE REDAÇÃO
+                                            </label>
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <input
+                                                type="text"
+                                                placeholder="Ex: 'Faça o texto mais formal', 'Mencione que o alvo fugiu', 'Resuma em 2 parágrafos'..."
+                                                value={capturasData.aiInstructions}
+                                                onChange={e => setCapturasData({ ...capturasData, aiInstructions: e.target.value })}
+                                                className="w-full bg-white dark:bg-black/20 border border-indigo-200 dark:border-indigo-500/30 rounded-lg p-3 text-xs text-text-light dark:text-text-dark outline-none focus:ring-2 focus:ring-indigo-500 transition-all placeholder:text-gray-400"
+                                            />
+
+                                            <button
+                                                onClick={handleRefreshAiReport}
+                                                disabled={isGeneratingAiReport}
+                                                className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-bold text-xs uppercase tracking-wide shadow-md shadow-indigo-500/20 active:scale-95 transition-all disabled:opacity-70 flex items-center justify-center gap-2"
+                                            >
+                                                {isGeneratingAiReport ? (
+                                                    <>
+                                                        <RefreshCw size={14} className="animate-spin" />
+                                                        PROCESSANDO INTELIGÊNCIA...
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <Sparkles size={14} />
+                                                        GERAR / REESCREVER TEXTO COM IA
+                                                    </>
+                                                )}
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark uppercase mb-1">Corpo do Relatório</label>
+                                        <textarea
+                                            value={capturasData.body}
+                                            onChange={e => setCapturasData({ ...capturasData, body: e.target.value })}
+                                            rows={12}
+                                            className="w-full bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg p-3 text-sm text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none resize-none leading-relaxed font-serif"
+                                            placeholder="O texto do relatório aparecerá aqui..."
+                                        />
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark uppercase mb-1">Policial Responsável</label>
+                                            <input
+                                                type="text"
+                                                value={capturasData.signer}
+                                                onChange={e => setCapturasData({ ...capturasData, signer: e.target.value })}
+                                                className="w-full bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg p-3 text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none text-xs"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark uppercase mb-1">Delegado Titular</label>
+                                            <input
+                                                type="text"
+                                                value={capturasData.delegate}
+                                                onChange={e => setCapturasData({ ...capturasData, delegate: e.target.value })}
+                                                className="w-full bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg p-3 text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none text-xs"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="pt-2">
+                                        <button
+                                            onClick={handleGenerateCapturasPDF}
+                                            disabled={isGeneratingAiReport}
+                                            className="w-full py-3 px-4 rounded-xl font-bold bg-green-600 text-white shadow-lg hover:bg-green-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                                        >
+                                            <FileCheck size={20} />
+                                            GERAR PDF OFICIAL E ANEXAR
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
                         )}
                     </div>
                 </div>
@@ -2172,134 +2290,7 @@ Equipe de Capturas - DIG / PCSP
                 )
             }
 
-            {
-                isCapturasModalOpen && (
-                    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                        <div className="bg-surface-light dark:bg-surface-dark rounded-xl w-full max-w-2xl shadow-2xl border border-border-light dark:border-border-dark animate-in fade-in zoom-in duration-200">
-                            <div className="p-6">
-                                <h3 className="text-xl font-bold text-text-light dark:text-text-dark mb-4 flex items-center gap-2">
-                                    <FileText size={24} className="text-primary" />
-                                    Gerar Relatório
-                                </h3>
 
-                                <div className="space-y-4">
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="block text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark uppercase mb-1">Número do Relatório</label>
-                                            <input
-                                                type="text"
-                                                value={capturasData.reportNumber}
-                                                onChange={e => setCapturasData({ ...capturasData, reportNumber: e.target.value })}
-                                                className="w-full bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg p-3 text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark uppercase mb-1">Juízo de Direito</label>
-                                            <input
-                                                type="text"
-                                                value={capturasData.court}
-                                                onChange={e => setCapturasData({ ...capturasData, court: e.target.value })}
-                                                className="w-full bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg p-3 text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none"
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <div className="bg-indigo-50 dark:bg-indigo-900/10 p-4 rounded-xl border border-indigo-100 dark:border-indigo-500/20 space-y-3">
-                                        <div className="flex items-center gap-2 mb-1">
-                                            <Sparkles size={16} className="text-indigo-600" />
-                                            <label className="block text-xs font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest">
-                                                IA PRO - ASSISTENTE DE REDAÇÃO
-                                            </label>
-                                        </div>
-
-                                        <div className="space-y-2">
-                                            <input
-                                                type="text"
-                                                placeholder="Ex: 'Faça o texto mais formal', 'Mencione que o alvo fugiu', 'Resuma em 2 parágrafos'..."
-                                                value={capturasData.aiInstructions}
-                                                onChange={e => setCapturasData({ ...capturasData, aiInstructions: e.target.value })}
-                                                className="w-full bg-white dark:bg-black/20 border border-indigo-200 dark:border-indigo-500/30 rounded-lg p-3 text-xs text-text-light dark:text-text-dark outline-none focus:ring-2 focus:ring-indigo-500 transition-all placeholder:text-gray-400"
-                                            />
-
-                                            <button
-                                                onClick={handleRefreshAiReport}
-                                                disabled={isGeneratingAiReport}
-                                                className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-bold text-xs uppercase tracking-wide shadow-md shadow-indigo-500/20 active:scale-95 transition-all disabled:opacity-70 flex items-center justify-center gap-2"
-                                            >
-                                                {isGeneratingAiReport ? (
-                                                    <>
-                                                        <RefreshCw size={14} className="animate-spin" />
-                                                        PROCESSANDO INTELIGÊNCIA...
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <Sparkles size={14} />
-                                                        GERAR / REESCREVER TEXTO COM IA
-                                                    </>
-                                                )}
-                                            </button>
-                                        </div>
-                                        <p className="text-[10px] text-indigo-600/60 dark:text-indigo-400/60 text-center">
-                                            A IA usará o histórico de diligências e suas instruções para escrever o relatório abaixo.
-                                        </p>
-                                    </div>
-
-                                    <div>
-                                        <label className="block text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark uppercase mb-1">Corpo do Relatório</label>
-                                        <textarea
-                                            value={capturasData.body}
-                                            onChange={e => setCapturasData({ ...capturasData, body: e.target.value })}
-                                            rows={10}
-                                            className="w-full bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg p-3 text-sm text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none resize-none leading-relaxed font-serif"
-                                        />
-                                    </div>
-
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="block text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark uppercase mb-1">Policial Responsável</label>
-                                            <input
-                                                type="text"
-                                                value={capturasData.signer}
-                                                onChange={e => setCapturasData({ ...capturasData, signer: e.target.value })}
-                                                className="w-full bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg p-3 text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark uppercase mb-1">Delegado Titular</label>
-                                            <input
-                                                type="text"
-                                                value={capturasData.delegate}
-                                                onChange={e => setCapturasData({ ...capturasData, delegate: e.target.value })}
-                                                className="w-full bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg p-3 text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none"
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="flex gap-3 mt-8">
-                                    <button
-                                        onClick={() => {
-                                            setIsCapturasModalOpen(false);
-                                            setCapturasData(prev => ({ ...prev, body: '', aiInstructions: '' }));
-                                        }}
-                                        className="flex-1 py-3 px-4 rounded-xl font-bold bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:opacity-90 transition-opacity"
-                                    >
-                                        Cancelar
-                                    </button>
-                                    <button
-                                        onClick={handleGenerateCapturasPDF}
-                                        disabled={isGeneratingAiReport}
-                                        className="flex-[2] py-3 px-4 rounded-xl font-bold bg-indigo-600 text-white shadow-lg hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
-                                    >
-                                        <FileCheck size={20} />
-                                        GERAR PDF PROFISSIONAL
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                )
-            }
         </div>
     );
 };
