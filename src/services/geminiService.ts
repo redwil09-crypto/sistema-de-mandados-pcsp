@@ -24,8 +24,16 @@ const fetchGlobalKey = async () => {
 };
 
 const getGeminiKey = async () => {
-    // FORCE HARDCODED KEY to avoid invalid keys in localStorage/Env
-    return "AIzaSyAy4egv1X54dvbM7wtWI9xvAkHPTpa8NOM";
+    // 1. Try Local Storage (User Profile)
+    const localKey = localStorage.getItem('gemini_api_key');
+    if (localKey && localKey.length > 20) return localKey;
+
+    // 2. Try Supabase Global Settings
+    const globalKey = await fetchGlobalKey();
+    if (globalKey) return globalKey;
+
+    // 3. Try Environment Variable
+    return import.meta.env.VITE_GEMINI_API_KEY || "";
 };
 
 export const isGeminiEnabled = async () => {
@@ -33,11 +41,8 @@ export const isGeminiEnabled = async () => {
 };
 
 const genAI = async () => {
-    let key = await getGeminiKey();
-
-    // Garantia final
-    if (!key) key = "AIzaSyAy4egv1X54dvbM7wtWI9xvAkHPTpa8NOM";
-
+    const key = await getGeminiKey();
+    if (!key) throw new Error("API Key do Gemini não encontrada. Configure-a no seu Perfil.");
     return new GoogleGenerativeAI(key);
 };
 
