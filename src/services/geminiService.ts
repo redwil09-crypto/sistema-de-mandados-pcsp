@@ -42,8 +42,25 @@ export const isGeminiEnabled = async () => {
 };
 
 const genAI = async () => {
-    const key = await getGeminiKey();
-    if (!key) throw new Error("Chave API do Gemini não configurada.");
+    // Check if GoogleGenerativeAI is actually loaded
+    if (typeof GoogleGenerativeAI === 'undefined') {
+        throw new Error("Biblioteca do Google Gemini não carregada corretamente. Tente recarregar a página.");
+    }
+
+    let key = await getGeminiKey();
+
+    // FALLBACK DE SEGURANÇA: Se não achou chave, tenta usar a variável de ambiente diretamente
+    if (!key) {
+        console.warn("Chave não encontrada no storage/banco. Tentando fallback .env...");
+        key = import.meta.env.VITE_GEMINI_API_KEY;
+    }
+
+    if (!key) {
+        // Log para ajudar o usuário a debugar (não expor em prod, mas aqui é essencial)
+        console.error("DEBUG: Nenhuma chave API encontrada. Verifique .env ou Configurações.");
+        throw new Error("Chave API do Gemini não configurada. Vá em configurações e adicione.");
+    }
+
     return new GoogleGenerativeAI(key);
 };
 
