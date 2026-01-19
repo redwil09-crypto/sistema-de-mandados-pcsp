@@ -3,7 +3,14 @@ import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from "@google/ge
 import { supabase } from "../supabaseClient";
 
 let cachedGlobalKey: string | null = null;
-const MODELS_TO_TRY = ["gemini-1.5-flash", "gemini-1.5-pro", "gemini-1.5-flash-001", "gemini-pro"];
+const MODELS_TO_TRY = [
+    "gemini-1.5-flash",
+    "gemini-1.5-pro",
+    "gemini-1.5-flash-latest",
+    "gemini-1.5-pro-latest",
+    "gemini-pro",
+    "gemini-2.0-flash-exp"
+];
 
 const fetchGlobalKey = async () => {
     if (cachedGlobalKey) return cachedGlobalKey;
@@ -75,10 +82,9 @@ async function tryGenerateContent(prompt: string, options: any = {}): Promise<st
         } catch (error: any) {
             console.warn(`DEBUG GEMINI: Falha com ${modelName}:`, error.message);
             lastError = error;
-            // If it's a safety block, maybe trying another model helps, or maybe not. 
-            // If it's 404 or 429, definitely try next.
-            if (error.message.includes("403") || error.message.includes("API key")) {
-                // If key is invalid, no point trying other models
+            // If it's 404, 500, or 429, continue to next model.
+            // If it's 403 (Invalid Key), we stop because it's probably the key.
+            if (error.message.includes("403") && (error.message.includes("API key") || error.message.includes("invalid"))) {
                 throw error;
             }
         }
@@ -124,29 +130,40 @@ export async function generateReportBody(warrantData: any, rawContent: string, i
     }
 
     const prompt = `
-        # PAPEL: Escrivão de Polícia Elite da DIG de Jacareí/SP (Polícia Civil de São Paulo).
-        # MISSÃO: Redigir um Relatório de Investigação Policial impecável, formal e detalhado.
+        # PAPEL: Escrivão de Polícia de Elite da DIG de Jacareí/SP (Polícia Civil de São Paulo).
+        # MISSÃO: Redigir um Relatório de Investigação Policial impecável, formal, técnico e detalhado.
+        
+        # EXEMPLO DE ESTILO ESPERADO (FEW-SHOT):
+        "RELATÓRIO DE INVESTIGAÇÃO POLICIAL
+        
+        Cumpre informar que, em atenção à Ordem de Serviço da Autoridade Policial, esta equipe de capturas da DIG de Jacareí/SP realizou diligências táticas visando a localização do alvo [NOME] (RG [RG]).
+        
+        Diligenciamos inicialmente no endereço cadastrado [ENDEREÇO], onde realizamos vigilância discreta. Durante o período, observamos a movimentação compatível com informes de inteligência anteriores.
+        
+        Em ato contínuo, logramos êxito em identificar o alvo no momento em que este deixava a residência. Procedemos com a abordagem técnica, garantindo a incolumidade de todos os envolvidos. Após a confirmação da identidade, foi dada voz de prisão em virtude do mandado nº [NÚMERO] expedido pela Vara Criminal de [VARA].
+        
+        O detento foi conduzido a esta unidade policial para as providências de praxe. Nada mais a declarar."
 
-        # INSUMOS (DADOS REAIS DO CASO):
-        ${rawContent || "Atenção: Nenhum dado de diligência foi fornecido. Informe isso."}
+        # INSUMOS (DADOS REAIS DO CASO ATUAL):
+        ${rawContent || "Atenção: Nenhum dado de diligência foi fornecido. Informe isso no texto."}
 
-        # ORDEM DE COMANDO (DO DELEGADO):
-        "${instructions ? instructions.toUpperCase() : 'ELABORAR RELATÓRIO TÉCNICO PADRÃO.'}"
+        # ORDEM DE COMANDO ADICIONAL (DO DELEGADO):
+        "${instructions ? instructions.toUpperCase() : 'ELABORAR RELATÓRIO TÉCNICO PADRÃO PCSP.'}"
 
         # PROCESSO DE PENSAMENTO (CoT):
         1. Analise cronologicamente todas as diligências fornecidas no histórico.
-        2. Verifique se há contradições ou lacunas.
-        3. Identifique o resultado final (êxito, frustração, parcial).
-        4. Redija o texto conectando os fatos de forma fluida, sem tópicos, usando linguagem jurídica culta (ex: "Em ato contínuo", "Diligenciamos", "Logramos êxito").
+        2. Verifique se há contradições ou lacunas nos dados do alvo.
+        3. Identifique o desfecho (êxito na captura, localização de novo endereço, etc).
+        4. Redija o texto conectando os fatos de forma fluida, em parágrafos narrativos.
+        5. Use linguagem jurídica culta ("Logramos êxito", "Em ato contínuo", "Vigilância velada", "Incolumidade").
 
         # REGRAS ABSOLUTAS:
-        1. USE OS DADOS FORNECIDOS: Não invente fatos. Se o histórico diz que foi no dia 20, foi no dia 20.
-        2. ESTILO: Texto corrido (parágrafos), impessoal, técnico. Evite gírias.
-        3. FORMATAÇÃO: Padrão de ofício da PCSP.
-        4. OBJETIVO: O texto deve estar pronto para assinatura do Delegado.
+        1. FIDELIDADE AOS DADOS: Use apenas as placas, nomes, endereços e datas fornecidos nos insumos.
+        2. FORMALIDADE: Texto impessoal e extremamente profissional.
+        3. SAÍDA: Apenas o corpo do texto do relatório, pronto para uso.
 
         SAÍDA ESPERADA:
-        Apenas o corpo do texto do relatório, formatado e revisado.
+        Texto do relatório formatado conforme o padrão elite da PCSP.
     `;
 
     try {
