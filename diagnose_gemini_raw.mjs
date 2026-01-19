@@ -1,7 +1,7 @@
 
 import https from 'https';
 
-const apiKey = 'AIzaSyDX9hFIUtSzn2qP5T6Es8zqZmzvhntL5rU';
+const apiKey = 'AIzaSyAy4egv1X54dvbM7wtWI9xvAkHPTpa8NOM';
 const url = `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`;
 
 console.log(`Checking models at: ${url}`);
