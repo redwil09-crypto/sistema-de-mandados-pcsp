@@ -1089,7 +1089,7 @@ Equipe de Capturas - DIG / PCSP
 
         setCapturasData(prev => ({
             ...prev,
-            reportNumber: currentData.fulfillmentReport || `001/DIG/${new Date().getFullYear()}`,
+            reportNumber: currentData.fulfillmentReport || `02/CAPT/${new Date().getFullYear()}`,
             court: '1ª Vara da Família e Sucessões de Jacareí/SP',
             body: generateIntelligentReportBody(),
             aiInstructions: ''
@@ -1158,13 +1158,8 @@ Equipe de Capturas - DIG / PCSP
             });
             y += 32;
 
-            y += 5;
-            // Left extra space
-            y += 5;
-            // Divider Line Removed as requested
-            // doc.setLineWidth(0.5);
-            // doc.line(margin, y, pageWidth - margin, y);
-            // y += 10;
+            // Spacing reduced
+            y += 2;
 
             // --- BLACK TITLE BAR ---
             doc.setFillColor(0, 0, 0);
@@ -1172,7 +1167,7 @@ Equipe de Capturas - DIG / PCSP
             doc.setTextColor(255, 255, 255);
             doc.setFont('helvetica', 'bold');
             doc.setFontSize(12);
-            doc.text("RELATÓRIO DE INVESTIGAÇÃO", pageWidth / 2, y + 5, { align: 'center' });
+            doc.text("RELATÓRIO CAPTURAS", pageWidth / 2, y + 5, { align: 'center' });
             doc.setTextColor(0, 0, 0);
             y += 12;
 
