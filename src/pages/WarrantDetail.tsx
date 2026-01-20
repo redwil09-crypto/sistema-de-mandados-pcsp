@@ -1777,31 +1777,47 @@ Equipe de Capturas - DIG / PCSP
                     </div>
                     <div className="p-4">
                         {data.reports && data.reports.length > 0 ? (
-                            <div className="grid grid-cols-1 gap-2">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 {data.reports.map((file: string, idx: number) => (
-                                    <div key={idx} className="flex items-center justify-between p-3.5 bg-gray-50 dark:bg-white/5 rounded-xl border border-transparent hover:border-primary/30 transition-all shadow-sm group">
-                                        <div className="flex flex-col min-w-0">
-                                            <span className="text-[10px] font-black text-primary uppercase tracking-wider mb-0.5">Relatório Especial #{idx + 1}</span>
-                                            <span className="text-xs text-text-light dark:text-text-dark truncate opacity-70 font-medium">
-                                                {file.split('/').pop()?.replace(/^\d+_/, '') || 'Relatório de Inteligência'}
-                                            </span>
+                                    <div key={idx} className="flex flex-col justify-between p-4 bg-white dark:bg-white/5 rounded-xl border border-border-light dark:border-border-dark hover:border-primary/50 transition-all shadow-sm group relative overflow-hidden">
+
+                                        {/* Decorator */}
+                                        <div className="absolute top-0 right-0 p-2 opacity-5 group-hover:opacity-10 transition-opacity">
+                                            <FileText size={48} />
                                         </div>
-                                        <div className="flex items-center gap-1">
+
+                                        <div className="flex items-start gap-3 mb-3">
+                                            <div className="p-2.5 bg-indigo-50 dark:bg-indigo-500/10 rounded-lg text-indigo-600 dark:text-indigo-400 shrink-0">
+                                                <FileText size={20} />
+                                            </div>
+                                            <div className="min-w-0">
+                                                <p className="text-[10px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-wider mb-0.5">
+                                                    Relatório #{idx + 1}
+                                                </p>
+                                                <p className="text-xs font-bold text-text-light dark:text-text-dark truncate leading-tight" title={file.split('/').pop()}>
+                                                    {file.split('/').pop()?.replace(/^\d+_/, '') || 'Documento sem nome'}
+                                                </p>
+                                                <p className="text-[10px] text-text-secondary-light mt-0.5">
+                                                    PDF • Gerado pela IA
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex items-center gap-2 mt-auto">
                                             <a
                                                 href={getPublicUrl(file)}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                className="p-2.5 text-primary hover:bg-primary/10 rounded-lg transition-colors"
-                                                title="Visualizar"
+                                                className="flex-1 py-2 px-3 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-500/10 dark:hover:bg-indigo-500/20 text-indigo-700 dark:text-indigo-300 rounded-lg text-xs font-bold transition-colors flex items-center justify-center gap-2"
                                             >
-                                                <ExternalLink size={20} />
+                                                <ExternalLink size={14} /> ABRIR
                                             </a>
                                             <button
                                                 onClick={() => handleDeleteAttachment(file)}
-                                                className="p-2.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-lg transition-colors"
+                                                className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-lg transition-colors"
                                                 title="Excluir"
                                             >
-                                                <Trash2 size={20} />
+                                                <Trash2 size={16} />
                                             </button>
                                         </div>
                                     </div>
