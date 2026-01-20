@@ -1207,30 +1207,42 @@ Equipe de Capturas - DIG / PCSP
             });
 
             // Addressee
-            const addressee = "Exmo. Sr. Dr. Delegado de Polícia Titular da DIG/Jacareí-SP";
+            // Addressee - Separated with more space
+            y += 10;
+            const addressee = "Excelentíssimo Sr. Delegado de Polícia:";
+            doc.setFont('helvetica', 'bold'); // Make it bold as per standard
             doc.text(addressee, margin, y);
-            y += 15;
-
+            y += 12;
 
             // --- BODY TEXT ---
             doc.setFont('times', 'normal');
             doc.setFontSize(12);
 
-            // Process text for justification (simple logic)
-            const paragraphs = capturasData.body.split('\n');
+            // Clean markdown asterisks and process text
+            const cleanBody = capturasData.body.replace(/\*\*/g, '');
+            const paragraphs = cleanBody.split('\n');
 
             paragraphs.forEach(para => {
-                if (!para.trim()) {
-                    y += 5;
+                const trimmedPara = para.trim();
+
+                // Ignore empty lines effectively, just add small padding
+                if (!trimmedPara) {
+                    y += 4; // Consistent small gap for empty lines
                     return;
                 }
 
                 // Indent first line of paragraph
                 const indent = "      ";
-                const lines = doc.splitTextToSize(indent + para.trim(), contentWidth);
+                const textToDraw = indent + trimmedPara;
+
+                // Calculate lines
+                const lines = doc.splitTextToSize(textToDraw, contentWidth);
+                const lineHeight = 6; // Fixed line height
 
                 doc.text(lines, margin, y, { align: 'justify', maxWidth: contentWidth });
-                y += (lines.length * 6); // Line spacing
+
+                // Consistent spacing: (number of lines * line height) + zero extra padding (or minimal)
+                y += (lines.length * lineHeight);
 
                 // Page break handling
                 if (y > pageHeight - 50) {
