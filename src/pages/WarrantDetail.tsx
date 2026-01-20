@@ -1104,224 +1104,180 @@ Equipe de Capturas - DIG / PCSP
             const doc = new jsPDF();
             const pageWidth = doc.internal.pageSize.getWidth();
             const pageHeight = doc.internal.pageSize.getHeight();
-            const margin = 20;
+            const margin = 20; // A4 standard-ish
             const contentWidth = pageWidth - (margin * 2);
-            let y = 15;
+            let y = 20;
 
-            // --- HEADER ---
+            // --- HEADER (Oficial Padrão) ---
             try {
                 const badgePC = new Image();
-                badgePC.src = './brasao_pcsp_nova.png';
+                badgePC.src = './brasao_pcsp.png'; // Tenta usar o brasão padrão primeiro
 
+                // Fallback logic
                 await new Promise((resolve) => {
                     badgePC.onload = () => resolve(true);
                     badgePC.onerror = () => {
-                        badgePC.src = './brasao_pcsp_colorido.png';
+                        badgePC.src = './brasao_pcsp_nova.png';
                         badgePC.onload = () => resolve(true);
-                        badgePC.onerror = () => resolve(false);
+                        badgePC.onerror = () => {
+                            badgePC.src = './brasao_pcsp_colorido.png'; // Last resort
+                            badgePC.onload = () => resolve(true);
+                            badgePC.onerror = () => resolve(false);
+                        }
                     };
                 });
 
+                // Centralized Header Image
                 const imgProps = doc.getImageProperties(badgePC);
-                const badgeH = 25;
+                const badgeH = 22;
                 const badgeW = (imgProps.width * badgeH) / imgProps.height;
+                const badgeX = (pageWidth - badgeW) / 2;
 
-                doc.addImage(badgePC, 'PNG', margin, y, badgeW, badgeH);
-
-                doc.setFont('helvetica', 'bold');
-                doc.setFontSize(9);
-                const textX = margin + badgeW + 5;
-                const headerLines = [
-                    "SECRETARIA DA SEGURANÇA PÚBLICA",
-                    "POLÍCIA CIVIL DO ESTADO DE SÃO PAULO",
-                    "DEPARTAMENTO DE POLÍCIA JUDICIÁRIA DE SÃO PAULO INTERIOR",
-                    "DEINTER 1 - SÃO JOSÉ DOS CAMPOS",
-                    "DELEGACIA SECCIONAL DE POLÍCIA DE JACAREÍ",
-                    "DELEGACIA DE INVESTIGAÇÕES GERAIS DE JACAREÍ"
-                ];
-
-                headerLines.forEach((line, index) => {
-                    doc.text(line, textX, y + 4 + (index * 4));
-                });
-
-                // Solid line only - removed dashed line calls
-                doc.setLineWidth(0.5);
-                doc.line(margin, y + badgeH + 5, pageWidth - margin, y + badgeH + 5);
-                y += badgeH + 6; // Compressed spacing
+                doc.addImage(badgePC, 'PNG', badgeX, y, badgeW, badgeH);
+                y += badgeH + 5;
 
             } catch (e) {
                 console.error("Badge load error", e);
-                y += 30;
+                y += 20;
             }
 
-            // --- BLACK TITLE BAR ---
-            doc.setFillColor(0, 0, 0);
-            doc.rect(margin, y, contentWidth, 7, 'F');
-            doc.setTextColor(255, 255, 255);
-            doc.setFont('helvetica', 'bold');
-            doc.setFontSize(12);
-            doc.text("RELATÓRIO CAPTURAS", pageWidth / 2, y + 5, { align: 'center' });
-            doc.setTextColor(0, 0, 0); // Reset Color
-            y += 12;
-
-            // --- METADATA ---
+            // Centralized Header Text
+            doc.setFont('times', 'bold');
             doc.setFontSize(11);
+            doc.setTextColor(0, 0, 0);
 
-            // Relatório Link & Date
-            const today = new Date();
-            const months = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
-            const dateStr = `Jacareí, ${today.getDate()} de ${months[today.getMonth()]} de ${today.getFullYear()}.`;
-
-            doc.setFont('helvetica', 'bolditalic');
-            doc.text(`Relatório: nº. ${capturasData.reportNumber}`, margin, y);
-
-            doc.setFont('helvetica', 'italic');
-            doc.text(dateStr, pageWidth - margin, y, { align: 'right' });
-            y += 6;
-
-            const isMinor = data?.type?.toLowerCase().includes('menores') || data?.type?.toLowerCase().includes('adolescente') || data?.type?.toLowerCase().includes('criança');
-
-            const metaFields = [
-                { label: "Natureza:", value: data?.type || "Cumprimento de Mandado" },
-                { label: "Referência:", value: `Processo nº. ${data?.number}` },
-                { label: "Juízo de Direito:", value: capturasData.court },
-                { label: isMinor ? "Adolescente:" : "Réu:", value: data?.name }
+            const headerLines = [
+                "SECRETARIA DA SEGURANÇA PÚBLICA",
+                "POLÍCIA CIVIL DO ESTADO DE SÃO PAULO",
+                "DEINTER 1 - SÃO JOSÉ DOS CAMPOS",
+                "DELEGACIA SECCIONAL DE POLÍCIA DE JACAREÍ",
+                "DELEGACIA DE INVESTIGAÇÕES GERAIS DE JACAREÍ"
             ];
 
-            metaFields.forEach(field => {
-                doc.setFont('helvetica', 'bolditalic');
-                const labelText = field.label + " ";
-                doc.text(labelText, margin, y);
-
-                const labelWidth = doc.getTextWidth(labelText);
-                doc.setFont('helvetica', 'italic');
-                doc.text(field.value, margin + labelWidth, y);
-                y += 6;
+            headerLines.forEach(line => {
+                doc.text(line, pageWidth / 2, y, { align: 'center' });
+                y += 5;
             });
+
+            y += 5;
+            // Divider Line
+            doc.setLineWidth(0.5);
+            doc.line(margin, y, pageWidth - margin, y);
+            y += 10;
+
+            // --- TITLE ---
+            doc.setFontSize(14);
+            doc.setFont('times', 'bold');
+
+            // Adjust title based on type (simpler logic)
+            const isCivil = data.type?.toLowerCase().includes('civil') || data.crime?.toLowerCase().includes('pensão') || data.crime?.toLowerCase().includes('alimentar');
+            const title = isCivil ? "RELATÓRIO DE INVESTIGAÇÃO (CIVIL)" : "RELATÓRIO DE INVESTIGAÇÃO";
+
+            doc.text(title, pageWidth / 2, y, { align: 'center' });
+            y += 10;
+
+            // --- METADATA (Left Aligned, Formal) ---
+            doc.setFontSize(12);
+            doc.setFont('times', 'normal');
+
+            // Right-aligned reference components
+            doc.setFont('times', 'bold');
+            doc.text(`REF: PROCESSO Nº ${data.number}`, pageWidth - margin, y, { align: 'right' });
+            y += 6;
+
+            if (capturasData.reportNumber) {
+                doc.text(`RELATÓRIO Nº ${capturasData.reportNumber}`, pageWidth - margin, y, { align: 'right' });
+                y += 10;
+            } else {
+                y += 4;
+            }
+
+            // Addressee
+            const addressee = "Exmo. Sr. Dr. Delegado de Polícia Titular da DIG/Jacareí-SP";
+            doc.text(addressee, margin, y);
             y += 15;
 
-            // --- ADDRESSEE ---
-            doc.setFont('helvetica', 'bold');
-            doc.setFontSize(11);
-            doc.text("Excelentíssimo Sr. Delegado de Polícia:", margin, y);
-            y += 12;
 
-            // --- BODY (Times for formal look) ---
+            // --- BODY TEXT ---
             doc.setFont('times', 'normal');
-            doc.setFontSize(11);
-            const indent = "      "; // Visual indent
+            doc.setFontSize(12);
 
+            // Process text for justification (simple logic)
             const paragraphs = capturasData.body.split('\n');
+
             paragraphs.forEach(para => {
                 if (!para.trim()) {
-                    y += 4;
+                    y += 5;
                     return;
                 }
-                const splitPara = doc.splitTextToSize(para.trim(), contentWidth - 10);
-                doc.text(splitPara, margin + 10, y, { align: 'justify', maxWidth: contentWidth - 10 });
-                y += (splitPara.length * 5) + 2;
 
-                // Add page break if needed
-                if (y > pageHeight - 60) {
+                // Indent first line of paragraph
+                const indent = "      ";
+                const lines = doc.splitTextToSize(indent + para.trim(), contentWidth);
+
+                doc.text(lines, margin, y, { align: 'justify', maxWidth: contentWidth });
+                y += (lines.length * 6); // Line spacing
+
+                // Page break handling
+                if (y > pageHeight - 50) {
                     doc.addPage();
                     y = 20;
                 }
             });
-            y += 10;
 
-            // --- CLOSING ---
-            doc.setFont('helvetica', 'bold');
-            doc.text("Respeitosamente,", pageWidth / 2, y, { align: 'center' });
-            y += 25;
+            y += 20;
 
-            // --- SIGNER ---
-            // Removed page break check to force single page fit
-
-            doc.setFont('helvetica', 'normal');
-            doc.text(capturasData.signer, pageWidth - margin, y, { align: 'right' });
-            y += 5;
-            doc.setFont('helvetica', 'bolditalic'); // Looks italic/bold in image
-            doc.text("Policial Civil", pageWidth - margin, y, { align: 'right' });
-
-            // --- FOOTER DELEGATE + BOX ---
-            // Calculate Box Y position (fixed at bottom)
-            const boxHeight = 16;
-            const bottomMargin = 15;
-            const boxY = pageHeight - bottomMargin - boxHeight;
-
-            // Delegate block position relative to box
-            const delegateBlockY = boxY - 30; // Closer to box
-
-            // Removed overlapping check to force single page
-
-            // Draw Delegate (Left Bottom)
-            doc.setFontSize(11);
-            let dY = delegateBlockY;
-            doc.setFont('helvetica', 'bolditalic');
-            doc.text("Excelentíssimo Doutor", margin, dY);
-            dY += 5;
-            doc.text(capturasData.delegate, margin, dY);
-            dY += 5;
-            doc.text("Delegado de Polícia Titular", margin, dY);
-            dY += 5;
-            doc.text("Delegacia de Investigações Gerais de Jacareí", margin, dY);
-
-            // --- DASHED BOX FOOTER ---
-            (doc as any).setLineDash([1, 1], 0);
-            doc.setLineWidth(0.1);
-            doc.setDrawColor(100);
-            doc.rect(margin, boxY, contentWidth, boxHeight);
-            (doc as any).setLineDash([], 0); // Reset
-
-            // Footer Text
-            doc.setFont('times', 'normal');
-            doc.setFontSize(8);
-            doc.setTextColor(100, 100, 100);
-
-            const addr1 = "Rua Moisés Ruston, 370, Parque Itamaraty - Jacareí-SP - CEP. 12.307-260";
-            const addr2 = "Telefone: (12) 3951-1000      E-mail: dig.jacarei@policiacivil.sp.gov.br";
-
-            const midX = pageWidth * 0.7; // Divider position matches image (more space for address)
-            const addrCenterX = margin + ((midX - margin) / 2);
-
-            doc.text(addr1, addrCenterX, boxY + 6, { align: 'center' });
-            doc.text(addr2, addrCenterX, boxY + 11, { align: 'center' });
-
-            // Vertical Divider
-            doc.line(midX, boxY + 3, midX, boxY + boxHeight - 3);
-
-            // Right Side
-            const rightCenterX = midX + ((pageWidth - margin - midX) / 2);
-            const dateFooter = `Data (${today.toLocaleDateString('pt-BR')})`;
-            const pageFooter = "Página 1 de 1";
-
-            doc.text(dateFooter, rightCenterX, boxY + 6, { align: 'center' });
-            doc.text(pageFooter, rightCenterX, boxY + 11, { align: 'center' });
-
-            const pdfBlob = doc.output('blob');
-            const pdfFile = new File([pdfBlob], `Relatorio_Capturas_${data.name}.pdf`, { type: 'application/pdf' });
-
-            const toastId = toast.loading("Salvando relatório no banco de dados...");
-            try {
-                const path = `reports/${data.id}/${Date.now()}_${pdfFile.name}`;
-                const uploadedPath = await uploadFile(pdfFile, path);
-                if (uploadedPath) {
-                    const url = getPublicUrl(uploadedPath);
-                    const currentReports = data.reports || [];
-                    await onUpdate(data.id, { reports: [...currentReports, url] });
-                    toast.success("Relatório salvo no banco!", { id: toastId });
-                }
-            } catch (err) {
-                console.error("Erro ao salvar PDF de Capturas:", err);
-                toast.error("Relatório gerado mas não pôde ser salvo no banco.", { id: toastId });
+            // --- SIGNATURE BLOCK (Right aligned or Centered) ---
+            if (y > pageHeight - 60) {
+                doc.addPage();
+                y = 40;
             }
 
-            doc.save(`Relatorio_Capturas_${data.name}.pdf`);
-            setIsCapturasModalOpen(false);
-            toast.success("Relatório de Capturas baixado!");
+            const signerName = capturasData.signer || "Investigador de Polícia";
+
+            // Center signature visually
+            const sigCenter = pageWidth / 2;
+
+            doc.line(sigCenter - 40, y, sigCenter + 40, y); // Line
+            y += 5;
+            doc.setFont('times', 'bold');
+            doc.text(signerName.toUpperCase(), sigCenter, y, { align: 'center' });
+            y += 5;
+            doc.setFont('times', 'normal');
+            doc.text("Policia Civil do Estado de São Paulo", sigCenter, y, { align: 'center' });
+
+
+            // --- FOOTER (Address) ---
+            const footerY = pageHeight - 15;
+            doc.setFontSize(9);
+            doc.setTextColor(100, 100, 100);
+            const addressFoo = "Rua Moisés Ruston, 370, Parque Itamaraty - Jacareí-SP - CEP 12.307-260 - Tel: (12) 3951-1000";
+            doc.text(addressFoo, pageWidth / 2, footerY, { align: 'center' });
+            doc.text(`Emitido em: ${new Date().toLocaleDateString('pt-BR')}`, pageWidth - margin, footerY, { align: 'right' });
+
+
+            // --- SAVE ---
+            const pdfBlob = doc.output('blob');
+            const pdfFile = new File([pdfBlob], `Relatorio_Oficial_${data.name}.pdf`, { type: 'application/pdf' });
+
+            const toastId = toast.loading("Registrando documento oficial...");
+
+            const path = `reports/${data.id}/${Date.now()}_Relatorio_Oficial.pdf`;
+            const uploadedPath = await uploadFile(pdfFile, path);
+
+            if (uploadedPath) {
+                const url = getPublicUrl(uploadedPath);
+                const currentReports = data.reports || [];
+                await onUpdate(data.id, { reports: [...currentReports, url] });
+                toast.success("Documento oficial gerado e anexado.", { id: toastId });
+            }
+
+            doc.save(`Relatorio_Oficial_${data.name}.pdf`);
+            setIsCapturasModalOpen(false); // Close modal on success
+
         } catch (error) {
-            console.error("Erro ao gerar PDF Capturas:", error);
-            toast.error("Erro ao gerar PDF.");
+            console.error("Erro PDF", error);
+            toast.error("Falha ao gerar documento.");
         }
     };
 
