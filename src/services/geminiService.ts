@@ -207,85 +207,57 @@ export async function generateReportBody(warrantData: any, rawContent: string, i
     }
 
     const prompt = `
-        # MANUAL DE REDAÇÃO DE RELATÓRIOS POLICIAIS - PADRÃO ELITE PCSP
-        
-        VOCÊ É UM "COMPLIANCE ENGINE" (MOTOR DE CONFORMIDADE).
-        SUA ÚNICA FUNÇÃO É:
-        1. ANALISAR OS FATOS SEGUINDO O "CHECKLIST LÓGICO".
-        2. NAVEGAR PELO "FLUXOGRAMA DECISÓRIO".
-        3. SELECIONAR E PREENCHER O MODELO DE TEXTO CORRESPONDENTE.
-        
-        ---
-        ## ✅ CHECKLIST LÓGICO (Fluxo Mental Obrigatório)
-        
-        **ETAPA 1 – MANDADO**
-        - Prisão? Se sim, termo: "mandado de prisão".
-        - Busca? Se sim, termo: "busca e apreensão".
-        - Adolescente? Se sim, termo: "ato infracional".
-        
-        **ETAPA 2 – ENDEREÇOS**
-        - Mais de um? Relatar separadamente.
-        - Fora da comarca? Encaminhar relatório.
-        
-        **ETAPA 3 – SITUAÇÃO**
-        - Inexistente? -> Modelo [4.3]
-        - Numeração errada? -> Modelo [4.4]
-        - Vazia? -> Modelo [4.9]
-        - Ocupação irregular? -> Modelo [4.10]
-        
-        **ETAPA 4 – CONTATO**
-        - Ex-morador? -> Modelo [4.5]
-        - Pais? -> Modelo [4.6]
-        - Sogro/Parente? -> Modelo [4.7]
-        - Ninguém? -> Negativa Simples [4.1]
-        
-        **ETAPA 5, 6, 7 e 8 - RESULTADO E HISTÓRICO**
-        - Já foi lá antes? -> Modelo [4.2] ou citar histórico [4.11]
-        
-        ---
-        ## 📘 BANCO DE MODELOS (Copie e Preencha)
+        # MANUAL DE REDAÇÃO DE RELATÓRIOS POLICIAIS (PADRÃO ELITE PCSP)
 
-        [4.1] NEGATIVA SIMPLES:
-        "Pelo presente, informo a Vossa Excelência que diligenciamos no endereço de [NOME DO RÉU] em [DATA], conforme Relatório de Serviço nº [NÚMERO], não sendo o réu localizado, conforme exposto no referido relatório, não havendo outras diligências a serem realizadas nesta comarca."
-
-        [4.2] REITERAÇÃO NEGATIVA:
-        "Pelo presente, informo a Vossa Excelência que, na data de [DATA], diligenciamos novamente no endereço do réu [NOME DO RÉU], situado na [ENDEREÇO], não sendo possível localizá-lo, inexistindo informações atualizadas acerca de seu paradeiro."
-
-        [4.3] ENDEREÇO INEXISTENTE:
-        "Em cumprimento ao mandado de prisão expedido em desfavor de [NOME DO RÉU], diligenciamos no endereço indicado nos autos: [ENDEREÇO]. No local, constatou-se que o endereço/numeral não existe, inexistindo correspondência física com o local informado no mandado."
-
-        [4.5] ANTIGO MORADOR:
-        "No endereço diligenciado, foi realizado contato com [NOME TESTEMUNHA], que informou que o réu [NOME DO RÉU] foi antigo morador do local, tendo se mudado há [TEMPO], desconhecendo seu atual paradeiro e não possuindo contato."
-
-        [4.6] CONTATO COM PAIS:
-        "No local, foi realizado contato com [NOME PAIS], genitor(a) do réu, o qual informou não ter notícias do filho há [TEMPO] e desconhecer seu paradeiro atual."
-
-        [4.8] MÚLTIPLOS ENDEREÇOS NEGATIVOS:
-        "Foram realizadas diligências nos endereços constantes no mandado de prisão, sendo [LISTA DE ENDEREÇOS], não sendo o réu localizado em nenhum deles, inexistindo informações que possibilitem sua localização nesta comarca."
-
-        [4.9] RESIDÊNCIA VAZIA:
-        "Ao diligenciarmos no endereço indicado, constatou-se que a residência encontra-se vazia e sem moradores, não sendo obtidas informações sobre o paradeiro do réu."
-
-        [4.10] ÁREA DE OCUPAÇÃO:
-        "No local, constatou-se tratar-se de área de ocupação irregular, com numeração desordenada das residências, impossibilitando a identificação precisa do endereço indicado no mandado."
-
-        [SUCESSO] PRISÃO EFETUADA:
-        "Em cumprimento ao mandado de prisão em desfavor de [NOME], diligenciamos ao endereço [ENDEREÇO]. No local, logramos êxito em localizar o alvo. Após confirmação da identidade, foi dada voz de prisão, sendo o capturado conduzido a esta Unidade Policial para as providências cabíveis. O uso de algemas foi necessário para garantir a integridade física da equipe e do detido, conforme Súmula Vinculante 11."
+        VOCÊ É UM "MOTOR DE CÓPIA INTELIGENTE".
+        SUA MISSÃO: Ler os dados do caso e escolher, dentre os exemplos abaixo, qual se encaixa perfeitamente.
+        SUA AÇÃO: Copiar o texto do exemplo escolhido e substituir APENAS os dados entre colchetes [ ].
+        NÃO MUDE O ESTILO. NÃO MUDE A ESTRUTURA. NÃO SEJA CRIATIVO.
 
         ---
+        ## 📂 BANCO DE EXEMPLOS (Use um destes modelos EXATAMENTE como estão)
 
+        [CENÁRIO 1: PENSÃO ALIMENTÍCIA + OUTRA COMARCA]
+        "Em cumprimento ao Mandado de Prisão Civil, expedido nos autos do processo nº [NÚMERO_DO_PROCESSO], referente ao inadimplemento de pensão alimentícia, foram realizadas consultas e diligências preliminares visando à localização do executado [NOME_DO_ALVO] nesta Comarca de Jacareí/SP.\n\nInicialmente foram efetuadas pesquisas atualizadas nos sistemas policiais e de cadastro, não sendo localizado qualquer endereço ativo vinculado ao réu no município de Jacareí/SP, inexistindo registros recentes de residência, vínculos profissionais ou outras informações que possibilitassem sua localização nesta circunscrição.\n\nConsiderando a ausência de dados nesta comarca e observando-se que, no próprio mandado judicial, consta o endereço:\n[ENDEREÇO_DO_MANDADO],\nsugere-se o envio do presente expediente à autoridade policial daquele município, a fim de que a equipe local possa prosseguir com as diligências e tentar o cumprimento da ordem judicial no endereço indicado.\n\nDiante do exposto, até o presente momento não houve êxito na localização do executado nesta Comarca, restando as diligências negativas."
+
+        [CENÁRIO 2: CONTATO COM MÃE/FAMILIAR - NÃO MORA MAIS]
+        "Em cumprimento ao Mandado de Prisão referente ao Processo nº [NÚMERO_DO_PROCESSO], expedido pela [VARA] da Comarca de Jacareí/SP, foram realizadas diligências no endereço indicado como possível residência do réu [NOME_DO_ALVO], situado na [ENDEREÇO_DILIGENCIADO].\n\nAo chegar ao local, os policiais foram atendidos pela Sra. [NOME_DA_PESSOA_ATENDIDA] (RG [RG_SE_HOUVER]), [GRAU_PARENTESCO] do procurado, a qual relatou que [ELE/ELA] não reside mais no endereço e que saiu de casa há muito tempo, não mantendo contato e não possuindo informações que possam contribuir para sua localização. Após apresentação do mandado judicial, foi franqueado o acesso ao imóvel, sendo realizada busca em todos os cômodos da residência, sem êxito.\n\nPor fim, foram realizadas consultas atualizadas nos sistemas policiais, as quais, até o presente momento, não apontaram novos endereços, vínculos ou informações úteis que possam levar à localização de [NOME_DO_ALVO] nesta cidade.\n\nDiante do exposto, as diligências foram encerradas sem êxito na localização do procurado."
+
+        [CENÁRIO 3: COMERCIAL / DESCONHECIDO NO LOCAL]
+        "Em cumprimento ao Mandado de Prisão Civil expedido nos autos do processo nº [NÚMERO_DO_PROCESSO], referente à obrigação alimentar, esta equipe dirigiu-se inicialmente ao endereço indicado no ofício, situado na [ENDEREÇO].\n\nNo local, esta equipe foi recebida pelo proprietário, Sr. [NOME_QUEM_ATENDEU], o qual declarou não conhecer [NOME_DO_ALVO], bem como afirmou jamais ter contratado pessoa com nome ou características semelhantes às do executado.\n\nAssim, até o presente momento, não houve êxito no cumprimento do mandado, permanecendo negativas as diligências empreendidas por esta equipe."
+
+        [CENÁRIO 4: IMÓVEL ALUGA-SE / VENDE-SE / VAZIO]
+        "Em cumprimento ao mandado de prisão civil expedido nos autos do processo nº [NÚMERO_DO_PROCESSO], oriundo da [VARA] da Comarca de Jacareí/SP, em desfavor de [NOME_DO_ALVO], esta equipe realizou diligências no endereço indicado — [ENDEREÇO].\n\nForam efetuadas visitas em dias e horários distintos, constatando-se que o imóvel encontra-se com placas de “aluga-se” e “vende-se”, sem qualquer movimentação que indicasse a presença de moradores ou ocupação regular da residência.\n\nAté o momento, não foram obtidos elementos que indiquem o paradeiro do procurado, permanecendo negativas as diligências."
+
+        [CENÁRIO 5: VIZINHOS DIZEM QUE NÃO VÊEM HÁ TEMPOS]
+        "Em cumprimento ao mandado expedido nos autos do processo nº [NÚMERO_DO_PROCESSO], oriundo da [VARA] da Comarca de Jacareí/SP, em desfavor de [NOME_DO_ALVO], esta equipe diligenciou no endereço indicado — [ENDEREÇO].\n\nForam realizadas verificações in loco em dias e horários diversos, ocasião em que se constatou ausência de sinais de habitação ou qualquer indício de presença recente do procurado no imóvel.\n\nProcedeu-se à entrevista com moradores lindeiros, os quais informaram que há considerável lapso temporal não visualizam o requerido naquela localidade, bem como desconhecem seu atual paradeiro.\n\nDiante do exposto, as diligências restaram infrutíferas, não sendo obtidos elementos que permitam, até o presente momento, a localização do procurado."
+
+        [CENÁRIO 6: NUMERAL NÃO LOCALIZADO / TELEFONE SEM RESPOSTA]
+        "Em cumprimento à determinação para localização de [NOME_DO_ALVO], esta equipe diligenciou ao endereço informado: [ENDEREÇO].\n\nNo local, não foi possível identificar o numeral informado, inexistindo a numeração indicada na referida via.\n\nAlém disso, foram realizadas diversas tentativas de contato telefônico, contudo, as chamadas foram sistematicamente encerradas ou não atendidas.\n\nDessa forma, [O/A] alvo não foi localizado(a) até o presente momento, permanecendo as diligências em andamento."
+
+        [CENÁRIO 7: PRISÃO EFETUADA (SUCESSO)]
+        "Em cumprimento ao mandado de prisão em desfavor de [NOME_DO_ALVO], diligenciamos ao endereço [ENDEREÇO]. No local, logramos êxito em localizar o alvo. Após confirmação da identidade, foi dada voz de prisão, sendo o capturado conduzido a esta Unidade Policial para as providências cabíveis. O uso de algemas foi necessário para garantir a integridade física da equipe e do detido, conforme Súmula Vinculante 11."
+
+        ---
         ## DADOS REAIS DO CASO:
-        DADOS: ${JSON.stringify(warrantData)}
-        HISTÓRICO: "${rawContent}"
-        INSTRUÇÃO DO CHEFE: "${instructions || 'Seguir manual'}"
+        ALVO: ${warrantData.name}
+        PROCESSO: ${warrantData.number}
+        ENDEREÇO: ${warrantData.location}
+        VARA: ${warrantData.court || "Vara Criminal"}
+        
+        RELATO DO AGENTE (USE ISTO PARA ESCOLHER O CENÁRIO):
+        "${rawContent}"
 
-        ## EXECUÇÃO:
-        1. Siga o FLUXOGRAMA mentalmente.
-        2. Selecione UM ÚNICO modelo acima.
-        3. Preencha APENAS os campos entre colchetes. Nâo mude o resto do texto padrão.
-        4. Gere o relatório final.
+        INSTRUÇÃO EXTRA: "${instructions || 'Seguir rigorosamente o modelo.'}"
 
-        RESPOSTA:
+        ## TAREFA:
+        1. Leia o "RELATO DO AGENTE" acima.
+        2. Escolha o CENÁRIO (1 a 7) que melhor descreve o que aconteceu.
+        3. Copie o texto do cenário escolhido.
+        4. Substitua os campos em [ ] pelos dados reais do caso.
+        5. Se faltar algum dado (ex: nome do vizinho), coloque "pessoa não identificada" ou delete a menção específica, mas MANTENHA A ESTRUTURA TÉCNICA.
+        
+        RESPOSTA FINAL (APENAS O TEXTO):
     `;
 
     try {
