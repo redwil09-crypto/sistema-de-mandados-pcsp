@@ -1127,25 +1127,24 @@ Equipe de Capturas - DIG / PCSP
                     };
                 });
 
-                // Centralized Header Image
+                // Left Header Image
                 const imgProps = doc.getImageProperties(badgePC);
-                const badgeH = 22;
+                const badgeH = 25;
                 const badgeW = (imgProps.width * badgeH) / imgProps.height;
-                const badgeX = (pageWidth - badgeW) / 2;
 
-                doc.addImage(badgePC, 'PNG', badgeX, y, badgeW, badgeH);
-                y += badgeH + 5;
+                doc.addImage(badgePC, 'PNG', margin, y, badgeW, badgeH);
 
             } catch (e) {
                 console.error("Badge load error", e);
                 y += 20;
             }
 
-            // Centralized Header Text
-            doc.setFont('times', 'bold');
-            doc.setFontSize(11);
+            // Header Text (Right)
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(9);
             doc.setTextColor(0, 0, 0);
 
+            const textX = margin + 30; // Approx badge width + padding
             const headerLines = [
                 "SECRETARIA DA SEGURANÇA PÚBLICA",
                 "POLÍCIA CIVIL DO ESTADO DE SÃO PAULO",
@@ -1154,10 +1153,10 @@ Equipe de Capturas - DIG / PCSP
                 "DELEGACIA DE INVESTIGAÇÕES GERAIS DE JACAREÍ"
             ];
 
-            headerLines.forEach(line => {
-                doc.text(line, pageWidth / 2, y, { align: 'center' });
-                y += 5;
+            headerLines.forEach((line, index) => {
+                doc.text(line, textX, y + 4 + (index * 4));
             });
+            y += 32;
 
             y += 5;
             // Divider Line
@@ -1165,16 +1164,15 @@ Equipe de Capturas - DIG / PCSP
             doc.line(margin, y, pageWidth - margin, y);
             y += 10;
 
-            // --- TITLE ---
-            doc.setFontSize(14);
-            doc.setFont('times', 'bold');
-
-            // Adjust title based on type (simpler logic)
-            const isCivil = data.type?.toLowerCase().includes('civil') || data.crime?.toLowerCase().includes('pensão') || data.crime?.toLowerCase().includes('alimentar');
-            const title = isCivil ? "RELATÓRIO DE INVESTIGAÇÃO (CIVIL)" : "RELATÓRIO DE INVESTIGAÇÃO";
-
-            doc.text(title, pageWidth / 2, y, { align: 'center' });
-            y += 10;
+            // --- BLACK TITLE BAR ---
+            doc.setFillColor(0, 0, 0);
+            doc.rect(margin, y, contentWidth, 7, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(12);
+            doc.text("RELATÓRIO DE INVESTIGAÇÃO", pageWidth / 2, y + 5, { align: 'center' });
+            doc.setTextColor(0, 0, 0);
+            y += 12;
 
             // --- METADATA (Left Aligned, Formal) ---
             doc.setFontSize(12);
@@ -1247,13 +1245,51 @@ Equipe de Capturas - DIG / PCSP
             doc.text("Policia Civil do Estado de São Paulo", sigCenter, y, { align: 'center' });
 
 
-            // --- FOOTER (Address) ---
-            const footerY = pageHeight - 15;
-            doc.setFontSize(9);
+            // --- FOOTER DELEGATE + BOX ---
+            const boxHeight = 16;
+            const bottomMargin = 15;
+            const boxY = pageHeight - bottomMargin - boxHeight;
+
+            // Delegate Block
+            const delegateBlockY = boxY - 30;
+            doc.setFontSize(11);
+            doc.setTextColor(0, 0, 0);
+            let dY = delegateBlockY;
+            doc.setFont('helvetica', 'bolditalic');
+            doc.text("Excelentíssimo Doutor", margin, dY);
+            dY += 5;
+            doc.text(capturasData.delegate || "Delegado Titular", margin, dY);
+            dY += 5;
+            doc.text("Delegado de Polícia Titular", margin, dY);
+            dY += 5;
+            doc.text("Delegacia de Investigações Gerais de Jacareí", margin, dY);
+
+            // Dashed Box
+            (doc as any).setLineDash([1, 1], 0);
+            doc.setLineWidth(0.1);
+            doc.setDrawColor(100);
+            doc.rect(margin, boxY, contentWidth, boxHeight);
+            (doc as any).setLineDash([], 0);
+
+            // Footer Text
+            doc.setFont('times', 'normal');
+            doc.setFontSize(8);
             doc.setTextColor(100, 100, 100);
-            const addressFoo = "Rua Moisés Ruston, 370, Parque Itamaraty - Jacareí-SP - CEP 12.307-260 - Tel: (12) 3951-1000";
-            doc.text(addressFoo, pageWidth / 2, footerY, { align: 'center' });
-            doc.text(`Emitido em: ${new Date().toLocaleDateString('pt-BR')}`, pageWidth - margin, footerY, { align: 'right' });
+
+            const addr1 = "Rua Moisés Ruston, 370, Parque Itamaraty - Jacareí-SP - CEP. 12.307-260";
+            const addr2 = "Telefone: (12) 3951-1000      E-mail: dig.jacarei@policiacivil.sp.gov.br";
+
+            const midX = pageWidth * 0.7;
+            const addrCenterX = margin + ((midX - margin) / 2);
+
+            doc.text(addr1, addrCenterX, boxY + 6, { align: 'center' });
+            doc.text(addr2, addrCenterX, boxY + 11, { align: 'center' });
+
+            doc.line(midX, boxY + 3, midX, boxY + boxHeight - 3);
+
+            const rightCenterX = midX + ((pageWidth - margin - midX) / 2);
+            doc.text(`Data (${new Date().toLocaleDateString('pt-BR')})`, rightCenterX, boxY + 6, { align: 'center' });
+            doc.text("Página 1 de 1", rightCenterX, boxY + 11, { align: 'center' });
 
 
             // --- SAVE ---
