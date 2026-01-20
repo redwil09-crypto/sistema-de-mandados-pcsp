@@ -209,25 +209,31 @@ export async function generateReportBody(warrantData: any, rawContent: string, i
     const prompt = `
         # MANUAL DE REDAÇÃO DE RELATÓRIOS POLICIAIS (PADRÃO ELITE PCSP)
 
-        VOCÊ É UM "MOTOR DE CÓPIA INTELIGENTE".
-        SUA MISSÃO: Ler os dados do caso e escolher, dentre os exemplos abaixo, qual se encaixa perfeitamente.
-        SUA AÇÃO: Copiar o texto do exemplo escolhido e substituir APENAS os dados entre colchetes [ ].
-        NÃO MUDE O ESTILO. NÃO MUDE A ESTRUTURA. NÃO SEJA CRIATIVO.
-
+        VOCÊ É UM "MOTOR DE CÓPIA INTELIGENTE E ADAPTATIVO".
+        SUA MISSÃO: Ler os dados do caso, o CRIME envolvido, e escolher o modelo adequado abaixo.
+        
+        🟥 REGRA CRÍTICA DE ADAPTAÇÃO (NÃO ERRE ISSO):
+        1. OLHE O CAMPO "CRIME" NOS DADOS ABAIXO.
+        2. SE FOR 'PENSÃO ALIMENTÍCIA' ou 'ALAMENTOS':
+           - Use termos: "Mandado de Prisão Civil", "inadimplemento de pensão", "obrigação alimentar".
+        3. SE FOR OUTRO CRIME (Ex: Roubo, Tráfico, Cárcere Privado):
+           - Use termos: "Mandado de Prisão", "crime de [CRIME]", "processo criminal".
+           - JAMAIS cite "pensão" ou "civil" se for crime comum.
+        
         ---
-        ## 📂 BANCO DE EXEMPLOS (Use um destes modelos EXATAMENTE como estão)
+        ## 📂 BANCO DE CENÁRIOS (Escolha um e adapte o crime)
 
-        [CENÁRIO 1: PENSÃO ALIMENTÍCIA + OUTRA COMARCA]
-        "Em cumprimento ao Mandado de Prisão Civil, expedido nos autos do processo nº [NÚMERO_DO_PROCESSO], referente ao inadimplemento de pensão alimentícia, foram realizadas consultas e diligências preliminares visando à localização do executado [NOME_DO_ALVO] nesta Comarca de Jacareí/SP.\n\nInicialmente foram efetuadas pesquisas atualizadas nos sistemas policiais e de cadastro, não sendo localizado qualquer endereço ativo vinculado ao réu no município de Jacareí/SP, inexistindo registros recentes de residência, vínculos profissionais ou outras informações que possibilitassem sua localização nesta circunscrição.\n\nConsiderando a ausência de dados nesta comarca e observando-se que, no próprio mandado judicial, consta o endereço:\n[ENDEREÇO_DO_MANDADO],\nsugere-se o envio do presente expediente à autoridade policial daquele município, a fim de que a equipe local possa prosseguir com as diligências e tentar o cumprimento da ordem judicial no endereço indicado.\n\nDiante do exposto, até o presente momento não houve êxito na localização do executado nesta Comarca, restando as diligências negativas."
+        [CENÁRIO 1: ENDEREÇO EM OUTRA COMARCA]
+        "Em cumprimento ao [TIPO_DE_MANDADO], expedido nos autos do processo nº [NÚMERO_DO_PROCESSO], referente a [CRIME_OU_NATUREZA], foram realizadas consultas e diligências preliminares visando à localização do executado [NOME_DO_ALVO] nesta Comarca de Jacareí/SP.\n\nInicialmente foram efetuadas pesquisas atualizadas nos sistemas policiais e de cadastro, não sendo localizado qualquer endereço ativo vinculado ao réu no município de Jacareí/SP, inexistindo registros recentes de residência, vínculos profissionais ou outras informações que possibilitassem sua localização nesta circunscrição.\n\nConsiderando a ausência de dados nesta comarca e observando-se que, no próprio mandado judicial, consta o endereço:\n[ENDEREÇO_DO_MANDADO],\nsugere-se o envio do presente expediente à autoridade policial daquele município, a fim de que a equipe local possa prosseguir com as diligências e tentar o cumprimento da ordem judicial no endereço indicado.\n\nDiante do exposto, até o presente momento não houve êxito na localização do executado nesta Comarca, restando as diligências negativas."
 
         [CENÁRIO 2: CONTATO COM MÃE/FAMILIAR - NÃO MORA MAIS]
-        "Em cumprimento ao Mandado de Prisão referente ao Processo nº [NÚMERO_DO_PROCESSO], expedido pela [VARA] da Comarca de Jacareí/SP, foram realizadas diligências no endereço indicado como possível residência do réu [NOME_DO_ALVO], situado na [ENDEREÇO_DILIGENCIADO].\n\nAo chegar ao local, os policiais foram atendidos pela Sra. [NOME_DA_PESSOA_ATENDIDA] (RG [RG_SE_HOUVER]), [GRAU_PARENTESCO] do procurado, a qual relatou que [ELE/ELA] não reside mais no endereço e que saiu de casa há muito tempo, não mantendo contato e não possuindo informações que possam contribuir para sua localização. Após apresentação do mandado judicial, foi franqueado o acesso ao imóvel, sendo realizada busca em todos os cômodos da residência, sem êxito.\n\nPor fim, foram realizadas consultas atualizadas nos sistemas policiais, as quais, até o presente momento, não apontaram novos endereços, vínculos ou informações úteis que possam levar à localização de [NOME_DO_ALVO] nesta cidade.\n\nDiante do exposto, as diligências foram encerradas sem êxito na localização do procurado."
+        "Em cumprimento ao [TIPO_DE_MANDADO] referente ao Processo nº [NÚMERO_DO_PROCESSO], expedido pela [VARA] da Comarca de Jacareí/SP, foram realizadas diligências no endereço indicado como possível residência do réu [NOME_DO_ALVO], situado na [ENDEREÇO_DILIGENCIADO].\n\nAo chegar ao local, os policiais foram atendidos pela Sra. [NOME_DA_PESSOA_ATENDIDA] (RG [RG_SE_HOUVER]), [GRAU_PARENTESCO] do procurado, a qual relatou que [ELE/ELA] não reside mais no endereço e que saiu de casa há muito tempo, não mantendo contato e não possuindo informações que possam contribuir para sua localização. Após apresentação do mandado judicial, foi franqueado o acesso ao imóvel, sendo realizada busca em todos os cômodos da residência, sem êxito.\n\nPor fim, foram realizadas consultas atualizadas nos sistemas policiais, as quais, até o presente momento, não apontaram novos endereços, vínculos ou informações úteis que possam levar à localização de [NOME_DO_ALVO] nesta cidade.\n\nDiante do exposto, as diligências foram encerradas sem êxito na localização do procurado."
 
         [CENÁRIO 3: COMERCIAL / DESCONHECIDO NO LOCAL]
-        "Em cumprimento ao Mandado de Prisão Civil expedido nos autos do processo nº [NÚMERO_DO_PROCESSO], referente à obrigação alimentar, esta equipe dirigiu-se inicialmente ao endereço indicado no ofício, situado na [ENDEREÇO].\n\nNo local, esta equipe foi recebida pelo proprietário, Sr. [NOME_QUEM_ATENDEU], o qual declarou não conhecer [NOME_DO_ALVO], bem como afirmou jamais ter contratado pessoa com nome ou características semelhantes às do executado.\n\nAssim, até o presente momento, não houve êxito no cumprimento do mandado, permanecendo negativas as diligências empreendidas por esta equipe."
+        "Em cumprimento ao [TIPO_DE_MANDADO] expedido nos autos do processo nº [NÚMERO_DO_PROCESSO], referente a [CRIME_OU_NATUREZA], esta equipe dirigiu-se inicialmente ao endereço indicado no ofício, situado na [ENDEREÇO].\n\nNo local, esta equipe foi recebida pelo proprietário, Sr. [NOME_QUEM_ATENDEU], o qual declarou não conhecer [NOME_DO_ALVO], bem como afirmou jamais ter contratado pessoa com nome ou características semelhantes às do executado.\n\nAssim, até o presente momento, não houve êxito no cumprimento do mandado, permanecendo negativas as diligências empreendidas por esta equipe."
 
         [CENÁRIO 4: IMÓVEL ALUGA-SE / VENDE-SE / VAZIO]
-        "Em cumprimento ao mandado de prisão civil expedido nos autos do processo nº [NÚMERO_DO_PROCESSO], oriundo da [VARA] da Comarca de Jacareí/SP, em desfavor de [NOME_DO_ALVO], esta equipe realizou diligências no endereço indicado — [ENDEREÇO].\n\nForam efetuadas visitas em dias e horários distintos, constatando-se que o imóvel encontra-se com placas de “aluga-se” e “vende-se”, sem qualquer movimentação que indicasse a presença de moradores ou ocupação regular da residência.\n\nAté o momento, não foram obtidos elementos que indiquem o paradeiro do procurado, permanecendo negativas as diligências."
+        "Em cumprimento ao [TIPO_DE_MANDADO] expedido nos autos do processo nº [NÚMERO_DO_PROCESSO], oriundo da [VARA] da Comarca de Jacareí/SP, em desfavor de [NOME_DO_ALVO], referente ao delito de [CRIME], esta equipe realizou diligências no endereço indicado — [ENDEREÇO].\n\nForam efetuadas visitas em dias e horários distintos, constatando-se que o imóvel encontra-se com placas de “aluga-se” e “vende-se”, sem qualquer movimentação que indicasse a presença de moradores ou ocupação regular da residência.\n\nAté o momento, não foram obtidos elementos que indiquem o paradeiro do procurado, permanecendo negativas as diligências."
 
         [CENÁRIO 5: VIZINHOS DIZEM QUE NÃO VÊEM HÁ TEMPOS]
         "Em cumprimento ao mandado expedido nos autos do processo nº [NÚMERO_DO_PROCESSO], oriundo da [VARA] da Comarca de Jacareí/SP, em desfavor de [NOME_DO_ALVO], esta equipe diligenciou no endereço indicado — [ENDEREÇO].\n\nForam realizadas verificações in loco em dias e horários diversos, ocasião em que se constatou ausência de sinais de habitação ou qualquer indício de presença recente do procurado no imóvel.\n\nProcedeu-se à entrevista com moradores lindeiros, os quais informaram que há considerável lapso temporal não visualizam o requerido naquela localidade, bem como desconhecem seu atual paradeiro.\n\nDiante do exposto, as diligências restaram infrutíferas, não sendo obtidos elementos que permitam, até o presente momento, a localização do procurado."
@@ -239,25 +245,24 @@ export async function generateReportBody(warrantData: any, rawContent: string, i
         "Em cumprimento ao mandado de prisão em desfavor de [NOME_DO_ALVO], diligenciamos ao endereço [ENDEREÇO]. No local, logramos êxito em localizar o alvo. Após confirmação da identidade, foi dada voz de prisão, sendo o capturado conduzido a esta Unidade Policial para as providências cabíveis. O uso de algemas foi necessário para garantir a integridade física da equipe e do detido, conforme Súmula Vinculante 11."
 
         ---
-        ## DADOS REAIS DO CASO:
+        ## DADOS REAIS DO CASO (LEIA O CRIME COM ATENÇÃO):
         ALVO: ${warrantData.name}
+        CRIME: ${warrantData.crime} (ATENÇÃO: Este é o crime real do mandado)
         PROCESSO: ${warrantData.number}
         ENDEREÇO: ${warrantData.location}
-        VARA: ${warrantData.court || "Vara Criminal"}
         
-        RELATO DO AGENTE (USE ISTO PARA ESCOLHER O CENÁRIO):
+        RELATO DO AGENTE:
         "${rawContent}"
 
-        INSTRUÇÃO EXTRA: "${instructions || 'Seguir rigorosamente o modelo.'}"
+        INSTRUÇÃO: "${instructions || 'Seguir manual e adaptar crime.'}"
 
         ## TAREFA:
-        1. Leia o "RELATO DO AGENTE" acima.
-        2. Escolha o CENÁRIO (1 a 7) que melhor descreve o que aconteceu.
-        3. Copie o texto do cenário escolhido.
-        4. Substitua os campos em [ ] pelos dados reais do caso.
-        5. Se faltar algum dado (ex: nome do vizinho), coloque "pessoa não identificada" ou delete a menção específica, mas MANTENHA A ESTRUTURA TÉCNICA.
+        1. Identifique o CENÁRIO correto base nos fatos.
+        2. Substitua [TIPO_DE_MANDADO] por "Mandado de Prisão" (Criminal) ou "Mandado de Prisão Civil" (Pensão), conforme o campo CRIME.
+        3. Substitua [CRIME_OU_NATUREZA] pelo nome do crime real.
+        4. Gere o texto final.
         
-        RESPOSTA FINAL (APENAS O TEXTO):
+        RESPOSTA:
     `;
 
     try {
