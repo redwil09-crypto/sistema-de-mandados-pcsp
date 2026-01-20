@@ -1159,10 +1159,12 @@ Equipe de Capturas - DIG / PCSP
             y += 32;
 
             y += 5;
-            // Divider Line
-            doc.setLineWidth(0.5);
-            doc.line(margin, y, pageWidth - margin, y);
-            y += 10;
+            // Left extra space
+            y += 5;
+            // Divider Line Removed as requested
+            // doc.setLineWidth(0.5);
+            // doc.line(margin, y, pageWidth - margin, y);
+            // y += 10;
 
             // --- BLACK TITLE BAR ---
             doc.setFillColor(0, 0, 0);
@@ -1175,20 +1177,39 @@ Equipe de Capturas - DIG / PCSP
             y += 12;
 
             // --- METADATA (Left Aligned, Formal) ---
-            doc.setFontSize(12);
-            doc.setFont('times', 'normal');
+            doc.setFontSize(11); // Standard size matching the image
 
-            // Right-aligned reference components
-            doc.setFont('times', 'bold');
-            doc.text(`REF: PROCESSO Nº ${data.number}`, pageWidth - margin, y, { align: 'right' });
+            // Relatório + Data (Same Line)
+            const today = new Date();
+            const months = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+            const dateStr = `Jacareí, ${today.getDate()} de ${months[today.getMonth()]} de ${today.getFullYear()}.`;
+
+            doc.setFont('helvetica', 'bolditalic');
+            doc.text(`Relatório: ${capturasData.reportNumber || 'N/A'}`, margin, y);
+
+            doc.setFont('helvetica', 'italic');
+            doc.text(dateStr, pageWidth - margin, y, { align: 'right' });
             y += 6;
 
-            if (capturasData.reportNumber) {
-                doc.text(`RELATÓRIO Nº ${capturasData.reportNumber}`, pageWidth - margin, y, { align: 'right' });
-                y += 10;
-            } else {
-                y += 4;
-            }
+            const isMinor = data?.type?.toLowerCase().includes('menores') || data?.type?.toLowerCase().includes('adolescente') || data?.type?.toLowerCase().includes('criança');
+
+            const metaFields = [
+                { label: "Natureza:", value: data?.type || "Cumprimento de Mandado" },
+                { label: "Referência:", value: `Processo nº. ${data?.number}` },
+                { label: "Juízo de Direito:", value: capturasData.court },
+                { label: isMinor ? "Adolescente:" : "Réu:", value: data?.name }
+            ];
+
+            metaFields.forEach(field => {
+                doc.setFont('helvetica', 'bolditalic');
+                const labelText = field.label + " ";
+                doc.text(labelText, margin, y);
+
+                const labelWidth = doc.getTextWidth(labelText);
+                doc.setFont('helvetica', 'italic');
+                doc.text(field.value, margin + labelWidth, y);
+                y += 6;
+            });
 
             // Addressee
             const addressee = "Exmo. Sr. Dr. Delegado de Polícia Titular da DIG/Jacareí-SP";
