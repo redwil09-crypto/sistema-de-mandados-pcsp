@@ -58,7 +58,7 @@ export const generateWarrantPDF = async (
 
             doc.setLineWidth(0.5);
             doc.line(margin, y + badgeH + 5, pageWidth - margin, y + badgeH + 5);
-            y += badgeH + 8; // Reduced from + 15
+            y += badgeH + 15;
 
         } catch (e) {
             console.error("Badge load error", e);
@@ -67,11 +67,11 @@ export const generateWarrantPDF = async (
 
         // Title removed as requested
         // doc.text("RELATÓRIO OPERACIONAL UNIFICADO", pageWidth / 2, y, { align: 'center' });
-        y += 2; // Reduced from + 5
+        y += 5;
 
         // --- PHOTO & MAIN INFO ---
-        const photoWidth = 35; // Reduced from 40
-        const photoMaxHeight = 45; // Reduced from 50
+        const photoWidth = 40;
+        const photoMaxHeight = 50;
         let photoHeight = 0;
 
         try {
@@ -105,13 +105,13 @@ export const generateWarrantPDF = async (
         }
 
         const infoX = margin + photoWidth + 10;
-        let infoY = y + 2;
+        let infoY = y + 5;
 
         doc.setFontSize(16);
         doc.setFont('helvetica', 'bold');
         const splitName = doc.splitTextToSize(data.name.toUpperCase(), contentWidth - photoWidth - 15);
         doc.text(splitName, infoX, infoY);
-        infoY += (splitName.length * 7) + 2;
+        infoY += (splitName.length * 7) + 5;
 
         // Status
         const statusColor = data.status === 'CUMPRIDO' ? [34, 197, 94] : [239, 68, 68];
@@ -123,7 +123,7 @@ export const generateWarrantPDF = async (
 
         doc.setTextColor(0, 0, 0);
         doc.setFontSize(10);
-        infoY += 6; // Reduced from 10
+        infoY += 10;
 
         const rows = [
             ["RG:", data.rg || "-"],
@@ -137,10 +137,10 @@ export const generateWarrantPDF = async (
             doc.text(label, infoX, infoY);
             doc.setFont('helvetica', 'normal');
             doc.text(String(value).toUpperCase(), infoX + 25, infoY);
-            infoY += 4.5; // Reduced from 5
+            infoY += 5;
         });
 
-        y = Math.max(y + photoHeight, infoY) + 5; // Reduced from 10
+        y = Math.max(y + photoHeight, infoY) + 10;
 
         const drawSection = (title: string, fields: [string, string][]) => {
             if (y > pageHeight - 30) {
@@ -152,41 +152,24 @@ export const generateWarrantPDF = async (
             doc.setFont('helvetica', 'bold');
             doc.setFontSize(9);
             doc.text(title.toUpperCase(), margin + 2, y + 4.5);
-            y += 8;
+            y += 10;
 
             fields.forEach(([label, val]) => {
-                const value = (val || "-").trim();
-                const isLongText = value.length > 60;
+                const value = val || "-";
+                const splitVal = doc.splitTextToSize(value, contentWidth - 45);
 
-                // If text is long, use full width and start below label
-                const outputWidth = isLongText ? contentWidth : contentWidth - 45;
-                const splitVal = doc.splitTextToSize(value, outputWidth);
-
-                if (y + (splitVal.length * 4.5) + (isLongText ? 10 : 0) > pageHeight - 20) {
+                if (y + (splitVal.length * 5) > pageHeight - 20) {
                     doc.addPage();
                     y = 20;
                 }
 
                 doc.setFont('helvetica', 'bold');
                 doc.setFontSize(10);
+                doc.text(label, margin, y);
 
-                if (isLongText) {
-                    doc.text(label, margin, y);
-                    y += 5;
-                    doc.setFont('helvetica', 'normal');
-                    // Attempts to justify if supported, otherwise standard left align at margin
-                    try {
-                        doc.text(splitVal, margin, y, { align: 'justify', maxWidth: outputWidth });
-                    } catch {
-                        doc.text(splitVal, margin, y);
-                    }
-                    y += (splitVal.length * 4.5) + 4;
-                } else {
-                    doc.text(label, margin, y);
-                    doc.setFont('helvetica', 'normal');
-                    doc.text(splitVal, margin + 40, y);
-                    y += (splitVal.length * 4.5) + 2;
-                }
+                doc.setFont('helvetica', 'normal');
+                doc.text(splitVal, margin + 40, y);
+                y += (splitVal.length * 5) + 3;
             });
             y += 5;
         };
@@ -239,19 +222,14 @@ export const generateWarrantPDF = async (
             data.diligentHistory.forEach((h: any) => {
                 const dateStr = new Date(h.date).toLocaleDateString('pt-BR');
                 const header = `${dateStr} - [${h.type.toUpperCase()}]`;
-                const notes = (h.notes || "-").trim();
-                const splitNotes = doc.splitTextToSize(notes, contentWidth);
+                const notes = h.notes || "-";
+                const splitNotes = doc.splitTextToSize(notes, contentWidth - 5);
 
-                if (y + (splitNotes.length * 4.5) + 10 > pageHeight - 20) { doc.addPage(); y = 20; }
+                if (y + (splitNotes.length * 5) + 10 > pageHeight - 20) { doc.addPage(); y = 20; }
                 doc.setFont('helvetica', 'bold'); doc.setFontSize(9);
-                doc.text(header, margin, y); y += 4;
+                doc.text(header, margin, y); y += 5;
                 doc.setFont('helvetica', 'normal'); doc.setFontSize(9);
-                try {
-                    doc.text(splitNotes, margin, y, { align: 'justify', maxWidth: contentWidth });
-                } catch {
-                    doc.text(splitNotes, margin, y);
-                }
-                y += (splitNotes.length * 4.5) + 4;
+                doc.text(splitNotes, margin + 5, y); y += (splitNotes.length * 5) + 5;
             });
         }
 
