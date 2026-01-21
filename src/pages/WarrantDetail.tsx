@@ -1104,7 +1104,7 @@ Equipe de Capturas - DIG / PCSP
             const doc = new jsPDF();
             const pageWidth = doc.internal.pageSize.getWidth();
             const pageHeight = doc.internal.pageSize.getHeight();
-            const margin = 20; // A4 standard-ish
+            const margin = 15; // Reduced margin to fit more content
             const contentWidth = pageWidth - (margin * 2);
             let y = 20;
 
@@ -1156,7 +1156,7 @@ Equipe de Capturas - DIG / PCSP
             headerLines.forEach((line, index) => {
                 doc.text(line, textX, y + 4 + (index * 4));
             });
-            y += 32;
+            y += 25;
 
             // Spacing reduced
             y += 2;
@@ -1169,7 +1169,7 @@ Equipe de Capturas - DIG / PCSP
             doc.setFontSize(12);
             doc.text("RELATÓRIO CAPTURAS", pageWidth / 2, y + 5, { align: 'center' });
             doc.setTextColor(0, 0, 0);
-            y += 12;
+            y += 8;
 
             // --- METADATA (Left Aligned, Formal) ---
             doc.setFontSize(11); // Standard size matching the image
@@ -1184,7 +1184,7 @@ Equipe de Capturas - DIG / PCSP
 
             doc.setFont('helvetica', 'italic');
             doc.text(dateStr, pageWidth - margin, y, { align: 'right' });
-            y += 6;
+            y += 5;
 
             const isMinor = data?.type?.toLowerCase().includes('menores') || data?.type?.toLowerCase().includes('adolescente') || data?.type?.toLowerCase().includes('criança');
 
@@ -1203,20 +1203,20 @@ Equipe de Capturas - DIG / PCSP
                 const labelWidth = doc.getTextWidth(labelText);
                 doc.setFont('helvetica', 'italic');
                 doc.text(field.value, margin + labelWidth, y);
-                y += 6;
+                y += 5;
             });
 
             // Addressee
             // Addressee - Separated with more space
-            y += 10;
+            y += 6;
             const addressee = "Excelentíssimo Sr. Delegado de Polícia:";
             doc.setFont('helvetica', 'bold'); // Make it bold as per standard
             doc.text(addressee, margin, y);
-            y += 12;
+            y += 8;
 
             // --- BODY TEXT ---
             doc.setFont('times', 'normal');
-            doc.setFontSize(12);
+            doc.setFontSize(11); // Reduced to fit A4
 
             // Clean markdown asterisks and process text
             const cleanBody = capturasData.body.replace(/\*\*/g, '');
@@ -1227,7 +1227,7 @@ Equipe de Capturas - DIG / PCSP
 
                 // Ignore empty lines effectively, just add small padding
                 if (!trimmedPara) {
-                    y += 4; // Consistent small gap for empty lines
+                    y += 2; // Reduced spacing for empty lines
                     return;
                 }
 
@@ -1237,7 +1237,7 @@ Equipe de Capturas - DIG / PCSP
 
                 // Calculate lines
                 const lines = doc.splitTextToSize(textToDraw, contentWidth);
-                const lineHeight = 6; // Fixed line height
+                const lineHeight = 5; // Reduced line height
 
                 doc.text(lines, margin, y, { align: 'justify', maxWidth: contentWidth });
 
