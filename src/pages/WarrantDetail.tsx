@@ -1169,7 +1169,7 @@ Equipe de Capturas - DIG / PCSP
             doc.setFontSize(12);
             doc.text("RELATÓRIO CAPTURAS", pageWidth / 2, y + 5, { align: 'center' });
             doc.setTextColor(0, 0, 0);
-            y += 8;
+            y += 15;
 
             // --- METADATA (Left Aligned, Formal) ---
             doc.setFontSize(11); // Standard size matching the image
@@ -1184,7 +1184,7 @@ Equipe de Capturas - DIG / PCSP
 
             doc.setFont('helvetica', 'italic');
             doc.text(dateStr, pageWidth - margin, y, { align: 'right' });
-            y += 5;
+            y += 6;
 
             const isMinor = data?.type?.toLowerCase().includes('menores') || data?.type?.toLowerCase().includes('adolescente') || data?.type?.toLowerCase().includes('criança');
 
@@ -1203,16 +1203,16 @@ Equipe de Capturas - DIG / PCSP
                 const labelWidth = doc.getTextWidth(labelText);
                 doc.setFont('helvetica', 'italic');
                 doc.text(field.value, margin + labelWidth, y);
-                y += 5;
+                y += 6;
             });
 
             // Addressee
             // Addressee - Separated with more space
-            y += 6;
+            y += 10;
             const addressee = "Excelentíssimo Sr. Delegado de Polícia:";
             doc.setFont('helvetica', 'bold'); // Make it bold as per standard
             doc.text(addressee, margin, y);
-            y += 8;
+            y += 15;
 
             // --- BODY TEXT ---
             doc.setFont('times', 'normal');
@@ -1302,7 +1302,7 @@ Equipe de Capturas - DIG / PCSP
 
                 // Empty lines
                 if (!trimmedPara) {
-                    y += 2;
+                    y += 4;
                     return;
                 }
 
@@ -1310,7 +1310,7 @@ Equipe de Capturas - DIG / PCSP
                 const indent = "      ";
                 const fullParaText = indent + trimmedPara;
 
-                y = drawRichText(fullParaText, margin, y, contentWidth, 5);
+                y = drawRichText(fullParaText, margin, y, contentWidth, 6);
 
                 // Safety check if the function itself added a page and returned a high Y? 
                 // The function returns the NEXT y position.
