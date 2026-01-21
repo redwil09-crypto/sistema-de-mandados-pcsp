@@ -1311,14 +1311,9 @@ Equipe de Capturas - DIG / PCSP
                 const fullParaText = indent + trimmedPara;
 
                 y = drawRichText(fullParaText, margin, y, contentWidth, 6);
+                y += 6; // Explicit paragraph spacing
 
                 // Safety check if the function itself added a page and returned a high Y? 
-                // The function returns the NEXT y position.
-                // We just need to check if we are on the edge for the *next* paragraph, 
-                // but the function handles breaks internally for the text. 
-                // We just check before starting a new paragraph if needed? 
-                // No, the function handles Y flow.
-                // But we usually want a check here too just in case we are super close to edge
                 if (y > pageHeight - 50) {
                     doc.addPage();
                     y = 30;
