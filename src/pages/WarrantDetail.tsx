@@ -1306,12 +1306,12 @@ Equipe de Capturas - DIG / PCSP
                     return;
                 }
 
-                // Indent manually (6 spaces approx)
-                const indent = "      ";
+                // Indent manually (18 spaces - 3 times more than previous 6)
+                const indent = "                  ";
                 const fullParaText = indent + trimmedPara;
 
                 y = drawRichText(fullParaText, margin, y, contentWidth, 6);
-                y += 6; // Explicit paragraph spacing
+                y += 2; // Reduced paragraph spacing (was 6)
 
                 // Safety check if the function itself added a page and returned a high Y? 
                 if (y > pageHeight - 50) {
