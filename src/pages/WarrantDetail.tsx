@@ -1320,7 +1320,7 @@ Equipe de Capturas - DIG / PCSP
                 }
             });
 
-            // --- SIGNATURE BLOCK (Right aligned or Centered) ---
+            // --- SIGNATURE BLOCK (Right Aligned) ---
             if (y > pageHeight - 60) {
                 doc.addPage();
                 y = 40;
@@ -1328,16 +1328,16 @@ Equipe de Capturas - DIG / PCSP
 
             const signerName = capturasData.signer || "Investigador de Polícia";
 
-            // Center signature visually
-            const sigCenter = pageWidth / 2;
+            // Position signature on the right 
+            const sigX = pageWidth - margin - 40;
 
-            doc.line(sigCenter - 40, y, sigCenter + 40, y); // Line
+            doc.line(sigX - 40, y, sigX + 40, y); // Line
             y += 5;
             doc.setFont('times', 'bold');
-            doc.text(signerName.toUpperCase(), sigCenter, y, { align: 'center' });
+            doc.text(signerName.toUpperCase(), sigX, y, { align: 'center' });
             y += 5;
             doc.setFont('times', 'normal');
-            doc.text("Policia Civil do Estado de São Paulo", sigCenter, y, { align: 'center' });
+            doc.text("Policia Civil do Estado de São Paulo", sigX, y, { align: 'center' });
 
 
             // --- FOOTER DELEGATE + BOX ---
@@ -1345,8 +1345,8 @@ Equipe de Capturas - DIG / PCSP
             const bottomMargin = 15;
             const boxY = pageHeight - bottomMargin - boxHeight;
 
-            // Delegate Block
-            const delegateBlockY = boxY - 30;
+            // Delegate Block - Flushed closer to the bottom box
+            const delegateBlockY = boxY - 22;
             doc.setFontSize(11);
             doc.setTextColor(0, 0, 0);
             let dY = delegateBlockY;
