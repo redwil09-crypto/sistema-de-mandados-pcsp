@@ -1218,40 +1218,112 @@ Equipe de Capturas - DIG / PCSP
             doc.setFont('times', 'normal');
             doc.setFontSize(11); // Reduced to fit A4
 
-            // Clean markdown asterisks and process text
-            const cleanBody = capturasData.body.replace(/\*\*/g, '');
-            const paragraphs = cleanBody.split('\n');
+            const drawRichText = (text: string, x: number, initialY: number, maxWidth: number, lineHeight: number) => {
+                let cursorX = x;
+                let cursorY = initialY;
+                let currentLine: any[] = [];
+                let currentLineWidth = 0;
+                let isFirstLine = true;
+
+                // Split by bold markers
+                // Example: "Texto **negrito** fim" -> ["Texto ", "**negrito**", " fim"]
+                const segments = text.split(/(\*\*.*?\*\*)/g);
+
+                segments.forEach(segment => {
+                    const isBold = segment.startsWith('**') && segment.endsWith('**');
+                    const cleanText = isBold ? segment.slice(2, -2) : segment;
+                    if (!cleanText) return;
+
+                    // Tokenize by whitespace to handle wrapping
+                    const tokens = cleanText.split(/(\s+)/);
+
+                    tokens.forEach(token => {
+                        if (token === '') return;
+
+                        doc.setFont('times', isBold ? 'bold' : 'normal');
+                        const tokenWidth = doc.getTextWidth(token);
+                        const isSpace = /^\s+$/.test(token);
+
+                        // If it's a space at the start of a wrapped line (not first line), skip it
+                        if (isSpace && currentLine.length === 0 && !isFirstLine) {
+                            return;
+                        }
+
+                        // Check limits
+                        if (currentLineWidth + tokenWidth > maxWidth && currentLine.length > 0) {
+                            // Print current line
+                            let printX = x;
+                            currentLine.forEach(item => {
+                                doc.setFont('times', item.isBold ? 'bold' : 'normal');
+                                doc.text(item.text, printX, cursorY);
+                                printX += item.width;
+                            });
+
+                            // New line
+                            cursorY += lineHeight;
+
+                            // Page Break Check
+                            if (cursorY > pageHeight - 50) {
+                                doc.addPage();
+                                cursorY = 30; // Increased top margin for continuation pages
+                            }
+
+                            currentLine = [];
+                            currentLineWidth = 0;
+                            isFirstLine = false;
+
+                            // If the token that caused the break was a space, skip it for the new line
+                            if (isSpace) return;
+                        }
+
+                        currentLine.push({ text: token, width: tokenWidth, isBold });
+                        currentLineWidth += tokenWidth;
+                    });
+                });
+
+                // Flush remaining buffer
+                if (currentLine.length > 0) {
+                    let printX = x;
+                    currentLine.forEach(item => {
+                        doc.setFont('times', item.isBold ? 'bold' : 'normal');
+                        doc.text(item.text, printX, cursorY);
+                        printX += item.width;
+                    });
+                    cursorY += lineHeight;
+                }
+
+                return cursorY;
+            };
+
+            const paragraphs = capturasData.body.split('\n');
 
             paragraphs.forEach(para => {
                 const trimmedPara = para.trim();
 
-                // Ignore empty lines effectively, just add small padding
+                // Empty lines
                 if (!trimmedPara) {
-                    y += 2; // Reduced spacing for empty lines
+                    y += 2;
                     return;
                 }
 
-                // Indent first line of paragraph
+                // Indent manually (6 spaces approx)
                 const indent = "      ";
-                const textToDraw = indent + trimmedPara;
+                const fullParaText = indent + trimmedPara;
 
-                // Calculate lines
-                const lines = doc.splitTextToSize(textToDraw, contentWidth);
-                const lineHeight = 5; // Reduced line height
+                y = drawRichText(fullParaText, margin, y, contentWidth, 5);
 
-                doc.text(lines, margin, y, { align: 'justify', maxWidth: contentWidth });
-
-                // Consistent spacing: (number of lines * line height) + zero extra padding (or minimal)
-                y += (lines.length * lineHeight);
-
-                // Page break handling
+                // Safety check if the function itself added a page and returned a high Y? 
+                // The function returns the NEXT y position.
+                // We just need to check if we are on the edge for the *next* paragraph, 
+                // but the function handles breaks internally for the text. 
+                // We just check before starting a new paragraph if needed? 
+                // No, the function handles Y flow.
+                // But we usually want a check here too just in case we are super close to edge
                 if (y > pageHeight - 50) {
                     doc.addPage();
-                    y = 20;
+                    y = 30;
                 }
             });
-
-            y += 20;
 
             // --- SIGNATURE BLOCK (Right aligned or Centered) ---
             if (y > pageHeight - 60) {
