@@ -1104,7 +1104,7 @@ Equipe de Capturas - DIG / PCSP
             const doc = new jsPDF();
             const pageWidth = doc.internal.pageSize.getWidth();
             const pageHeight = doc.internal.pageSize.getHeight();
-            const margin = 15; // Reduced margin to fit more content
+            const margin = 20; // A4 standard-ish
             const contentWidth = pageWidth - (margin * 2);
             let y = 20;
 
@@ -1156,7 +1156,7 @@ Equipe de Capturas - DIG / PCSP
             headerLines.forEach((line, index) => {
                 doc.text(line, textX, y + 4 + (index * 4));
             });
-            y += 25;
+            y += 32;
 
             // Spacing reduced
             y += 2;
@@ -1169,7 +1169,7 @@ Equipe de Capturas - DIG / PCSP
             doc.setFontSize(12);
             doc.text("RELATÓRIO CAPTURAS", pageWidth / 2, y + 5, { align: 'center' });
             doc.setTextColor(0, 0, 0);
-            y += 15;
+            y += 12;
 
             // --- METADATA (Left Aligned, Formal) ---
             doc.setFontSize(11); // Standard size matching the image
@@ -1212,7 +1212,7 @@ Equipe de Capturas - DIG / PCSP
             const addressee = "Excelentíssimo Sr. Delegado de Polícia:";
             doc.setFont('helvetica', 'bold'); // Make it bold as per standard
             doc.text(addressee, margin, y);
-            y += 15;
+            y += 12;
 
             // --- BODY TEXT ---
             doc.setFont('times', 'normal');
