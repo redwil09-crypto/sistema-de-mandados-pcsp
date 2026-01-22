@@ -135,7 +135,7 @@ export const generateWarrantPDF = async (
         rows.forEach(([label, value]) => {
             doc.setFont('helvetica', 'bold');
             doc.text(label, infoX, infoY);
-            doc.setFont('helvetica', 'normal');
+            doc.setFont('helvetica', 'bold');
             doc.text(String(value).toUpperCase(), infoX + 25, infoY);
             infoY += 5;
         });
@@ -167,7 +167,7 @@ export const generateWarrantPDF = async (
                 doc.setFontSize(10);
                 doc.text(label, margin, y);
 
-                doc.setFont('helvetica', 'normal');
+                doc.setFont('helvetica', 'bold');
                 doc.text(splitVal, margin + 40, y);
                 y += (splitVal.length * 5) + 3;
             });
@@ -228,7 +228,7 @@ export const generateWarrantPDF = async (
                 if (y + (splitNotes.length * 5) + 10 > pageHeight - 20) { doc.addPage(); y = 20; }
                 doc.setFont('helvetica', 'bold'); doc.setFontSize(9);
                 doc.text(header, margin, y); y += 5;
-                doc.setFont('helvetica', 'normal'); doc.setFontSize(9);
+                doc.setFont('helvetica', 'bold'); doc.setFontSize(9);
                 doc.text(splitNotes, margin + 5, y); y += (splitNotes.length * 5) + 5;
             });
         }

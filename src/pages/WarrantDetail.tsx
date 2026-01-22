@@ -645,7 +645,7 @@ Equipe de Capturas - DIG / PCSP
         const doc = new jsPDF();
         const text = getReportText();
         const splitText = doc.splitTextToSize(text, 180);
-        doc.setFont('courier', 'normal');
+        doc.setFont('courier', 'bold');
         doc.setFontSize(10);
         doc.text(splitText, 15, 20);
 
@@ -1012,9 +1012,9 @@ Equipe de Capturas - DIG / PCSP
         const currentData = { ...data, ...localData };
 
         const generateIntelligentReportBody = () => {
-            const name = currentData.name.toUpperCase();
-            const process = currentData.number;
-            const address = currentData.location || '';
+            const name = `**${currentData.name.toUpperCase()}**`;
+            const process = `**${currentData.number}**`;
+            const address = `**${currentData.location || ''}**`;
             const history = currentData.diligentHistory || [];
             const observations = currentData.observation || '';
             const crime = (currentData.crime || '').toLowerCase();
@@ -1201,7 +1201,7 @@ Equipe de Capturas - DIG / PCSP
                 doc.text(labelText, margin, y);
 
                 const labelWidth = doc.getTextWidth(labelText);
-                doc.setFont('helvetica', 'italic');
+                doc.setFont('helvetica', 'bolditalic');
                 doc.text(field.value, margin + labelWidth, y);
                 y += 6;
             });
