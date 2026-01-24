@@ -23,23 +23,39 @@ const Header = ({ title, back = false, onBack, action, showHome = false }: Heade
     };
 
     return (
-        <header className="sticky top-0 z-40 flex items-center justify-between bg-surface-light/95 px-4 py-3 backdrop-blur-md dark:bg-surface-dark/90 border-b border-border-light dark:border-border-dark shadow-sm">
-            <div className="flex items-center gap-3">
-                {back && (
-                    <button onClick={handleBack} type="button" className="rounded-full p-1 hover:bg-black/5 dark:hover:bg-white/10">
-                        <ChevronLeft size={24} />
-                    </button>
-                )}
-                {!back && <div className="w-1" />}
-                <h1 className="text-lg font-bold text-text-light dark:text-text-dark truncate">{title}</h1>
-            </div>
-            <div className="flex items-center gap-2">
-                {showHome && (
-                    <Link to="/" className="rounded-full p-2 text-text-secondary-light hover:bg-black/5 dark:text-text-secondary-dark dark:hover:bg-white/10">
-                        <Home size={20} />
-                    </Link>
-                )}
-                {action}
+        <header className="sticky top-0 z-40 bg-background-dark/80 backdrop-blur-md border-b border-white/5 shadow-glass">
+            <div className="flex items-center justify-between px-4 py-3 max-w-7xl mx-auto">
+                <div className="flex items-center gap-3 overflow-hidden">
+                    {back && (
+                        <button
+                            onClick={handleBack}
+                            type="button"
+                            className="flex items-center justify-center p-2 rounded-lg text-text-secondary-dark hover:text-text-dark hover:bg-white/5 transition-colors active:scale-95"
+                        >
+                            <ChevronLeft size={20} />
+                        </button>
+                    )}
+
+                    <div className="flex flex-col">
+                        <h1 className="font-display font-bold text-lg leading-none text-text-dark uppercase tracking-tight">
+                            {title}
+                        </h1>
+                        {/* Optional Subtitle or decorative line could go here */}
+                        <div className="h-0.5 w-8 bg-gradient-to-r from-primary to-transparent mt-1 opacity-50"></div>
+                    </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                    {showHome && (
+                        <Link
+                            to="/"
+                            className="p-2 rounded-lg text-text-secondary-dark hover:text-primary hover:bg-white/5 transition-colors"
+                        >
+                            <Home size={18} />
+                        </Link>
+                    )}
+                    {action}
+                </div>
             </div>
         </header>
     );

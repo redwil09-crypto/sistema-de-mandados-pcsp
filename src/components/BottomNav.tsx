@@ -49,38 +49,45 @@ const BottomNav = ({ routeCount = 0 }: BottomNavProps) => {
     if (hideNav) return null;
 
     return (
-        <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-border-light bg-surface-light/95 backdrop-blur dark:bg-surface-dark/95 dark:border-border-dark pb-safe">
-            <div className="mx-auto flex h-16 w-full items-center justify-center gap-6 px-4">
-                <Link to="/" className={`flex flex-col items-center gap-1 min-w-[50px] ${isActive('/') ? 'text-primary' : 'text-text-secondary-light dark:text-text-secondary-dark'}`}>
-                    <Home size={22} strokeWidth={isActive('/') ? 2.5 : 2} />
-                    <span className="text-[9px] font-bold">Início</span>
+    return (
+        <nav className="fixed bottom-4 left-4 right-4 z-50 rounded-2xl border border-white/5 bg-surface-dark/80 backdrop-blur-lg shadow-glass pb-safe">
+            <div className="flex h-16 w-full items-center justify-around px-2">
+                <Link to="/" className={`relative flex flex-col items-center justify-center gap-1 w-14 h-14 rounded-xl transition-all ${isActive('/') ? 'text-primary' : 'text-text-secondary-dark hover:text-text-dark hover:bg-white/5'}`}>
+                    {isActive('/') && <span className="absolute inset-0 bg-primary/10 rounded-xl shadow-[0_0_15px_rgba(99,102,241,0.3)]"></span>}
+                    <Home size={20} strokeWidth={isActive('/') ? 2.5 : 2} className="relative z-10" />
+                    <span className="text-[9px] font-bold relative z-10 font-display">Início</span>
                 </Link>
 
-                <Link to="/advanced-search" className={`flex flex-col items-center gap-1 min-w-[50px] ${isActive('/advanced-search') ? 'text-primary' : 'text-text-secondary-light dark:text-text-secondary-dark'}`}>
-                    <Search size={22} strokeWidth={isActive('/advanced-search') ? 2.5 : 2} />
-                    <span className="text-[9px] font-bold">Busca</span>
+                <Link to="/advanced-search" className={`relative flex flex-col items-center justify-center gap-1 w-14 h-14 rounded-xl transition-all ${isActive('/advanced-search') ? 'text-primary' : 'text-text-secondary-dark hover:text-text-dark hover:bg-white/5'}`}>
+                    {isActive('/advanced-search') && <span className="absolute inset-0 bg-primary/10 rounded-xl shadow-[0_0_15px_rgba(99,102,241,0.3)]"></span>}
+                    <Search size={20} strokeWidth={isActive('/advanced-search') ? 2.5 : 2} className="relative z-10" />
+                    <span className="text-[9px] font-bold relative z-10 font-display">Busca</span>
                 </Link>
 
-                <a
-                    href="https://portalbnmp.cnj.jus.br/#/pesquisa-peca"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex flex-col items-center gap-1 min-w-[50px] text-text-secondary-light dark:text-text-secondary-dark"
-                >
-                    <ShieldCheck size={22} />
-                    <span className="text-[9px] font-bold">BNMP</span>
-                </a>
+                <div className="relative -mt-8">
+                    <a
+                        href="https://portalbnmp.cnj.jus.br/#/pesquisa-peca"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-tr from-surface-dark-elevated to-surface-dark border-2 border-white/10 text-text-secondary-dark shadow-tactic hover:border-primary/50 hover:text-primary transition-all active:scale-95"
+                    >
+                        <ShieldCheck size={22} />
+                    </a>
+                    <span className="absolute -bottom-4 left-1/2 -translate-x-1/2 text-[9px] font-bold text-text-secondary-dark/60 font-display">BNMP</span>
+                </div>
 
                 {isAdmin && (
-                    <Link to="/audit" className={`flex flex-col items-center gap-1 min-w-[50px] ${isActive('/audit') ? 'text-primary' : 'text-text-secondary-light dark:text-text-secondary-dark'}`}>
-                        <ClipboardList size={22} strokeWidth={isActive('/audit') ? 2.5 : 2} />
-                        <span className="text-[9px] font-bold">ADM</span>
+                    <Link to="/audit" className={`relative flex flex-col items-center justify-center gap-1 w-14 h-14 rounded-xl transition-all ${isActive('/audit') ? 'text-primary' : 'text-text-secondary-dark hover:text-text-dark hover:bg-white/5'}`}>
+                        {isActive('/audit') && <span className="absolute inset-0 bg-primary/10 rounded-xl shadow-[0_0_15px_rgba(99,102,241,0.3)]"></span>}
+                        <ClipboardList size={20} strokeWidth={isActive('/audit') ? 2.5 : 2} className="relative z-10" />
+                        <span className="text-[9px] font-bold relative z-10 font-display">ADM</span>
                     </Link>
                 )}
 
-                <Link to="/profile" className={`flex flex-col items-center gap-1 min-w-[50px] ${isActive('/profile') ? 'text-primary' : 'text-text-secondary-light dark:text-text-secondary-dark'}`}>
-                    <User size={22} strokeWidth={isActive('/profile') ? 2.5 : 2} />
-                    <span className="text-[9px] font-bold">Perfil</span>
+                <Link to="/profile" className={`relative flex flex-col items-center justify-center gap-1 w-14 h-14 rounded-xl transition-all ${isActive('/profile') ? 'text-primary' : 'text-text-secondary-dark hover:text-text-dark hover:bg-white/5'}`}>
+                    {isActive('/profile') && <span className="absolute inset-0 bg-primary/10 rounded-xl shadow-[0_0_15px_rgba(99,102,241,0.3)]"></span>}
+                    <User size={20} strokeWidth={isActive('/profile') ? 2.5 : 2} className="relative z-10" />
+                    <span className="text-[9px] font-bold relative z-10 font-display">Perfil</span>
                 </Link>
             </div>
         </nav>
