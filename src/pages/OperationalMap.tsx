@@ -183,7 +183,7 @@ const OperationalMap = ({ warrants: initialWarrants, onUpdate }: OperationalMapP
                             }`}
                     >
                         <RefreshCw size={10} className={isSyncing ? 'animate-spin' : ''} />
-                        {isSyncing ? 'SYC...' : 'ATUALIZAR'}
+                        {isSyncing ? 'SINC...' : 'ATUALIZAR'}
                     </button>
                 </div>
             </div>

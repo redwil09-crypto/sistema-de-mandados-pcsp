@@ -2,19 +2,12 @@
 import React, { useMemo } from 'react';
 import Header from '../components/Header';
 import WarrantCard from '../components/WarrantCard';
-import { Warrant } from '../types';
-
 import { generateWarrantPDF } from '../services/pdfReportService';
+import { useWarrants } from '../contexts/WarrantContext';
 
-interface RecentActivityPageProps {
-    warrants: Warrant[];
-    onUpdate: (id: string, updates: Partial<Warrant>) => Promise<boolean>;
-    onDelete: (id: string) => Promise<boolean>;
-    routeWarrants?: string[];
-    onRouteToggle?: (id: string) => void;
-}
+const RecentActivityPage = () => {
+    const { warrants, updateWarrant, deleteWarrant, routeWarrants, toggleRouteWarrant } = useWarrants();
 
-const RecentActivityPage = ({ warrants, onUpdate, onDelete, routeWarrants = [], onRouteToggle }: RecentActivityPageProps) => {
     const sortedWarrants = useMemo(() => {
         return [...warrants].sort((a, b) => {
             const dateA = a.updatedAt || a.createdAt || '';
@@ -31,13 +24,13 @@ const RecentActivityPage = ({ warrants, onUpdate, onDelete, routeWarrants = [], 
                     <WarrantCard
                         key={warrant.id}
                         data={warrant}
-                        onDelete={onDelete}
+                        onDelete={deleteWarrant}
                         isPlanned={routeWarrants.includes(warrant.id)}
-                        onRouteToggle={onRouteToggle}
+                        onRouteToggle={toggleRouteWarrant}
                         onPrint={(e) => {
                             e.preventDefault();
                             e.stopPropagation();
-                            generateWarrantPDF(warrant, onUpdate);
+                            generateWarrantPDF(warrant, updateWarrant);
                         }}
                     />
                 ))}
@@ -47,3 +40,5 @@ const RecentActivityPage = ({ warrants, onUpdate, onDelete, routeWarrants = [], 
 };
 
 export default RecentActivityPage;
+
+

@@ -2,43 +2,40 @@
 import React from 'react';
 import Header from '../components/Header';
 import WarrantCard from '../components/WarrantCard';
-import { Warrant } from '../types';
-
 import { generateWarrantPDF } from '../services/pdfReportService';
+import { useWarrants } from '../contexts/WarrantContext';
 
-interface PriorityListProps {
-    warrants: Warrant[];
-    onUpdate: (id: string, updates: Partial<Warrant>) => Promise<boolean>;
-    onDelete: (id: string) => Promise<boolean>;
-    routeWarrants?: string[];
-    onRouteToggle?: (id: string) => void;
-}
+const PriorityList = () => {
+    const { priorityWarrants: warrants, updateWarrant, deleteWarrant, routeWarrants, toggleRouteWarrant } = useWarrants();
 
-const PriorityList = ({ warrants, onUpdate, onDelete, routeWarrants = [], onRouteToggle }: PriorityListProps) => (
-    <div className="min-h-screen pb-20 bg-background-light dark:bg-background-dark">
-        <Header title="Prioridades" back />
-        <div className="p-4 space-y-4">
-            {warrants.map(w => (
-                <WarrantCard
-                    key={w.id}
-                    data={w}
-                    onDelete={onDelete}
-                    isPlanned={routeWarrants.includes(w.id)}
-                    onRouteToggle={onRouteToggle}
-                    onPrint={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        generateWarrantPDF(w, onUpdate);
-                    }}
-                />
-            ))}
-            {warrants.length === 0 && (
-                <div className="text-center py-10 opacity-50 text-sm">
-                    Nenhuma prioridade encontrada.
-                </div>
-            )}
+    return (
+        <div className="min-h-screen pb-20 bg-background-light dark:bg-background-dark">
+            <Header title="Prioridades" back />
+            <div className="p-4 space-y-4">
+                {warrants.map(w => (
+                    <WarrantCard
+                        key={w.id}
+                        data={w}
+                        onDelete={deleteWarrant}
+                        isPlanned={routeWarrants.includes(w.id)}
+                        onRouteToggle={toggleRouteWarrant}
+                        onPrint={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            generateWarrantPDF(w, updateWarrant);
+                        }}
+                    />
+                ))}
+                {warrants.length === 0 && (
+                    <div className="text-center py-10 opacity-50 text-sm">
+                        Nenhuma prioridade encontrada.
+                    </div>
+                )}
+            </div>
         </div>
-    </div>
-);
+    );
+};
 
 export default PriorityList;
+
+

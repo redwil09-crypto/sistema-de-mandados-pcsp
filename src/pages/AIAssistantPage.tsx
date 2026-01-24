@@ -542,7 +542,7 @@ const AIAssistantPage = ({ onAdd, warrants }: AIAssistantPageProps) => {
 
                                     <div className="border-2 border-dashed border-border-light dark:border-border-dark rounded-xl p-6 flex flex-col items-center justify-center text-center bg-surface-light dark:bg-surface-dark hover:border-primary transition-colors cursor-pointer relative group">
                                         <FileUp size={32} className="text-text-secondary-light dark:text-text-secondary-dark mb-2 group-hover:text-primary transition-colors" />
-                                        <p className="font-bold text-text-light dark:text-text-dark text-[11px]">Upload PDF</p>
+                                        <p className="font-bold text-text-light dark:text-text-dark text-[11px]">Enviar PDF</p>
                                         <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" accept=".pdf,.jpg,.png,.jpeg" multiple onChange={handleFileUpload} />
                                     </div>
 
@@ -630,7 +630,7 @@ const AIAssistantPage = ({ onAdd, warrants }: AIAssistantPageProps) => {
                                     </div>
                                     <div className="relative w-12 h-12 rounded-full border-2 border-dashed border-primary/30 overflow-hidden group cursor-pointer bg-surface-light dark:bg-black/20">
                                         {photoPreview ? (
-                                            <img src={photoPreview} alt="Target" className="w-full h-full object-cover" />
+                                            <img src={photoPreview} alt="Alvo" className="w-full h-full object-cover" />
                                         ) : (
                                             <div className="w-full h-full flex items-center justify-center">
                                                 <Camera size={16} className="text-primary/50" />

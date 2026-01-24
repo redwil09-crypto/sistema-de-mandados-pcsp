@@ -22,16 +22,10 @@ import { geocodeAddress } from '../services/geocodingService';
 import { generateWarrantPDF, generateIfoodOfficePDF } from '../services/pdfReportService';
 import { analyzeRawDiligence, generateReportBody } from '../services/geminiService';
 import { CRIME_OPTIONS, REGIME_OPTIONS } from '../data/constants';
+import { useWarrants } from '../contexts/WarrantContext';
 
-interface WarrantDetailProps {
-    warrants: Warrant[];
-    onUpdate: (id: string, updates: Partial<Warrant>) => Promise<boolean>;
-    onDelete: (id: string) => Promise<boolean>;
-    routeWarrants?: string[];
-    onRouteToggle?: (id: string) => void;
-}
-
-const WarrantDetail = ({ warrants, onUpdate, onDelete, routeWarrants = [], onRouteToggle }: WarrantDetailProps) => {
+const WarrantDetail = () => {
+    const { warrants, updateWarrant, deleteWarrant, routeWarrants, toggleRouteWarrant } = useWarrants();
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const [isFinalizeModalOpen, setIsFinalizeModalOpen] = useState(false);
@@ -275,7 +269,7 @@ const WarrantDetail = ({ warrants, onUpdate, onDelete, routeWarrants = [], onRou
     const handleSaveChanges = async () => {
         if (!data) return;
 
-        // Extract only changed fields to send to onUpdate
+        // Extract only changed fields to send to updateWarrant
         const updates: Partial<Warrant> = {};
         const fields: (keyof Warrant)[] = [
             'name', 'type', 'rg', 'cpf', 'number', 'crime', 'regime',
@@ -315,7 +309,7 @@ const WarrantDetail = ({ warrants, onUpdate, onDelete, routeWarrants = [], onRou
             }
         }
 
-        const success = await onUpdate(data.id, updates);
+        const success = await updateWarrant(data.id, updates);
         if (success) {
             toast.success("Alterações salvas com sucesso!", { id: toastId });
             setIsConfirmSaveOpen(false);
@@ -483,7 +477,7 @@ const WarrantDetail = ({ warrants, onUpdate, onDelete, routeWarrants = [], onRou
     };
 
     const handleConfirmReopen = async () => {
-        const success = await onUpdate(data.id, {
+        const success = await updateWarrant(data.id, {
             status: 'EM ABERTO'
         });
         if (success) {
@@ -495,7 +489,7 @@ const WarrantDetail = ({ warrants, onUpdate, onDelete, routeWarrants = [], onRou
     };
 
     const handleConfirmFinalize = async () => {
-        const success = await onUpdate(data.id, {
+        const success = await updateWarrant(data.id, {
             status: 'CUMPRIDO',
             dischargeDate: finalizeFormData.date,
             digOffice: finalizeFormData.digOffice,
@@ -513,7 +507,7 @@ const WarrantDetail = ({ warrants, onUpdate, onDelete, routeWarrants = [], onRou
     const handleConfirmRemoveTag = async () => {
         if (!tagToRemove || !data) return;
         const updatedTags = (data.tags || []).filter(t => t !== tagToRemove);
-        const success = await onUpdate(data.id, { tags: updatedTags });
+        const success = await updateWarrant(data.id, { tags: updatedTags });
         if (success) {
             toast.success(`A etiqueta "${tagToRemove}" foi removida.`);
         }
@@ -532,7 +526,7 @@ const WarrantDetail = ({ warrants, onUpdate, onDelete, routeWarrants = [], onRou
         };
 
         const updatedHistory = [...(data.diligentHistory || []), entry];
-        const success = await onUpdate(data.id, { diligentHistory: updatedHistory });
+        const success = await updateWarrant(data.id, { diligentHistory: updatedHistory });
 
         if (success) {
             setNewDiligence('');
@@ -567,7 +561,7 @@ const WarrantDetail = ({ warrants, onUpdate, onDelete, routeWarrants = [], onRou
 
     const handleDeleteDiligence = async (diligenceId: string) => {
         const updatedHistory = (data.diligentHistory || []).filter(h => h.id !== diligenceId);
-        const success = await onUpdate(data.id, { diligentHistory: updatedHistory });
+        const success = await updateWarrant(data.id, { diligentHistory: updatedHistory });
         if (success) {
             toast.success("Diligência removida.");
         }
@@ -664,7 +658,7 @@ Equipe de Capturas - DIG / PCSP
             if (uploadedPath) {
                 const url = getPublicUrl(uploadedPath);
                 const currentAttachments = data.attachments || [];
-                await onUpdate(data.id, { attachments: [...currentAttachments, url] });
+                await updateWarrant(data.id, { attachments: [...currentAttachments, url] });
                 toast.success("Relatório anexado ao histórico!", { id: toastId });
             }
         } catch (err) {
@@ -691,7 +685,7 @@ Equipe de Capturas - DIG / PCSP
                 console.log(`WarrantDetail: Public URL generated: ${url}`);
 
                 let currentAttachments = data.attachments || [];
-                const success = await onUpdate(data.id, { attachments: [...currentAttachments, url] });
+                const success = await updateWarrant(data.id, { attachments: [...currentAttachments, url] });
                 if (success) {
                     toast.success("Arquivo anexado com sucesso!", { id: toastId });
                 } else {
@@ -720,7 +714,7 @@ Equipe de Capturas - DIG / PCSP
         const updatedAttachments = (data.attachments || []).filter(url => url !== urlToDelete);
         const updatedReports = (data.reports || []).filter(url => url !== urlToDelete);
 
-        const success = await onUpdate(data.id, {
+        const success = await updateWarrant(data.id, {
             attachments: updatedAttachments,
             reports: updatedReports
         });
@@ -736,7 +730,7 @@ Equipe de Capturas - DIG / PCSP
         if (!data) return;
         const toastId = toast.loading("Gerando Ofício iFood...");
         try {
-            await generateIfoodOfficePDF(data, onUpdate);
+            await generateIfoodOfficePDF(data, updateWarrant);
             toast.dismiss(toastId);
         } catch (error) {
             console.error(error);
@@ -750,7 +744,7 @@ Equipe de Capturas - DIG / PCSP
     };
 
     const handleConfirmDelete = async () => {
-        const success = await onDelete(data.id);
+        const success = await deleteWarrant(data.id);
         if (success) {
             toast.success("Mandado excluído permanentemente.");
             navigate(-1);
@@ -762,7 +756,7 @@ Equipe de Capturas - DIG / PCSP
 
     const handleDownloadPDF = async () => {
         if (!data) return;
-        await generateWarrantPDF(data, onUpdate, aiTimeSuggestion);
+        await generateWarrantPDF(data, updateWarrant, aiTimeSuggestion);
     };
 
     const handleGenerateIFoodReport = async () => {
@@ -976,7 +970,7 @@ Equipe de Capturas - DIG / PCSP
             if (officeId !== data.ifoodNumber) {
                 const saveNum = window.confirm(`Deseja salvar o número do ofício '${officeId}' neste mandado?`);
                 if (saveNum) {
-                    await onUpdate(data.id, { ifoodNumber: officeId });
+                    await updateWarrant(data.id, { ifoodNumber: officeId });
                 }
             }
 
@@ -990,7 +984,7 @@ Equipe de Capturas - DIG / PCSP
                 if (uploadedPath) {
                     const url = getPublicUrl(uploadedPath);
                     const currentAttachments = data.attachments || [];
-                    await onUpdate(data.id, { attachments: [...currentAttachments, url] });
+                    await updateWarrant(data.id, { attachments: [...currentAttachments, url] });
                     toast.success("Ofício salvo no banco!", { id: toastId });
                 }
             } catch (err) {
@@ -1399,7 +1393,7 @@ Equipe de Capturas - DIG / PCSP
             if (uploadedPath) {
                 const url = getPublicUrl(uploadedPath);
                 const currentReports = data.reports || [];
-                await onUpdate(data.id, { reports: [...currentReports, url] });
+                await updateWarrant(data.id, { reports: [...currentReports, url] });
                 toast.success("Documento oficial gerado e anexado.", { id: toastId });
             }
 
@@ -1700,10 +1694,10 @@ Equipe de Capturas - DIG / PCSP
                                     <ExternalLink size={16} /> GOOGLE MAPS
                                 </a>
                                 <button
-                                    onClick={() => onRouteToggle && onRouteToggle(data.id)}
-                                    className={`flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-xs font-bold transition-all active:scale-95 shadow-sm ${routeWarrants.includes(data.id)
-                                        ? 'bg-amber-500 text-white shadow-amber-500/20'
-                                        : 'bg-gray-100 dark:bg-white/5 text-text-secondary-light border border-border-light dark:border-border-dark'
+                                    onClick={() => toggleRouteWarrant(data.id)}
+                                    className={`p-2 rounded-xl transition-all ${routeWarrants.includes(data.id)
+                                        ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/30'
+                                        : 'bg-gray-100 dark:bg-white/5 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-white/10'
                                         }`}
                                 >
                                     <RouteIcon size={16} /> {routeWarrants.includes(data.id) ? 'NA ROTA' : 'ADICIONAR ROTA'}

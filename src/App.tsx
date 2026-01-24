@@ -1,10 +1,12 @@
 
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState } from 'react';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { supabase } from './supabaseClient';
 import type { Session } from '@supabase/supabase-js';
 
-// Pages
+// Context
+import { WarrantProvider, useWarrants } from './contexts/WarrantContext';
+
 // Pages
 const Auth = React.lazy(() => import('./pages/Auth'));
 const Profile = React.lazy(() => import('./pages/Profile'));
@@ -26,11 +28,7 @@ const OperationalMap = React.lazy(() => import('./pages/OperationalMap'));
 import BottomNav from './components/BottomNav';
 import { useLocation } from 'react-router-dom';
 
-// Services & Utils
-import { createWarrant, getWarrants, updateWarrant as updateWarrantDb, deleteWarrant as deleteWarrantDb } from './supabaseService';
-import { Warrant } from './types';
-
-import { Toaster, toast } from 'sonner';
+import { Toaster } from 'sonner';
 
 function ScrollToTop() {
     const { pathname } = useLocation();
@@ -47,29 +45,17 @@ function App() {
     });
 
     const [session, setSession] = useState<Session | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [warrants, setWarrants] = useState<Warrant[]>([]);
-    const [routeWarrants, setRouteWarrants] = useState<string[]>(() => {
-        try {
-            const saved = localStorage.getItem('routeWarrants');
-            return saved ? JSON.parse(saved) : [];
-        } catch (e) {
-            console.error("Error parsing routeWarrants from localStorage", e);
-            return [];
-        }
-    });
+    const [authLoading, setAuthLoading] = useState(true);
 
-    // Check active session on mount
     useEffect(() => {
         supabase.auth.getSession().then(({ data: { session } }) => {
             setSession(session);
-            setLoading(false);
+            setAuthLoading(false);
         }).catch(err => {
             console.error("Auth Session Error:", err);
-            setLoading(false);
+            setAuthLoading(false);
         });
 
-        // Listen for auth changes
         const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
             setSession(session);
         });
@@ -77,14 +63,6 @@ function App() {
         return () => subscription.unsubscribe();
     }, []);
 
-    // Load data when session is active
-    useEffect(() => {
-        if (session) {
-            loadWarrants();
-        }
-    }, [session]);
-
-    // Apply dark mode theme
     useEffect(() => {
         if (isDark) {
             document.documentElement.classList.add('dark');
@@ -95,89 +73,9 @@ function App() {
         }
     }, [isDark]);
 
-    // Persist routes
-    useEffect(() => {
-        localStorage.setItem('routeWarrants', JSON.stringify(routeWarrants));
-    }, [routeWarrants]);
-
-    const loadWarrants = async () => {
-        try {
-            const data = await getWarrants();
-            setWarrants(data || []);
-        } catch (err) {
-            console.error("Error loading warrants:", err);
-            toast.error("Erro ao carregar dados do banco.");
-        }
-    };
-
-    const handleAddWarrant = async (w: Warrant) => {
-        const result = await createWarrant(w);
-        if (result) {
-            await loadWarrants();
-            return true;
-        }
-        return false;
-    };
-
-    const handleUpdateWarrant = async (id: string, updates: Partial<Warrant>) => {
-        const result = await updateWarrantDb(id, updates);
-        if (result) {
-            await loadWarrants();
-            return true;
-        }
-        toast.error("Falha ao atualizar dados no servidor.");
-        return false;
-    };
-
-    const handleDeleteWarrant = async (id: string) => {
-        const result = await deleteWarrantDb(id);
-        if (result) {
-            await loadWarrants();
-            return true;
-        }
-        return false;
-    };
-
     const toggleTheme = () => setIsDark(!isDark);
 
-    const toggleRouteWarrant = (id: string) => {
-        if (!id) return;
-        setRouteWarrants(prev =>
-            prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
-        );
-    };
-
-    // Memoized selection for the route planner
-    const selectedRouteWarrants = useMemo(() => {
-        if (!warrants) return [];
-        return warrants.filter(w => w && routeWarrants.includes(w.id));
-    }, [warrants, routeWarrants]);
-
-    // Filtered lists for specific pages
-    const prisonWarrants = useMemo(() => {
-        return warrants.filter(w => {
-            const type = (w.type || '').toLowerCase();
-            const status = (w.status || '').toUpperCase();
-            return !type.includes('busca') && !type.includes('apreensão') && status === 'EM ABERTO';
-        });
-    }, [warrants]);
-
-    const searchWarrants = useMemo(() => {
-        return warrants.filter(w => {
-            const type = (w.type || '').toLowerCase();
-            const status = (w.status || '').toUpperCase();
-            return (type.includes('busca') || type.includes('apreensão')) && status === 'EM ABERTO';
-        });
-    }, [warrants]);
-
-    const priorityWarrants = useMemo(() => {
-        return warrants.filter(w => {
-            const tags = w.tags || [];
-            return tags.includes('Urgente') || tags.includes('Ofício de Cobrança');
-        });
-    }, [warrants]);
-
-    if (loading) {
+    if (authLoading) {
         return (
             <div className="flex min-h-screen items-center justify-center bg-background-dark">
                 <div className="h-12 w-12 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
@@ -190,32 +88,29 @@ function App() {
     }
 
     return (
-        <HashRouter>
-            <AppContent
-                isDark={isDark}
-                toggleTheme={toggleTheme}
-                warrants={warrants}
-                prisonWarrants={prisonWarrants}
-                searchWarrants={searchWarrants}
-                priorityWarrants={priorityWarrants}
-                selectedRouteWarrants={selectedRouteWarrants}
-                routeWarrants={routeWarrants}
-                toggleRouteWarrant={toggleRouteWarrant}
-                handleUpdateWarrant={handleUpdateWarrant}
-                handleDeleteWarrant={handleDeleteWarrant}
-                handleAddWarrant={handleAddWarrant}
-            />
-        </HashRouter>
+        <WarrantProvider>
+            <HashRouter>
+                <AppContent isDark={isDark} toggleTheme={toggleTheme} />
+            </HashRouter>
+        </WarrantProvider>
     );
 }
 
-function AppContent({
-    isDark, toggleTheme, warrants, prisonWarrants, searchWarrants,
-    priorityWarrants, selectedRouteWarrants, routeWarrants,
-    toggleRouteWarrant, handleUpdateWarrant, handleDeleteWarrant, handleAddWarrant
-}: any) {
+function AppContent({ isDark, toggleTheme }: { isDark: boolean; toggleTheme: () => void }) {
     const location = useLocation();
     const hideNav = ['/warrant-detail', '/new-warrant', '/ai-assistant'].some(p => location.pathname.startsWith(p));
+    const { routeWarrants, loading } = useWarrants();
+
+    if (loading) {
+        return (
+            <div className="flex min-h-screen items-center justify-center bg-background-light dark:bg-background-dark">
+                <div className="flex flex-col items-center gap-4">
+                    <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent shadow-lg shadow-primary/20"></div>
+                    <span className="text-[10px] font-black text-primary uppercase tracking-[0.2em] animate-pulse">Carregando Sistema...</span>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark transition-colors duration-200">
@@ -231,41 +126,25 @@ function AppContent({
             }>
                 <div key={location.pathname} className="page-enter">
                     <Routes>
-                        <Route path="/" element={<HomePage isDark={isDark} toggleTheme={toggleTheme} warrants={warrants} onUpdate={handleUpdateWarrant} onDelete={handleDeleteWarrant} routeWarrants={routeWarrants} onRouteToggle={toggleRouteWarrant} />} />
+                        {/* Passes theme props to Home since these are layout related, not warrant related */}
+                        <Route path="/" element={<HomePage isDark={isDark} toggleTheme={toggleTheme} />} />
 
-                        {/* Main Routes */}
-                        <Route path="/warrant-list" element={<WarrantList warrants={prisonWarrants} onUpdate={handleUpdateWarrant} onDelete={handleDeleteWarrant} routeWarrants={routeWarrants} onRouteToggle={toggleRouteWarrant} />} />
-                        <Route path="/advanced-search" element={<AdvancedSearch warrants={warrants} onUpdate={handleUpdateWarrant} onDelete={handleDeleteWarrant} routeWarrants={routeWarrants} onRouteToggle={toggleRouteWarrant} />} />
-                        <Route path="/recents" element={<RecentActivityPage warrants={warrants} onUpdate={handleUpdateWarrant} onDelete={handleDeleteWarrant} routeWarrants={routeWarrants} onRouteToggle={toggleRouteWarrant} />} />
-                        <Route path="/minor-search" element={<MinorSearch warrants={searchWarrants} onUpdate={handleUpdateWarrant} onDelete={handleDeleteWarrant} routeWarrants={routeWarrants} onRouteToggle={toggleRouteWarrant} />} />
-                        <Route path="/priority-list" element={<PriorityList warrants={priorityWarrants} onUpdate={handleUpdateWarrant} onDelete={handleDeleteWarrant} routeWarrants={routeWarrants} onRouteToggle={toggleRouteWarrant} />} />
+                        <Route path="/warrant-list" element={<WarrantList />} />
+                        <Route path="/advanced-search" element={<AdvancedSearch />} />
+                        <Route path="/recents" element={<RecentActivityPage />} />
+                        <Route path="/minor-search" element={<MinorSearch />} />
+                        <Route path="/priority-list" element={<PriorityList />} />
 
-                        {/* specialized pages */}
-                        <Route path="/route-planner" element={<RoutePlanner
-                            warrants={selectedRouteWarrants}
-                            onRouteToggle={toggleRouteWarrant}
-                            onUpdate={handleUpdateWarrant}
-                        />} />
+                        <Route path="/route-planner" element={<RoutePlanner />} />
 
-                        <Route path="/stats" element={<Stats warrants={warrants} />} />
+                        <Route path="/stats" element={<Stats />} />
                         <Route path="/audit" element={<AuditPage />} />
                         <Route path="/profile" element={<Profile />} />
-                        <Route path="/ai-assistant" element={<AIAssistantPage onAdd={handleAddWarrant} warrants={warrants} />} />
-                        <Route path="/map" element={<OperationalMap warrants={warrants} onUpdate={handleUpdateWarrant} />} />
+                        <Route path="/ai-assistant" element={<AIAssistantPage />} />
+                        <Route path="/map" element={<OperationalMap />} />
 
-                        {/* Detail and Creation */}
-                        <Route path="/warrant-detail/:id" element={<WarrantDetail
-                            warrants={warrants}
-                            onUpdate={handleUpdateWarrant}
-                            onDelete={handleDeleteWarrant}
-                            onRouteToggle={toggleRouteWarrant}
-                            routeWarrants={routeWarrants}
-                        />} />
-                        <Route path="/new-warrant" element={<NewWarrant
-                            onAdd={handleAddWarrant}
-                            onUpdate={handleUpdateWarrant}
-                            warrants={warrants}
-                        />} />
+                        <Route path="/warrant-detail/:id" element={<WarrantDetail />} />
+                        <Route path="/new-warrant" element={<NewWarrant />} />
 
                         <Route path="*" element={<Navigate to="/" replace />} />
                     </Routes>

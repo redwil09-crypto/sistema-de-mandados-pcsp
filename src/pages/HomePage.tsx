@@ -11,18 +11,15 @@ import { Warrant } from '../types';
 import WarrantCard from '../components/WarrantCard';
 import { formatDate } from '../utils/helpers';
 import { EXPIRING_WARRANTS } from '../data/mockData';
+import { useWarrants } from '../contexts/WarrantContext';
 
 interface HomePageProps {
     isDark: boolean;
     toggleTheme: () => void;
-    warrants: Warrant[];
-    onUpdate: (id: string, updates: Partial<Warrant>) => Promise<boolean>;
-    onDelete: (id: string) => Promise<boolean>;
-    routeWarrants: string[];
-    onRouteToggle: (id: string) => void;
 }
 
-const HomePage = ({ isDark, toggleTheme, warrants, onUpdate, onDelete, routeWarrants = [], onRouteToggle }: HomePageProps) => {
+const HomePage = ({ isDark, toggleTheme }: HomePageProps) => {
+    const { warrants, updateWarrant, deleteWarrant, routeWarrants, toggleRouteWarrant } = useWarrants();
     const navigate = useNavigate();
     const [showNotifications, setShowNotifications] = useState(false);
     const [showAllNotifications, setShowAllNotifications] = useState(false);
@@ -267,13 +264,13 @@ const HomePage = ({ isDark, toggleTheme, warrants, onUpdate, onDelete, routeWarr
                                 <WarrantCard
                                     key={warrant.id}
                                     data={warrant}
-                                    onDelete={onDelete}
-                                    onRouteToggle={onRouteToggle}
+                                    onDelete={deleteWarrant}
+                                    onRouteToggle={toggleRouteWarrant}
                                     isPlanned={routeWarrants.includes(warrant.id)}
                                     onPrint={(e) => {
                                         e.preventDefault();
                                         e.stopPropagation();
-                                        generateWarrantPDF(warrant, onUpdate);
+                                        generateWarrantPDF(warrant, updateWarrant);
                                     }}
                                 />
                             ))}

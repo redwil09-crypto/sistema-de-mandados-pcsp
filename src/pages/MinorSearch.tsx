@@ -4,20 +4,12 @@ import { useNavigate } from 'react-router-dom';
 import { Search, Filter, Eye } from 'lucide-react';
 import Header from '../components/Header';
 import WarrantCard from '../components/WarrantCard';
-import { Warrant } from '../types';
 import { CRIME_OPTIONS, REGIME_OPTIONS } from '../data/constants';
-
 import { generateWarrantPDF } from '../services/pdfReportService';
+import { useWarrants } from '../contexts/WarrantContext';
 
-interface MinorSearchProps {
-    warrants: Warrant[];
-    onUpdate: (id: string, updates: Partial<Warrant>) => Promise<boolean>;
-    onDelete: (id: string) => Promise<boolean>;
-    routeWarrants?: string[];
-    onRouteToggle?: (id: string) => void;
-}
-
-const MinorSearch = ({ warrants, onUpdate, onDelete, routeWarrants = [], onRouteToggle }: MinorSearchProps) => {
+const MinorSearch = () => {
+    const { searchWarrants: warrants, updateWarrant, deleteWarrant, routeWarrants, toggleRouteWarrant } = useWarrants();
     const navigate = useNavigate();
     const [searchTerm, setSearchTerm] = useState('');
     const [showFilters, setShowFilters] = useState(false);
@@ -183,13 +175,13 @@ const MinorSearch = ({ warrants, onUpdate, onDelete, routeWarrants = [], onRoute
                         <WarrantCard
                             key={w.id}
                             data={w}
-                            onDelete={onDelete}
+                            onDelete={deleteWarrant}
                             isPlanned={routeWarrants.includes(w.id)}
-                            onRouteToggle={onRouteToggle}
+                            onRouteToggle={toggleRouteWarrant}
                             onPrint={(e) => {
                                 e.preventDefault();
                                 e.stopPropagation();
-                                generateWarrantPDF(w, onUpdate);
+                                generateWarrantPDF(w, updateWarrant);
                             }}
                         />
                     )) : (

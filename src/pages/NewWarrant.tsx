@@ -15,14 +15,10 @@ import VoiceInput from '../components/VoiceInput';
 import { geocodeAddress } from '../services/geocodingService';
 import { analyzeWarrantData, isGeminiEnabled } from '../services/geminiService';
 import { formatDate, maskDate } from '../utils/helpers';
+import { useWarrants } from '../contexts/WarrantContext';
 
-interface NewWarrantProps {
-    onAdd: (w: Warrant) => Promise<boolean>;
-    onUpdate?: (id: string, updates: Partial<Warrant>) => Promise<boolean>;
-    warrants?: Warrant[];
-}
-
-const NewWarrant = ({ onAdd, onUpdate, warrants }: NewWarrantProps) => {
+const NewWarrant = () => {
+    const { addWarrant, updateWarrant, warrants } = useWarrants();
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const editId = searchParams.get('edit');
@@ -328,9 +324,9 @@ const NewWarrant = ({ onAdd, onUpdate, warrants }: NewWarrantProps) => {
                 age: formData.age
             };
 
-            if (editId && onUpdate) {
-                const result = await onUpdate(editId, warrantData);
-                if (result !== false) {
+            if (editId) {
+                const result = await updateWarrant(editId, warrantData);
+                if (result) {
                     toast.success("Mandado atualizado com sucesso!");
                     navigate('/');
                 } else {
@@ -342,8 +338,8 @@ const NewWarrant = ({ onAdd, onUpdate, warrants }: NewWarrantProps) => {
                     id: warrantId,
                     status: 'EM ABERTO'
                 };
-                const result = await onAdd(newWarrant);
-                if (result !== false) {
+                const result = await addWarrant(newWarrant);
+                if (result) {
                     toast.success("Mandado salvo com sucesso!");
                     navigate('/');
                 } else {
@@ -397,7 +393,7 @@ const NewWarrant = ({ onAdd, onUpdate, warrants }: NewWarrantProps) => {
                 <div className="flex justify-center">
                     <div className="w-32 h-32 rounded-full border-2 border-dashed border-border-light dark:border-border-dark bg-surface-light dark:bg-surface-dark flex flex-col items-center justify-center text-text-secondary-light dark:text-text-secondary-dark cursor-pointer hover:border-primary transition-colors relative overflow-hidden group">
                         {photoPreview ? (
-                            <img src={photoPreview} alt="Preview" className="w-full h-full object-cover" />
+                            <img src={photoPreview} alt="Prévia" className="w-full h-full object-cover" />
                         ) : (
                             <>
                                 <Camera size={24} className="mb-1" />

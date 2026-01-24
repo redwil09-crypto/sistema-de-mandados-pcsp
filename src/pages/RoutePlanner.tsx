@@ -9,14 +9,10 @@ import { toast } from 'sonner';
 import { Warrant } from '../types';
 import PatrolMode from '../components/PatrolMode';
 import { generateWarrantPDF } from '../services/pdfReportService';
+import { useWarrants } from '../contexts/WarrantContext';
 
-interface RoutePlannerProps {
-    warrants: Warrant[];
-    onRouteToggle: (id: string) => void;
-    onUpdate: (id: string, updates: Partial<Warrant>) => Promise<boolean>;
-}
-
-const RoutePlanner = ({ warrants = [], onRouteToggle, onUpdate }: RoutePlannerProps) => {
+const RoutePlanner = () => {
+    const { selectedRouteWarrants: warrants, toggleRouteWarrant, updateWarrant } = useWarrants();
     const navigate = useNavigate();
     const [confirmModal, setConfirmModal] = useState<{
         isOpen: boolean;
@@ -42,10 +38,10 @@ const RoutePlanner = ({ warrants = [], onRouteToggle, onUpdate }: RoutePlannerPr
 
     const handleFinalizeWarrant = async (w: Warrant) => {
         try {
-            const success = await onUpdate(w.id, { status: 'CUMPRIDO' });
+            const success = await updateWarrant(w.id, { status: 'CUMPRIDO' });
             if (success) {
                 toast.success(`${w.name} marcado como cumprido.`);
-                onRouteToggle(w.id); // Also remove from route
+                toggleRouteWarrant(w.id); // Also remove from route
             } else {
                 toast.error("Erro ao atualizar mandado.");
             }
@@ -188,7 +184,7 @@ const RoutePlanner = ({ warrants = [], onRouteToggle, onUpdate }: RoutePlannerPr
                                         <div className="transition-transform duration-200 group-hover:translate-x-1">
                                             <WarrantCard
                                                 data={w}
-                                                onRouteToggle={onRouteToggle}
+                                                onRouteToggle={toggleRouteWarrant}
                                                 isPlanned={true}
                                                 onFinalize={(e, data) => {
                                                     e.preventDefault();
@@ -202,7 +198,7 @@ const RoutePlanner = ({ warrants = [], onRouteToggle, onUpdate }: RoutePlannerPr
                                                 onPrint={(e) => {
                                                     e.preventDefault();
                                                     e.stopPropagation();
-                                                    generateWarrantPDF(w, onUpdate);
+                                                    generateWarrantPDF(w, updateWarrant);
                                                 }}
                                             />
                                         </div>
@@ -221,7 +217,7 @@ const RoutePlanner = ({ warrants = [], onRouteToggle, onUpdate }: RoutePlannerPr
                                     <Map size={18} />
                                     <span className="text-[10px] uppercase">Navegar</span>
                                 </button>
-                                
+
                                 <PatrolMode warrants={warrants} variant="button" />
 
                                 <button
@@ -238,7 +234,7 @@ const RoutePlanner = ({ warrants = [], onRouteToggle, onUpdate }: RoutePlannerPr
                                             "Limpar Roteiro",
                                             "Tem certeza que deseja remover todos os itens do roteiro?",
                                             () => {
-                                                warrants.forEach(w => onRouteToggle(w.id));
+                                                warrants.forEach(w => toggleRouteWarrant(w.id));
                                                 toast.success("Roteiro limpo com sucesso!");
                                             },
                                             'danger'

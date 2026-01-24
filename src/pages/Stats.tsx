@@ -17,12 +17,10 @@ import {
 import { Link } from 'react-router-dom';
 import Header from '../components/Header';
 import { Warrant } from '../types';
+import { useWarrants } from '../contexts/WarrantContext';
 
-interface StatsProps {
-    warrants: Warrant[];
-}
-
-const Stats = ({ warrants }: StatsProps) => {
+const Stats = () => {
+    const { warrants } = useWarrants();
     // --- Data Processing Helpers ---
     const parseDate = (dateStr: string | undefined) => {
         if (!dateStr) return null;
@@ -253,11 +251,11 @@ const Stats = ({ warrants }: StatsProps) => {
                             </svg>
                             <div className="absolute inset-0 flex flex-col items-center justify-center">
                                 <span className="text-3xl font-black text-white">{efficiency.percent}%</span>
-                                <span className="text-[8px] font-bold text-blue-400 uppercase">Fulfillment</span>
+                                <span className="text-[8px] font-bold text-blue-400 uppercase">Cumprimento</span>
                             </div>
                         </div>
                         <div className="mt-4 space-y-1">
-                            <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Target: {efficiency.target}%</p>
+                            <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Meta: {efficiency.target}%</p>
                             <div className="w-24 h-1 bg-slate-800 rounded-full overflow-hidden">
                                 <div className="h-full bg-blue-500" style={{ width: `${(efficiency.percent / efficiency.target) * 100}%` }} />
                             </div>
