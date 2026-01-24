@@ -17,7 +17,7 @@ const createPulseIcon = (colorClass: string, glowColor: string) => L.divIcon({
     html: `
         <div class="relative flex items-center justify-center w-6 h-6">
             <span class="absolute inline-flex h-full w-full rounded-full opacity-75 animate-ping ${colorClass}"></span>
-            <span class="relative inline-flex rounded-full h-3 w-3 ${colorClass} shadow-[0_0_10px_${glowColor}]"></span>
+            <span class="relative inline-flex rounded-full h-3 w-3 ${colorClass}" style="box-shadow: 0 0 10px ${glowColor}"></span>
         </div>
     `,
     iconSize: [24, 24],
