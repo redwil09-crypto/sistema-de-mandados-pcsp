@@ -1124,10 +1124,10 @@ const AIAssistantPage = () => {
                     )
                 }
 
-            </div >
+            </div>
 
             {/* Bottom Action Bar (Non-fixed) */}
-            < div className="mt-8 mb-4 p-2 sm:p-4 bg-surface-light/50 dark:bg-surface-dark/50 rounded-2xl border border-border-light dark:border-border-dark" >
+            <div className="mt-8 mb-4 p-2 sm:p-4 bg-surface-light/50 dark:bg-surface-dark/50 rounded-2xl border border-border-light dark:border-border-dark">
                 <div className="max-w-md mx-auto flex items-stretch gap-2">
                     <Link
                         to="/"
