@@ -5,21 +5,22 @@ import { supabase } from './supabaseClient';
 import type { Session } from '@supabase/supabase-js';
 
 // Pages
-import Auth from './pages/Auth';
-import Profile from './pages/Profile';
-import HomePage from './pages/HomePage';
-import WarrantList from './pages/WarrantList';
-import AdvancedSearch from './pages/AdvancedSearch';
-import RecentActivityPage from './pages/RecentActivityPage';
-import Stats from './pages/Stats';
-import MinorSearch from './pages/MinorSearch';
-import PriorityList from './pages/PriorityList';
-import WarrantDetail from './pages/WarrantDetail';
-import NewWarrant from './pages/NewWarrant';
-import AIAssistantPage from './pages/AIAssistantPage';
-import AuditPage from './pages/AuditPage';
-import RoutePlanner from './pages/RoutePlanner';
-import OperationalMap from './pages/OperationalMap';
+// Pages
+const Auth = React.lazy(() => import('./pages/Auth'));
+const Profile = React.lazy(() => import('./pages/Profile'));
+const HomePage = React.lazy(() => import('./pages/HomePage'));
+const WarrantList = React.lazy(() => import('./pages/WarrantList'));
+const AdvancedSearch = React.lazy(() => import('./pages/AdvancedSearch'));
+const RecentActivityPage = React.lazy(() => import('./pages/RecentActivityPage'));
+const Stats = React.lazy(() => import('./pages/Stats'));
+const MinorSearch = React.lazy(() => import('./pages/MinorSearch'));
+const PriorityList = React.lazy(() => import('./pages/PriorityList'));
+const WarrantDetail = React.lazy(() => import('./pages/WarrantDetail'));
+const NewWarrant = React.lazy(() => import('./pages/NewWarrant'));
+const AIAssistantPage = React.lazy(() => import('./pages/AIAssistantPage'));
+const AuditPage = React.lazy(() => import('./pages/AuditPage'));
+const RoutePlanner = React.lazy(() => import('./pages/RoutePlanner'));
+const OperationalMap = React.lazy(() => import('./pages/OperationalMap'));
 
 // Components
 import BottomNav from './components/BottomNav';
@@ -228,45 +229,47 @@ function AppContent({
                     </div>
                 </div>
             }>
-                <Routes>
-                    <Route path="/" element={<HomePage isDark={isDark} toggleTheme={toggleTheme} warrants={warrants} onUpdate={handleUpdateWarrant} onDelete={handleDeleteWarrant} routeWarrants={routeWarrants} onRouteToggle={toggleRouteWarrant} />} />
+                <div key={location.pathname} className="page-enter">
+                    <Routes>
+                        <Route path="/" element={<HomePage isDark={isDark} toggleTheme={toggleTheme} warrants={warrants} onUpdate={handleUpdateWarrant} onDelete={handleDeleteWarrant} routeWarrants={routeWarrants} onRouteToggle={toggleRouteWarrant} />} />
 
-                    {/* Main Routes */}
-                    <Route path="/warrant-list" element={<WarrantList warrants={prisonWarrants} onUpdate={handleUpdateWarrant} onDelete={handleDeleteWarrant} routeWarrants={routeWarrants} onRouteToggle={toggleRouteWarrant} />} />
-                    <Route path="/advanced-search" element={<AdvancedSearch warrants={warrants} onUpdate={handleUpdateWarrant} onDelete={handleDeleteWarrant} routeWarrants={routeWarrants} onRouteToggle={toggleRouteWarrant} />} />
-                    <Route path="/recents" element={<RecentActivityPage warrants={warrants} onUpdate={handleUpdateWarrant} onDelete={handleDeleteWarrant} routeWarrants={routeWarrants} onRouteToggle={toggleRouteWarrant} />} />
-                    <Route path="/minor-search" element={<MinorSearch warrants={searchWarrants} onUpdate={handleUpdateWarrant} onDelete={handleDeleteWarrant} routeWarrants={routeWarrants} onRouteToggle={toggleRouteWarrant} />} />
-                    <Route path="/priority-list" element={<PriorityList warrants={priorityWarrants} onUpdate={handleUpdateWarrant} onDelete={handleDeleteWarrant} routeWarrants={routeWarrants} onRouteToggle={toggleRouteWarrant} />} />
+                        {/* Main Routes */}
+                        <Route path="/warrant-list" element={<WarrantList warrants={prisonWarrants} onUpdate={handleUpdateWarrant} onDelete={handleDeleteWarrant} routeWarrants={routeWarrants} onRouteToggle={toggleRouteWarrant} />} />
+                        <Route path="/advanced-search" element={<AdvancedSearch warrants={warrants} onUpdate={handleUpdateWarrant} onDelete={handleDeleteWarrant} routeWarrants={routeWarrants} onRouteToggle={toggleRouteWarrant} />} />
+                        <Route path="/recents" element={<RecentActivityPage warrants={warrants} onUpdate={handleUpdateWarrant} onDelete={handleDeleteWarrant} routeWarrants={routeWarrants} onRouteToggle={toggleRouteWarrant} />} />
+                        <Route path="/minor-search" element={<MinorSearch warrants={searchWarrants} onUpdate={handleUpdateWarrant} onDelete={handleDeleteWarrant} routeWarrants={routeWarrants} onRouteToggle={toggleRouteWarrant} />} />
+                        <Route path="/priority-list" element={<PriorityList warrants={priorityWarrants} onUpdate={handleUpdateWarrant} onDelete={handleDeleteWarrant} routeWarrants={routeWarrants} onRouteToggle={toggleRouteWarrant} />} />
 
-                    {/* specialized pages */}
-                    <Route path="/route-planner" element={<RoutePlanner
-                        warrants={selectedRouteWarrants}
-                        onRouteToggle={toggleRouteWarrant}
-                        onUpdate={handleUpdateWarrant}
-                    />} />
+                        {/* specialized pages */}
+                        <Route path="/route-planner" element={<RoutePlanner
+                            warrants={selectedRouteWarrants}
+                            onRouteToggle={toggleRouteWarrant}
+                            onUpdate={handleUpdateWarrant}
+                        />} />
 
-                    <Route path="/stats" element={<Stats warrants={warrants} />} />
-                    <Route path="/audit" element={<AuditPage />} />
-                    <Route path="/profile" element={<Profile />} />
-                    <Route path="/ai-assistant" element={<AIAssistantPage onAdd={handleAddWarrant} warrants={warrants} />} />
-                    <Route path="/map" element={<OperationalMap warrants={warrants} onUpdate={handleUpdateWarrant} />} />
+                        <Route path="/stats" element={<Stats warrants={warrants} />} />
+                        <Route path="/audit" element={<AuditPage />} />
+                        <Route path="/profile" element={<Profile />} />
+                        <Route path="/ai-assistant" element={<AIAssistantPage onAdd={handleAddWarrant} warrants={warrants} />} />
+                        <Route path="/map" element={<OperationalMap warrants={warrants} onUpdate={handleUpdateWarrant} />} />
 
-                    {/* Detail and Creation */}
-                    <Route path="/warrant-detail/:id" element={<WarrantDetail
-                        warrants={warrants}
-                        onUpdate={handleUpdateWarrant}
-                        onDelete={handleDeleteWarrant}
-                        onRouteToggle={toggleRouteWarrant}
-                        routeWarrants={routeWarrants}
-                    />} />
-                    <Route path="/new-warrant" element={<NewWarrant
-                        onAdd={handleAddWarrant}
-                        onUpdate={handleUpdateWarrant}
-                        warrants={warrants}
-                    />} />
+                        {/* Detail and Creation */}
+                        <Route path="/warrant-detail/:id" element={<WarrantDetail
+                            warrants={warrants}
+                            onUpdate={handleUpdateWarrant}
+                            onDelete={handleDeleteWarrant}
+                            onRouteToggle={toggleRouteWarrant}
+                            routeWarrants={routeWarrants}
+                        />} />
+                        <Route path="/new-warrant" element={<NewWarrant
+                            onAdd={handleAddWarrant}
+                            onUpdate={handleUpdateWarrant}
+                            warrants={warrants}
+                        />} />
 
-                    <Route path="*" element={<Navigate to="/" replace />} />
-                </Routes>
+                        <Route path="*" element={<Navigate to="/" replace />} />
+                    </Routes>
+                </div>
             </React.Suspense>
 
             {!hideNav && <BottomNav routeCount={routeWarrants.length} />}

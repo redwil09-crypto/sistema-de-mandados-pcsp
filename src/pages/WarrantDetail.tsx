@@ -147,7 +147,7 @@ const WarrantDetail = ({ warrants, onUpdate, onDelete, routeWarrants = [], onRou
             DADOS DO PROCESSO:
             - Alvo: ${currentData.name} (RG: ${currentData.rg || 'N/I'}, CPF: ${currentData.cpf || 'N/I'})
             - Processo: ${currentData.number}
-            - Vara/Fórum: ${currentData.court || capturasData.court || 'Não especificado'}
+            - Vara/Fórum: ${(currentData as any).court || capturasData.court || 'Não especificado'}
             - Crime: ${currentData.crime}
             - Pena/Regime: ${currentData.regime || 'N/I'}
             - Data Expedição: ${currentData.issueDate ? fmtDate(currentData.issueDate as string) : 'N/I'}
@@ -576,7 +576,7 @@ const WarrantDetail = ({ warrants, onUpdate, onDelete, routeWarrants = [], onRou
 
 
     const getReportText = () => {
-        if (aiReportResult) return aiReportResult; // Use AI result if available
+        if (aiDiligenceResult) return aiDiligenceResult; // Use AI result if available
 
         return `
 DELEGACIA DE INVESTIGAÇÕES GERAIS - DIG/PCSP
