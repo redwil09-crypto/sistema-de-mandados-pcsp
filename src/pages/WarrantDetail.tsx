@@ -1412,8 +1412,8 @@ Equipe de Capturas - DIG / PCSP
         <div className="min-h-screen bg-background-dark text-text-dark font-display relative overflow-x-hidden pb-40">
             {/* Tactical Grid Background Layer */}
             <div className="fixed inset-0 pointer-events-none opacity-20 z-0">
-                <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:40px_40px]"></div>
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_-20%,#4f46e544,transparent_70%)]"></div>
+                <div className="absolute inset-0 tactical-grid"></div>
+                <div className="absolute inset-0 tactical-glow"></div>
             </div>
 
             <Header title="Dossiê Tático" back showHome />
@@ -1621,554 +1621,265 @@ Equipe de Capturas - DIG / PCSP
                         </div>
                     )}
 
-                    {/* 7. Relatórios de Inteligência */}
-                    <div className="bg-surface-light dark:bg-surface-dark rounded-xl shadow-sm border border-border-light dark:border-border-dark overflow-hidden transition-all hover:shadow-md">
-                        <div className="p-4 border-b border-border-light dark:border-border-dark bg-gray-50/50 dark:bg-white/5 flex items-center justify-between">
-                            <h3 className="font-bold text-text-light dark:text-text-dark text-sm flex items-center gap-2">
-                                <Bot size={18} className="text-primary" /> Relatórios de Inteligência
-                            </h3>
-                            <div className="flex gap-2">
-                                <div className="relative">
-                                    <input
-                                        type="file"
-                                        id="report-upload"
-                                        className="hidden"
-                                        multiple
-                                        onChange={(e) => e.target.files && handleAttachFile(e, 'reports')}
-                                        disabled={isUploadingFile}
-                                    />
-                                    <label
-                                        htmlFor="report-upload"
-                                        className={`px-3 py-2 bg-gray-500/10 text-gray-600 dark:text-gray-400 text-[10px] font-black uppercase rounded-lg cursor-pointer hover:bg-gray-500/20 transition-all flex items-center gap-1 ${isUploadingFile ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                    >
-                                        <Paperclip size={14} /> ANEXAR
-                                    </label>
-                                </div>
-                                <button
-                                    onClick={() => setIsCapturasModalOpen(!isCapturasModalOpen)}
-                                    className={`px-3 py-2 text-[10px] font-black uppercase rounded-lg transition-all flex items-center gap-1 shadow-lg active:scale-95 ${isCapturasModalOpen ? 'bg-indigo-100 text-indigo-700' : 'bg-primary text-white shadow-primary/20'}`}
-                                >
-                                    <Sparkles size={14} /> {isCapturasModalOpen ? 'OCULTAR GERADOR' : 'NOVO RELATÓRIO'}
-                                </button>
-                            </div>
-                        </div>
-                        <div className="p-4">
-                            {data.reports && data.reports.length > 0 ? (
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                    {data.reports.map((file: string, idx: number) => (
-                                        <div key={idx} className="flex flex-col justify-between p-4 bg-white dark:bg-white/5 rounded-xl border border-border-light dark:border-border-dark hover:border-primary/50 transition-all shadow-sm group relative overflow-hidden">
-
-                                            {/* Decorator */}
-                                            <div className="absolute top-0 right-0 p-2 opacity-5 group-hover:opacity-10 transition-opacity">
-                                                <FileText size={48} />
-                                            </div>
-
-                                            <div className="flex items-start gap-3 mb-3">
-                                                <div className="p-2.5 bg-indigo-50 dark:bg-indigo-500/10 rounded-lg text-indigo-600 dark:text-indigo-400 shrink-0">
-                                                    <FileText size={20} />
-                                                </div>
-                                                <div className="min-w-0">
-                                                    <p className="text-[10px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-wider mb-0.5">
-                                                        Relatório #{idx + 1}
-                                                    </p>
-                                                    <p className="text-xs font-bold text-text-light dark:text-text-dark truncate leading-tight" title={file.split('/').pop()}>
-                                                        {file.split('/').pop()?.replace(/^\d+_/, '') || 'Documento sem nome'}
-                                                    </p>
-                                                    <p className="text-[10px] text-text-secondary-light mt-0.5">
-                                                        PDF • Gerado pela IA
-                                                    </p>
-                                                </div>
-                                            </div>
-
-                                            <div className="flex items-center gap-2 mt-auto">
-                                                <a
-                                                    href={getPublicUrl(file)}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="flex-1 py-2 px-3 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-500/10 dark:hover:bg-indigo-500/20 text-indigo-700 dark:text-indigo-300 rounded-lg text-xs font-bold transition-colors flex items-center justify-center gap-2"
-                                                >
-                                                    <ExternalLink size={14} /> ABRIR
-                                                </a>
-                                                <button
-                                                    onClick={() => handleDeleteAttachment(file)}
-                                                    className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-lg transition-colors"
-                                                    title="Excluir"
-                                                >
-                                                    <Trash2 size={16} />
-                                                </button>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            ) : (
-                                !isDraftOpen && (
-                                    <div className="text-center py-6 opacity-30">
-                                        <Bot size={24} className="mx-auto mb-2" />
-                                        <p className="text-[10px] uppercase font-black tracking-widest">Nenhum relatório de inteligência</p>
+                    {activeDetailTab === 'investigation' && (
+                        <div className="space-y-4">
+                            {/* Tactical Suggestion Card */}
+                            {aiTimeSuggestion && (
+                                <div className="bg-indigo-600/10 border border-indigo-500/30 rounded-2xl p-6 shadow-tactic relative overflow-hidden group">
+                                    <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:rotate-12 transition-transform">
+                                        <Sparkles size={80} />
                                     </div>
-                                )
-                            )}
-
-                            {/* Inline Report Generator */}
-                            {isCapturasModalOpen && (
-                                <div className="mt-6 border-t border-border-light dark:border-border-dark pt-6 animate-in slide-in-from-top-4 duration-300">
-                                    <div className="space-y-4">
-                                        <div className="p-2 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg flex items-center justify-between w-full">
-                                            <div className="flex items-center gap-2">
-                                                <FileText size={20} className="text-indigo-600 dark:text-indigo-400" />
-                                                <h4 className="text-base font-bold text-text-light dark:text-text-dark">Gerador de Relatório Profissional</h4>
-                                            </div>
-                                            <button
-                                                onClick={handleResetReportData}
-                                                className="text-[9px] font-black uppercase px-2 py-1 bg-white dark:bg-white/10 rounded border border-indigo-200 dark:border-indigo-800 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 transition-all flex items-center gap-1 shadow-sm active:scale-95"
-                                            >
-                                                <RotateCcw size={10} /> RECARREGAR DADOS BRUTOS
-                                            </button>
+                                    <div className="flex items-center gap-3 mb-4">
+                                        <div className="p-3 bg-indigo-500 rounded-2xl shadow-lg shadow-indigo-500/40">
+                                            <Zap size={24} className="text-white fill-current" />
                                         </div>
-
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <div>
-                                                <label className="block text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark uppercase mb-1">Número do Relatório</label>
-                                                <input
-                                                    type="text"
-                                                    value={capturasData.reportNumber}
-                                                    onChange={e => setCapturasData({ ...capturasData, reportNumber: e.target.value })}
-                                                    className="w-full bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg p-3 text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none text-xs"
-                                                    placeholder="Ex: 001/2026"
-                                                />
-                                            </div>
-                                            <div>
-                                                <label className="block text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark uppercase mb-1">Juízo de Direito</label>
-                                                <input
-                                                    type="text"
-                                                    value={capturasData.court}
-                                                    onChange={e => setCapturasData({ ...capturasData, court: e.target.value })}
-                                                    className="w-full bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg p-3 text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none text-xs"
-                                                    placeholder="Vara Criminal..."
-                                                />
-                                            </div>
-                                        </div>
-
-                                        {/* AI PRO SECTION */}
-                                        <div className="bg-indigo-50 dark:bg-indigo-900/10 p-4 rounded-xl border border-indigo-100 dark:border-indigo-500/20 space-y-3">
-                                            <div className="flex items-center gap-2 mb-1">
-                                                <Sparkles size={16} className="text-indigo-600" />
-                                                <label className="block text-xs font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest">
-                                                    IA PRO - ASSISTENTE DE REDAÇÃO
-                                                </label>
-                                            </div>
-
-                                            <div className="space-y-2">
-                                                <input
-                                                    type="text"
-                                                    placeholder="Ex: 'Faça o texto mais formal', 'Mencione que o alvo fugiu', 'Resuma em 2 parágrafos'..."
-                                                    value={capturasData.aiInstructions}
-                                                    onChange={e => setCapturasData({ ...capturasData, aiInstructions: e.target.value })}
-                                                    className="w-full bg-white dark:bg-black/20 border border-indigo-200 dark:border-indigo-500/30 rounded-lg p-3 text-xs text-text-light dark:text-text-dark outline-none focus:ring-2 focus:ring-indigo-500 transition-all placeholder:text-gray-400"
-                                                />
-
-                                                <button
-                                                    onClick={handleRefreshAiReport}
-                                                    disabled={isGeneratingAiReport}
-                                                    className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-bold text-xs uppercase tracking-wide shadow-md shadow-indigo-500/20 active:scale-95 transition-all disabled:opacity-70 flex items-center justify-center gap-2"
-                                                >
-                                                    {isGeneratingAiReport ? (
-                                                        <>
-                                                            <RefreshCw size={14} className="animate-spin" />
-                                                            PROCESSANDO INTELIGÊNCIA...
-                                                        </>
-                                                    ) : (
-                                                        <>
-                                                            <Sparkles size={14} />
-                                                            GERAR / REESCREVER TEXTO COM IA
-                                                        </>
-                                                    )}
-                                                </button>
-                                            </div>
-                                        </div>
-
                                         <div>
-                                            <label className="block text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark uppercase mb-1">Corpo do Relatório</label>
-                                            <textarea
-                                                value={capturasData.body}
-                                                onChange={e => setCapturasData({ ...capturasData, body: e.target.value })}
-                                                rows={12}
-                                                className="w-full bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg p-3 text-sm text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none resize-none leading-relaxed font-serif"
-                                                placeholder="O texto do relatório aparecerá aqui..."
-                                            />
-                                        </div>
-
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <div>
-                                                <label className="block text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark uppercase mb-1">Policial Responsável</label>
-                                                <input
-                                                    type="text"
-                                                    value={capturasData.signer}
-                                                    onChange={e => setCapturasData({ ...capturasData, signer: e.target.value })}
-                                                    className="w-full bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg p-3 text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none text-xs"
-                                                />
-                                            </div>
-                                            <div>
-                                                <label className="block text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark uppercase mb-1">Delegado Titular</label>
-                                                <input
-                                                    type="text"
-                                                    value={capturasData.delegate}
-                                                    onChange={e => setCapturasData({ ...capturasData, delegate: e.target.value })}
-                                                    className="w-full bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg p-3 text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none text-xs"
-                                                />
+                                            <h4 className="text-lg font-black text-white uppercase tracking-tighter">Sugestão Tática Antigravity</h4>
+                                            <div className="flex items-center gap-2">
+                                                <span className={`text-[10px] font-black px-2 py-0.5 rounded ${aiTimeSuggestion.confidence === 'Alta' ? 'bg-green-500/20 text-green-400' : 'bg-amber-500/20 text-amber-400'}`}>Confiança: {aiTimeSuggestion.confidence}</span>
                                             </div>
                                         </div>
-
-                                        <div className="pt-2">
-                                            <button
-                                                onClick={handleGenerateCapturasPDF}
-                                                disabled={isGeneratingAiReport}
-                                                className="w-full py-3 px-4 rounded-xl font-bold bg-green-600 text-white shadow-lg hover:bg-green-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
-                                            >
-                                                <FileCheck size={20} />
-                                                GERAR PDF OFICIAL E ANEXAR
-                                            </button>
+                                    </div>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 relative z-10">
+                                        <div className="bg-white/5 border border-white/5 rounded-xl p-4">
+                                            <p className="text-[10px] uppercase font-black text-indigo-400 mb-2 tracking-widest flex items-center gap-2">
+                                                <Calendar size={12} /> Janela Ideal
+                                            </p>
+                                            <p className="text-xl font-black text-white">{aiTimeSuggestion.suggestion}</p>
+                                            <p className="text-xs text-text-secondary-dark mt-2 leading-relaxed opacity-80">{aiTimeSuggestion.reason}</p>
+                                        </div>
+                                        <div className="bg-white/10 border border-white/10 rounded-xl p-4">
+                                            <p className="text-[10px] uppercase font-black text-indigo-400 mb-2 tracking-widest flex items-center gap-2">
+                                                <ShieldAlert size={12} /> Vetor de Abordagem
+                                            </p>
+                                            <p className="text-xs font-bold text-white leading-relaxed">{aiTimeSuggestion.strategy}</p>
                                         </div>
                                     </div>
                                 </div>
                             )}
-                        </div>
-                    </div>
 
-                    {/* 8. Investigação e Linha do Tempo */}
-                    <div className="bg-surface-light dark:bg-surface-dark rounded-xl shadow-sm border border-border-light dark:border-border-dark overflow-hidden transition-all hover:shadow-md">
-                        <div className="p-4 border-b border-border-light dark:border-border-dark bg-gray-50/50 dark:bg-white/5 flex items-center justify-between">
-                            <h3 className="font-bold text-text-light dark:text-text-dark text-sm flex items-center gap-2">
-                                <Cpu size={18} className="text-primary" /> Investigação e Linha do Tempo
-                            </h3>
-                        </div>
-                        <div className="p-5 space-y-6">
-                            <div className="bg-gray-100 dark:bg-white/5 p-4 rounded-xl border border-border-light dark:border-border-dark shadow-inner">
-                                <div className="flex justify-between items-center mb-2">
-                                    <span className="text-[10px] font-black text-text-secondary-light dark:text-text-dark/70 uppercase">Informações Brutas de Campo</span>
-                                    <button
-                                        onClick={handleAnalyzeDiligence}
-                                        disabled={!newDiligence.trim() || isAnalyzingDiligence}
-                                        className="bg-indigo-600 hover:bg-indigo-700 text-white text-[9px] font-black px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-all shadow-lg shadow-indigo-500/20 active:scale-95 disabled:opacity-50"
-                                    >
-                                        <Sparkles size={12} className={isAnalyzingDiligence ? 'animate-spin' : ''} />
-                                        ANALISAR COM GEMINI IA
+                            {/* Intelligent Report Generator HUD */}
+                            <div className="bg-surface-dark/80 backdrop-blur-xl border border-white/10 rounded-2xl p-5 shadow-glass space-y-5">
+                                <div className="flex items-center justify-between border-b border-white/5 pb-4">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center text-primary border border-primary/30">
+                                            <FileCheck size={20} />
+                                        </div>
+                                        <div>
+                                            <h3 className="text-sm font-black uppercase text-white tracking-widest">Escrivão de Elite</h3>
+                                            <p className="text-[10px] text-text-muted font-bold uppercase">Gerador de Relatórios Oficiais</p>
+                                        </div>
+                                    </div>
+                                    <button onClick={() => setIsCapturasModalOpen(true)} className="bg-primary hover:bg-primary-dark text-white px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest shadow-tactic transition-all active:scale-95 flex items-center gap-2">
+                                        <Sparkles size={16} /> NOVO RELATÓRIO
                                     </button>
                                 </div>
 
-                                <div className="relative">
-                                    <textarea
-                                        value={newDiligence}
-                                        onChange={(e) => setNewDiligence(e.target.value)}
-                                        placeholder="Relate informações brutas colhidas, observações, dados de vizinhos, veículos avistados ou qualquer informe para análise da IA..."
-                                        className="w-full bg-white dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-xl p-3 pr-12 text-sm min-h-[120px] outline-none focus:ring-2 focus:ring-primary shadow-sm transition-all"
-                                    />
-                                    <div className="absolute right-3 top-3">
-                                        <VoiceInput onTranscript={(text) => setNewDiligence(text)} currentValue={newDiligence} />
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    {data.reports && data.reports.length > 0 ? (
+                                        data.reports.map((file: string, idx: number) => (
+                                            <div key={idx} className="bg-white/5 border border-white/5 rounded-xl p-4 flex flex-col justify-between hover:bg-white/10 transition-all group">
+                                                <div className="flex items-start gap-3 mb-4">
+                                                    <div className="p-3 bg-indigo-500/20 rounded-xl text-indigo-400 group-hover:scale-110 transition-transform">
+                                                        <FileText size={20} />
+                                                    </div>
+                                                    <div className="min-w-0">
+                                                        <p className="text-[10px] font-black text-indigo-400 uppercase tracking-wider mb-1">RELATÓRIO OPERACIONAL</p>
+                                                        <p className="text-xs font-bold text-white truncate">{file.split('/').pop()?.replace(/^\d+_/, '')}</p>
+                                                    </div>
+                                                </div>
+                                                <div className="flex gap-2">
+                                                    <a href={getPublicUrl(file)} target="_blank" rel="noopener noreferrer" className="flex-1 bg-white/5 hover:bg-white/10 py-2 rounded-lg text-[10px] font-black uppercase flex items-center justify-center gap-2 text-white">
+                                                        <ExternalLink size={12} /> Visualizar
+                                                    </a>
+                                                    <button onClick={() => handleDeleteAttachment(file)} className="p-2 bg-red-500/10 text-red-500 hover:bg-red-50/20 rounded-lg transition-colors">
+                                                        <Trash2 size={12} />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <div className="col-span-2 text-center py-6 opacity-30 bg-white/5 rounded-2xl border-2 border-dashed border-white/10">
+                                            <p className="text-[10px] font-black uppercase tracking-widest">Nenhum documento tático emitido</p>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {activeDetailTab === 'timeline' && (
+                        <div className="space-y-6">
+                            {/* Investigation Feed Header */}
+                            <div className="bg-surface-dark/90 backdrop-blur-xl border border-white/10 rounded-2xl p-6 shadow-tactic">
+                                <div className="flex items-center gap-3 mb-6 border-b border-white/5 pb-4">
+                                    <div className="w-10 h-10 rounded-2xl bg-primary/20 flex items-center justify-center text-primary border border-primary/30">
+                                        <History size={20} />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-sm font-black uppercase text-white tracking-widest">Log Operacional</h3>
+                                        <p className="text-[10px] text-text-muted font-bold uppercase">Histórico Cronológico de Diligências</p>
                                     </div>
                                 </div>
 
-                                {aiDiligenceResult && (
-                                    <div className="mt-3 p-4 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800/50 rounded-xl animate-in fade-in zoom-in duration-300">
-                                        <div className="flex items-center gap-2 mb-2">
-                                            <Bot size={16} className="text-indigo-600" />
-                                            <span className="text-[10px] font-black uppercase text-indigo-600 dark:text-indigo-400 tracking-wider">Parecer de Análise Estratégica (Antigravity IA)</span>
-                                        </div>
-                                        <div className="text-xs text-text-light dark:text-text-dark leading-relaxed font-blue-500/10 prose prose-sm dark:prose-invert max-w-none whitespace-pre-wrap">
-                                            {aiDiligenceResult}
+                                <div className="bg-white/5 border border-white/10 rounded-2xl p-4 focus-within:ring-2 focus-within:ring-primary/40 transition-all shadow-inner relative group">
+                                    <div className="flex justify-between items-center mb-3">
+                                        <span className="text-[10px] font-black uppercase tracking-widest text-primary/80">Entrada de Informe de Campo</span>
+                                        <button onClick={handleAnalyzeDiligence} disabled={!newDiligence.trim() || isAnalyzingDiligence} className="text-[9px] font-black uppercase bg-indigo-500 text-white px-3 py-1.5 rounded-lg flex items-center gap-2 shadow-lg shadow-indigo-500/20 active:scale-95 disabled:opacity-50">
+                                            <Sparkles size={12} className={isAnalyzingDiligence ? 'animate-spin' : ''} /> ANALISAR INTELIGÊNCIA
+                                        </button>
+                                    </div>
+                                    <div className="relative">
+                                        <textarea value={newDiligence} onChange={e => setNewDiligence(e.target.value)} className="w-full bg-transparent border-none text-white text-sm outline-none resize-none min-h-[120px] pr-12 scrollbar-none" placeholder="Descreva informes brutos, vizinhos, veículos, placas..." />
+                                        <div className="absolute right-0 bottom-0 p-2">
+                                            <VoiceInput onTranscript={t => setNewDiligence(t)} currentValue={newDiligence} />
                                         </div>
                                     </div>
-                                )}
-
-                                <button
-                                    onClick={handleAddDiligence}
-                                    disabled={!newDiligence.trim()}
-                                    className="w-full mt-3 py-3 bg-primary text-white rounded-xl shadow-lg active:scale-95 disabled:opacity-50 transition-all font-bold text-xs flex items-center justify-center gap-2"
-                                >
-                                    <PlusCircle size={18} /> REGISTRAR E SALVAR NA LINHA DO TEMPO
-                                </button>
+                                    {aiDiligenceResult && (
+                                        <div className="mt-4 p-4 bg-indigo-500/10 border border-indigo-500/20 rounded-xl animate-in fade-in zoom-in-95">
+                                            <div className="flex items-center gap-2 mb-2">
+                                                <Bot size={14} className="text-indigo-400" />
+                                                <span className="text-[9px] font-black uppercase text-indigo-400 tracking-widest">Relatório Estratégico (Antigravity IA)</span>
+                                            </div>
+                                            <p className="text-xs text-text-dark/90 leading-relaxed whitespace-pre-wrap">{aiDiligenceResult}</p>
+                                        </div>
+                                    )}
+                                    <button onClick={handleAddDiligence} disabled={!newDiligence.trim()} className="w-full mt-4 bg-primary hover:bg-primary-dark text-white py-3.5 rounded-xl font-black text-xs uppercase tracking-widest shadow-tactic transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2">
+                                        <PlusCircle size={18} /> REGISTRAR NO PRONTUÁRIO
+                                    </button>
+                                </div>
                             </div>
 
-                            <div className="space-y-4 relative before:absolute before:left-[17px] before:top-2 before:bottom-0 before:w-1 before:bg-primary/10">
+                            <div className="space-y-4 relative before:absolute before:left-[17px] before:top-4 before:bottom-0 before:w-0.5 before:bg-white/10">
                                 {Array.isArray(data.diligentHistory) && data.diligentHistory.length > 0 ? (
-                                    [...data.diligentHistory].reverse().map((h) => (
-                                        <div key={h.id} className="relative pl-12 animate-in slide-in-from-left-4">
-                                            <div className={`absolute left-0 top-1 w-9 h-9 rounded-full border-4 border-surface-light dark:border-surface-dark shadow-sm flex items-center justify-center ${h.type === 'observation' ? 'bg-blue-500' : h.type === 'attempt' ? 'bg-amber-500' : 'bg-purple-600'
-                                                }`}>
-                                                {h.type === 'observation' ? <Eye size={16} className="text-white" /> : h.type === 'attempt' ? <RotateCcw size={16} className="text-white" /> : <ShieldAlert size={16} className="text-white" />}
+                                    [...data.diligentHistory].reverse().map((h: any, idx: number) => (
+                                        <div key={h.id} className="relative pl-12 animate-in slide-in-from-left duration-500" style={{ animationDelay: `${idx * 100}ms` }}>
+                                            <div className="absolute left-0 top-1 w-9 h-9 rounded-xl bg-surface-dark border border-white/10 flex items-center justify-center z-10 shadow-glass">
+                                                <History size={16} className="text-primary" />
                                             </div>
-                                            <div className="bg-white dark:bg-surface-dark p-4 rounded-xl border border-border-light dark:border-border-dark shadow-sm group hover:border-primary/30 transition-all">
-                                                <div className="flex justify-between items-center mb-2">
+                                            <div className="bg-surface-dark/90 backdrop-blur border border-white/5 rounded-2xl p-4 group hover:border-primary/30 transition-all shadow-glass">
+                                                <div className="flex justify-between items-center mb-3">
                                                     <div className="flex items-center gap-2">
-                                                        <span className="text-[11px] font-bold text-primary font-mono">{new Date(h.date).toLocaleDateString('pt-BR')}</span>
-                                                        <span className="text-[10px] text-text-secondary-light font-mono opacity-60">{new Date(h.date).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>
+                                                        <span className="text-[10px] font-black text-primary font-mono bg-primary/10 px-2 py-0.5 rounded border border-primary/20">{new Date(h.date).toLocaleDateString('pt-BR')}</span>
+                                                        <span className="text-[10px] text-text-muted font-mono opacity-60">{new Date(h.date).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>
                                                     </div>
-                                                    <button
-                                                        onClick={() => handleDeleteDiligence(h.id)}
-                                                        className="p-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-lg transition-all"
-                                                    >
+                                                    <button onClick={() => handleDeleteDiligence(h.id)} className="p-2 text-text-muted hover:text-red-500 transition-colors">
                                                         <Trash2 size={14} />
                                                     </button>
                                                 </div>
-                                                <p className="text-sm text-text-light dark:text-text-dark leading-relaxed font-medium">{h.notes}</p>
+                                                <p className="text-sm text-text-dark/90 leading-relaxed font-medium">{h.notes}</p>
                                             </div>
                                         </div>
                                     ))
                                 ) : (
-                                    <div className="text-center py-10 bg-gray-50/50 dark:bg-black/10 rounded-xl border-2 border-dashed border-border-light dark:border-border-dark">
-                                        <MessageSquare size={40} className="mx-auto text-gray-300 dark:text-gray-700 mb-3" />
-                                        <p className="text-xs text-text-secondary-light font-bold">Nenhum registro tático disponível para este alvo.</p>
-                                        <p className="text-[10px] text-text-secondary-light/60 mt-1">Use o campo acima para registrar diligências.</p>
+                                    <div className="text-center py-20 bg-white/5 rounded-3xl border-2 border-dashed border-white/5 mx-4">
+                                        <History size={40} className="mx-auto text-white/10 mb-4" />
+                                        <p className="text-xs text-text-muted font-black uppercase tracking-[0.2em]">Sem Histórico Operacional</p>
                                     </div>
                                 )}
                             </div>
                         </div>
-                    </div>
-
-                    {/* Tactical Footer: Observações Gerais */}
-                    <div className="bg-surface-dark/90 backdrop-blur-xl border border-white/10 rounded-2xl p-5 shadow-glass space-y-4">
-                        <div className="flex items-center gap-2 mb-2 pb-2 border-b border-white/5">
-                            <MessageSquare className="text-primary" size={16} />
-                            <span className="text-[11px] font-black uppercase tracking-widest">Observações Analíticas</span>
-                        </div>
-                        <textarea
-                            className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-sm text-white outline-none focus:ring-2 focus:ring-primary/20 transition-all resize-none min-h-[140px]"
-                            value={localData.observation || ''}
-                            onChange={e => handleFieldChange('observation', e.target.value)}
-                            placeholder="Adicione considerações estratégicas para futuras equipes..."
-                        />
-                    </div>
-
-                    {/* Sticky Tactical Confirmation Bar */}
-                    {hasChanges && (
-                        <div className="fixed bottom-[110px] left-4 right-4 p-4 bg-primary/90 backdrop-blur-xl border border-white/20 rounded-2xl z-[60] flex gap-3 animate-in slide-in-from-bottom duration-500 shadow-tactic">
-                            <button
-                                onClick={handleCancelEdits}
-                                className="flex-1 py-4 px-4 rounded-xl font-black text-[10px] uppercase tracking-widest bg-white/10 text-white hover:bg-white/20 transition-colors"
-                            >
-                                Abortar Alterações
-                            </button>
-                            <button
-                                onClick={() => setIsConfirmSaveOpen(true)}
-                                className="flex-1 py-4 px-4 rounded-xl font-black text-[10px] uppercase tracking-widest bg-white text-primary shadow-lg hover:shadow-white/20 transition-all flex items-center justify-center gap-2 active:scale-95"
-                            >
-                                <CheckCircle size={18} />
-                                SINCRONIZAR DADOS
-                            </button>
-                        </div>
                     )}
                 </div>
 
-                {/* Tactical Action Dock (Main Navigation & Quick Actions) */}
-                <div className="fixed bottom-0 left-0 right-0 p-4 pb-8 md:pb-8 bg-surface-dark/90 backdrop-blur-2xl border-t border-white/10 z-50 shadow-glass">
-                    <div className="max-w-xl mx-auto flex items-stretch gap-2">
-                        <Link
-                            to="/"
-                            className="flex-1 flex flex-col items-center justify-center gap-1 py-3 rounded-2xl bg-white/5 text-text-muted hover:bg-white/10 transition-all active:scale-95 border border-white/5"
-                        >
-                            <Home size={18} />
-                            <span className="text-[8px] font-black uppercase tracking-widest">Pátio</span>
-                        </Link>
-
-                        <Link
-                            to={`/new-warrant?edit=${data.id}`}
-                            className="flex-1 flex flex-col items-center justify-center gap-1 py-3 rounded-2xl bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition-all active:scale-95 shadow-inner"
-                        >
-                            <Edit size={18} />
-                            <span className="text-[8px] font-black uppercase tracking-widest">Ajustar</span>
-                        </Link>
-
-                        <button
-                            onClick={data.status === 'CUMPRIDO' ? handleReopen : handleFinalize}
-                            className={`flex-1 flex flex-col items-center justify-center gap-1 py-3 rounded-2xl border transition-all active:scale-95 shadow-glass ${data.status === 'CUMPRIDO'
-                                ? 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20 hover:bg-indigo-500/20'
-                                : 'bg-green-500/10 text-green-400 border-green-500/20 hover:bg-green-500/20'
-                                }`}
-                        >
-                            {data.status === 'CUMPRIDO' ? <RotateCcw size={18} /> : <CheckCircle size={18} />}
-                            <span className="text-[8px] font-black uppercase tracking-widest">{data.status === 'CUMPRIDO' ? 'REABRIR' : 'FECHAR'}</span>
-                        </button>
-
-                        <button
-                            onClick={handleDownloadPDF}
-                            className="flex-1 flex flex-col items-center justify-center gap-1 py-3 rounded-2xl bg-white text-primary shadow-tactic hover:shadow-white/20 transition-all active:scale-95"
-                        >
-                            <Printer size={18} />
-                            <span className="text-[8px] font-black uppercase tracking-widest text-primary">Dossiê PDF</span>
-                        </button>
-
-                        {isAdmin && (
-                            <button
-                                onClick={handleDelete}
-                                className="flex-1 flex flex-col items-center justify-center gap-1 py-3 rounded-2xl bg-risk-high/10 text-risk-high border border-risk-high/20 hover:bg-risk-high/20 transition-all active:scale-95"
-                            >
-                                <Trash2 size={18} />
-                                <span className="text-[8px] font-black uppercase tracking-widest">Deletar</span>
-                            </button>
-                        )}
+                {/* Tactical Footer: Observações Gerais */}
+                <div className="bg-surface-dark/90 backdrop-blur-xl border border-white/10 rounded-2xl p-5 shadow-glass space-y-4">
+                    <div className="flex items-center gap-2 mb-2 pb-2 border-b border-white/5">
+                        <MessageSquare className="text-primary" size={16} />
+                        <span className="text-[11px] font-black uppercase tracking-widest">Observações Analíticas</span>
                     </div>
+                    <textarea value={localData.observation || ''} onChange={e => handleFieldChange('observation', e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-sm text-white outline-none focus:ring-2 focus:ring-primary/20 transition-all resize-none min-h-[140px]" placeholder="Adicione considerações estratégicas para futuras equipes..." />
                 </div>
 
-                {/* Modals */}
-                <ConfirmModal
-                    isOpen={isConfirmSaveOpen}
-                    onCancel={() => setIsConfirmSaveOpen(false)}
-                    onConfirm={handleSaveChanges}
-                    title="Salvar Alterações"
-                    message="Deseja salvar todas as modificações feitas nos detalhes deste mandado?"
-                    confirmText="SALVAR AGORA"
-                    cancelText="CANCELAR"
-                    variant="primary"
-                />
-
-
-
-                <button
-                    onClick={handleDelete}
-                    className="flex-1 min-w-0 flex flex-col items-center justify-center gap-0.5 p-1.5 rounded-xl bg-red-500/10 text-red-500 transition-all active:scale-95 touch-manipulation hover:bg-red-500/20"
-                >
-                    <Trash2 size={16} />
-                    <span className="text-[8px] md:text-[9px] font-bold uppercase truncate w-full text-center">EXCLUIR</span>
-                </button>
+                {/* Sticky Tactical Confirmation Bar */}
+                {hasChanges && (
+                    <div className="fixed bottom-[110px] left-4 right-4 p-4 bg-primary/90 backdrop-blur-xl border border-white/20 rounded-2xl z-[60] flex gap-3 animate-in slide-in-from-bottom duration-500 shadow-tactic">
+                        <button onClick={handleCancelEdits} className="flex-1 py-4 px-4 rounded-xl font-black text-[10px] uppercase tracking-widest bg-white/10 text-white hover:bg-white/20 transition-colors">Abortar Alterações</button>
+                        <button onClick={() => setIsConfirmSaveOpen(true)} className="flex-1 py-4 px-4 rounded-xl font-black text-[10px] uppercase tracking-widest bg-white text-primary shadow-lg hover:shadow-white/20 transition-all flex items-center justify-center gap-2 active:scale-95">
+                            <CheckCircle size={18} /> SINCRONIZAR DADOS
+                        </button>
+                    </div>
+                )}
             </div>
+
+            {/* Tactical Action Dock */}
+            <div className="fixed bottom-0 left-0 right-0 p-4 pb-8 md:pb-8 bg-surface-dark/90 backdrop-blur-2xl border-t border-white/10 z-50 shadow-glass">
+                <div className="max-w-xl mx-auto flex items-stretch gap-2">
+                    <Link to="/" className="flex-1 flex flex-col items-center justify-center gap-1 py-3 rounded-2xl bg-white/5 text-text-muted hover:bg-white/10 transition-all active:scale-95 border border-white/5">
+                        <Home size={18} /><span className="text-[8px] font-black uppercase tracking-widest">Pátio</span>
+                    </Link>
+                    <Link to={`/new-warrant?edit=${data.id}`} className="flex-1 flex flex-col items-center justify-center gap-1 py-3 rounded-2xl bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition-all active:scale-95 shadow-inner">
+                        <Edit size={18} /><span className="text-[8px] font-black uppercase tracking-widest">Ajustar</span>
+                    </Link>
+                    <button onClick={data.status === 'CUMPRIDO' ? handleReopen : handleFinalize} className={`flex-1 flex flex-col items-center justify-center gap-1 py-3 rounded-2xl border transition-all active:scale-95 shadow-glass ${data.status === 'CUMPRIDO' ? 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20 hover:bg-indigo-500/20' : 'bg-green-500/10 text-green-400 border-green-500/20 hover:bg-green-500/20'}`}>
+                        {data.status === 'CUMPRIDO' ? <RotateCcw size={18} /> : <CheckCircle size={18} />}
+                        <span className="text-[8px] font-black uppercase tracking-widest">{data.status === 'CUMPRIDO' ? 'REABRIR' : 'FECHAR'}</span>
+                    </button>
+                    <button onClick={handleDownloadPDF} className="flex-1 flex flex-col items-center justify-center gap-1 py-3 rounded-2xl bg-white text-primary shadow-tactic hover:shadow-white/20 transition-all active:scale-95">
+                        <Printer size={18} /><span className="text-[8px] font-black uppercase tracking-widest text-primary">Dossiê PDF</span>
+                    </button>
+                    {isAdmin && (
+                        <button onClick={handleDelete} className="flex-1 flex flex-col items-center justify-center gap-1 py-3 rounded-2xl bg-risk-high/10 text-risk-high border border-risk-high/20 hover:bg-risk-high/20 transition-all active:scale-95">
+                            <Trash2 size={18} /><span className="text-[8px] font-black uppercase tracking-widest">Deletar</span>
+                        </button>
+                    )}
+                </div>
+            </div>
+
+            {/* Modals & Overlays */}
+            <ConfirmModal isOpen={isConfirmSaveOpen} onCancel={() => setIsConfirmSaveOpen(false)} onConfirm={handleSaveChanges} title="Sincronizar Protocolo" message="Deseja registrar as alterações no prontuário oficial deste alvo?" confirmText="Sincronizar" cancelText="Abortar" variant="primary" />
+            <ConfirmModal isOpen={isReopenConfirmOpen} onCancel={() => setIsReopenConfirmOpen(false)} onConfirm={handleConfirmReopen} title="Reabrir Prontuário" message="Confirmar reabertura do status para 'EM ABERTO'?" confirmText="Reabrir" cancelText="Cancelar" variant="primary" />
+            <ConfirmModal isOpen={isDeleteConfirmOpen} onCancel={() => setIsDeleteConfirmOpen(false)} onConfirm={handleConfirmDelete} title="Excluir Alvo" message="Deseja remover PERMANENTEMENTE este registro? Esta ação é irreversível." confirmText="Excluir" cancelText="Cancelar" variant="danger" />
+
+            {isCapturasModalOpen && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-300">
+                    <div className="bg-surface-dark border border-white/10 rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col shadow-tactic">
+                        <div className="p-5 border-b border-white/10 flex justify-between items-center bg-white/5">
+                            <div className="flex items-center gap-3"><Sparkles className="text-primary animate-pulse" size={20} /><h3 className="text-lg font-black uppercase tracking-tighter text-white">Centro de Redação Inteligente</h3></div>
+                            <button onClick={() => setIsCapturasModalOpen(false)} className="p-2 text-text-muted hover:text-white"><X size={24} /></button>
+                        </div>
+                        <div className="flex-1 overflow-y-auto p-6 space-y-6 scrollbar-none">
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-1"><label className="text-[10px] font-black text-primary uppercase tracking-widest">Identificador Relatório</label><input className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm text-white" value={capturasData.reportNumber} onChange={e => setCapturasData({ ...capturasData, reportNumber: e.target.value })} /></div>
+                                <div className="space-y-1"><label className="text-[10px] font-black text-primary uppercase tracking-widest">Comarca Judiciária</label><input className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm text-white" value={capturasData.court} onChange={e => setCapturasData({ ...capturasData, court: e.target.value })} /></div>
+                            </div>
+                            <div className="bg-indigo-500/5 border border-indigo-500/20 rounded-2xl p-5 space-y-4">
+                                <div className="flex items-center gap-2"><Cpu size={16} className="text-indigo-400" /><span className="text-[10px] font-black uppercase tracking-widest text-indigo-400">Prompt de Refinamento IA</span></div>
+                                <input className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-xs text-white placeholder:text-indigo-300/30" placeholder="Ex: 'Seja mais formal', 'Mencione a equipe de campo'..." value={capturasData.aiInstructions} onChange={e => setCapturasData({ ...capturasData, aiInstructions: e.target.value })} />
+                                <button onClick={handleRefreshAiReport} disabled={isGeneratingAiReport} className="w-full py-3 bg-indigo-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/20">{isGeneratingAiReport ? <RefreshCw size={14} className="animate-spin" /> : <Bot size={14} />} {isGeneratingAiReport ? 'ANTIGRAVITY PROCESSANDO...' : 'EXECUTAR ANÁLISE E REDAÇÃO IA'}</button>
+                            </div>
+                            <textarea className="w-full bg-white/5 border border-white/10 rounded-2xl p-5 text-sm leading-relaxed text-white min-h-[300px] font-serif" value={capturasData.body} onChange={e => setCapturasData({ ...capturasData, body: e.target.value })} />
+                        </div>
+                        <div className="p-5 border-t border-white/10 bg-white/5">
+                            <button onClick={handleGenerateCapturasPDF} className="w-full py-4 bg-primary text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-tactic flex items-center justify-center gap-2"><Printer size={18} /> IMPRIMIR E ANEXAR PDF OFICIAL</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {isFinalizeModalOpen && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+                    <div className="bg-surface-dark border border-white/10 rounded-3xl w-full max-w-md p-6 shadow-tactic space-y-6">
+                        <div className="flex items-center gap-3 border-b border-white/5 pb-4"><CheckCircle className="text-green-500" size={24} /><h3 className="text-xl font-black uppercase text-white tracking-tighter">Encerrar Protocolo</h3></div>
+                        <div className="space-y-4">
+                            <div className="space-y-1"><label className="text-[10px] font-black text-text-muted uppercase tracking-widest">Data Cumprimento</label><input type="date" className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white" value={finalizeFormData.date} onChange={e => setFinalizeFormData({ ...finalizeFormData, date: e.target.value })} /></div>
+                            <div className="space-y-1"><label className="text-[10px] font-black text-text-muted uppercase tracking-widest">Ofício DIG Vinculado</label><input type="text" className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white" value={finalizeFormData.digOffice} onChange={e => setFinalizeFormData({ ...finalizeFormData, digOffice: e.target.value })} /></div>
+                            <div className="space-y-1"><label className="text-[10px] font-black text-text-muted uppercase tracking-widest">Resultado Final</label><select className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white appearance-none" value={finalizeFormData.result} onChange={e => setFinalizeFormData({ ...finalizeFormData, result: e.target.value })}>{['PRESO', 'NEGATIVO', 'ENCAMINHADO', 'ÓBITO', 'CONTRA', 'LOCALIZADO'].map(opt => <option key={opt} value={opt} className="bg-surface-dark">{opt}</option>)}</select></div>
+                        </div>
+                        <div className="flex gap-3">
+                            <button onClick={() => setIsFinalizeModalOpen(false)} className="flex-1 py-3.5 rounded-2xl font-black text-[10px] uppercase tracking-widest bg-white/5 text-white hover:bg-white/10 transition-all">Cancelar</button>
+                            <button onClick={handleConfirmFinalize} className="flex-1 py-3.5 rounded-2xl font-black text-[10px] uppercase tracking-widest bg-green-500 text-white shadow-lg shadow-green-500/20">Finalizar Alvo</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {isPhotoModalOpen && (
+                <div className="fixed inset-0 z-[200] bg-black/95 backdrop-blur-xl flex items-center justify-center p-4" onClick={() => setIsPhotoModalOpen(false)}>
+                    <img src={data.img || `https://ui-avatars.com/api/?name=${encodeURIComponent(data.name)}&background=random&color=fff`} className="max-h-[85vh] max-w-full rounded-2xl shadow-tactic border border-white/20 object-contain animate-in zoom-in-95" alt={data.name} />
+                </div>
+            )}
         </div>
-
-                {
-        isReopenConfirmOpen && (
-            <ConfirmModal
-                isOpen={isReopenConfirmOpen}
-                title="Reabrir Mandado"
-                message="Deseja alterar o status deste mandado para EM ABERTO?"
-                onConfirm={handleConfirmReopen}
-                onCancel={() => setIsReopenConfirmOpen(false)}
-                confirmText="reabrir"
-                cancelText="cancelar"
-            />
-        )
-    }
-
-    {/* Modals & Overlays */ }
-    <ConfirmModal
-        isOpen={isConfirmSaveOpen}
-        onCancel={() => setIsConfirmSaveOpen(false)}
-        onConfirm={handleSaveChanges}
-        title="Sincronizar Protocolo"
-        message="Deseja registrar as alterações no prontuário oficial deste alvo?"
-        confirmText="Sincronizar"
-        cancelText="Abortar"
-        variant="primary"
-    />
-
-    {
-        isCapturasModalOpen && (
-            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-300">
-                <div className="bg-surface-dark border border-white/10 rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col shadow-tactic">
-                    <div className="p-5 border-b border-white/10 flex justify-between items-center bg-white/5">
-                        <div className="flex items-center gap-3">
-                            <Sparkles className="text-primary animate-pulse" size={20} />
-                            <h3 className="text-lg font-black uppercase tracking-tighter text-white">Centro de Redação Inteligente</h3>
-                        </div>
-                        <button onClick={() => setIsCapturasModalOpen(false)} className="p-2 text-text-muted hover:text-white transition-colors"><X size={24} /></button>
-                    </div>
-
-                    <div className="flex-1 overflow-y-auto p-6 space-y-6 scrollbar-none">
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-1">
-                                <label className="text-[10px] font-black text-primary uppercase tracking-widest">Identificador Relatório</label>
-                                <input className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm text-white" value={capturasData.reportNumber} onChange={e => setCapturasData({ ...capturasData, reportNumber: e.target.value })} />
-                            </div>
-                            <div className="space-y-1">
-                                <label className="text-[10px] font-black text-primary uppercase tracking-widest">Comarca Judiciária</label>
-                                <input className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm text-white" value={capturasData.court} onChange={e => setCapturasData({ ...capturasData, court: e.target.value })} />
-                            </div>
-                        </div>
-
-                        <div className="bg-indigo-500/5 border border-indigo-500/20 rounded-2xl p-5 space-y-4">
-                            <div className="flex items-center gap-2">
-                                <Cpu size={16} className="text-indigo-400" />
-                                <span className="text-[10px] font-black uppercase tracking-widest text-indigo-400">Prompt de Refinamento IA</span>
-                            </div>
-                            <input
-                                className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-xs text-white placeholder:text-indigo-300/30"
-                                placeholder="Ex: 'Seja mais formal', 'Mencione a equipe de campo'..."
-                                value={capturasData.aiInstructions}
-                                onChange={e => setCapturasData({ ...capturasData, aiInstructions: e.target.value })}
-                            />
-                            <button
-                                onClick={handleRefreshAiReport}
-                                disabled={isGeneratingAiReport}
-                                className="w-full py-3 bg-indigo-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/20 active:scale-95 disabled:opacity-50 transition-all"
-                            >
-                                {isGeneratingAiReport ? <RefreshCw size={14} className="animate-spin" /> : <Bot size={14} />}
-                                {isGeneratingAiReport ? 'ANTIGRAVITY PROCESSANDO...' : 'EXECUTAR ANÁLISE E REDAÇÃO IA'}
-                            </button>
-                        </div>
-
-                        <textarea
-                            className="w-full bg-white/5 border border-white/10 rounded-2xl p-5 text-sm leading-relaxed text-white min-h-[300px] font-serif"
-                            value={capturasData.body}
-                            onChange={e => setCapturasData({ ...capturasData, body: e.target.value })}
-                        />
-                    </div>
-
-                    <div className="p-5 border-t border-white/10 bg-white/5">
-                        <button
-                            onClick={handleGenerateCapturasPDF}
-                            className="w-full py-4 bg-primary text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-tactic active:scale-[0.98] transition-all flex items-center justify-center gap-2"
-                        >
-                            <Printer size={18} /> IMPRIMIR E ANEXAR PDF OFICIAL
-                        </button>
-                    </div>
-                </div>
-            </div>
-        )
-    }
-
-    {
-        isFinalizeModalOpen && (
-            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-300">
-                <div className="bg-surface-dark border border-white/10 rounded-3xl w-full max-w-md p-6 shadow-tactic space-y-6">
-                    <div className="flex items-center gap-3 border-b border-white/5 pb-4">
-                        <CheckCircle className="text-green-500" size={24} />
-                        <h3 className="text-xl font-black uppercase text-white tracking-tighter">Encerrar Protocolo</h3>
-                    </div>
-
-                    <div className="space-y-4">
-                        <div className="space-y-1">
-                            <label className="text-[10px] font-black text-text-muted uppercase tracking-widest">Data Cumprimento</label>
-                            <input type="date" className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white" value={finalizeFormData.date} onChange={e => setFinalizeFormData({ ...finalizeFormData, date: e.target.value })} />
-                        </div>
-                        <div className="space-y-1">
-                            <label className="text-[10px] font-black text-text-muted uppercase tracking-widest">Ofício DIG Vinculado</label>
-                            <input type="text" className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white" value={finalizeFormData.digOffice} onChange={e => setFinalizeFormData({ ...finalizeFormData, digOffice: e.target.value })} />
-                        </div>
-                        <div className="space-y-1">
-                            <label className="text-[10px] font-black text-text-muted uppercase tracking-widest">Resultado Final</label>
-                            <select className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white appearance-none" value={finalizeFormData.result} onChange={e => setFinalizeFormData({ ...finalizeFormData, result: e.target.value })}>
-                                {['PRESO', 'NEGATIVO', 'ENCAMINHADO', 'ÓBITO', 'CONTRA', 'LOCALIZADO'].map(opt => <option key={opt} value={opt} className="bg-surface-dark">{opt}</option>)}
-                            </select>
-                        </div>
-                    </div>
-
-                    <div className="flex gap-3">
-                        <button onClick={() => setIsFinalizeModalOpen(false)} className="flex-1 py-3.5 rounded-2xl font-black text-[10px] uppercase tracking-widest bg-white/5 text-white hover:bg-white/10 transition-all">Cancelar</button>
-                        <button onClick={handleConfirmFinalize} className="flex-1 py-3.5 rounded-2xl font-black text-[10px] uppercase tracking-widest bg-green-500 text-white shadow-lg shadow-green-500/20 active:scale-95 transition-all">Finalizar Alvo</button>
-                    </div>
-                </div>
-            </div>
-        )
-    }
-
-    {
-        isPhotoModalOpen && (
-            <div className="fixed inset-0 z-[200] bg-black/95 backdrop-blur-xl flex items-center justify-center p-4" onClick={() => setIsPhotoModalOpen(false)}>
-                <img src={data.img || `https://ui-avatars.com/api/?name=${encodeURIComponent(data.name)}&background=random&color=fff`} className="max-h-[85vh] max-w-full rounded-2xl shadow-tactic border border-white/20 object-contain animate-in zoom-in-95" alt={data.name} />
-            </div>
-        )
-    }
-        </div >
     );
 };
-
 export default WarrantDetail;
-```

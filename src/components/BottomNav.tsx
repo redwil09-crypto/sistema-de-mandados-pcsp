@@ -49,7 +49,6 @@ const BottomNav = ({ routeCount = 0 }: BottomNavProps) => {
     if (hideNav) return null;
 
     return (
-    return (
         <nav className="fixed bottom-4 left-4 right-4 z-50 rounded-2xl border border-white/5 bg-surface-dark/80 backdrop-blur-lg shadow-glass pb-safe">
             <div className="flex h-16 w-full items-center justify-around px-2">
                 <Link to="/" className={`relative flex flex-col items-center justify-center gap-1 w-14 h-14 rounded-xl transition-all ${isActive('/') ? 'text-primary' : 'text-text-secondary-dark hover:text-text-dark hover:bg-white/5'}`}>
