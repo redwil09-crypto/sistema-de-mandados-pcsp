@@ -1,0 +1,41 @@
+
+> sistema-de-mandados-pcsp@0.1.2 build
+> vite build
+
+[36mvite v6.4.1 [32mbuilding for production...[36m[39m
+transforming...
+[32m✓[39m 24 modules transformed.
+[31m✗[39m Build failed in 40.38s
+[31merror during build:
+[31m[vite-plugin-pwa:build] [plugin vite-plugin-pwa:build] src/pages/AIAssistantPage.tsx (1220:0): There was an error during the build:
+  Transform failed with 2 errors:
+C:/Users/Policial/OneDrive/Área de Trabalho/2025/sistema-de-mandados-pcsp (4)/src/pages/AIAssistantPage.tsx:1220:0: ERROR: The character "}" is not valid inside a JSX element
+C:/Users/Policial/OneDrive/Área de Trabalho/2025/sistema-de-mandados-pcsp (4)/src/pages/AIAssistantPage.tsx:1223:0: ERROR: Unexpected end of file before a closing "div" tag
+Additionally, handling the error in the 'buildEnd' hook caused the following error:
+  Transform failed with 2 errors:
+C:/Users/Policial/OneDrive/Área de Trabalho/2025/sistema-de-mandados-pcsp (4)/src/pages/AIAssistantPage.tsx:1220:0: ERROR: The character "}" is not valid inside a JSX element
+C:/Users/Policial/OneDrive/Área de Trabalho/2025/sistema-de-mandados-pcsp (4)/src/pages/AIAssistantPage.tsx:1223:0: ERROR: Unexpected end of file before a closing "div" tag[31m
+file: [36mC:/Users/Policial/OneDrive/Área de Trabalho/2025/sistema-de-mandados-pcsp (4)/src/pages/AIAssistantPage.tsx:1220:0[31m
+[33m
+[33mThe character "}" is not valid inside a JSX element[33m
+1218|              </div>
+1219|              );
+1220|  };
+   |  ^
+1221|  
+1222|              export default AIAssistantPage;
+
+[33mUnexpected end of file before a closing "div" tag[33m
+1221|  
+1222|              export default AIAssistantPage;
+1223|  
+   |  ^
+[31m
+    at getRollupError (file:///C:/Users/Policial/OneDrive/%C3%81rea%20de%20Trabalho/2025/sistema-de-mandados-pcsp%20(4)/node_modules/rollup/dist/es/shared/parseAst.js:401:41)
+    at file:///C:/Users/Policial/OneDrive/%C3%81rea%20de%20Trabalho/2025/sistema-de-mandados-pcsp%20(4)/node_modules/rollup/dist/es/shared/node-entry.js:23418:39
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async catchUnfinishedHookActions (file:///C:/Users/Policial/OneDrive/%C3%81rea%20de%20Trabalho/2025/sistema-de-mandados-pcsp%20(4)/node_modules/rollup/dist/es/shared/node-entry.js:22876:16)
+    at async rollupInternal (file:///C:/Users/Policial/OneDrive/%C3%81rea%20de%20Trabalho/2025/sistema-de-mandados-pcsp%20(4)/node_modules/rollup/dist/es/shared/node-entry.js:23401:5)
+    at async buildEnvironment (file:///C:/Users/Policial/OneDrive/%C3%81rea%20de%20Trabalho/2025/sistema-de-mandados-pcsp%20(4)/node_modules/vite/dist/node/chunks/dep-D4NMHUTW.js:46235:14)
+    at async Object.defaultBuildApp [as buildApp] (file:///C:/Users/Policial/OneDrive/%C3%81rea%20de%20Trabalho/2025/sistema-de-mandados-pcsp%20(4)/node_modules/vite/dist/node/chunks/dep-D4NMHUTW.js:46713:5)
+    at async CAC.<anonymous> (file:///C:/Users/Policial/OneDrive/%C3%81rea%20de%20Trabalho/2025/sistema-de-mandados-pcsp%20(4)/node_modules/vite/dist/node/cli.js:863:7)[39m
