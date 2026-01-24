@@ -12,10 +12,11 @@ import {
     Download, MapPin, Users, Database, Navigation,
     ShieldAlert, Activity, Scale, Search, Clock,
     ChevronDown, FileText, CheckCircle2, History,
-    Target, User
+    Target, User, Gavel
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Header from '../components/Header';
+import BottomNav from '../components/BottomNav';
 import { Warrant } from '../types';
 import { useWarrants } from '../contexts/WarrantContext';
 
@@ -228,6 +229,7 @@ const Stats = () => {
                 </div>
 
             </main>
+            <BottomNav />
         </div>
     );
 };

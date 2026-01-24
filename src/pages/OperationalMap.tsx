@@ -10,6 +10,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { geocodeAddress } from '../services/geocodingService';
 import { toast } from 'sonner';
 import { RefreshCw, MapPin, Navigation, Info, ShieldAlert } from 'lucide-react';
+import { useWarrants } from '../contexts/WarrantContext';
 
 // --- Tactical Markers (CSS-based DivIcons) ---
 const createPulseIcon = (colorClass: string, glowColor: string) => L.divIcon({
@@ -46,12 +47,8 @@ const getMarkerIcon = (warrant: Warrant) => {
     return prisonMarker;
 };
 
-interface OperationalMapProps {
-    warrants?: Warrant[];
-    onUpdate?: (id: string, updates: Partial<Warrant>) => Promise<boolean>;
-}
-
-const OperationalMap = ({ warrants: initialWarrants, onUpdate }: OperationalMapProps) => {
+const OperationalMap = () => {
+    const { warrants: allWarrants, updateWarrant } = useWarrants();
     const [warrants, setWarrants] = useState<Warrant[]>([]);
     const [loading, setLoading] = useState(true);
     const [isSyncing, setIsSyncing] = useState(false);
@@ -59,24 +56,13 @@ const OperationalMap = ({ warrants: initialWarrants, onUpdate }: OperationalMapP
     const [searchParams] = useSearchParams();
 
     useEffect(() => {
-        const loadData = async () => {
-            try {
-                const data = initialWarrants || await getWarrants();
-                // Filter only mapped and OPEN warrants for clarity
-                setWarrants(data.filter(w => w.latitude && w.longitude && w.status === 'EM ABERTO'));
-            } catch (error) {
-                console.error(error);
-            } finally {
-                setLoading(false);
-            }
-        };
-        loadData();
-    }, [initialWarrants]);
+        // Filter only mapped and OPEN warrants for clarity
+        setWarrants(allWarrants.filter(w => w.latitude && w.longitude && w.status === 'EM ABERTO'));
+        setLoading(false);
+    }, [allWarrants]);
 
     const handleBulkSync = async () => {
-        if (!onUpdate) return;
-        const all = initialWarrants || await getWarrants();
-        const unmapped = all.filter(w => w.status === 'EM ABERTO' && (!w.latitude || !w.longitude) && w.location);
+        const unmapped = allWarrants.filter(w => w.status === 'EM ABERTO' && (!w.latitude || !w.longitude) && w.location);
 
         if (unmapped.length === 0) {
             toast.info("Todos os mandados em aberto já estão mapeados.");
@@ -90,7 +76,7 @@ const OperationalMap = ({ warrants: initialWarrants, onUpdate }: OperationalMapP
         for (const w of unmapped) {
             const res = await geocodeAddress(w.location!);
             if (res) {
-                await onUpdate(w.id, { latitude: res.lat, longitude: res.lng });
+                await updateWarrant(w.id, { latitude: res.lat, longitude: res.lng });
                 count++;
             }
             await new Promise(r => setTimeout(r, 1000)); // Rate limiting
@@ -112,8 +98,8 @@ const OperationalMap = ({ warrants: initialWarrants, onUpdate }: OperationalMapP
         <div className="min-h-screen bg-background-dark text-text-dark font-display flex flex-col relative overflow-hidden">
             <Header title="Mapa Tático" back showHome />
 
-            {/* Map Container */}
-            <div className="flex-1 relative z-0">
+            {/* Map Container - Explicit Height */}
+            <div className="flex-1 relative z-0 h-[calc(100vh-64px)] w-full">
                 {typeof window !== 'undefined' && (
                     <MapContainer
                         center={center}
@@ -216,8 +202,6 @@ const OperationalMap = ({ warrants: initialWarrants, onUpdate }: OperationalMapP
                     font-family: 'Manrope', sans-serif !important;
                 }
             `}</style>
-
-            <BottomNav />
         </div>
     );
 }

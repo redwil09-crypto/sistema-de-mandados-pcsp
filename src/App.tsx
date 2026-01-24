@@ -98,7 +98,7 @@ function App() {
 
 function AppContent({ isDark, toggleTheme }: { isDark: boolean; toggleTheme: () => void }) {
     const location = useLocation();
-    const hideNav = ['/warrant-detail', '/new-warrant', '/ai-assistant'].some(p => location.pathname.startsWith(p));
+    const hideNav = ['/warrant-detail', '/new-warrant', '/ai-assistant', '/route-planner', '/map'].some(p => location.pathname.startsWith(p));
     const { routeWarrants, loading } = useWarrants();
 
     if (loading) {
