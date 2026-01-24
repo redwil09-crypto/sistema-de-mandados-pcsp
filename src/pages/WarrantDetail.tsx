@@ -1506,8 +1506,8 @@ Equipe de Capturas - DIG / PCSP
                             key={tab.id}
                             onClick={() => setActiveDetailTab(tab.id as any)}
                             className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${activeDetailTab === tab.id
-                                    ? 'bg-primary text-white shadow-tactic scale-[1.02]'
-                                    : 'text-text-secondary-dark hover:bg-white/5'
+                                ? 'bg-primary text-white shadow-tactic scale-[1.02]'
+                                : 'text-text-secondary-dark hover:bg-white/5'
                                 }`}
                         >
                             <tab.icon size={16} />
