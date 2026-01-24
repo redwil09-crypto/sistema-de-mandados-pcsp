@@ -1982,8 +1982,8 @@ Equipe de Capturas - DIG / PCSP
                         <button
                             onClick={data.status === 'CUMPRIDO' ? handleReopen : handleFinalize}
                             className={`flex-1 flex flex-col items-center justify-center gap-1 py-3 rounded-2xl border transition-all active:scale-95 shadow-glass ${data.status === 'CUMPRIDO'
-                                    ? 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20 hover:bg-indigo-500/20'
-                                    : 'bg-green-500/10 text-green-400 border-green-500/20 hover:bg-green-500/20'
+                                ? 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20 hover:bg-indigo-500/20'
+                                : 'bg-green-500/10 text-green-400 border-green-500/20 hover:bg-green-500/20'
                                 }`}
                         >
                             {data.status === 'CUMPRIDO' ? <RotateCcw size={18} /> : <CheckCircle size={18} />}
@@ -2048,153 +2048,128 @@ Equipe de Capturas - DIG / PCSP
         )
     }
 
+    {/* Modals & Overlays */ }
+    <ConfirmModal
+        isOpen={isConfirmSaveOpen}
+        onCancel={() => setIsConfirmSaveOpen(false)}
+        onConfirm={handleSaveChanges}
+        title="Sincronizar Protocolo"
+        message="Deseja registrar as alterações no prontuário oficial deste alvo?"
+        confirmText="Sincronizar"
+        cancelText="Abortar"
+        variant="primary"
+    />
+
     {
-        tagToRemove && (
-            <ConfirmModal
-                isOpen={!!tagToRemove}
-                title="Remover Prioridade"
-                message={`Deseja remover a prioridade "${tagToRemove}" deste mandado e voltar ao normal?`}
-                onConfirm={handleConfirmRemoveTag}
-                onCancel={() => setTagToRemove(null)}
-                confirmText="Sim, Remover"
-                cancelText="Não"
-                variant="danger"
-            />
-        )
-    }
-    {
-        isDeleteConfirmOpen && (
-            <ConfirmModal
-                isOpen={isDeleteConfirmOpen}
-                title="Excluir Permanentemente"
-                message="TEM CERTEZA que deseja EXCLUIR este mandado permanentemente? Esta ação não pode ser desfeita."
-                onConfirm={handleConfirmDelete}
-                onCancel={() => setIsDeleteConfirmOpen(false)}
-                confirmText="Excluir"
-                variant="danger"
-            />
+        isCapturasModalOpen && (
+            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-300">
+                <div className="bg-surface-dark border border-white/10 rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col shadow-tactic">
+                    <div className="p-5 border-b border-white/10 flex justify-between items-center bg-white/5">
+                        <div className="flex items-center gap-3">
+                            <Sparkles className="text-primary animate-pulse" size={20} />
+                            <h3 className="text-lg font-black uppercase tracking-tighter text-white">Centro de Redação Inteligente</h3>
+                        </div>
+                        <button onClick={() => setIsCapturasModalOpen(false)} className="p-2 text-text-muted hover:text-white transition-colors"><X size={24} /></button>
+                    </div>
+
+                    <div className="flex-1 overflow-y-auto p-6 space-y-6 scrollbar-none">
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-1">
+                                <label className="text-[10px] font-black text-primary uppercase tracking-widest">Identificador Relatório</label>
+                                <input className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm text-white" value={capturasData.reportNumber} onChange={e => setCapturasData({ ...capturasData, reportNumber: e.target.value })} />
+                            </div>
+                            <div className="space-y-1">
+                                <label className="text-[10px] font-black text-primary uppercase tracking-widest">Comarca Judiciária</label>
+                                <input className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm text-white" value={capturasData.court} onChange={e => setCapturasData({ ...capturasData, court: e.target.value })} />
+                            </div>
+                        </div>
+
+                        <div className="bg-indigo-500/5 border border-indigo-500/20 rounded-2xl p-5 space-y-4">
+                            <div className="flex items-center gap-2">
+                                <Cpu size={16} className="text-indigo-400" />
+                                <span className="text-[10px] font-black uppercase tracking-widest text-indigo-400">Prompt de Refinamento IA</span>
+                            </div>
+                            <input
+                                className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-xs text-white placeholder:text-indigo-300/30"
+                                placeholder="Ex: 'Seja mais formal', 'Mencione a equipe de campo'..."
+                                value={capturasData.aiInstructions}
+                                onChange={e => setCapturasData({ ...capturasData, aiInstructions: e.target.value })}
+                            />
+                            <button
+                                onClick={handleRefreshAiReport}
+                                disabled={isGeneratingAiReport}
+                                className="w-full py-3 bg-indigo-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/20 active:scale-95 disabled:opacity-50 transition-all"
+                            >
+                                {isGeneratingAiReport ? <RefreshCw size={14} className="animate-spin" /> : <Bot size={14} />}
+                                {isGeneratingAiReport ? 'ANTIGRAVITY PROCESSANDO...' : 'EXECUTAR ANÁLISE E REDAÇÃO IA'}
+                            </button>
+                        </div>
+
+                        <textarea
+                            className="w-full bg-white/5 border border-white/10 rounded-2xl p-5 text-sm leading-relaxed text-white min-h-[300px] font-serif"
+                            value={capturasData.body}
+                            onChange={e => setCapturasData({ ...capturasData, body: e.target.value })}
+                        />
+                    </div>
+
+                    <div className="p-5 border-t border-white/10 bg-white/5">
+                        <button
+                            onClick={handleGenerateCapturasPDF}
+                            className="w-full py-4 bg-primary text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-tactic active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+                        >
+                            <Printer size={18} /> IMPRIMIR E ANEXAR PDF OFICIAL
+                        </button>
+                    </div>
+                </div>
+            </div>
         )
     }
 
     {
         isFinalizeModalOpen && (
+            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-300">
+                <div className="bg-surface-dark border border-white/10 rounded-3xl w-full max-w-md p-6 shadow-tactic space-y-6">
+                    <div className="flex items-center gap-3 border-b border-white/5 pb-4">
+                        <CheckCircle className="text-green-500" size={24} />
+                        <h3 className="text-xl font-black uppercase text-white tracking-tighter">Encerrar Protocolo</h3>
+                    </div>
 
-            <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                <div className="bg-surface-light dark:bg-surface-dark rounded-xl w-full max-w-md shadow-2xl border border-border-light dark:border-border-dark animate-in fade-in zoom-in duration-200">
-                    <div className="p-6">
-                        <h3 className="text-xl font-bold text-text-light dark:text-text-dark mb-4">Finalizar Mandado</h3>
-
-                        <div className="space-y-4">
-                            <div>
-                                <label className="block text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark uppercase mb-1">Data do Cumprimento</label>
-                                <input
-                                    type="date"
-                                    value={finalizeFormData.date}
-                                    onChange={e => setFinalizeFormData({ ...finalizeFormData, date: e.target.value })}
-                                    className="w-full bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg p-3 text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark uppercase mb-1">Número do Relatório</label>
-                                <input
-                                    type="text"
-                                    value={finalizeFormData.reportNumber}
-                                    onChange={e => setFinalizeFormData({ ...finalizeFormData, reportNumber: e.target.value })}
-                                    placeholder="Ex: REL-2024/001"
-                                    className="w-full bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg p-3 text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark uppercase mb-1">Número de Ofício DIG</label>
-                                <input
-                                    type="text"
-                                    value={finalizeFormData.digOffice}
-                                    onChange={e => setFinalizeFormData({ ...finalizeFormData, digOffice: e.target.value })}
-                                    placeholder="Ex: 123/2024"
-                                    className="w-full bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg p-3 text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark uppercase mb-1">Resultado</label>
-                                <select
-                                    value={finalizeFormData.result}
-                                    onChange={e => setFinalizeFormData({ ...finalizeFormData, result: e.target.value })}
-                                    className="w-full bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg p-3 text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none"
-                                >
-                                    {(data.type?.toLowerCase().includes('busca') || data.type?.toLowerCase().includes('apreensão'))
-                                        ? ['Apreendido', 'Fora de Validade', 'Negativo', 'Encaminhado', 'Contra', 'Ofício Localiza', 'Óbito'].map(opt => (
-                                            <option key={opt} value={opt}>{opt}</option>
-                                        ))
-                                        : [
-                                            'PRESO',
-                                            'NEGATIVO',
-                                            'ENCAMINHADO',
-                                            'ÓBITO',
-                                            'CONTRA',
-                                            'LOCALIZADO',
-                                            'OFÍCIO',
-                                            'CUMPRIDO NO FÓRUM'
-                                        ].map(opt => (
-                                            <option key={opt} value={opt}>{opt}</option>
-                                        ))
-                                    }
-                                </select>
-                            </div>
+                    <div className="space-y-4">
+                        <div className="space-y-1">
+                            <label className="text-[10px] font-black text-text-muted uppercase tracking-widest">Data Cumprimento</label>
+                            <input type="date" className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white" value={finalizeFormData.date} onChange={e => setFinalizeFormData({ ...finalizeFormData, date: e.target.value })} />
                         </div>
-
-                        <div className="flex gap-3 mt-8">
-                            <button
-                                onClick={() => setIsFinalizeModalOpen(false)}
-                                className="flex-1 py-3 px-4 rounded-xl font-bold bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:opacity-90 transition-opacity"
-                            >
-                                Cancelar
-                            </button>
-                            <button
-                                onClick={handleConfirmFinalize}
-                                className="flex-1 py-3 px-4 rounded-xl font-bold bg-green-600 text-white shadow-lg hover:bg-green-700 transition-colors flex items-center justify-center gap-2"
-                            >
-                                <CheckCircle size={20} />
-                                FECHAR
-                            </button>
+                        <div className="space-y-1">
+                            <label className="text-[10px] font-black text-text-muted uppercase tracking-widest">Ofício DIG Vinculado</label>
+                            <input type="text" className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white" value={finalizeFormData.digOffice} onChange={e => setFinalizeFormData({ ...finalizeFormData, digOffice: e.target.value })} />
                         </div>
+                        <div className="space-y-1">
+                            <label className="text-[10px] font-black text-text-muted uppercase tracking-widest">Resultado Final</label>
+                            <select className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white appearance-none" value={finalizeFormData.result} onChange={e => setFinalizeFormData({ ...finalizeFormData, result: e.target.value })}>
+                                {['PRESO', 'NEGATIVO', 'ENCAMINHADO', 'ÓBITO', 'CONTRA', 'LOCALIZADO'].map(opt => <option key={opt} value={opt} className="bg-surface-dark">{opt}</option>)}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div className="flex gap-3">
+                        <button onClick={() => setIsFinalizeModalOpen(false)} className="flex-1 py-3.5 rounded-2xl font-black text-[10px] uppercase tracking-widest bg-white/5 text-white hover:bg-white/10 transition-all">Cancelar</button>
+                        <button onClick={handleConfirmFinalize} className="flex-1 py-3.5 rounded-2xl font-black text-[10px] uppercase tracking-widest bg-green-500 text-white shadow-lg shadow-green-500/20 active:scale-95 transition-all">Finalizar Alvo</button>
                     </div>
                 </div>
             </div>
         )
     }
+
     {
         isPhotoModalOpen && (
-            <div
-                className="fixed inset-0 z-[110] bg-black/95 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200"
-                onClick={() => setIsPhotoModalOpen(false)}
-            >
-                <div className="relative max-w-4xl w-full flex flex-col items-center">
-                    <button
-                        className="absolute -top-12 right-0 text-white hover:text-primary transition-colors p-2"
-                        onClick={() => setIsPhotoModalOpen(false)}
-                    >
-                        <X size={32} />
-                    </button>
-                    <img
-                        src={data.img || `https://ui-avatars.com/api/?name=${encodeURIComponent(data.name)}&background=random&color=fff`}
-                        alt={data.name}
-                        className="max-h-[85vh] max-w-full rounded-xl shadow-2xl border-2 border-white/10 object-contain animate-in zoom-in-95 duration-300"
-                    />
-                    <div className="mt-4 text-center">
-                        <h2 className="text-white font-black text-xl uppercase tracking-widest">{data.name}</h2>
-                        <p className="text-gray-400 text-sm">{data.number}</p>
-                    </div>
-                </div>
+            <div className="fixed inset-0 z-[200] bg-black/95 backdrop-blur-xl flex items-center justify-center p-4" onClick={() => setIsPhotoModalOpen(false)}>
+                <img src={data.img || `https://ui-avatars.com/api/?name=${encodeURIComponent(data.name)}&background=random&color=fff`} className="max-h-[85vh] max-w-full rounded-2xl shadow-tactic border border-white/20 object-contain animate-in zoom-in-95" alt={data.name} />
             </div>
         )
     }
-
-
-            </div >
-            );
+        </div >
+    );
 };
 
 export default WarrantDetail;
+```
