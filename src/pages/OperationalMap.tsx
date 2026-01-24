@@ -118,35 +118,68 @@ const OperationalMap = ({ warrants: initialWarrants, onUpdate }: OperationalMapP
     }, [warrants, searchParams]);
 
     return (
-        <div className="min-h-screen bg-background-light dark:bg-background-dark pb-20 flex flex-col">
-            <Header title="Mapa Operacional (BETA)" />
+        <div className="min-h-screen bg-background-dark text-text-dark font-display flex flex-col relative overflow-hidden">
+            <Header title="Mapa Tático" back showHome />
 
+            {/* Map Container */}
             <div className="flex-1 relative z-0">
                 {typeof window !== 'undefined' && (
-                    <MapContainer center={center} zoom={11} scrollWheelZoom={true} style={{ height: '100%', width: '100%', minHeight: '80vh' }}>
+                    <MapContainer
+                        center={center}
+                        zoom={13}
+                        scrollWheelZoom={true}
+                        style={{ height: '100%', width: '100%', background: '#09090b' }}
+                        zoomControl={false}
+                    >
+                        {/* Dark Matter Tiles (Tactical Look) */}
                         <TileLayer
-                            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                            attribution='&copy; <a href="https://carto.com/">CARTO</a>'
+                            url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
                         />
+
                         {warrants.map(w => (
                             <Marker
                                 key={w.id}
                                 position={[w.latitude!, w.longitude!]}
-                                icon={getMarkerIcon(w.type)}
+                                icon={getMarkerIcon(w)}
                             >
-                                <Popup>
-                                    <div className="min-w-[200px]">
-                                        <h3 className="font-bold text-sm mb-1">{w.name}</h3>
-                                        <div className="text-xs text-gray-600 mb-2">
-                                            <p>{w.type}</p>
-                                            <p className="font-mono text-[10px]">{w.status}</p>
+                                <Popup className="tactical-popup border-none bg-transparent shadow-none" closeButton={false}>
+                                    <div className="w-[220px] bg-surface-dark/95 backdrop-blur-xl border border-white/10 rounded-xl p-3 shadow-glass overflow-hidden font-display text-text-dark">
+                                        {/* Header Color Bar */}
+                                        <div className={`absolute top-0 left-0 right-0 h-1 ${getMarkerIcon(w) === highRiskMarker ? 'bg-risk-high' : (getMarkerIcon(w) === searchMarker ? 'bg-amber-500' : 'bg-primary')}`}></div>
+
+                                        <div className="flex justify-between items-start mb-2 mt-1">
+                                            <h3 className="font-bold text-sm text-white leading-tight pr-2">{w.name}</h3>
+                                            {getMarkerIcon(w) === highRiskMarker && <ShieldAlert size={14} className="text-risk-high shrink-0 animate-pulse" />}
                                         </div>
-                                        <button
-                                            onClick={() => navigate(`/warrant-detail/${w.id}`)}
-                                            className="w-full bg-primary text-white py-1 px-3 rounded text-xs font-bold"
-                                        >
-                                            VER FICHA
-                                        </button>
+
+                                        <div className="space-y-1 mb-3">
+                                            <div className="flex items-center gap-1.5 p-1.5 rounded bg-white/5 border border-white/5">
+                                                <div className={`w-1.5 h-1.5 rounded-full ${getMarkerIcon(w) === highRiskMarker ? 'bg-risk-high' : 'bg-primary'}`}></div>
+                                                <span className="text-[10px] font-bold uppercase text-text-secondary-dark truncate max-w-[150px]">{w.crime || 'Crime não inf.'}</span>
+                                            </div>
+                                            <div className="flex items-center gap-1.5 px-1">
+                                                <MapPin size={10} className="text-text-muted" />
+                                                <span className="text-[9px] text-text-muted truncate">{w.location}</span>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex gap-2">
+                                            <button
+                                                onClick={() => navigate(`/warrant-detail/${w.id}`)}
+                                                className="flex-1 bg-white/5 hover:bg-white/10 border border-white/10 text-white text-[10px] font-bold py-1.5 rounded-lg transition-colors flex items-center justify-center gap-1"
+                                            >
+                                                <Info size={12} /> DETALHES
+                                            </button>
+                                            <a
+                                                href={`https://waze.com/ul?ll=${w.latitude},${w.longitude}&navigate=yes`}
+                                                target="_blank"
+                                                rel="noreferrer"
+                                                className="flex-1 bg-primary/20 hover:bg-primary/30 border border-primary/30 text-primary text-[10px] font-bold py-1.5 rounded-lg transition-colors flex items-center justify-center gap-1"
+                                            >
+                                                <Navigation size={12} /> IR
+                                            </a>
+                                        </div>
                                     </div>
                                 </Popup>
                             </Marker>
@@ -154,43 +187,48 @@ const OperationalMap = ({ warrants: initialWarrants, onUpdate }: OperationalMapP
                     </MapContainer>
                 )}
 
-                {/* Floating Info Card - Compact */}
-                <div className="absolute top-4 right-4 z-[500] bg-white dark:bg-surface-dark p-2 rounded-lg shadow-xl border border-border-light dark:border-border-dark max-w-[140px]">
-                    <div className="flex items-center gap-1.5 mb-1">
-                        <MapPin size={12} className="text-primary" />
-                        <span className="text-[10px] font-black uppercase">Alvos</span>
-                    </div>
-                    <p className="text-xl font-black text-center leading-none">{warrants.length}</p>
-                    <p className="text-[8px] text-gray-500 text-center mt-1 mb-2">Monitorados</p>
-
-                    <div className="space-y-1 mb-2 border-t border-border-light dark:border-border-dark pt-2 text-[8px] flex flex-col items-center">
-                        <div className="flex items-center gap-2">
-                            <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-                            <span className="font-bold text-gray-500 uppercase">Prisão</span>
+                {/* Floating HUD Controller */}
+                <div className="absolute top-4 right-4 z-[400] flex flex-col gap-2">
+                    <div className="bg-surface-dark/90 backdrop-blur border border-white/10 p-3 rounded-xl shadow-tactic w-40">
+                        <div className="flex items-center gap-2 mb-2 pb-2 border-b border-white/5">
+                            <MapPin className="text-primary" size={14} />
+                            <span className="text-[10px] font-black uppercase tracking-widest text-text-secondary-dark">Radares</span>
                         </div>
-                        <div className="flex items-center gap-2">
-                            <div className="w-2 h-2 rounded-full bg-orange-500"></div>
-                            <span className="font-bold text-gray-500 uppercase">Busca</span>
-                        </div>
-                    </div>
+                        <div className="text-2xl font-black text-white leading-none mb-1">{warrants.length}</div>
+                        <div className="text-[9px] text-text-muted uppercase font-bold">Alvos na Área</div>
 
-                    <button
-                        onClick={handleBulkSync}
-                        disabled={isSyncing}
-                        className={`w-full flex items-center justify-center gap-1.5 py-1.5 px-2 rounded text-[9px] font-black tracking-tight transition-all active:scale-95 ${isSyncing
-                            ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                            : 'bg-indigo-600 text-white shadow-md hover:bg-indigo-700'
-                            }`}
-                    >
-                        <RefreshCw size={10} className={isSyncing ? 'animate-spin' : ''} />
-                        {isSyncing ? 'SINC...' : 'ATUALIZAR'}
-                    </button>
+                        <button
+                            onClick={handleBulkSync}
+                            disabled={isSyncing}
+                            className="w-full mt-3 bg-white/5 hover:bg-white/10 border border-white/5 text-text-secondary-dark text-[9px] font-bold py-1.5 rounded-lg transition-all flex items-center justify-center gap-2"
+                        >
+                            <RefreshCw size={10} className={isSyncing ? 'animate-spin' : ''} />
+                            {isSyncing ? 'SYNC...' : 'ATUALIZAR GPS'}
+                        </button>
+                    </div>
                 </div>
             </div>
 
+            {/* Custom CSS for Popup override */}
+            <style>{`
+                .leaflet-popup-content-wrapper {
+                    background: transparent !important;
+                    box-shadow: none !important;
+                    padding: 0 !important;
+                    border: none !important;
+                }
+                .leaflet-popup-tip {
+                    background: #18181b !important; /* surface-dark */
+                    border-top: 1px solid rgba(255,255,255,0.1);
+                }
+                .leaflet-container {
+                    font-family: 'Manrope', sans-serif !important;
+                }
+            `}</style>
+
             <BottomNav />
         </div>
-    )
+    );
 }
 
 export default OperationalMap;
