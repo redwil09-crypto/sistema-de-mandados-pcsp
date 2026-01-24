@@ -1409,79 +1409,88 @@ Equipe de Capturas - DIG / PCSP
 
 
     return (
-        <div className="min-h-screen pb-32 bg-background-light dark:bg-background-dark">
-            <Header
-                title="Detalhes do Mandado"
-                back
-                showHome
-            />
-            <div className="p-4 pb-4 space-y-4">
+    return (
+        <div className="min-h-screen bg-background-dark text-text-dark font-display relative overflow-x-hidden pb-40">
+            {/* Tactical Grid Background Layer */}
+            <div className="fixed inset-0 pointer-events-none opacity-20 z-0">
+                <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:40px_40px]"></div>
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_-20%,#4f46e544,transparent_70%)]"></div>
+            </div>
 
-                <div className="bg-surface-light dark:bg-surface-dark p-4 rounded-xl shadow-sm border border-border-light dark:border-border-dark">
-                    <div className="flex gap-4">
-                        <div className="shrink-0">
+            <Header title="Dossiê Tático" back showHome />
+
+            {/* Main Content Layout */}
+            <div className="relative z-10 p-4 space-y-4 max-w-5xl mx-auto">
+
+                {/* 1. Tactical Profile Header */}
+                <div className="bg-surface-dark/60 backdrop-blur-xl border border-white/10 rounded-2xl p-4 shadow-tactic overflow-hidden relative group">
+                    {/* Animated Glow Decorator */}
+                    <div className="absolute -top-24 -right-24 w-48 h-48 bg-primary/10 rounded-full blur-3xl group-hover:bg-primary/20 transition-all"></div>
+
+                    <div className="flex flex-col sm:flex-row gap-6 relative">
+                        <div className="relative shrink-0 mx-auto sm:mx-0">
                             <img
                                 src={data.img || `https://ui-avatars.com/api/?name=${encodeURIComponent(data.name)}&background=random&color=fff`}
                                 alt={data.name}
                                 onClick={() => setIsPhotoModalOpen(true)}
-                                className="h-40 w-40 rounded-xl object-cover border-2 border-primary/20 shadow-lg bg-gray-100 dark:bg-gray-800 cursor-zoom-in hover:scale-[1.02] transition-transform active:scale-95"
+                                className="h-44 w-44 rounded-2xl object-cover border-2 border-white/10 shadow-glass cursor-zoom-in hover:scale-[1.02] transition-transform"
                             />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                            <textarea
-                                className="text-lg font-bold bg-transparent border-none text-text-light dark:text-text-dark leading-tight w-full focus:ring-1 focus:ring-primary/20 rounded-md px-1 -ml-1 resize-none h-auto overflow-hidden whitespace-normal break-words"
-                                value={localData.name || ''}
-                                onChange={e => {
-                                    handleFieldChange('name', e.target.value);
-                                    e.target.style.height = 'auto';
-                                    e.target.style.height = e.target.scrollHeight + 'px';
-                                }}
-                                rows={2}
-                                placeholder="Nome do Procurado"
-                            />
-                            <select
-                                className="text-sm text-primary font-medium mt-1 bg-transparent border-none focus:ring-1 focus:ring-primary/20 rounded px-1 -ml-1 cursor-pointer outline-none"
-                                value={localData.type || ''}
-                                onChange={e => handleFieldChange('type', e.target.value)}
-                            >
-                                <option value="MANDADO DE PRISÃO">MANDADO DE PRISÃO</option>
-                                <option value="BUSCA E APREENSÃO">BUSCA E APREENSÃO</option>
-                                <option value="MANDADO DE PRISÃO CIVIL">MANDADO DE PRISÃO CIVIL</option>
-                                <option value="OUTRO">OUTRO</option>
-                            </select>
-                            <div className="mt-2">
-                                <select
-                                    className={`text-xs font-bold px-2 py-1 rounded inline-block cursor-pointer border-none focus:ring-2 focus:ring-primary/40 outline-none appearance-none ${localData.status === 'EM ABERTO' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' :
-                                        localData.status === 'CUMPRIDO' || localData.status === 'PRESO' || localData.status === 'FINALIZADO' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
-                                            'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400'
-                                        }`}
-                                    value={localData.status || ''}
-                                    onChange={e => handleFieldChange('status', e.target.value)}
-                                >
-                                    <option value="EM ABERTO">EM ABERTO</option>
-                                    <option value="CUMPRIDO">CUMPRIDO</option>
-                                    <option value="PRESO">PRESO</option>
-                                    <option value="FINALIZADO">FINALIZADO</option>
-                                    <option value="PENDENTE">PENDENTE</option>
-                                </select>
+                            <div className="absolute -bottom-2 -right-2 bg-primary p-2 rounded-xl shadow-lg border border-white/20">
+                                <ShieldAlert size={18} className="text-white animate-pulse" />
                             </div>
-                            {Array.isArray(data.tags) && data.tags.length > 0 && (
-                                <div className="flex flex-wrap gap-2 mt-3">
-                                    {data.tags.map((tag: string) => (
-                                        <button
-                                            key={tag}
-                                            onClick={() => setTagToRemove(tag)}
-                                            title="Clique para remover prioridade"
-                                            className={`text-[10px] font-bold px-2 py-1 rounded-lg border-2 flex items-center gap-1 transition-all hover:scale-105 active:scale-95 ${tag === 'Urgente'
-                                                ? 'bg-red-500 border-red-500 text-white shadow-md hover:bg-red-600'
-                                                : 'bg-amber-500 border-amber-500 text-white shadow-md hover:bg-amber-600'
-                                                }`}>
-                                            {tag === 'Urgente' ? <Zap size={10} /> : <Bell size={10} />}
-                                            {tag}
-                                        </button>
-                                    ))}
+                        </div>
+
+                        <div className="flex-1 space-y-4 text-center sm:text-left">
+                            <div>
+                                <div className="flex flex-wrap justify-center sm:justify-start items-center gap-2 mb-1">
+                                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-primary bg-primary/10 px-2 py-0.5 rounded border border-primary/20">
+                                        Identificação Biométrica
+                                    </span>
+                                    {localData.status === 'EM ABERTO' && (
+                                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-risk-high bg-risk-high/10 px-2 py-0.5 rounded border border-risk-high/20 animate-pulse">
+                                            Status: Foragido
+                                        </span>
+                                    )}
                                 </div>
-                            )}
+                                <h1 className="text-2xl font-black text-white leading-tight uppercase group-hover:text-primary transition-colors">
+                                    {localData.name}
+                                </h1>
+                                <p className="text-sm text-text-secondary-dark font-medium font-mono mt-1 opacity-70">
+                                    PROC. Nº {localData.number}
+                                </p>
+                            </div>
+
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                <div className="bg-white/5 border border-white/5 p-2 rounded-xl text-center">
+                                    <p className="text-[9px] uppercase font-bold text-text-muted mb-0.5 tracking-tighter">Tipo Crime</p>
+                                    <p className="text-xs font-black text-white truncate px-1">{localData.crime || 'N/I'}</p>
+                                </div>
+                                <div className="bg-white/5 border border-white/5 p-2 rounded-xl text-center">
+                                    <p className="text-[9px] uppercase font-bold text-text-muted mb-0.5 tracking-tighter">Regime Prisional</p>
+                                    <p className="text-xs font-black text-white">{localData.regime || 'N/I'}</p>
+                                </div>
+                                <div className="bg-white/5 border border-white/5 p-2 rounded-xl text-center">
+                                    <p className="text-[9px] uppercase font-bold text-text-muted mb-0.5 tracking-tighter">Idade Captura</p>
+                                    <p className="text-xs font-black text-white">{localData.age || 'N/I'}</p>
+                                </div>
+                                <div className="bg-white/5 border border-white/5 p-2 rounded-xl text-center">
+                                    <p className="text-[9px] uppercase font-bold text-text-muted mb-0.5 tracking-tighter">Expedição</p>
+                                    <p className="text-xs font-black text-white font-mono">{localData.issueDate || 'N/I'}</p>
+                                </div>
+                            </div>
+
+                            <div className="flex flex-wrap justify-center sm:justify-start gap-2 pt-1">
+                                {data.tags?.map(tag => (
+                                    <span key={tag} className="text-[10px] font-black uppercase bg-primary/20 text-primary border border-primary/30 px-3 py-1 rounded-full flex items-center gap-1.5 shadow-sm">
+                                        <Zap size={10} className="fill-current" /> {tag}
+                                    </span>
+                                ))}
+                                {localData.ifoodResult && (
+                                    <span className="text-[10px] font-black uppercase bg-amber-500/10 text-amber-500 border border-amber-500/20 px-3 py-1 rounded-full flex items-center gap-1.5 shadow-sm">
+                                        <Bike size={10} /> iFood Inteligência
+                                    </span>
+                                )}
+                            </div>
                         </div>
                     </div>
                 </div>

@@ -9,27 +9,41 @@ import BottomNav from '../components/BottomNav';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { geocodeAddress } from '../services/geocodingService';
 import { toast } from 'sonner';
-import { RefreshCw, User, MapPin } from 'lucide-react';
+import { RefreshCw, MapPin, Navigation, Info, ShieldAlert } from 'lucide-react';
 
-// Custom Icons for different warrant types
-const createIcon = (color: string) => new L.Icon({
-    iconUrl: `https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-${color}.png`,
-    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-    iconSize: [25, 41],
-    iconAnchor: [12, 41],
-    popupAnchor: [1, -34],
-    shadowSize: [41, 41]
+// --- Tactical Markers (CSS-based DivIcons) ---
+const createPulseIcon = (colorClass: string, glowColor: string) => L.divIcon({
+    className: 'custom-div-icon',
+    html: `
+        <div class="relative flex items-center justify-center w-6 h-6">
+            <span class="absolute inline-flex h-full w-full rounded-full opacity-75 animate-ping ${colorClass}"></span>
+            <span class="relative inline-flex rounded-full h-3 w-3 ${colorClass} shadow-[0_0_10px_${glowColor}]"></span>
+        </div>
+    `,
+    iconSize: [24, 24],
+    iconAnchor: [12, 12],
+    popupAnchor: [0, -12]
 });
 
-const prisonIcon = createIcon('blue');
-const searchIcon = createIcon('orange');
+// Markers
+const prisonMarker = createPulseIcon('bg-primary', '#6366f1');
+const searchMarker = createPulseIcon('bg-amber-500', '#f59e0b');
+const highRiskMarker = createPulseIcon('bg-risk-high', '#f43f5e'); // Red pulse for high risk
 
-const getMarkerIcon = (type: string) => {
-    const t = type.toLowerCase();
-    if (t.includes('busca') || t.includes('apreensão')) {
-        return searchIcon;
+const getMarkerIcon = (warrant: Warrant) => {
+    const t = (warrant.type || '').toLowerCase();
+    const c = (warrant.crime || '').toUpperCase();
+
+    // Prioridade Alta / Risco
+    if (c.includes('HOMICIDIO') || c.includes('ROUBO') || c.includes('TRÁFICO') || c.includes('ESTUPRO')) {
+        return highRiskMarker;
     }
-    return prisonIcon;
+
+    if (t.includes('busca') || t.includes('apreensão')) {
+        return searchMarker;
+    }
+
+    return prisonMarker;
 };
 
 interface OperationalMapProps {
@@ -48,8 +62,8 @@ const OperationalMap = ({ warrants: initialWarrants, onUpdate }: OperationalMapP
         const loadData = async () => {
             try {
                 const data = initialWarrants || await getWarrants();
-                // Show only mapped ones
-                setWarrants(data.filter(w => w.latitude && w.longitude));
+                // Filter only mapped and OPEN warrants for clarity
+                setWarrants(data.filter(w => w.latitude && w.longitude && w.status === 'EM ABERTO'));
             } catch (error) {
                 console.error(error);
             } finally {
@@ -79,8 +93,7 @@ const OperationalMap = ({ warrants: initialWarrants, onUpdate }: OperationalMapP
                 await onUpdate(w.id, { latitude: res.lat, longitude: res.lng });
                 count++;
             }
-            // Small delay to respect Nominatim usage policy
-            await new Promise(r => setTimeout(r, 1000));
+            await new Promise(r => setTimeout(r, 1000)); // Rate limiting
         }
 
         setIsSyncing(false);
@@ -90,31 +103,9 @@ const OperationalMap = ({ warrants: initialWarrants, onUpdate }: OperationalMapP
     const center = useMemo(() => {
         const pLat = searchParams.get('lat');
         const pLng = searchParams.get('lng');
-
-        if (pLat && pLng) {
-            return [parseFloat(pLat), parseFloat(pLng)] as any;
-        }
-
-        if (warrants.length === 0) return [-23.55052, -46.633309]; // Default SP Center
-
-        // Simple clustering: finding the warrant that has more neighbors within ~2km
-        let bestWarrant = warrants[0];
-        let maxNeighbors = -1;
-
-        warrants.forEach(w1 => {
-            let neighbors = 0;
-            warrants.forEach(w2 => {
-                const dLat = Math.abs(w1.latitude! - w2.latitude!);
-                const dLng = Math.abs(w1.longitude! - w2.longitude!);
-                if (dLat < 0.02 && dLng < 0.02) neighbors++; // approx 2km
-            });
-            if (neighbors > maxNeighbors) {
-                maxNeighbors = neighbors;
-                bestWarrant = w1;
-            }
-        });
-
-        return [bestWarrant.latitude!, bestWarrant.longitude!] as any;
+        if (pLat && pLng) return [parseFloat(pLat), parseFloat(pLng)] as any;
+        if (warrants.length === 0) return [-23.55052, -46.633309]; // SP
+        return [warrants[0].latitude!, warrants[0].longitude!] as any;
     }, [warrants, searchParams]);
 
     return (
