@@ -1926,36 +1926,88 @@ Equipe de Capturas - DIG / PCSP
                         </div>
                     </div>
 
-                    <div className="bg-surface-light dark:bg-surface-dark p-4 rounded-xl shadow-sm border border-border-light dark:border-border-dark whitespace-pre-wrap">
-                        <h3 className="font-bold text-text-light dark:text-text-dark mb-3 flex items-center gap-2">
-                            <MessageSquare size={18} className="text-primary" /> Observações
-                        </h3>
+                    {/* Tactical Footer: Observações Gerais */}
+                    <div className="bg-surface-dark/90 backdrop-blur-xl border border-white/10 rounded-2xl p-5 shadow-glass space-y-4">
+                        <div className="flex items-center gap-2 mb-2 pb-2 border-b border-white/5">
+                            <MessageSquare className="text-primary" size={16} />
+                            <span className="text-[11px] font-black uppercase tracking-widest">Observações Analíticas</span>
+                        </div>
                         <textarea
-                            className="w-full bg-gray-50 dark:bg-white/5 border border-border-light dark:border-border-dark rounded-xl p-3 text-sm text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none resize-none min-h-[120px] transition-all"
+                            className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-sm text-white outline-none focus:ring-2 focus:ring-primary/20 transition-all resize-none min-h-[140px]"
                             value={localData.observation || ''}
                             onChange={e => handleFieldChange('observation', e.target.value)}
-                            placeholder="Adicione observações importantes aqui..."
+                            placeholder="Adicione considerações estratégicas para futuras equipes..."
                         />
                     </div>
 
-                    {/* Sticky Save Changes Bar */}
+                    {/* Sticky Tactical Confirmation Bar */}
                     {hasChanges && (
-                        <div className="fixed bottom-[100px] left-4 right-4 p-4 bg-primary/95 dark:bg-primary/90 backdrop-blur-md rounded-xl z-[60] flex gap-3 animate-in slide-in-from-bottom duration-300 shadow-2xl">
+                        <div className="fixed bottom-[110px] left-4 right-4 p-4 bg-primary/90 backdrop-blur-xl border border-white/20 rounded-2xl z-[60] flex gap-3 animate-in slide-in-from-bottom duration-500 shadow-tactic">
                             <button
                                 onClick={handleCancelEdits}
-                                className="flex-1 py-3 px-4 rounded-xl font-bold bg-white/20 text-white hover:bg-white/30 transition-colors"
+                                className="flex-1 py-4 px-4 rounded-xl font-black text-[10px] uppercase tracking-widest bg-white/10 text-white hover:bg-white/20 transition-colors"
                             >
-                                Descartar
+                                Abortar Alterações
                             </button>
                             <button
                                 onClick={() => setIsConfirmSaveOpen(true)}
-                                className="flex-1 py-3 px-4 rounded-xl font-bold bg-white text-primary shadow-lg hover:bg-gray-100 transition-colors flex items-center justify-center gap-2"
+                                className="flex-1 py-4 px-4 rounded-xl font-black text-[10px] uppercase tracking-widest bg-white text-primary shadow-lg hover:shadow-white/20 transition-all flex items-center justify-center gap-2 active:scale-95"
                             >
-                                <CheckCircle size={20} />
-                                SALVAR ALTERAÇÕES
+                                <CheckCircle size={18} />
+                                SINCRONIZAR DADOS
                             </button>
                         </div>
                     )}
+                </div>
+
+                {/* Tactical Action Dock (Main Navigation & Quick Actions) */}
+                <div className="fixed bottom-0 left-0 right-0 p-4 pb-8 md:pb-8 bg-surface-dark/90 backdrop-blur-2xl border-t border-white/10 z-50 shadow-glass">
+                    <div className="max-w-xl mx-auto flex items-stretch gap-2">
+                        <Link
+                            to="/"
+                            className="flex-1 flex flex-col items-center justify-center gap-1 py-3 rounded-2xl bg-white/5 text-text-muted hover:bg-white/10 transition-all active:scale-95 border border-white/5"
+                        >
+                            <Home size={18} />
+                            <span className="text-[8px] font-black uppercase tracking-widest">Pátio</span>
+                        </Link>
+
+                        <Link
+                            to={`/new-warrant?edit=${data.id}`}
+                            className="flex-1 flex flex-col items-center justify-center gap-1 py-3 rounded-2xl bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition-all active:scale-95 shadow-inner"
+                        >
+                            <Edit size={18} />
+                            <span className="text-[8px] font-black uppercase tracking-widest">Ajustar</span>
+                        </Link>
+
+                        <button
+                            onClick={data.status === 'CUMPRIDO' ? handleReopen : handleFinalize}
+                            className={`flex-1 flex flex-col items-center justify-center gap-1 py-3 rounded-2xl border transition-all active:scale-95 shadow-glass ${data.status === 'CUMPRIDO'
+                                    ? 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20 hover:bg-indigo-500/20'
+                                    : 'bg-green-500/10 text-green-400 border-green-500/20 hover:bg-green-500/20'
+                                }`}
+                        >
+                            {data.status === 'CUMPRIDO' ? <RotateCcw size={18} /> : <CheckCircle size={18} />}
+                            <span className="text-[8px] font-black uppercase tracking-widest">{data.status === 'CUMPRIDO' ? 'REABRIR' : 'FECHAR'}</span>
+                        </button>
+
+                        <button
+                            onClick={handleDownloadPDF}
+                            className="flex-1 flex flex-col items-center justify-center gap-1 py-3 rounded-2xl bg-white text-primary shadow-tactic hover:shadow-white/20 transition-all active:scale-95"
+                        >
+                            <Printer size={18} />
+                            <span className="text-[8px] font-black uppercase tracking-widest text-primary">Dossiê PDF</span>
+                        </button>
+
+                        {isAdmin && (
+                            <button
+                                onClick={handleDelete}
+                                className="flex-1 flex flex-col items-center justify-center gap-1 py-3 rounded-2xl bg-risk-high/10 text-risk-high border border-risk-high/20 hover:bg-risk-high/20 transition-all active:scale-95"
+                            >
+                                <Trash2 size={18} />
+                                <span className="text-[8px] font-black uppercase tracking-widest">Deletar</span>
+                            </button>
+                        )}
+                    </div>
                 </div>
 
                 {/* Modals */}
@@ -1971,215 +2023,178 @@ Equipe de Capturas - DIG / PCSP
                 />
 
 
-                {/* Fixed Bottom Action Bar */}
-                <div className="fixed bottom-0 left-0 right-0 p-3 pb-6 md:pb-6 bg-white/80 dark:bg-background-dark/80 backdrop-blur-lg border-t border-border-light dark:border-border-dark z-50 animate-in slide-in-from-bottom duration-300 shadow-[0_-4px_10px_rgba(0,0,0,0.05)]">
-                    <div className="max-w-md mx-auto flex items-stretch gap-1.5 md:gap-2">
-                        <Link
-                            to="/"
-                            className="flex-1 min-w-0 flex flex-col items-center justify-center gap-0.5 p-1.5 rounded-xl bg-gray-500/10 text-gray-600 dark:text-gray-400 transition-all active:scale-95 touch-manipulation hover:bg-gray-500/20"
-                        >
-                            <Home size={16} />
-                            <span className="text-[8px] md:text-[9px] font-bold uppercase truncate w-full text-center">Início</span>
-                        </Link>
 
-                        <Link
-                            to={`/new-warrant?edit=${data.id}`}
-                            className="flex-1 min-w-0 flex flex-col items-center justify-center gap-0.5 p-1.5 rounded-xl bg-primary/10 text-primary transition-all active:scale-95 touch-manipulation hover:bg-primary/20"
-                        >
-                            <Edit size={16} />
-                            <span className="text-[8px] md:text-[9px] font-bold uppercase truncate w-full text-center">Editar</span>
-                        </Link>
+                <button
+                    onClick={handleDelete}
+                    className="flex-1 min-w-0 flex flex-col items-center justify-center gap-0.5 p-1.5 rounded-xl bg-red-500/10 text-red-500 transition-all active:scale-95 touch-manipulation hover:bg-red-500/20"
+                >
+                    <Trash2 size={16} />
+                    <span className="text-[8px] md:text-[9px] font-bold uppercase truncate w-full text-center">EXCLUIR</span>
+                </button>
+            </div>
+        </div>
 
-                        <button
-                            onClick={data.status === 'CUMPRIDO' ? handleReopen : handleFinalize}
-                            className={`flex-1 min-w-0 flex flex-col items-center justify-center gap-0.5 p-1.5 rounded-xl transition-all active:scale-95 touch-manipulation ${data.status === 'CUMPRIDO'
-                                ? 'bg-blue-600/10 text-blue-600 hover:bg-blue-600/20'
-                                : 'bg-green-600/10 text-green-600 hover:bg-green-600/20'
-                                }`}
-                        >
-                            {data.status === 'CUMPRIDO' ? <RotateCcw size={16} /> : <CheckCircle size={16} />}
-                            <span className="text-[8px] md:text-[9px] font-bold uppercase truncate w-full text-center">{data.status === 'CUMPRIDO' ? 'REABRIR' : 'FECHAR'}</span>
-                        </button>
+                {
+        isReopenConfirmOpen && (
+            <ConfirmModal
+                isOpen={isReopenConfirmOpen}
+                title="Reabrir Mandado"
+                message="Deseja alterar o status deste mandado para EM ABERTO?"
+                onConfirm={handleConfirmReopen}
+                onCancel={() => setIsReopenConfirmOpen(false)}
+                confirmText="reabrir"
+                cancelText="cancelar"
+            />
+        )
+    }
 
-                        <button
-                            onClick={handleDownloadPDF}
-                            className="flex-1 min-w-0 flex flex-col items-center justify-center gap-0.5 p-1.5 rounded-xl bg-indigo-600 text-white shadow-lg shadow-indigo-500/20 transition-all active:scale-95 touch-manipulation hover:bg-indigo-700"
-                        >
-                            <Printer size={16} />
-                            <span className="text-[8px] md:text-[9px] font-bold uppercase truncate w-full text-center">FICHA</span>
-                        </button>
+    {
+        tagToRemove && (
+            <ConfirmModal
+                isOpen={!!tagToRemove}
+                title="Remover Prioridade"
+                message={`Deseja remover a prioridade "${tagToRemove}" deste mandado e voltar ao normal?`}
+                onConfirm={handleConfirmRemoveTag}
+                onCancel={() => setTagToRemove(null)}
+                confirmText="Sim, Remover"
+                cancelText="Não"
+                variant="danger"
+            />
+        )
+    }
+    {
+        isDeleteConfirmOpen && (
+            <ConfirmModal
+                isOpen={isDeleteConfirmOpen}
+                title="Excluir Permanentemente"
+                message="TEM CERTEZA que deseja EXCLUIR este mandado permanentemente? Esta ação não pode ser desfeita."
+                onConfirm={handleConfirmDelete}
+                onCancel={() => setIsDeleteConfirmOpen(false)}
+                confirmText="Excluir"
+                variant="danger"
+            />
+        )
+    }
 
-                        <button
-                            onClick={handleDelete}
-                            className="flex-1 min-w-0 flex flex-col items-center justify-center gap-0.5 p-1.5 rounded-xl bg-red-500/10 text-red-500 transition-all active:scale-95 touch-manipulation hover:bg-red-500/20"
-                        >
-                            <Trash2 size={16} />
-                            <span className="text-[8px] md:text-[9px] font-bold uppercase truncate w-full text-center">EXCLUIR</span>
-                        </button>
+    {
+        isFinalizeModalOpen && (
+
+            <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                <div className="bg-surface-light dark:bg-surface-dark rounded-xl w-full max-w-md shadow-2xl border border-border-light dark:border-border-dark animate-in fade-in zoom-in duration-200">
+                    <div className="p-6">
+                        <h3 className="text-xl font-bold text-text-light dark:text-text-dark mb-4">Finalizar Mandado</h3>
+
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark uppercase mb-1">Data do Cumprimento</label>
+                                <input
+                                    type="date"
+                                    value={finalizeFormData.date}
+                                    onChange={e => setFinalizeFormData({ ...finalizeFormData, date: e.target.value })}
+                                    className="w-full bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg p-3 text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark uppercase mb-1">Número do Relatório</label>
+                                <input
+                                    type="text"
+                                    value={finalizeFormData.reportNumber}
+                                    onChange={e => setFinalizeFormData({ ...finalizeFormData, reportNumber: e.target.value })}
+                                    placeholder="Ex: REL-2024/001"
+                                    className="w-full bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg p-3 text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark uppercase mb-1">Número de Ofício DIG</label>
+                                <input
+                                    type="text"
+                                    value={finalizeFormData.digOffice}
+                                    onChange={e => setFinalizeFormData({ ...finalizeFormData, digOffice: e.target.value })}
+                                    placeholder="Ex: 123/2024"
+                                    className="w-full bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg p-3 text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark uppercase mb-1">Resultado</label>
+                                <select
+                                    value={finalizeFormData.result}
+                                    onChange={e => setFinalizeFormData({ ...finalizeFormData, result: e.target.value })}
+                                    className="w-full bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg p-3 text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none"
+                                >
+                                    {(data.type?.toLowerCase().includes('busca') || data.type?.toLowerCase().includes('apreensão'))
+                                        ? ['Apreendido', 'Fora de Validade', 'Negativo', 'Encaminhado', 'Contra', 'Ofício Localiza', 'Óbito'].map(opt => (
+                                            <option key={opt} value={opt}>{opt}</option>
+                                        ))
+                                        : [
+                                            'PRESO',
+                                            'NEGATIVO',
+                                            'ENCAMINHADO',
+                                            'ÓBITO',
+                                            'CONTRA',
+                                            'LOCALIZADO',
+                                            'OFÍCIO',
+                                            'CUMPRIDO NO FÓRUM'
+                                        ].map(opt => (
+                                            <option key={opt} value={opt}>{opt}</option>
+                                        ))
+                                    }
+                                </select>
+                            </div>
+                        </div>
+
+                        <div className="flex gap-3 mt-8">
+                            <button
+                                onClick={() => setIsFinalizeModalOpen(false)}
+                                className="flex-1 py-3 px-4 rounded-xl font-bold bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:opacity-90 transition-opacity"
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                onClick={handleConfirmFinalize}
+                                className="flex-1 py-3 px-4 rounded-xl font-bold bg-green-600 text-white shadow-lg hover:bg-green-700 transition-colors flex items-center justify-center gap-2"
+                            >
+                                <CheckCircle size={20} />
+                                FECHAR
+                            </button>
+                        </div>
                     </div>
                 </div>
-
-                {
-                    isReopenConfirmOpen && (
-                        <ConfirmModal
-                            isOpen={isReopenConfirmOpen}
-                            title="Reabrir Mandado"
-                            message="Deseja alterar o status deste mandado para EM ABERTO?"
-                            onConfirm={handleConfirmReopen}
-                            onCancel={() => setIsReopenConfirmOpen(false)}
-                            confirmText="reabrir"
-                            cancelText="cancelar"
-                        />
-                    )
-                }
-
-                {
-                    tagToRemove && (
-                        <ConfirmModal
-                            isOpen={!!tagToRemove}
-                            title="Remover Prioridade"
-                            message={`Deseja remover a prioridade "${tagToRemove}" deste mandado e voltar ao normal?`}
-                            onConfirm={handleConfirmRemoveTag}
-                            onCancel={() => setTagToRemove(null)}
-                            confirmText="Sim, Remover"
-                            cancelText="Não"
-                            variant="danger"
-                        />
-                    )
-                }
-                {
-                    isDeleteConfirmOpen && (
-                        <ConfirmModal
-                            isOpen={isDeleteConfirmOpen}
-                            title="Excluir Permanentemente"
-                            message="TEM CERTEZA que deseja EXCLUIR este mandado permanentemente? Esta ação não pode ser desfeita."
-                            onConfirm={handleConfirmDelete}
-                            onCancel={() => setIsDeleteConfirmOpen(false)}
-                            confirmText="Excluir"
-                            variant="danger"
-                        />
-                    )
-                }
-
-                {
-                    isFinalizeModalOpen && (
-
-                        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                            <div className="bg-surface-light dark:bg-surface-dark rounded-xl w-full max-w-md shadow-2xl border border-border-light dark:border-border-dark animate-in fade-in zoom-in duration-200">
-                                <div className="p-6">
-                                    <h3 className="text-xl font-bold text-text-light dark:text-text-dark mb-4">Finalizar Mandado</h3>
-
-                                    <div className="space-y-4">
-                                        <div>
-                                            <label className="block text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark uppercase mb-1">Data do Cumprimento</label>
-                                            <input
-                                                type="date"
-                                                value={finalizeFormData.date}
-                                                onChange={e => setFinalizeFormData({ ...finalizeFormData, date: e.target.value })}
-                                                className="w-full bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg p-3 text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none"
-                                            />
-                                        </div>
-
-                                        <div>
-                                            <label className="block text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark uppercase mb-1">Número do Relatório</label>
-                                            <input
-                                                type="text"
-                                                value={finalizeFormData.reportNumber}
-                                                onChange={e => setFinalizeFormData({ ...finalizeFormData, reportNumber: e.target.value })}
-                                                placeholder="Ex: REL-2024/001"
-                                                className="w-full bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg p-3 text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none"
-                                            />
-                                        </div>
-
-                                        <div>
-                                            <label className="block text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark uppercase mb-1">Número de Ofício DIG</label>
-                                            <input
-                                                type="text"
-                                                value={finalizeFormData.digOffice}
-                                                onChange={e => setFinalizeFormData({ ...finalizeFormData, digOffice: e.target.value })}
-                                                placeholder="Ex: 123/2024"
-                                                className="w-full bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg p-3 text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none"
-                                            />
-                                        </div>
-
-                                        <div>
-                                            <label className="block text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark uppercase mb-1">Resultado</label>
-                                            <select
-                                                value={finalizeFormData.result}
-                                                onChange={e => setFinalizeFormData({ ...finalizeFormData, result: e.target.value })}
-                                                className="w-full bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg p-3 text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none"
-                                            >
-                                                {(data.type?.toLowerCase().includes('busca') || data.type?.toLowerCase().includes('apreensão'))
-                                                    ? ['Apreendido', 'Fora de Validade', 'Negativo', 'Encaminhado', 'Contra', 'Ofício Localiza', 'Óbito'].map(opt => (
-                                                        <option key={opt} value={opt}>{opt}</option>
-                                                    ))
-                                                    : [
-                                                        'PRESO',
-                                                        'NEGATIVO',
-                                                        'ENCAMINHADO',
-                                                        'ÓBITO',
-                                                        'CONTRA',
-                                                        'LOCALIZADO',
-                                                        'OFÍCIO',
-                                                        'CUMPRIDO NO FÓRUM'
-                                                    ].map(opt => (
-                                                        <option key={opt} value={opt}>{opt}</option>
-                                                    ))
-                                                }
-                                            </select>
-                                        </div>
-                                    </div>
-
-                                    <div className="flex gap-3 mt-8">
-                                        <button
-                                            onClick={() => setIsFinalizeModalOpen(false)}
-                                            className="flex-1 py-3 px-4 rounded-xl font-bold bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:opacity-90 transition-opacity"
-                                        >
-                                            Cancelar
-                                        </button>
-                                        <button
-                                            onClick={handleConfirmFinalize}
-                                            className="flex-1 py-3 px-4 rounded-xl font-bold bg-green-600 text-white shadow-lg hover:bg-green-700 transition-colors flex items-center justify-center gap-2"
-                                        >
-                                            <CheckCircle size={20} />
-                                            FECHAR
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    )
-                }
-                {
-                    isPhotoModalOpen && (
-                        <div
-                            className="fixed inset-0 z-[110] bg-black/95 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200"
-                            onClick={() => setIsPhotoModalOpen(false)}
-                        >
-                            <div className="relative max-w-4xl w-full flex flex-col items-center">
-                                <button
-                                    className="absolute -top-12 right-0 text-white hover:text-primary transition-colors p-2"
-                                    onClick={() => setIsPhotoModalOpen(false)}
-                                >
-                                    <X size={32} />
-                                </button>
-                                <img
-                                    src={data.img || `https://ui-avatars.com/api/?name=${encodeURIComponent(data.name)}&background=random&color=fff`}
-                                    alt={data.name}
-                                    className="max-h-[85vh] max-w-full rounded-xl shadow-2xl border-2 border-white/10 object-contain animate-in zoom-in-95 duration-300"
-                                />
-                                <div className="mt-4 text-center">
-                                    <h2 className="text-white font-black text-xl uppercase tracking-widest">{data.name}</h2>
-                                    <p className="text-gray-400 text-sm">{data.number}</p>
-                                </div>
-                            </div>
-                        </div>
-                    )
-                }
-
-
             </div>
+        )
+    }
+    {
+        isPhotoModalOpen && (
+            <div
+                className="fixed inset-0 z-[110] bg-black/95 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200"
+                onClick={() => setIsPhotoModalOpen(false)}
+            >
+                <div className="relative max-w-4xl w-full flex flex-col items-center">
+                    <button
+                        className="absolute -top-12 right-0 text-white hover:text-primary transition-colors p-2"
+                        onClick={() => setIsPhotoModalOpen(false)}
+                    >
+                        <X size={32} />
+                    </button>
+                    <img
+                        src={data.img || `https://ui-avatars.com/api/?name=${encodeURIComponent(data.name)}&background=random&color=fff`}
+                        alt={data.name}
+                        className="max-h-[85vh] max-w-full rounded-xl shadow-2xl border-2 border-white/10 object-contain animate-in zoom-in-95 duration-300"
+                    />
+                    <div className="mt-4 text-center">
+                        <h2 className="text-white font-black text-xl uppercase tracking-widest">{data.name}</h2>
+                        <p className="text-gray-400 text-sm">{data.number}</p>
+                    </div>
+                </div>
+            </div>
+        )
+    }
+
+
+            </div >
             );
 };
 
-            export default WarrantDetail;
+export default WarrantDetail;
