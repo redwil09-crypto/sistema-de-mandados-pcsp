@@ -68,11 +68,13 @@ const BottomNav = ({ routeCount = 0 }: BottomNavProps) => {
                         href="https://portalbnmp.cnj.jus.br/#/pesquisa-peca"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-tr from-surface-dark-elevated to-surface-dark border-2 border-white/10 text-text-secondary-dark shadow-tactic hover:border-primary/50 hover:text-primary transition-all active:scale-95"
+                        className="flex flex-col items-center justify-center group"
                     >
-                        <ShieldCheck size={22} />
+                        <div className="flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-tr from-surface-dark-elevated to-surface-dark border-2 border-white/10 text-text-secondary-dark shadow-tactic group-hover:border-primary/50 group-hover:text-primary transition-all active:scale-95 mb-1">
+                            <ShieldCheck size={22} />
+                        </div>
+                        <span className="text-[9px] font-bold text-text-secondary-dark/60 font-display group-hover:text-primary transition-colors">BNMP</span>
                     </a>
-                    <span className="absolute -bottom-4 left-1/2 -translate-x-1/2 text-[9px] font-bold text-text-secondary-dark/60 font-display">BNMP</span>
                 </div>
 
                 {isAdmin && (

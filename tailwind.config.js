@@ -10,17 +10,17 @@ export default {
     theme: {
         extend: {
             colors: {
-                "primary": "#6366f1", // Electric Indigo
-                "primary-dark": "#4338ca",
-                "primary-light": "#818cf8",
-                "secondary": "#06b6d4", // Neon Cyan for accents
-                "risk-high": "#f43f5e", // Rose for alerts
-                "risk-med": "#f59e0b", // Amber for warnings
-                "success": "#10b981", // Emerald for success
-                "background-dark": "#09090b", // Zinc 950 - Deep Cold Black
-                "surface-dark": "#18181b", // Zinc 900
-                "surface-dark-elevated": "#27272a", // Zinc 800
-                "border-dark": "#27272a", // Zinc 800
+                "primary": "#475569", // Slate 600 - Solid Cement Blue/Grey
+                "primary-dark": "#334155", // Slate 700
+                "primary-light": "#64748b", // Slate 500
+                "secondary": "#0ea5e9", // Sky 500 - Professional Accent
+                "risk-high": "#ef4444", // Red 500
+                "risk-med": "#f59e0b", // Amber 500
+                "success": "#10b981", // Emerald 500
+                "background-dark": "#0f172a", // Slate 950 - Deep Navy Black
+                "surface-dark": "#1e293b", // Slate 800 - Solid Dark Concrete
+                "surface-dark-elevated": "#334155", // Slate 700
+                "border-dark": "#334155", // Slate 700
                 "border-dark-highlight": "#3f3f46", // Zinc 700
                 "background-light": "#f8fafc", // Slate 50
                 "surface-light": "#ffffff",
