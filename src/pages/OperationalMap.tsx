@@ -57,7 +57,8 @@ const OperationalMap = () => {
 
     useEffect(() => {
         // Filter only mapped and OPEN warrants for clarity
-        setWarrants(allWarrants.filter(w => w.latitude && w.longitude && w.status === 'EM ABERTO'));
+        const openWarrants = allWarrants.filter(w => w.latitude && w.longitude && w.status === 'EM ABERTO');
+        setWarrants(openWarrants);
         setLoading(false);
     }, [allWarrants]);
 
@@ -86,24 +87,31 @@ const OperationalMap = () => {
         toast.success(`${count} endereços mapeados com sucesso!`, { id: tid });
     };
 
+    const JACAREI_COORDS = [-23.3055, -45.9642] as [number, number];
+
     const center = useMemo(() => {
         const pLat = searchParams.get('lat');
         const pLng = searchParams.get('lng');
-        if (pLat && pLng) return [parseFloat(pLat), parseFloat(pLng)] as any;
-        if (warrants.length === 0) return [-23.55052, -46.633309]; // SP
-        return [warrants[0].latitude!, warrants[0].longitude!] as any;
-    }, [warrants, searchParams]);
+        if (pLat && pLng) return [parseFloat(pLat), parseFloat(pLng)] as [number, number];
+
+        // Default to Jacareí center
+        return JACAREI_COORDS;
+    }, [searchParams]);
+
+    // Force re-mount of map when center changes to ensure Leaflet updates correctly
+    const mapKey = useMemo(() => `${center[0]}-${center[1]}`, [center]);
 
     return (
-        <div className="min-h-screen bg-background-dark text-text-dark font-display flex flex-col relative overflow-hidden">
+        <div className="h-screen bg-background-dark text-text-dark font-display flex flex-col relative overflow-hidden">
             <Header title="Mapa Tático" back showHome />
 
             {/* Map Container - Explicit Height */}
-            <div className="flex-1 relative z-0 h-[calc(100vh-64px)] w-full">
+            <div className="w-full relative z-0 overflow-hidden" style={{ height: 'calc(100vh - 64px)' }}>
                 {typeof window !== 'undefined' && (
                     <MapContainer
+                        key={mapKey}
                         center={center}
-                        zoom={13}
+                        zoom={14}
                         scrollWheelZoom={true}
                         style={{ height: '100%', width: '100%', background: '#09090b' }}
                         zoomControl={false}
