@@ -49,7 +49,7 @@ const WarrantDetail = () => {
     const [aiDiligenceResult, setAiDiligenceResult] = useState<string | null>(null);
     const [isAiReportModalOpen, setIsAiReportModalOpen] = useState(false);
 
-    const [activeDetailTab, setActiveDetailTab] = useState<'documents' | 'reports' | 'investigation' | 'timeline'>('documents');
+    const [activeDetailTab, setActiveDetailTab] = useState<'documents' | 'reports' | 'investigation' | 'timeline' | 'ifood'>('documents');
     const [isCapturasModalOpen, setIsCapturasModalOpen] = useState(false);
     const [capturasData, setCapturasData] = useState({
         reportNumber: '',
@@ -1499,7 +1499,8 @@ Equipe de Capturas - DIG / PCSP
                     {[
                         { id: 'documents', label: 'Dossiê', icon: FileText },
                         { id: 'investigation', label: 'Radar IA', icon: Bot },
-                        { id: 'timeline', label: 'Operações', icon: History }
+                        { id: 'timeline', label: 'Operações', icon: History },
+                        { id: 'ifood', label: 'iFood', icon: Bike }
                     ].map(tab => (
                         <button
                             key={tab.id}
@@ -1778,6 +1779,108 @@ Equipe de Capturas - DIG / PCSP
                                         <p className="text-xs text-text-muted font-black uppercase tracking-[0.2em]">Sem Histórico Operacional</p>
                                     </div>
                                 )}
+                            </div>
+                        </div>
+                    )}
+
+                    {activeDetailTab === 'ifood' && (
+                        <div className="space-y-4">
+                            <div className="bg-surface-dark/90 backdrop-blur-xl border border-white/10 rounded-2xl p-5 shadow-glass">
+                                <div className="flex items-center justify-between mb-4 border-b border-white/5 pb-4">
+                                    <div className="flex items-center gap-2">
+                                        <Bike className="text-primary" size={20} />
+                                        <div>
+                                            <h3 className="text-sm font-black uppercase text-white tracking-widest">Inteligência iFood</h3>
+                                            <p className="text-[10px] text-text-muted font-bold uppercase">Rastreamento de Pedidos e Endereços</p>
+                                        </div>
+                                    </div>
+                                    <button
+                                        onClick={handleGenerateIfoodOffice}
+                                        className="bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-tactic flex items-center gap-2 transition-all active:scale-95"
+                                    >
+                                        <FileText size={14} /> Gerar Ofício
+                                    </button>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div className="space-y-4">
+                                        <div className="space-y-1">
+                                            <label className="text-[9px] font-black text-text-muted uppercase tracking-wider">Número do Ofício</label>
+                                            <input
+                                                className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm font-mono text-white outline-none focus:ring-1 focus:ring-primary"
+                                                placeholder="Ex: 001/CAPT/2026"
+                                                value={localData.ifoodNumber || ''}
+                                                onChange={e => handleFieldChange('ifoodNumber', e.target.value)}
+                                            />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="text-[9px] font-black text-text-muted uppercase tracking-wider">Resultado da Pesquisa</label>
+                                            <textarea
+                                                className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm text-white outline-none focus:ring-1 focus:ring-primary min-h-[120px] resize-none"
+                                                placeholder="Cole aqui os endereços e dados obtidos..."
+                                                value={localData.ifoodResult || ''}
+                                                onChange={e => handleFieldChange('ifoodResult', e.target.value)}
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-4">
+                                        <div className="flex items-center justify-between">
+                                            <label className="text-[9px] font-black text-text-muted uppercase tracking-wider">Documentos Resposta</label>
+                                            <div className="flex gap-2">
+                                                <input
+                                                    type="file"
+                                                    id="ifood-upload"
+                                                    className="hidden"
+                                                    onChange={(e) => handleAttachFile(e, 'ifoodDocs')}
+                                                />
+                                                <label
+                                                    htmlFor="ifood-upload"
+                                                    className="px-3 py-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-[10px] font-bold uppercase cursor-pointer transition-all text-white flex items-center gap-2"
+                                                >
+                                                    <Paperclip size={12} /> Anexar
+                                                </label>
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-2 max-h-[220px] overflow-y-auto pr-2 scrollbar-thumb-white/10 scrollbar-track-transparent">
+                                            {data.ifoodDocs && data.ifoodDocs.length > 0 ? (
+                                                data.ifoodDocs.map((doc: string, idx: number) => (
+                                                    <div key={idx} className="flex items-center justify-between bg-white/5 border border-white/5 p-3 rounded-xl group hover:bg-white/10 transition-all">
+                                                        <div className="flex items-center gap-3 overflow-hidden">
+                                                            <div className="p-2 bg-amber-500/10 text-amber-500 rounded-lg">
+                                                                <FileText size={14} />
+                                                            </div>
+                                                            <span className="text-xs text-white truncate max-w-[150px]">
+                                                                {doc.split('/').pop()?.replace(/^\d+_/, '')}
+                                                            </span>
+                                                        </div>
+                                                        <div className="flex gap-1">
+                                                            <a href={getPublicUrl(doc)} target="_blank" rel="noopener noreferrer" className="p-1.5 text-text-muted hover:text-white" title="Visualizar">
+                                                                <Eye size={14} />
+                                                            </a>
+                                                            <button
+                                                                onClick={async () => {
+                                                                    if (window.confirm("Excluir este documento do iFood?")) {
+                                                                        const updatedDocs = data.ifoodDocs?.filter((d: string) => d !== doc);
+                                                                        await updateWarrant(data.id, { ifoodDocs: updatedDocs });
+                                                                    }
+                                                                }}
+                                                                className="p-1.5 text-red-500 hover:text-red-400"
+                                                            >
+                                                                <Trash2 size={14} />
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                ))
+                                            ) : (
+                                                <div className="text-center py-8 border-2 border-dashed border-white/5 rounded-xl">
+                                                    <p className="text-[10px] text-text-muted font-bold uppercase">Nenhum retorno anexado</p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     )}
