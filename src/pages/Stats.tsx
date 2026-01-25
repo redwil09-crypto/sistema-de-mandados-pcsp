@@ -85,7 +85,7 @@ const Stats = () => {
             .map(([name, value], index) => ({
                 name,
                 value,
-                color: ['#475569', '#64748b', '#94a3b8', '#cbd5e1', '#e2e8f0'][index % 5]
+                color: ['#8b5cf6', '#3b82f6', '#10b981', '#f59e0b', '#f43f5e'][index % 5] // Violet, Blue, Emerald, Amber, Rose
             }));
     }, [warrants]);
 
