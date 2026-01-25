@@ -17,7 +17,7 @@ const createPulseIcon = (colorClass: string, glowColor: string) => L.divIcon({
     className: 'custom-div-icon',
     html: `
         <div class="relative flex items-center justify-center w-6 h-6">
-            <span class="absolute inline-flex h-full w-full rounded-full opacity-75 animate-ping ${colorClass}"></span>
+            <span class="absolute inline-flex h-full w-full rounded-full opacity-75 animate-pulse ${colorClass}" style="animation-duration: 3s; scale: 1.5;"></span>
             <span class="relative inline-flex rounded-full h-3 w-3 ${colorClass}" style="box-shadow: 0 0 10px ${glowColor}"></span>
         </div>
     `,
@@ -26,25 +26,58 @@ const createPulseIcon = (colorClass: string, glowColor: string) => L.divIcon({
     popupAnchor: [0, -12]
 });
 
-// Markers
-const prisonMarker = createPulseIcon('bg-primary', '#6366f1');
-const searchMarker = createPulseIcon('bg-amber-500', '#f59e0b');
-const highRiskMarker = createPulseIcon('bg-risk-high', '#f43f5e'); // Red pulse for high risk
+const createStaticIcon = (colorClass: string, glowColor: string) => L.divIcon({
+    className: 'custom-div-icon',
+    html: `
+        <div class="relative flex items-center justify-center w-6 h-6">
+            <span class="relative inline-flex rounded-full h-3 w-3 ${colorClass}" style="box-shadow: 0 0 8px ${glowColor}"></span>
+        </div>
+    `,
+    iconSize: [24, 24],
+    iconAnchor: [12, 12],
+    popupAnchor: [0, -12]
+});
+
+const userIcon = L.divIcon({
+    className: 'user-div-icon',
+    html: `
+        <div class="relative flex items-center justify-center w-4 h-4">
+            <div class="absolute inset-0 bg-blue-400 rounded-full opacity-40 animate-ping"></div>
+            <div class="relative w-2.5 h-2.5 bg-blue-500 rounded-full border-2 border-white shadow-lg"></div>
+        </div>
+    `,
+    iconSize: [16, 16],
+    iconAnchor: [8, 8]
+});
+
+// Preset Markers (Static)
+const prisonMarkerStatic = createStaticIcon('bg-primary', '#6366f1');
+const searchMarkerStatic = createStaticIcon('bg-amber-500', '#f59e0b');
+const highRiskMarkerStatic = createStaticIcon('bg-risk-high', '#f43f5e');
+
+// Preset Markers (Pulse)
+const prisonMarkerPulse = createPulseIcon('bg-primary', '#6366f1');
+const searchMarkerPulse = createPulseIcon('bg-amber-500', '#f59e0b');
+const highRiskMarkerPulse = createPulseIcon('bg-risk-high', '#f43f5e');
 
 const getMarkerIcon = (warrant: Warrant) => {
     const t = (warrant.type || '').toLowerCase();
     const c = (warrant.crime || '').toUpperCase();
+    const tags = warrant.tags || [];
+    const isPriority = tags.some(tag => ['Urgente', 'Prioridade', 'Ofício de Cobrança', 'Alto Risco'].includes(tag));
 
-    // Prioridade Alta / Risco
-    if (c.includes('HOMICIDIO') || c.includes('ROUBO') || c.includes('TRÁFICO') || c.includes('ESTUPRO')) {
-        return highRiskMarker;
+    // Check if it's High Risk by crime
+    const isHighRisk = c.includes('HOMICIDIO') || c.includes('ROUBO') || c.includes('TRÁFICO') || c.includes('ESTUPRO');
+
+    if (isHighRisk) {
+        return isPriority ? highRiskMarkerPulse : highRiskMarkerStatic;
     }
 
     if (t.includes('busca') || t.includes('apreensão')) {
-        return searchMarker;
+        return isPriority ? searchMarkerPulse : searchMarkerStatic;
     }
 
-    return prisonMarker;
+    return isPriority ? prisonMarkerPulse : prisonMarkerStatic;
 };
 
 const OperationalMap = () => {
@@ -55,11 +88,21 @@ const OperationalMap = () => {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
 
+    const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
+
     useEffect(() => {
         // Filter only mapped and OPEN warrants for clarity
         const openWarrants = allWarrants.filter(w => w.latitude && w.longitude && w.status === 'EM ABERTO');
         setWarrants(openWarrants);
         setLoading(false);
+
+        // Get User Location
+        if ("geolocation" in navigator) {
+            navigator.geolocation.getCurrentPosition(
+                (pos) => setUserLocation([pos.coords.latitude, pos.coords.longitude]),
+                (err) => console.log("Geolocation error:", err)
+            );
+        }
     }, [allWarrants]);
 
     const handleBulkSync = async () => {
@@ -94,9 +137,9 @@ const OperationalMap = () => {
         const pLng = searchParams.get('lng');
         if (pLat && pLng) return [parseFloat(pLat), parseFloat(pLng)] as [number, number];
 
-        // Default to Jacareí center
-        return JACAREI_COORDS;
-    }, [searchParams]);
+        // Prioritize User Location, then fallback to Jacareí
+        return userLocation || JACAREI_COORDS;
+    }, [searchParams, userLocation]);
 
     // Force re-mount of map when center changes to ensure Leaflet updates correctly
     const mapKey = useMemo(() => `${center[0]}-${center[1]}`, [center]);
@@ -122,6 +165,16 @@ const OperationalMap = () => {
                             url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
                         />
 
+                        {userLocation && (
+                            <Marker position={userLocation} icon={userIcon} zIndexOffset={1000}>
+                                <Popup className="tactical-popup border-none bg-transparent shadow-none" closeButton={false}>
+                                    <div className="bg-surface-dark/95 backdrop-blur-xl border border-blue-500/30 rounded-lg p-2 text-[10px] font-black uppercase text-blue-400">
+                                        Sua Posição Atual
+                                    </div>
+                                </Popup>
+                            </Marker>
+                        )}
+
                         {warrants.map(w => (
                             <Marker
                                 key={w.id}
@@ -131,16 +184,16 @@ const OperationalMap = () => {
                                 <Popup className="tactical-popup border-none bg-transparent shadow-none" closeButton={false}>
                                     <div className="w-[220px] bg-surface-dark/95 backdrop-blur-xl border border-white/10 rounded-xl p-3 shadow-glass overflow-hidden font-display text-text-dark">
                                         {/* Header Color Bar */}
-                                        <div className={`absolute top-0 left-0 right-0 h-1 ${getMarkerIcon(w) === highRiskMarker ? 'bg-risk-high' : (getMarkerIcon(w) === searchMarker ? 'bg-amber-500' : 'bg-primary')}`}></div>
+                                        <div className={`absolute top-0 left-0 right-0 h-1 ${(w.crime || '').toUpperCase().includes('HOMICIDIO') || (w.crime || '').toUpperCase().includes('ROUBO') || (w.crime || '').toUpperCase().includes('TRÁFICO') || (w.crime || '').toUpperCase().includes('ESTUPRO') ? 'bg-risk-high' : ((w.type || '').toLowerCase().includes('busca') ? 'bg-amber-500' : 'bg-primary')}`}></div>
 
                                         <div className="flex justify-between items-start mb-2 mt-1">
                                             <h3 className="font-bold text-sm text-white leading-tight pr-2">{w.name}</h3>
-                                            {getMarkerIcon(w) === highRiskMarker && <ShieldAlert size={14} className="text-risk-high shrink-0 animate-pulse" />}
+                                            {((w.crime || '').toUpperCase().includes('HOMICIDIO') || (w.crime || '').toUpperCase().includes('ROUBO')) && <ShieldAlert size={14} className="text-risk-high shrink-0 animate-pulse" />}
                                         </div>
 
                                         <div className="space-y-1 mb-3">
                                             <div className="flex items-center gap-1.5 p-1.5 rounded bg-white/5 border border-white/5">
-                                                <div className={`w-1.5 h-1.5 rounded-full ${getMarkerIcon(w) === highRiskMarker ? 'bg-risk-high' : 'bg-primary'}`}></div>
+                                                <div className={`w-1.5 h-1.5 rounded-full ${(w.crime || '').toUpperCase().includes('HOMICIDIO') || (w.crime || '').toUpperCase().includes('ROUBO') ? 'bg-risk-high' : 'bg-primary'}`}></div>
                                                 <span className="text-[10px] font-bold uppercase text-text-secondary-dark truncate max-w-[150px]">{w.crime || 'Crime não inf.'}</span>
                                             </div>
                                             <div className="flex items-center gap-1.5 px-1">
