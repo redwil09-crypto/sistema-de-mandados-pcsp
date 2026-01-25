@@ -19,7 +19,18 @@ const PatrolMode = ({ warrants, variant = 'fab' }: PatrolModeProps) => {
     const watchId = useRef<number | null>(null);
     const navigate = useNavigate();
     const lastAlertedIds = useRef<Set<string>>(new Set());
+    const lastAnnouncedIds = useRef<Set<string>>(new Set());
     const [isExpanded, setIsExpanded] = useState(false);
+
+    const speak = (text: string) => {
+        if (!('speechSynthesis' in window)) return;
+        // Optimization: Cancel any ongoing speech before starting a new urgent alert
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'pt-BR';
+        utterance.rate = 1.1; // Slightly faster for clarity
+        window.speechSynthesis.speak(utterance);
+    };
 
     const startPatrol = () => {
         if (!navigator.geolocation) {
@@ -88,6 +99,12 @@ const PatrolMode = ({ warrants, variant = 'fab' }: PatrolModeProps) => {
                 });
                 // Vibrate
                 if ('vibrate' in navigator) navigator.vibrate([500, 200, 500]);
+            }
+
+            // Voice announcement specifically for < 100m
+            if (item.distance <= 100 && !lastAnnouncedIds.current.has(w.id)) {
+                lastAnnouncedIds.current.add(w.id);
+                speak(`Atenção Policial: Alvo próximo. ${w.name} a menos de cem metros.`);
             }
         });
     }, [userPos, warrants, isActive, navigate, radius]);

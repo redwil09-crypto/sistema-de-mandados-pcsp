@@ -85,15 +85,24 @@ const OperationalMap = () => {
     const [warrants, setWarrants] = useState<Warrant[]>([]);
     const [loading, setLoading] = useState(true);
     const [isSyncing, setIsSyncing] = useState(false);
+    const [filter, setFilter] = useState<'all' | 'prison' | 'search'>('all');
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
 
     const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
 
     useEffect(() => {
-        // Filter only mapped and OPEN warrants for clarity
-        const openWarrants = allWarrants.filter(w => w.latitude && w.longitude && w.status === 'EM ABERTO');
-        setWarrants(openWarrants);
+        // Filter only mapped and OPEN warrants
+        let filtered = allWarrants.filter(w => w.latitude && w.longitude && w.status === 'EM ABERTO');
+
+        // Apply type filter
+        if (filter === 'prison') {
+            filtered = filtered.filter(w => (w.type || '').toLowerCase().includes('prisão') || (w.type || '').toLowerCase().includes('detenção'));
+        } else if (filter === 'search') {
+            filtered = filtered.filter(w => (w.type || '').toLowerCase().includes('busca') || (w.type || '').toLowerCase().includes('apreensão'));
+        }
+
+        setWarrants(filtered);
         setLoading(false);
 
         // Get User Location
@@ -147,6 +156,23 @@ const OperationalMap = () => {
     return (
         <div className="h-screen bg-background-dark text-text-dark font-display flex flex-col relative overflow-hidden">
             <Header title="Mapa Tático" back showHome />
+
+            {/* Quick Filter Top Bar */}
+            <div className="absolute top-20 left-1/2 -translate-x-1/2 z-[400] flex bg-surface-dark/80 backdrop-blur-xl border border-white/10 rounded-full p-1 shadow-tactic">
+                {[
+                    { id: 'all', label: 'Todos', icon: ShieldAlert },
+                    { id: 'prison', label: 'Prisão', icon: Info },
+                    { id: 'search', label: 'Busca', icon: MapPin }
+                ].map(item => (
+                    <button
+                        key={item.id}
+                        onClick={() => setFilter(item.id as any)}
+                        className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-2 transition-all ${filter === item.id ? 'bg-primary text-white shadow-lg' : 'text-text-muted hover:text-white'}`}
+                    >
+                        {item.label}
+                    </button>
+                ))}
+            </div>
 
             {/* Map Container - Explicit Height */}
             <div className="w-full relative z-0 overflow-hidden" style={{ height: 'calc(100vh - 64px)' }}>
