@@ -6,12 +6,12 @@ import {
 } from 'recharts';
 import {
     Database, AlertTriangle, CheckCircle2, Activity,
-    Shield, Briefcase, Gavel, Clock, Siren, TrendingUp
+    Shield, Briefcase, Gavel, Clock, Siren, TrendingUp,
+    AlertOctagon, Lock, Search
 } from 'lucide-react';
 import Header from '../components/Header';
 import BottomNav from '../components/BottomNav';
 import { useWarrants } from '../contexts/WarrantContext';
-import { Warrant } from '../types';
 
 const Stats = () => {
     const { warrants } = useWarrants();
@@ -27,6 +27,9 @@ const Stats = () => {
         // Types
         const searchWarrants = active.filter(w => (w.type || '').toUpperCase().includes('BUSCA')).length;
         const prisonWarrants = countActive - searchWarrants;
+
+        const prisonPct = countActive > 0 ? Math.round((prisonWarrants / countActive) * 100) : 0;
+        const searchPct = countActive > 0 ? Math.round((searchWarrants / countActive) * 100) : 0;
 
         // Expiration Check
         const today = new Date();
@@ -54,6 +57,8 @@ const Stats = () => {
             successRate,
             search: searchWarrants,
             prison: prisonWarrants,
+            prisonPct,
+            searchPct,
             expired,
             urgent
         };
@@ -80,7 +85,7 @@ const Stats = () => {
             .map(([name, value], index) => ({
                 name,
                 value,
-                color: ['#6366f1', '#f43f5e', '#06b6d4', '#8b5cf6', '#f59e0b'][index % 5]
+                color: ['#475569', '#64748b', '#94a3b8', '#cbd5e1', '#e2e8f0'][index % 5]
             }));
     }, [warrants]);
 
@@ -118,44 +123,12 @@ const Stats = () => {
                     />
                 </div>
 
-                {/* 2. Secondary Metrics */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <StatCard
-                        label="Prisão"
-                        value={stats.prison}
-                        icon={<Gavel size={18} />}
-                        subtext="Mandados"
-                        className="bg-surface-light dark:bg-surface-dark border-border-light dark:border-border-dark"
-                    />
-                    <StatCard
-                        label="Busca e Apreensão"
-                        value={stats.search}
-                        icon={<Briefcase size={18} />}
-                        subtext="Mandados"
-                        className="bg-surface-light dark:bg-surface-dark border-border-light dark:border-border-dark"
-                    />
-                    <StatCard
-                        label="Vencidos"
-                        value={stats.expired}
-                        icon={<Clock size={18} />}
-                        subtext="Atenção"
-                        className="bg-orange-500/10 text-orange-600 border-orange-200 dark:border-orange-500/30"
-                    />
-                    <StatCard
-                        label="Prioridade"
-                        value={stats.urgent}
-                        icon={<Siren size={18} />}
-                        subtext="Alta"
-                        className="bg-purple-500/10 text-purple-600 border-purple-200 dark:border-purple-500/30"
-                    />
-                </div>
-
-                {/* 3. Charts Section */}
+                {/* 2. Charts Section */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     {/* General Status Chart */}
                     <div className="bg-surface-light dark:bg-surface-dark p-6 rounded-2xl border border-border-light dark:border-border-dark shadow-sm">
                         <h3 className="font-bold text-sm uppercase tracking-wider text-text-secondary-light dark:text-text-secondary-dark mb-6 flex items-center gap-2">
-                            <TrendingUp size={16} /> Status Geral
+                            <TrendingUp size={16} /> Produção Geral
                         </h3>
                         <div className="h-64 w-full">
                             <ResponsiveContainer width="100%" height="100%">
@@ -164,7 +137,7 @@ const Stats = () => {
                                     <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#71717a' }} />
                                     <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#71717a' }} />
                                     <Tooltip
-                                        contentStyle={{ backgroundColor: '#18181b', borderRadius: '8px', border: '1px solid #27272a', color: '#fff' }}
+                                        contentStyle={{ backgroundColor: '#1e293b', borderRadius: '8px', border: '1px solid #334155', color: '#fff' }}
                                         cursor={{ fill: 'transparent' }}
                                     />
                                     <Bar dataKey="value" radius={[4, 4, 0, 0]}>
@@ -180,7 +153,7 @@ const Stats = () => {
                     {/* Crimes Chart */}
                     <div className="bg-surface-light dark:bg-surface-dark p-6 rounded-2xl border border-border-light dark:border-border-dark shadow-sm">
                         <h3 className="font-bold text-sm uppercase tracking-wider text-text-secondary-light dark:text-text-secondary-dark mb-6 flex items-center gap-2">
-                            <Shield size={16} /> Crimes Recorrentes
+                            <Shield size={16} /> Top 5 Naturezas
                         </h3>
                         <div className="h-64 w-full relative">
                             <ResponsiveContainer width="100%" height="100%">
@@ -198,7 +171,7 @@ const Stats = () => {
                                             <Cell key={`cell-${index}`} fill={entry.color} />
                                         ))}
                                     </Pie>
-                                    <Tooltip contentStyle={{ backgroundColor: '#18181b', borderRadius: '8px', border: '1px solid #27272a', color: '#fff' }} />
+                                    <Tooltip contentStyle={{ backgroundColor: '#1e293b', borderRadius: '8px', border: '1px solid #334155', color: '#fff' }} />
                                 </PieChart>
                             </ResponsiveContainer>
                             <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
@@ -214,6 +187,87 @@ const Stats = () => {
                                     <span className="font-bold text-text-light dark:text-text-dark">({item.value})</span>
                                 </div>
                             ))}
+                        </div>
+                    </div>
+                </div>
+
+                {/* 3. TACTICAL ANALYSIS & RISKS (Revised "Flashy" Section) */}
+                <div className="space-y-4 pt-4 border-t border-border-light dark:border-border-dark">
+                    <h2 className="text-lg font-black uppercase tracking-widest text-text-light dark:text-text-dark flex items-center gap-2 mb-4">
+                        <Activity className="text-primary" /> Análise de Campo
+                    </h2>
+
+                    {/* Operational Types Split */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="bg-surface-light dark:bg-surface-dark p-5 rounded-xl border border-border-light dark:border-border-dark shadow-sm relative overflow-hidden group">
+                            <div className="absolute right-0 top-0 w-24 h-24 bg-red-500/5 rounded-bl-full group-hover:bg-red-500/10 transition-colors"></div>
+                            <div className="flex items-center justify-between mb-4 relative z-10">
+                                <div className="flex items-center gap-3">
+                                    <div className="p-3 bg-red-100 dark:bg-red-500/20 text-red-600 dark:text-red-400 rounded-lg">
+                                        <Lock size={24} />
+                                    </div>
+                                    <div>
+                                        <h3 className="font-bold text-text-light dark:text-text-dark text-lg">Prisão</h3>
+                                        <p className="text-xs text-text-secondary-light dark:text-text-secondary-dark">Mandados de Captura</p>
+                                    </div>
+                                </div>
+                                <div className="text-right">
+                                    <span className="block text-3xl font-black text-red-600 dark:text-red-500">{stats.prison}</span>
+                                    <span className="text-xs font-bold text-text-secondary-light">{stats.prisonPct}% do total</span>
+                                </div>
+                            </div>
+                            {/* Progress Bar */}
+                            <div className="w-full bg-gray-200 dark:bg-gray-700 h-2 rounded-full overflow-hidden">
+                                <div
+                                    className="h-full bg-red-500 rounded-full transition-all duration-1000 ease-out"
+                                    style={{ width: `${stats.prisonPct}%` }}
+                                ></div>
+                            </div>
+                        </div>
+
+                        <div className="bg-surface-light dark:bg-surface-dark p-5 rounded-xl border border-border-light dark:border-border-dark shadow-sm relative overflow-hidden group">
+                            <div className="absolute right-0 top-0 w-24 h-24 bg-orange-500/5 rounded-bl-full group-hover:bg-orange-500/10 transition-colors"></div>
+                            <div className="flex items-center justify-between mb-4 relative z-10">
+                                <div className="flex items-center gap-3">
+                                    <div className="p-3 bg-orange-100 dark:bg-orange-500/20 text-orange-600 dark:text-orange-400 rounded-lg">
+                                        <Search size={24} />
+                                    </div>
+                                    <div>
+                                        <h3 className="font-bold text-text-light dark:text-text-dark text-lg">Busca</h3>
+                                        <p className="text-xs text-text-secondary-light dark:text-text-secondary-dark">Busca e Apreensão</p>
+                                    </div>
+                                </div>
+                                <div className="text-right">
+                                    <span className="block text-3xl font-black text-orange-600 dark:text-orange-500">{stats.search}</span>
+                                    <span className="text-xs font-bold text-text-secondary-light">{stats.searchPct}% do total</span>
+                                </div>
+                            </div>
+                            {/* Progress Bar */}
+                            <div className="w-full bg-gray-200 dark:bg-gray-700 h-2 rounded-full overflow-hidden">
+                                <div
+                                    className="h-full bg-orange-500 rounded-full transition-all duration-1000 ease-out"
+                                    style={{ width: `${stats.searchPct}%` }}
+                                ></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Critical Alerts Row */}
+                    <div className="grid grid-cols-2 gap-4 mt-4">
+                        <div className={`p-4 rounded-xl border flex flex-col items-center justify-center text-center gap-2 transition-all ${stats.urgent > 0 ? 'bg-red-500 text-white border-red-600 shadow-lg shadow-red-500/20 animate-pulse-slow' : 'bg-surface-light dark:bg-surface-dark border-border-light dark:border-border-dark'}`}>
+                            <Siren size={32} className={`${stats.urgent > 0 ? 'animate-bounce-subtle' : 'text-text-secondary-light'}`} />
+                            <div>
+                                <span className="block text-2xl font-black mb-1">{stats.urgent}</span>
+                                <span className="text-xs font-bold uppercase tracking-wider opacity-90">Prioridade Alta</span>
+                            </div>
+                        </div>
+
+                        <div className={`p-4 rounded-xl border flex flex-col items-center justify-center text-center gap-2 transition-all ${stats.expired > 0 ? 'bg-amber-500 text-white border-amber-600 shadow-lg shadow-amber-500/20' : 'bg-surface-light dark:bg-surface-dark border-border-light dark:border-border-dark'}`}>
+                            <Clock size={32} className={`${stats.expired > 0 ? '' : 'text-text-secondary-light'}`} />
+                            <div>
+                                <span className="block text-2xl font-black mb-1">{stats.expired}</span>
+                                <span className="text-xs font-bold uppercase tracking-wider opacity-90">Vencidos</span>
+                            </div>
                         </div>
                     </div>
                 </div>
