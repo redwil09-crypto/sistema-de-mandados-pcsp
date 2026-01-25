@@ -1605,8 +1605,9 @@ Equipe de Capturas - DIG / PCSP
                                                     </span>
                                                 </div>
                                                 <div className="flex items-center gap-1">
-                                                    <a href={getPublicUrl(file)} target="_blank" rel="noopener noreferrer" className="p-2 text-text-muted hover:text-white"><ExternalLink size={14} /></a>
-                                                    <button onClick={() => handleDeleteAttachment(file)} className="p-2 text-red-500 hover:text-red-400"><Trash2 size={14} /></button>
+                                                    <a href={getPublicUrl(file)} target="_blank" rel="noopener noreferrer" className="p-2 text-text-muted hover:text-white" title="Visualizar"><Eye size={14} /></a>
+                                                    <a href={getPublicUrl(file)} target="_blank" rel="noopener noreferrer" className="p-2 text-text-muted hover:text-white hidden" title="Abrir Link"><ExternalLink size={14} /></a>
+                                                    <button onClick={() => handleDeleteAttachment(file)} className="p-2 text-red-500 hover:text-red-400" title="Excluir"><Trash2 size={14} /></button>
                                                 </div>
                                             </div>
                                         ))}

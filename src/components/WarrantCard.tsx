@@ -26,7 +26,7 @@ const WarrantCard = ({ data, onPrint, isPlanned, onRouteToggle, onFinalize, onDe
             {...props}
         >
             {/* Type Indicator Strip (Left Border) */}
-            <div className={`absolute left-0 top-0 bottom-0 w-1 transition-colors duration-300 ${isSearch ? 'bg-risk-med shadow-[0_0_10px_rgba(245,158,11,0.5)]' : 'bg-primary shadow-[0_0_10px_rgba(99,102,241,0.5)]'}`}></div>
+            <div className={`absolute left-0 top-0 bottom-0 w-1 transition-colors duration-300 ${isSearch ? 'bg-orange-500 shadow-[0_0_15px_rgba(249,115,22,0.8)]' : 'bg-slate-400 shadow-[0_0_10px_rgba(148,163,184,0.3)]'}`}></div>
 
             {/* Hover Tech Pattern Overlay */}
             <div className="absolute inset-0 bg-grid-pattern opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
@@ -82,8 +82,8 @@ const WarrantCard = ({ data, onPrint, isPlanned, onRouteToggle, onFinalize, onDe
 
                             {/* Status Badge */}
                             <span className={`text-[9px] font-mono font-bold px-2 py-0.5 rounded border ${data.status === 'EM ABERTO' ? 'bg-risk-high/10 text-risk-high border-risk-high/20' :
-                                    data.status === 'CUMPRIDO' ? 'bg-success/10 text-success border-success/20' :
-                                        'bg-risk-med/10 text-risk-med border-risk-med/20'
+                                data.status === 'CUMPRIDO' ? 'bg-success/10 text-success border-success/20' :
+                                    'bg-risk-med/10 text-risk-med border-risk-med/20'
                                 }`}>
                                 {data.status}
                             </span>
@@ -133,8 +133,8 @@ const WarrantCard = ({ data, onPrint, isPlanned, onRouteToggle, onFinalize, onDe
                                 <button
                                     onClick={(e) => { e.preventDefault(); e.stopPropagation(); onRouteToggle(data.id); }}
                                     className={`p-2 rounded-lg transition-all ${isPlanned
-                                            ? 'bg-primary text-white shadow-neon-blue'
-                                            : 'text-text-muted hover:text-primary hover:bg-white/5'
+                                        ? 'bg-primary text-white shadow-neon-blue'
+                                        : 'text-text-muted hover:text-primary hover:bg-white/5'
                                         }`}
                                 >
                                     <RouteIcon size={14} />
