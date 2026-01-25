@@ -30,32 +30,33 @@ export default {
                 "text-secondary-light": "#525252", // Neutral 600
                 "text-secondary-dark": "#a3a3a3", // Neutral 400
                 "text-muted": "#737373", // Neutral 500
-                fontFamily: {
-                    "sans": ["Manrope", "sans-serif"],
-                    "mono": ["JetBrains Mono", "monospace"],
-                    "display": ["Manrope", "sans-serif"],
-                    "tech": ["JetBrains Mono", "monospace"]
-                },
-                backgroundImage: {
-                    'grid-pattern': "url(\"data:image/svg+xml,%3csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='M0 0h40v40H0V0zm1 1h38v38H1V1z' fill='%236366f1' fill-opacity='0.03' fill-rule='evenodd'/%3e%3c/svg%3e\")",
-                    'gradient-radial-tactic': 'radial-gradient(circle at 50% 0%, rgba(99, 102, 241, 0.15) 0%, transparent 60%)',
-                },
-                borderRadius: {
-                    "DEFAULT": "0.5rem",
-                    "lg": "0.75rem",
-                    "xl": "1rem",
-                    "2xl": "1.5rem",
-                    "full": "9999px"
-                },
-                boxShadow: {
-                    'neon-blue': '0 0 10px rgba(99, 102, 241, 0.5), 0 0 20px rgba(99, 102, 241, 0.3)',
-                    'neon-red': '0 0 10px rgba(244, 63, 94, 0.5), 0 0 20px rgba(244, 63, 94, 0.3)',
-                    'glass': '0 8px 32px 0 rgba(0, 0, 0, 0.37)',
-                    'tactic': '0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -1px rgba(0, 0, 0, 0.3)',
-                }
             },
+            fontFamily: {
+                "sans": ["Manrope", "sans-serif"],
+                "mono": ["JetBrains Mono", "monospace"],
+                "display": ["Manrope", "sans-serif"],
+                "tech": ["JetBrains Mono", "monospace"]
+            },
+            backgroundImage: {
+                'grid-pattern': "url(\"data:image/svg+xml,%3csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='M0 0h40v40H0V0zm1 1h38v38H1V1z' fill='%236366f1' fill-opacity='0.03' fill-rule='evenodd'/%3e%3c/svg%3e\")",
+                'gradient-radial-tactic': 'radial-gradient(circle at 50% 0%, rgba(99, 102, 241, 0.15) 0%, transparent 60%)',
+            },
+            borderRadius: {
+                "DEFAULT": "0.5rem",
+                "lg": "0.75rem",
+                "xl": "1rem",
+                "2xl": "1.5rem",
+                "full": "9999px"
+            },
+            boxShadow: {
+                'neon-blue': '0 0 10px rgba(99, 102, 241, 0.5), 0 0 20px rgba(99, 102, 241, 0.3)',
+                'neon-red': '0 0 10px rgba(244, 63, 94, 0.5), 0 0 20px rgba(244, 63, 94, 0.3)',
+                'glass': '0 8px 32px 0 rgba(0, 0, 0, 0.37)',
+                'tactic': '0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -1px rgba(0, 0, 0, 0.3)',
+            }
         },
-        plugins: [
-            tailwindAnimate,
-        ],
-    }
+    },
+    plugins: [
+        tailwindAnimate,
+    ],
+}
