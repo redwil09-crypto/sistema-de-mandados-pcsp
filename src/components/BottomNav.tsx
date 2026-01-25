@@ -63,19 +63,15 @@ const BottomNav = ({ routeCount = 0 }: BottomNavProps) => {
                     <span className="text-[9px] font-bold relative z-10 font-display">Busca</span>
                 </Link>
 
-                <div className="relative -mt-8">
-                    <a
-                        href="https://portalbnmp.cnj.jus.br/#/pesquisa-peca"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex flex-col items-center justify-center group"
-                    >
-                        <div className="flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-tr from-surface-dark-elevated to-surface-dark border-2 border-white/10 text-text-secondary-dark shadow-tactic group-hover:border-primary/50 group-hover:text-primary transition-all active:scale-95 mb-1">
-                            <ShieldCheck size={22} />
-                        </div>
-                        <span className="text-[9px] font-bold text-text-secondary-dark/60 font-display group-hover:text-primary transition-colors">BNMP</span>
-                    </a>
-                </div>
+                <a
+                    href="https://portalbnmp.cnj.jus.br/#/pesquisa-peca"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="relative flex flex-col items-center justify-center gap-1 w-14 h-14 rounded-xl transition-all text-text-secondary-dark hover:text-text-dark hover:bg-white/5"
+                >
+                    <ShieldCheck size={20} className="relative z-10" />
+                    <span className="text-[9px] font-bold relative z-10 font-display">BNMP</span>
+                </a>
 
                 {isAdmin && (
                     <Link to="/audit" className={`relative flex flex-col items-center justify-center gap-1 w-14 h-14 rounded-xl transition-all ${isActive('/audit') ? 'text-primary' : 'text-text-secondary-dark hover:text-text-dark hover:bg-white/5'}`}>
