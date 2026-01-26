@@ -112,7 +112,7 @@ const OperationalMap = () => {
                 (err) => console.log("Geolocation error:", err)
             );
         }
-    }, [allWarrants]);
+    }, [allWarrants, filter]); // Added filter to dependencies
 
     const handleBulkSync = async () => {
         const unmapped = allWarrants.filter(w => w.status === 'EM ABERTO' && (!w.latitude || !w.longitude) && w.location);
@@ -146,9 +146,37 @@ const OperationalMap = () => {
         const pLng = searchParams.get('lng');
         if (pLat && pLng) return [parseFloat(pLat), parseFloat(pLng)] as [number, number];
 
-        // Prioritize User Location, then fallback to Jacareí
-        return userLocation || JACAREI_COORDS;
-    }, [searchParams, userLocation]);
+        // Default fallback
+        return JACAREI_COORDS;
+    }, [searchParams]);
+
+    // Track if we have already auto-centered on user
+    const [hasAutoCentered, setHasAutoCentered] = useState(false);
+    const mapRef = useRef<L.Map | null>(null);
+
+    useEffect(() => {
+        if (userLocation && mapRef.current && !hasAutoCentered && !searchParams.get('lat')) {
+            setHasAutoCentered(true);
+            mapRef.current.setView(userLocation, 14);
+        }
+    }, [userLocation, hasAutoCentered, searchParams, mapRef.current]);
+
+    // Ensure map updates if search params change (e.g. from Detail back to Map)
+    useEffect(() => {
+        const pLat = searchParams.get('lat');
+        const pLng = searchParams.get('lng');
+        if (pLat && pLng && mapRef.current) {
+            mapRef.current.setView([parseFloat(pLat), parseFloat(pLng)], 16);
+        }
+    }, [searchParams]);
+
+    const handleRecenter = () => {
+        if (userLocation && mapRef.current) {
+            mapRef.current.setView(userLocation, 16, { animate: true });
+        } else {
+            toast.error("Localização não disponível.");
+        }
+    };
 
     // Force re-mount of map when center changes to ensure Leaflet updates correctly
     const mapKey = useMemo(() => `${center[0]}-${center[1]}`, [center]);
@@ -178,12 +206,12 @@ const OperationalMap = () => {
             <div className="w-full relative z-0 overflow-hidden" style={{ height: 'calc(100vh - 64px)' }}>
                 {typeof window !== 'undefined' && (
                     <MapContainer
-                        key={mapKey}
                         center={center}
                         zoom={14}
                         scrollWheelZoom={true}
                         style={{ height: '100%', width: '100%', background: '#09090b' }}
                         zoomControl={false}
+                        ref={(map) => { mapRef.current = map; }}
                     >
                         {/* Dark Matter Tiles (Tactical Look) */}
                         <TileLayer
@@ -264,13 +292,23 @@ const OperationalMap = () => {
                         <button
                             onClick={handleBulkSync}
                             disabled={isSyncing}
-                            className="w-full mt-3 bg-white/5 hover:bg-white/10 border border-white/5 text-text-secondary-dark text-[9px] font-bold py-1.5 rounded-lg transition-all flex items-center justify-center gap-2"
+                            className="w-full mt-3 bg-white/5 hover:bg-white/10 border border-white/5 text-text-secondary-dark text-[10px] font-bold py-2 rounded-lg transition-all flex items-center justify-center gap-2"
                         >
-                            <RefreshCw size={10} className={isSyncing ? 'animate-spin' : ''} />
-                            {isSyncing ? 'SYNC...' : 'ATUALIZAR GPS'}
+                            <RefreshCw size={12} className={isSyncing ? 'animate-spin' : ''} />
+                            {isSyncing ? 'SYNC' : 'ATUALIZAR GPS'}
                         </button>
                     </div>
+
+                    <button
+                        onClick={handleRecenter}
+                        className="bg-primary text-white p-3 rounded-xl shadow-tactic border border-white/10 flex items-center justify-center transition-all active:scale-95"
+                    >
+                        <Navigation size={20} />
+                    </button>
                 </div>
+
+                {/* Integration with Patrol Mode */}
+                <PatrolMode warrants={allWarrants} variant="fab" />
             </div>
 
             {/* Custom CSS for Popup override */}
