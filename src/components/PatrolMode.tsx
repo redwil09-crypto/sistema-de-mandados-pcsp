@@ -39,6 +39,24 @@ const PatrolMode = ({ warrants, variant = 'fab' }: PatrolModeProps) => {
         }
 
         setIsActive(true);
+
+        // 1. Request Notification Permission
+        if ("Notification" in window && Notification.permission !== "granted") {
+            Notification.requestPermission();
+        }
+
+        // 2. Set Media Session Metadata (Persistent Status in System Tray)
+        if ('mediaSession' in navigator) {
+            navigator.mediaSession.metadata = new MediaMetadata({
+                title: '🔵 PATRULHA ATIVA',
+                artist: 'PCSP - Sistema de Mandados',
+                album: `Raio: ${radius}m`,
+                artwork: [
+                    { src: 'https://img.icons8.com/color/512/police-badge.png', sizes: '512x512', type: 'image/png' }
+                ]
+            });
+        }
+
         toast.success("Modo Patrulhamento Ativado", {
             description: `Rastreando alvos num raio de ${radius}m.`
         });
@@ -62,6 +80,12 @@ const PatrolMode = ({ warrants, variant = 'fab' }: PatrolModeProps) => {
             navigator.geolocation.clearWatch(watchId.current);
             watchId.current = null;
         }
+
+        // Clear Media Session
+        if ('mediaSession' in navigator) {
+            navigator.mediaSession.metadata = null;
+        }
+
         setIsActive(false);
         setUserPos(null);
         setNearbyWarrants([]);
@@ -97,6 +121,18 @@ const PatrolMode = ({ warrants, variant = 'fab' }: PatrolModeProps) => {
                         onClick: () => navigate(`/warrant-detail/${w.id}`)
                     }
                 });
+                // System Level Notification
+                if ("Notification" in window && Notification.permission === "granted") {
+                    new Notification(`🚨 ALVO DETECTADO: ${w.name}`, {
+                        body: `Distância: ${Math.round(item.distance)} metros. Toque para ver detalhes.`,
+                        icon: 'https://img.icons8.com/color/512/police-badge.png',
+                        tag: w.id // Prevent duplicate notifications for the same ID
+                    }).onclick = () => {
+                        window.focus();
+                        navigate(`/warrant-detail/${w.id}`);
+                    };
+                }
+
                 // Vibrate
                 if ('vibrate' in navigator) navigator.vibrate([500, 200, 500]);
             }
