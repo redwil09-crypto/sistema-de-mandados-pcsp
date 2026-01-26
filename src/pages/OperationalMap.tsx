@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import { getWarrants } from '../supabaseService';
 import { Warrant } from '../types';
@@ -11,6 +11,7 @@ import { geocodeAddress } from '../services/geocodingService';
 import { toast } from 'sonner';
 import { RefreshCw, MapPin, Navigation, Info, ShieldAlert } from 'lucide-react';
 import { useWarrants } from '../contexts/WarrantContext';
+import PatrolMode from '../components/PatrolMode';
 
 // --- Tactical Markers (CSS-based DivIcons) ---
 const createPulseIcon = (colorClass: string, glowColor: string) => L.divIcon({
@@ -90,6 +91,7 @@ const OperationalMap = () => {
     const [searchParams] = useSearchParams();
 
     const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
+    const watchIdRef = useRef<number | null>(null);
 
     useEffect(() => {
         // Filter only mapped and OPEN warrants
@@ -105,13 +107,35 @@ const OperationalMap = () => {
         setWarrants(filtered);
         setLoading(false);
 
-        // Get User Location
+        // Get Real-time User Location (High Sensitivity)
         if ("geolocation" in navigator) {
-            navigator.geolocation.getCurrentPosition(
-                (pos) => setUserLocation([pos.coords.latitude, pos.coords.longitude]),
-                (err) => console.log("Geolocation error:", err)
+            watchIdRef.current = navigator.geolocation.watchPosition(
+                (pos) => {
+                    const newLat = pos.coords.latitude;
+                    const newLng = pos.coords.longitude;
+
+                    // Jitter Filter: Only update if moved more than ~2 meters to prevent "jumping"
+                    // (Simple estimation for sensitivity)
+                    setUserLocation(prev => {
+                        if (!prev) return [newLat, newLng];
+                        const latDiff = Math.abs(prev[0] - newLat);
+                        const lngDiff = Math.abs(prev[1] - newLng);
+                        if (latDiff > 0.00002 || lngDiff > 0.00002) { // Approx 2 meters difference
+                            return [newLat, newLng];
+                        }
+                        return prev;
+                    });
+                },
+                (err) => console.log("Geolocation error:", err),
+                { enableHighAccuracy: true, maximumAge: 1000, timeout: 5000 }
             );
         }
+
+        return () => {
+            if (watchIdRef.current !== null) {
+                navigator.geolocation.clearWatch(watchIdRef.current);
+            }
+        };
     }, [allWarrants, filter]); // Added filter to dependencies
 
     const handleBulkSync = async () => {
