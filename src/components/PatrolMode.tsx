@@ -101,10 +101,10 @@ const PatrolMode = ({ warrants, variant = 'fab' }: PatrolModeProps) => {
                 if ('vibrate' in navigator) navigator.vibrate([500, 200, 500]);
             }
 
-            // Voice announcement specifically for < 100m
-            if (item.distance <= 100 && !lastAnnouncedIds.current.has(w.id)) {
+            // Voice announcement specifically for < 200m
+            if (item.distance <= 200 && !lastAnnouncedIds.current.has(w.id)) {
                 lastAnnouncedIds.current.add(w.id);
-                speak(`Atenção Policial: Alvo próximo. ${w.name} a menos de cem metros.`);
+                speak(`Atenção Policial: Alvo próximo. ${w.name} a menos de duzentos metros.`);
             }
         });
     }, [userPos, warrants, isActive, navigate, radius]);

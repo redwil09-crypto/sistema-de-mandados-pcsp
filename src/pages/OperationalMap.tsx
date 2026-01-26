@@ -114,13 +114,13 @@ const OperationalMap = () => {
                     const newLat = pos.coords.latitude;
                     const newLng = pos.coords.longitude;
 
-                    // Jitter Filter: Only update if moved more than ~2 meters to prevent "jumping"
-                    // (Simple estimation for sensitivity)
+                    // Jitter Filter: Only update if moved more than ~7 meters to prevent "jumping"
+                    // (Adjusted for vehicle use/higher stability)
                     setUserLocation(prev => {
                         if (!prev) return [newLat, newLng];
                         const latDiff = Math.abs(prev[0] - newLat);
                         const lngDiff = Math.abs(prev[1] - newLng);
-                        if (latDiff > 0.00002 || lngDiff > 0.00002) { // Approx 2 meters difference
+                        if (latDiff > 0.00007 || lngDiff > 0.00007) { // Approx 7 meters
                             return [newLat, newLng];
                         }
                         return prev;
