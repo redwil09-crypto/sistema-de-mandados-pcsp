@@ -11,16 +11,10 @@ interface PatrolModeProps {
     variant?: 'fab' | 'button';
 }
 
-const PatrolMode = ({ warrants, variant = 'fab' }: PatrolModeProps) => {
-    const [isActive, setIsActive] = useState(false);
-    const [userPos, setUserPos] = useState<{ lat: number, lng: number } | null>(null);
-    const [nearbyWarrants, setNearbyWarrants] = useState<{ warrant: Warrant, distance: number }[]>([]);
-    const [radius, setRadius] = useState(500); // Default to 500m
-    const watchId = useRef<number | null>(null);
+const PatrolMode = ({ warrants: _, variant = 'fab' }: PatrolModeProps) => {
+    const { isPatrolActive: isActive, startPatrol, stopPatrol, userPos, warrants } = useWarrants();
     const navigate = useNavigate();
-    const lastAlertedIds = useRef<Set<string>>(new Set());
-    const lastAnnouncedIds = useRef<Set<string>>(new Set());
-    const [isExpanded, setIsExpanded] = useState(false);
+    const [radius, setRadius] = useState(500);
 
     const speak = (text: string) => {
         if (!('speechSynthesis' in window)) return;
@@ -32,71 +26,12 @@ const PatrolMode = ({ warrants, variant = 'fab' }: PatrolModeProps) => {
         window.speechSynthesis.speak(utterance);
     };
 
-    const startPatrol = () => {
-        if (!navigator.geolocation) {
-            toast.error("Geolocalização não suportada no seu dispositivo.");
-            return;
-        }
+    const lastAlertedIds = useRef(new Set<string>());
+    const lastAnnouncedIds = useRef(new Set<string>());
 
-        setIsActive(true);
-
-        // 1. Request Notification Permission
-        if ("Notification" in window && Notification.permission !== "granted") {
-            Notification.requestPermission();
-        }
-
-        // 2. Set Media Session Metadata (Persistent Status in System Tray)
-        if ('mediaSession' in navigator) {
-            navigator.mediaSession.metadata = new MediaMetadata({
-                title: '🔵 PATRULHA ATIVA',
-                artist: 'PCSP - Sistema de Mandados',
-                album: `Raio: ${radius}m`,
-                artwork: [
-                    { src: 'https://img.icons8.com/color/512/police-badge.png', sizes: '512x512', type: 'image/png' }
-                ]
-            });
-        }
-
-        toast.success("Modo Patrulhamento Ativado", {
-            description: `Rastreando alvos num raio de ${radius}m.`
-        });
-
-        watchId.current = navigator.geolocation.watchPosition(
-            (position) => {
-                const { latitude, longitude } = position.coords;
-                setUserPos({ lat: latitude, lng: longitude });
-            },
-            (error) => {
-                console.error("Erro GPS:", error);
-                toast.error("Erro GPS.");
-                stopPatrol();
-            },
-            { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-        );
-    };
-
-    const stopPatrol = () => {
-        if (watchId.current !== null) {
-            navigator.geolocation.clearWatch(watchId.current);
-            watchId.current = null;
-        }
-
-        // Clear Media Session
-        if ('mediaSession' in navigator) {
-            navigator.mediaSession.metadata = null;
-        }
-
-        setIsActive(false);
-        setUserPos(null);
-        setNearbyWarrants([]);
-        lastAlertedIds.current = new Set();
-        toast.info("Modo Patrulhamento Desativado.");
-    };
-
-    useEffect(() => {
-        if (!isActive || !userPos) return;
-
-        const filtered = warrants
+    const nearbyWarrants = useMemo(() => {
+        if (!isActive || !userPos) return [];
+        return warrants
             .filter(w => w.status === 'EM ABERTO' && w.latitude && w.longitude)
             .map(w => ({
                 warrant: w,
@@ -104,11 +39,18 @@ const PatrolMode = ({ warrants, variant = 'fab' }: PatrolModeProps) => {
             }))
             .filter(item => item.distance <= radius)
             .sort((a, b) => a.distance - b.distance);
+    }, [isActive, userPos, warrants, radius]);
 
-        setNearbyWarrants(filtered);
+    useEffect(() => {
+        if (!isActive || !userPos) {
+            // Clear alerts when patrol stops or user position is lost
+            lastAlertedIds.current.clear();
+            lastAnnouncedIds.current.clear();
+            return;
+        }
 
         // Alert for new entries in radius
-        filtered.forEach(item => {
+        nearbyWarrants.forEach(item => {
             const w = item.warrant;
             if (!lastAlertedIds.current.has(w.id)) {
                 lastAlertedIds.current.add(w.id);
@@ -143,7 +85,21 @@ const PatrolMode = ({ warrants, variant = 'fab' }: PatrolModeProps) => {
                 speak(`Atenção Policial: Alvo próximo. ${w.name} a menos de duzentos metros.`);
             }
         });
-    }, [userPos, warrants, isActive, navigate, radius]);
+
+        // Clean up lastAlertedIds and lastAnnouncedIds for warrants no longer nearby
+        const currentNearbyIds = new Set(nearbyWarrants.map(item => item.warrant.id));
+        lastAlertedIds.current.forEach(id => {
+            if (!currentNearbyIds.has(id)) {
+                lastAlertedIds.current.delete(id);
+            }
+        });
+        lastAnnouncedIds.current.forEach(id => {
+            if (!currentNearbyIds.has(id)) {
+                lastAnnouncedIds.current.delete(id);
+            }
+        });
+
+    }, [userPos, isActive, navigate, nearbyWarrants]); // Depend on nearbyWarrants from useMemo
 
     if (variant === 'button') {
         return (

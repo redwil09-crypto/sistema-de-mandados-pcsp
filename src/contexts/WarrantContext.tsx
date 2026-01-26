@@ -23,6 +23,12 @@ interface WarrantContextType {
     toggleRouteWarrant: (id: string) => void;
     selectedRouteWarrants: Warrant[];
 
+    // Patrol Mode State
+    isPatrolActive: boolean;
+    startPatrol: () => void;
+    stopPatrol: () => void;
+    userPos: { lat: number, lng: number } | null;
+
     // Computed Lists
     prisonWarrants: Warrant[];
     searchWarrants: Warrant[];
@@ -44,13 +50,22 @@ export const WarrantProvider = ({ children }: { children: ReactNode }) => {
         }
     });
 
+    const [userPos, setUserPos] = useState<{ lat: number, lng: number } | null>(null);
+    const [isPatrolActive, setIsPatrolActive] = useState(() => {
+        return localStorage.getItem('isPatrolActive') === 'true';
+    });
+    const watchId = React.useRef<number | null>(null);
+    const lastAlertedIds = React.useRef<Set<string>>(new Set());
+    const lastAnnouncedIds = React.useRef<Set<string>>(new Set());
+
     // Initial Load
     useEffect(() => {
-        // Only load if we have a session (handled by App or protected routes, but good to check)
         const load = async () => {
             const { data: { session } } = await supabase.auth.getSession();
             if (session) {
                 await refreshWarrants();
+                // Resume patrol if it was active
+                if (isPatrolActive) startPatrol();
             } else {
                 setLoading(false);
             }
@@ -130,6 +145,99 @@ export const WarrantProvider = ({ children }: { children: ReactNode }) => {
         );
     };
 
+    // --- Patrol Logic ---
+    const speak = (text: string) => {
+        if (!('speechSynthesis' in window)) return;
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'pt-BR';
+        utterance.rate = 1.1;
+        window.speechSynthesis.speak(utterance);
+    };
+
+    const startPatrol = () => {
+        if (!navigator.geolocation) {
+            toast.error("GPS não suportado.");
+            return;
+        }
+
+        setIsPatrolActive(true);
+        localStorage.setItem('isPatrolActive', 'true');
+        toast.success("Patrulha Global Ativada");
+
+        // Request Notification Permission
+        if ("Notification" in window && Notification.permission !== "granted") {
+            Notification.requestPermission();
+        }
+
+        watchId.current = navigator.geolocation.watchPosition(
+            (pos) => setUserPos({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+            (err) => {
+                console.error(err);
+                stopPatrol();
+            },
+            { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+        );
+    };
+
+    const stopPatrol = () => {
+        if (watchId.current !== null) {
+            navigator.geolocation.clearWatch(watchId.current);
+            watchId.current = null;
+        }
+        setIsPatrolActive(false);
+        localStorage.setItem('isPatrolActive', 'false');
+        setUserPos(null);
+        lastAlertedIds.current = new Set();
+        lastAnnouncedIds.current = new Set();
+        toast.info("Patrulha Desativada.");
+    };
+
+    // Haversine from geoUtils (duplicated to keep context self-contained or import if possible)
+    const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+        const R = 6371e3;
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLon = (lon2 - lon1) * Math.PI / 180;
+        const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    };
+
+    useEffect(() => {
+        if (!isPatrolActive || !userPos) return;
+
+        const openWarrants = warrants.filter(w => w.status === 'EM ABERTO' && w.latitude && w.longitude);
+
+        openWarrants.forEach(w => {
+            const dist = calculateDistance(userPos.lat, userPos.lng, w.latitude!, w.longitude!);
+
+            // Proximity logic
+            if (dist <= 500 && !lastAlertedIds.current.has(w.id)) {
+                lastAlertedIds.current.add(w.id);
+                toast.error(`ALVO EM RAIO: ${w.name}`, { duration: 10000 });
+                if ("Notification" in window && Notification.permission === "granted") {
+                    new Notification(`🚨 ALVO PRÓXIMO: ${w.name}`, { body: `A aprox. ${Math.round(dist)}m.` });
+                }
+                if ('vibrate' in navigator) navigator.vibrate([500, 200, 500]);
+            }
+
+            if (dist <= 200 && !lastAnnouncedIds.current.has(w.id)) {
+                lastAnnouncedIds.current.add(w.id);
+                speak(`Atenção Policial: Alvo próximo. ${w.name} a menos de duzentos metros.`);
+            }
+        });
+    }, [userPos, warrants, isPatrolActive]);
+
+    // Media Session Update
+    useEffect(() => {
+        if (isPatrolActive && 'mediaSession' in navigator) {
+            navigator.mediaSession.metadata = new MediaMetadata({
+                title: '🔵 P. ATIVA',
+                artist: 'PCSP - Sistema de Mandados',
+                artwork: [{ src: 'https://img.icons8.com/color/512/police-badge.png', sizes: '512x512', type: 'image/png' }]
+            });
+        }
+    }, [isPatrolActive]);
+
     // Computed Values
     const selectedRouteWarrants = useMemo(() => {
         return warrants.filter(w => routeWarrants.includes(w.id));
@@ -171,7 +279,11 @@ export const WarrantProvider = ({ children }: { children: ReactNode }) => {
             selectedRouteWarrants,
             prisonWarrants,
             searchWarrants,
-            priorityWarrants
+            priorityWarrants,
+            isPatrolActive,
+            startPatrol,
+            stopPatrol,
+            userPos
         }}>
             {children}
         </WarrantContext.Provider>
