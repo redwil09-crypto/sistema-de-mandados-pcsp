@@ -63,22 +63,20 @@ const highRiskMarkerPulse = createPulseIcon('bg-risk-high', '#f43f5e');
 
 const getMarkerIcon = (warrant: Warrant) => {
     const t = (warrant.type || '').toLowerCase();
-    const c = (warrant.crime || '').toUpperCase();
     const tags = warrant.tags || [];
+
+    // Priority markers (tagged as Urgente, Prioridade, etc.)
     const isPriority = tags.some(tag => ['Urgente', 'Prioridade', 'Ofício de Cobrança', 'Alto Risco'].includes(tag));
 
-    // Check if it's High Risk by crime
-    const isHighRisk = c.includes('HOMICIDIO') || c.includes('ROUBO') || c.includes('TRÁFICO') || c.includes('ESTUPRO');
-
-    if (isHighRisk) {
-        return isPriority ? highRiskMarkerPulse : highRiskMarkerStatic;
+    if (isPriority) {
+        return highRiskMarkerPulse; // Red and pulsing
     }
 
     if (t.includes('busca') || t.includes('apreensão')) {
-        return isPriority ? searchMarkerPulse : searchMarkerStatic;
+        return searchMarkerStatic; // Amber/Orange static
     }
 
-    return isPriority ? prisonMarkerPulse : prisonMarkerStatic;
+    return prisonMarkerStatic; // Primary/Blue static
 };
 
 const OperationalMap = () => {
@@ -271,7 +269,7 @@ const OperationalMap = () => {
 
                                         <div className="space-y-1 mb-3">
                                             <div className="flex items-center gap-1.5 p-1.5 rounded bg-white/5 border border-white/5">
-                                                <div className={`w-1.5 h-1.5 rounded-full ${(w.crime || '').toUpperCase().includes('HOMICIDIO') || (w.crime || '').toUpperCase().includes('ROUBO') ? 'bg-risk-high' : 'bg-primary'}`}></div>
+                                                <div className={`w-1.5 h-1.5 rounded-full ${w.tags?.some(tag => ['Urgente', 'Prioridade', 'Ofício de Cobrança', 'Alto Risco'].includes(tag)) ? 'bg-risk-high' : 'bg-primary'}`}></div>
                                                 <span className="text-[10px] font-bold uppercase text-text-secondary-dark truncate max-w-[150px]">{w.crime || 'Crime não inf.'}</span>
                                             </div>
                                             <div className="flex items-center gap-1.5 px-1">
