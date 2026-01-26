@@ -83,7 +83,8 @@ const PatrolMode = ({ warrants: _, variant = 'fab' }: PatrolModeProps) => {
             // Voice announcement specifically for < 200m
             if (item.distance <= 200 && !lastAnnouncedIds.current.has(w.id)) {
                 lastAnnouncedIds.current.add(w.id);
-                speak(`Atenção Policial: Alvo próximo. ${w.name} a menos de duzentos metros.`);
+                const crimeText = w.crime ? `, pelo crime de ${w.crime}` : '';
+                speak(`Atenção Policial: Alvo próximo. ${w.name}${crimeText}, a menos de duzentos metros.`);
             }
         });
 
