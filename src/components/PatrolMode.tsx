@@ -1,10 +1,11 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Shield, Bell, Navigation, AlertCircle, MapPin, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { Warrant } from '../types';
 import { calculateDistance } from '../utils/geoUtils';
 import { useNavigate } from 'react-router-dom';
+import { useWarrants } from '../contexts/WarrantContext';
 
 interface PatrolModeProps {
     warrants: Warrant[];
