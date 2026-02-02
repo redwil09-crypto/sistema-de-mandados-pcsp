@@ -303,3 +303,49 @@ export async function analyzeWarrantData(text: string) {
     }
 }
 
+
+export async function analyzeDocumentStrategy(warrantData: any, docText: string) {
+    if (!(await isGeminiEnabled())) return null;
+
+    const prompt = `
+        VOCÊ É UM ANALISTA DE INTELIGÊNCIA CRIMINAL DE ELITE (ANTIGRAVITY).
+        SUA MISSÃO: Realizar uma varredura profunda ("Deep Dive") no documento fornecido, cruzando-o com os dados do alvo.
+
+        DADOS CONHECIDOS DO ALVO:
+        ${JSON.stringify(warrantData, null, 2)}
+
+        CONTEÚDO DO NOVO DOCUMENTO (OCR/EXTRAÇÃO):
+        "${docText}"
+
+        DIRETRIZES DE PENSAMENTO (CHAIN OF THOUGHT):
+        1. PARENTESCOS E VÍNCULOS: Quem são as pessoas citadas? Pai, mãe, cônjuges, advogados? Qual a relação?
+        2. GEO-INTELIGÊNCIA: Extraia todo e qualquer endereço, citando o contexto (ex: "casa da mãe", "local de trabalho antigo").
+        3. LINHA DO TEMPO: O documento é recente ou antigo? O que mudou?
+        4. CONTRADIÇÕES: O documento diz algo diferente do que já sabemos?
+        5. IDEIAS TÁTICAS: Com base nisso, onde podemos procurar? (ex: "Se ele assinou isso no cartório X semana passada, ele está na região Y").
+
+        SAÍDA (FORMATO MARKDOWN RIGOROSO):
+        
+        ### 🔍 ANÁLISE DE VÍNCULOS E PARENTESCO
+        - [Nome] ([Grau]): [Contexto]
+
+        ### 📍 RASTRO GEOGRÁFICO (NOVOS ENDEREÇOS)
+        - 🏠 [Endereço Completo] - *[Fonte/Data]*
+
+        ### 💡 INSIGHTS ESTRATÉGICOS
+        - [Análise cruzada de dados]
+        - [Sugestão de onde diligenciar]
+
+        ### ⚠️ PONTOS DE ATENÇÃO
+        - [Alertas de periculosidade ou contradições]
+
+        **Regra de Ouro:** NÃO ALUCINE. Se o dado não está lá, não invente. Se for uma dedução, deixe claro ("Sugere-se que...").
+    `;
+
+    try {
+        return await tryGenerateContent(prompt);
+    } catch (error) {
+        console.error("Erro na Análise Profunda:", error);
+        return "Erro ao processar documento.";
+    }
+}

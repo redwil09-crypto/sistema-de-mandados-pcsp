@@ -20,7 +20,8 @@ import { formatDate, getStatusColor, maskDate } from '../utils/helpers';
 import { Warrant } from '../types';
 import { geocodeAddress } from '../services/geocodingService';
 import { generateWarrantPDF, generateIfoodOfficePDF } from '../services/pdfReportService';
-import { analyzeRawDiligence, generateReportBody } from '../services/geminiService';
+import { analyzeRawDiligence, generateReportBody, analyzeDocumentStrategy } from '../services/geminiService';
+import { extractRawTextFromPdf, extractFromText } from '../pdfExtractor';
 import { CRIME_OPTIONS, REGIME_OPTIONS } from '../data/constants';
 import { useWarrants } from '../contexts/WarrantContext';
 
@@ -58,6 +59,7 @@ const WarrantDetail = () => {
 
     // Investigative States
     const [newDiligence, setNewDiligence] = useState('');
+    const [isAnalyzingDoc, setIsAnalyzingDoc] = useState(false);
 
     // Load Draft from LocalStorage
     useEffect(() => {
@@ -745,6 +747,45 @@ Equipe de Capturas - DIG / PCSP
             }
         }
     };
+    const handleAnalyzeDocument = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file || !data) return;
+
+        setIsAnalyzingDoc(true);
+        const toastId = toast.loading('Desencriptando e analisando documento...');
+
+        try {
+            let text = '';
+            if (file.type === 'application/pdf') {
+                text = await extractRawTextFromPdf(file);
+            } else {
+                text = await file.text();
+            }
+
+            if (!text || text.length < 50) {
+                toast.error('Documento com pouco texto ou não legível.', { id: toastId });
+                return;
+            }
+
+            const analysis = await analyzeDocumentStrategy(data, text);
+            if (analysis) {
+                setAiDiligenceResult(analysis);
+                toast.success('Análise de Inteligência concluída!', { id: toastId });
+            } else {
+                toast.error('Não foi possível gerar a análise.', { id: toastId });
+            }
+
+        } catch (error) {
+            console.error(error);
+            toast.error('Erro ao processar arquivo.', { id: toastId });
+        } finally {
+            setIsAnalyzingDoc(false);
+            if (e.target && 'value' in e.target) {
+                e.target.value = '';
+            }
+        }
+    };
+
     const handleDeleteAttachment = async (urlToDelete: string) => {
         if (!data) return;
 
@@ -1956,6 +1997,30 @@ Equipe de Capturas - DIG / PCSP
                                         <PlusCircle size={18} /> REGISTRAR NO PRONTUÁRIO
                                     </button>
                                 </div>
+                            </div>
+
+                            {/* Document Analysis Button */}
+                            <div className="bg-white/5 border border-white/10 rounded-2xl p-4 flex flex-col items-center justify-center gap-3 text-center group hover:bg-white/10 transition-all cursor-dashed border-2 border-indigo-500/20">
+                                <Bot size={24} className="text-indigo-400 group-hover:scale-110 transition-transform" />
+                                <div>
+                                    <h4 className="text-sm font-black text-white uppercase tracking-wider">Centro de Fusão de Dados</h4>
+                                    <p className="text-[10px] text-text-muted mt-1 uppercase">Carregar arquivos externos (PDF/TXT) para cruzamento de dados</p>
+                                </div>
+                                <input
+                                    type="file"
+                                    id="doc-analysis-upload"
+                                    className="hidden"
+                                    accept=".pdf,.txt"
+                                    onChange={handleAnalyzeDocument}
+                                    disabled={isAnalyzingDoc}
+                                />
+                                <label
+                                    htmlFor="doc-analysis-upload"
+                                    className={`px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-[10px] font-black uppercase tracking-widest cursor-pointer shadow-lg shadow-indigo-600/20 flex items-center gap-2 transition-all active:scale-95 ${isAnalyzingDoc ? 'opacity-50 pointer-events-none' : ''}`}
+                                >
+                                    {isAnalyzingDoc ? <RefreshCw className="animate-spin" size={14} /> : <FileText size={14} />}
+                                    {isAnalyzingDoc ? 'PROCESSANDO INTELIGÊNCIA...' : 'ANALISAR DOCUMENTO AGORA'}
+                                </label>
                             </div>
 
                             <div className="space-y-4 relative before:absolute before:left-[17px] before:top-4 before:bottom-0 before:w-0.5 before:bg-white/10">

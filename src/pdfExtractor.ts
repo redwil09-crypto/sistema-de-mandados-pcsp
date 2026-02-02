@@ -616,6 +616,27 @@ export const extractPdfData = async (file: File): Promise<ExtractedData> => {
     }
 };
 
+// Function to extract text only for analysis
+export const extractRawTextFromPdf = async (file: File): Promise<string> => {
+    try {
+        const arrayBuffer = await file.arrayBuffer();
+        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+        let fullText = '';
+        for (let i = 1; i <= pdf.numPages; i++) {
+            const page = await pdf.getPage(i);
+            const textContent = await page.getTextContent();
+            const pageText = textContent.items
+                .map((item: any) => item.str)
+                .join(' ');
+            fullText += pageText + '\n';
+        }
+        return fullText;
+    } catch (error: any) {
+        console.error('Erro ao extrair texto bruto do PDF:', error);
+        throw new Error("Falha ao ler o arquivo PDF.");
+    }
+};
+
 // Function to extract from text input
 export const extractFromText = (text: string, sourceName: string): ExtractedData => {
     const name = extractName(text);

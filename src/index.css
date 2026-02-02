@@ -136,7 +136,7 @@
 }
 
 ::selection {
-  background-color: rgba(34, 211, 238, 0.3);
-  /* Cyan 400 with opacity */
+  background-color: rgba(34, 211, 238, 0.15);
+  /* Cyan 400 with lower opacity */
   color: #ffffff;
 }
