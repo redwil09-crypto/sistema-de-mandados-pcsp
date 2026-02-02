@@ -66,6 +66,13 @@ const WarrantDetail = () => {
     const [chatHistory, setChatHistory] = useState<{ role: string, content: string }[]>([]);
     const [isChatThinking, setIsChatThinking] = useState(false);
 
+
+    const [isUploadingFile, setIsUploadingFile] = useState(false);
+    const [isAnalyzingDiligence, setIsAnalyzingDiligence] = useState(false);
+    const [aiDiligenceResult, setAiDiligenceResult] = useState<string | null>(null);
+    const [isAiReportModalOpen, setIsAiReportModalOpen] = useState(false);
+
+    // Load Draft from LocalStorage
     useEffect(() => {
         if (id) {
             const savedDraft = localStorage.getItem(`warrant_draft_${id}`);
@@ -95,12 +102,6 @@ const WarrantDetail = () => {
             localStorage.setItem(`warrant_draft_${id}`, JSON.stringify(draft));
         }
     }, [id, newDiligence, aiDiligenceResult, analyzedDocumentText, chatHistory]);
-
-    const [isDraftOpen, setIsDraftOpen] = useState(false);
-    const [isUploadingFile, setIsUploadingFile] = useState(false);
-    const [isAnalyzingDiligence, setIsAnalyzingDiligence] = useState(false);
-    const [aiDiligenceResult, setAiDiligenceResult] = useState<string | null>(null);
-    const [isAiReportModalOpen, setIsAiReportModalOpen] = useState(false);
 
     const [isCapturasModalOpen, setIsCapturasModalOpen] = useState(false);
     const [capturasData, setCapturasData] = useState({
@@ -2039,7 +2040,7 @@ Equipe de Capturas - DIG / PCSP
                                             {/* Chat Interface */}
                                             <div className="mt-4 pt-4 border-t border-indigo-500/20">
                                                 <div className="space-y-3 mb-3 max-h-[200px] overflow-y-auto scrollbar-thin scrollbar-thumb-indigo-500/30 pr-2">
-                                                    {chatHistory.map((msg, idx) => (
+                                                    {Array.isArray(chatHistory) && chatHistory.map((msg, idx) => (
                                                         <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                                                             <div className={`max-w-[85%] p-2 rounded-xl text-[11px] leading-relaxed ${msg.role === 'user' ? 'bg-indigo-600 text-white rounded-tr-sm' : 'bg-white/10 text-text-dark rounded-tl-sm'}`}>
                                                                 {msg.content}
