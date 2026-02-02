@@ -174,7 +174,7 @@ export async function analyzeRawDiligence(warrantData: any, rawInfo: string) {
     if (!(await isGeminiEnabled())) return null;
 
     const prompt = `
-        Você é Antigravity, um Especialista em Inteligência Policial de alto nível.
+        Você é um Especialista em Inteligência Policial de alto nível.
         Sua missão é analisar informações brutas (diligências, observações, informes) colhidas por equipes de campo sobre um alvo de mandado judicial.
 
         DADOS DO ALVO:
@@ -308,7 +308,7 @@ export async function analyzeDocumentStrategy(warrantData: any, docText: string)
     if (!(await isGeminiEnabled())) return null;
 
     const prompt = `
-        VOCÊ É UM ANALISTA DE INTELIGÊNCIA CRIMINAL DE ELITE (ANTIGRAVITY).
+        VOCÊ É UM ANALISTA DE INTELIGÊNCIA CRIMINAL DE ELITE.
         SUA MISSÃO: Realizar uma varredura profunda ("Deep Dive") no documento fornecido, cruzando-o com os dados do alvo.
 
         DADOS CONHECIDOS DO ALVO:
@@ -356,7 +356,7 @@ export async function askAssistantStrategy(warrantData: any, docContext: string,
     const historyText = history.map(h => `${h.role === 'user' ? 'PERGUNTA' : 'RESPOSTA'}: ${h.content}`).join('\n');
 
     const prompt = `
-        VOCÊ É O ASSISTENTE DE ELITE "ANTIGRAVITY" DA POLÍCIA CIVIL.
+        VOCÊ É UM ASSISTENTE DE ELITE DA POLÍCIA CIVIL.
         
         CONTEXTO DO ALVO:
         ${JSON.stringify(warrantData, null, 2)}

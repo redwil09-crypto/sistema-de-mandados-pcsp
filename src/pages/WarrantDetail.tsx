@@ -1815,7 +1815,7 @@ Equipe de Capturas - DIG / PCSP
                                             <Zap size={24} className="text-white fill-current" />
                                         </div>
                                         <div>
-                                            <h4 className="text-lg font-black text-white uppercase tracking-tighter">Sugestão Tática Antigravity</h4>
+                                            <h4 className="text-lg font-black text-white uppercase tracking-tighter">Sugestão Tática Inteligente</h4>
                                             <div className="flex items-center gap-2">
                                                 <span className={`text-[10px] font-black px-2 py-0.5 rounded ${aiTimeSuggestion.confidence === 'Alta' ? 'bg-green-500/20 text-green-400' : 'bg-amber-500/20 text-amber-400'}`}>Confiança: {aiTimeSuggestion.confidence}</span>
                                             </div>
@@ -2029,7 +2029,7 @@ Equipe de Capturas - DIG / PCSP
                                             <div className="flex items-center justify-between gap-2 mb-2">
                                                 <div className="flex items-center gap-2">
                                                     <Bot size={14} className="text-indigo-400" />
-                                                    <span className="text-[9px] font-black uppercase text-indigo-400 tracking-widest">Relatório Estratégico (Antigravity IA)</span>
+                                                    <span className="text-[9px] font-black uppercase text-indigo-400 tracking-widest">Relatório Estratégico (IA)</span>
                                                 </div>
                                                 <button onClick={handleClearAnalysis} className="p-1.5 hover:bg-white/10 rounded-lg text-text-muted hover:text-white transition-colors" title="Apagar análise e histórico">
                                                     <Trash2 size={12} />
@@ -2062,7 +2062,7 @@ Equipe de Capturas - DIG / PCSP
                                                         value={chatInput}
                                                         onChange={e => setChatInput(e.target.value)}
                                                         onKeyDown={e => e.key === 'Enter' && handleAssistantChat()}
-                                                        placeholder="Pergunte ao Agente Antigravity sobre os dados..."
+                                                        placeholder="Pergunte ao Agente sobre os dados..."
                                                         className="w-full bg-black/20 border border-indigo-500/20 rounded-xl pl-3 pr-10 py-2.5 text-xs text-white outline-none focus:ring-1 focus:ring-indigo-500/50 placeholder:text-indigo-300/30"
                                                     />
                                                     <button
