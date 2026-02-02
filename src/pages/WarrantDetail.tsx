@@ -20,7 +20,7 @@ import { formatDate, getStatusColor, maskDate } from '../utils/helpers';
 import { Warrant } from '../types';
 import { geocodeAddress } from '../services/geocodingService';
 import { generateWarrantPDF, generateIfoodOfficePDF } from '../services/pdfReportService';
-import { analyzeRawDiligence, generateReportBody, analyzeDocumentStrategy } from '../services/geminiService';
+import { analyzeRawDiligence, generateReportBody, analyzeDocumentStrategy, askAssistantStrategy } from '../services/geminiService';
 import { extractRawTextFromPdf, extractFromText } from '../pdfExtractor';
 import { CRIME_OPTIONS, REGIME_OPTIONS } from '../data/constants';
 import { useWarrants } from '../contexts/WarrantContext';
@@ -59,9 +59,13 @@ const WarrantDetail = () => {
 
     // Investigative States
     const [newDiligence, setNewDiligence] = useState('');
-    const [isAnalyzingDoc, setIsAnalyzingDoc] = useState(false);
 
-    // Load Draft from LocalStorage
+    const [isAnalyzingDoc, setIsAnalyzingDoc] = useState(false);
+    const [analyzedDocumentText, setAnalyzedDocumentText] = useState('');
+    const [chatInput, setChatInput] = useState('');
+    const [chatHistory, setChatHistory] = useState<{ role: string, content: string }[]>([]);
+    const [isChatThinking, setIsChatThinking] = useState(false);
+
     useEffect(() => {
         if (id) {
             const savedDraft = localStorage.getItem(`warrant_draft_${id}`);
@@ -69,6 +73,9 @@ const WarrantDetail = () => {
                 try {
                     const parsed = JSON.parse(savedDraft);
                     if (parsed.diligence) setNewDiligence(parsed.diligence);
+                    if (parsed.aiDiligenceResult) setAiDiligenceResult(parsed.aiDiligenceResult);
+                    if (parsed.analyzedDocumentText) setAnalyzedDocumentText(parsed.analyzedDocumentText);
+                    if (parsed.chatHistory) setChatHistory(parsed.chatHistory);
                 } catch (e) {
                     console.error("Failed to load draft");
                 }
@@ -79,10 +86,15 @@ const WarrantDetail = () => {
     // Save Draft to LocalStorage
     useEffect(() => {
         if (id) {
-            const draft = { diligence: newDiligence };
+            const draft = {
+                diligence: newDiligence,
+                aiDiligenceResult,
+                analyzedDocumentText,
+                chatHistory
+            };
             localStorage.setItem(`warrant_draft_${id}`, JSON.stringify(draft));
         }
-    }, [id, newDiligence]);
+    }, [id, newDiligence, aiDiligenceResult, analyzedDocumentText, chatHistory]);
 
     const [isDraftOpen, setIsDraftOpen] = useState(false);
     const [isUploadingFile, setIsUploadingFile] = useState(false);
@@ -770,6 +782,8 @@ Equipe de Capturas - DIG / PCSP
             const analysis = await analyzeDocumentStrategy(data, text);
             if (analysis) {
                 setAiDiligenceResult(analysis);
+                setAnalyzedDocumentText(text); // Save context
+                setChatHistory([]); // Reset chat on new document
                 toast.success('Análise de Inteligência concluída!', { id: toastId });
             } else {
                 toast.error('Não foi possível gerar a análise.', { id: toastId });
@@ -784,6 +798,31 @@ Equipe de Capturas - DIG / PCSP
                 e.target.value = '';
             }
         }
+    };
+
+    const handleClearAnalysis = () => {
+        if (window.confirm("Deseja apagar a análise e o histórico atual?")) {
+            setAiDiligenceResult(null);
+            setAnalyzedDocumentText('');
+            setChatHistory([]);
+            setChatInput('');
+        }
+    };
+
+    const handleAssistantChat = async () => {
+        if (!chatInput.trim() || !data) return;
+
+        const question = chatInput;
+        setChatInput('');
+        setIsChatThinking(true);
+
+        const newHistory = [...chatHistory, { role: 'user', content: question }];
+        setChatHistory(newHistory);
+
+        const response = await askAssistantStrategy(data, analyzedDocumentText, question, newHistory);
+
+        setChatHistory([...newHistory, { role: 'assistant', content: response }]);
+        setIsChatThinking(false);
     };
 
     const handleDeleteAttachment = async (urlToDelete: string) => {
@@ -1986,11 +2025,54 @@ Equipe de Capturas - DIG / PCSP
                                     </div>
                                     {aiDiligenceResult && (
                                         <div className="mt-4 p-4 bg-indigo-500/10 border border-indigo-500/20 rounded-xl animate-in fade-in zoom-in-95">
-                                            <div className="flex items-center gap-2 mb-2">
-                                                <Bot size={14} className="text-indigo-400" />
-                                                <span className="text-[9px] font-black uppercase text-indigo-400 tracking-widest">Relatório Estratégico (Antigravity IA)</span>
+                                            <div className="flex items-center justify-between gap-2 mb-2">
+                                                <div className="flex items-center gap-2">
+                                                    <Bot size={14} className="text-indigo-400" />
+                                                    <span className="text-[9px] font-black uppercase text-indigo-400 tracking-widest">Relatório Estratégico (Antigravity IA)</span>
+                                                </div>
+                                                <button onClick={handleClearAnalysis} className="p-1.5 hover:bg-white/10 rounded-lg text-text-muted hover:text-white transition-colors" title="Apagar análise e histórico">
+                                                    <Trash2 size={12} />
+                                                </button>
                                             </div>
                                             <p className="text-xs text-text-dark/90 leading-relaxed whitespace-pre-wrap">{aiDiligenceResult}</p>
+
+                                            {/* Chat Interface */}
+                                            <div className="mt-4 pt-4 border-t border-indigo-500/20">
+                                                <div className="space-y-3 mb-3 max-h-[200px] overflow-y-auto scrollbar-thin scrollbar-thumb-indigo-500/30 pr-2">
+                                                    {chatHistory.map((msg, idx) => (
+                                                        <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                                                            <div className={`max-w-[85%] p-2 rounded-xl text-[11px] leading-relaxed ${msg.role === 'user' ? 'bg-indigo-600 text-white rounded-tr-sm' : 'bg-white/10 text-text-dark rounded-tl-sm'}`}>
+                                                                {msg.content}
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                    {isChatThinking && (
+                                                        <div className="flex justify-start">
+                                                            <div className="bg-white/10 text-text-muted p-2 rounded-xl rounded-tl-sm flex items-center gap-1">
+                                                                <span className="w-1 h-1 bg-current rounded-full animate-bounce"></span>
+                                                                <span className="w-1 h-1 bg-current rounded-full animate-bounce delay-100"></span>
+                                                                <span className="w-1 h-1 bg-current rounded-full animate-bounce delay-200"></span>
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <div className="relative">
+                                                    <input
+                                                        value={chatInput}
+                                                        onChange={e => setChatInput(e.target.value)}
+                                                        onKeyDown={e => e.key === 'Enter' && handleAssistantChat()}
+                                                        placeholder="Pergunte ao Agente Antigravity sobre os dados..."
+                                                        className="w-full bg-black/20 border border-indigo-500/20 rounded-xl pl-3 pr-10 py-2.5 text-xs text-white outline-none focus:ring-1 focus:ring-indigo-500/50 placeholder:text-indigo-300/30"
+                                                    />
+                                                    <button
+                                                        onClick={handleAssistantChat}
+                                                        disabled={!chatInput.trim() || isChatThinking}
+                                                        className="absolute right-1 top-1 p-1.5 bg-indigo-500 text-white rounded-lg hover:bg-indigo-400 transition-colors disabled:opacity-50"
+                                                    >
+                                                        <Send size={12} />
+                                                    </button>
+                                                </div>
+                                            </div>
                                         </div>
                                     )}
                                     <button onClick={handleAddDiligence} disabled={!newDiligence.trim()} className="w-full mt-4 bg-primary hover:bg-primary-dark text-white py-3.5 rounded-xl font-black text-xs uppercase tracking-widest shadow-tactic transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2">
@@ -2098,55 +2180,61 @@ Equipe de Capturas - DIG / PCSP
             <ConfirmModal isOpen={isReopenConfirmOpen} onCancel={() => setIsReopenConfirmOpen(false)} onConfirm={handleConfirmReopen} title="Reabrir Prontuário" message="Confirmar reabertura do status para 'EM ABERTO'?" confirmText="Reabrir" cancelText="Cancelar" variant="primary" />
             <ConfirmModal isOpen={isDeleteConfirmOpen} onCancel={() => setIsDeleteConfirmOpen(false)} onConfirm={handleConfirmDelete} title="Excluir Alvo" message="Deseja remover PERMANENTEMENTE este registro? Esta ação é irreversível." confirmText="Excluir" cancelText="Cancelar" variant="danger" />
 
-            {isCapturasModalOpen && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-300">
-                    <div className="bg-surface-dark border border-white/10 rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col shadow-tactic">
-                        <div className="p-5 border-b border-white/10 flex justify-between items-center bg-white/5">
-                            <div className="flex items-center gap-3"><Sparkles className="text-primary animate-pulse" size={20} /><h3 className="text-lg font-black uppercase tracking-tighter text-white">Centro de Redação Inteligente</h3></div>
-                            <button onClick={() => setIsCapturasModalOpen(false)} className="p-2 text-text-muted hover:text-white"><X size={24} /></button>
-                        </div>
-                        <div className="flex-1 overflow-y-auto p-6 space-y-6 scrollbar-none">
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-1"><label className="text-[10px] font-black text-primary uppercase tracking-widest">Identificador Relatório</label><input className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm text-white" value={capturasData.reportNumber} onChange={e => setCapturasData({ ...capturasData, reportNumber: e.target.value })} /></div>
-                                <div className="space-y-1"><label className="text-[10px] font-black text-primary uppercase tracking-widest">Comarca Judiciária</label><input className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm text-white" value={capturasData.court} onChange={e => setCapturasData({ ...capturasData, court: e.target.value })} /></div>
+            {
+                isCapturasModalOpen && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-300">
+                        <div className="bg-surface-dark border border-white/10 rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col shadow-tactic">
+                            <div className="p-5 border-b border-white/10 flex justify-between items-center bg-white/5">
+                                <div className="flex items-center gap-3"><Sparkles className="text-primary animate-pulse" size={20} /><h3 className="text-lg font-black uppercase tracking-tighter text-white">Centro de Redação Inteligente</h3></div>
+                                <button onClick={() => setIsCapturasModalOpen(false)} className="p-2 text-text-muted hover:text-white"><X size={24} /></button>
                             </div>
-                            <div className="bg-indigo-500/5 border border-indigo-500/20 rounded-2xl p-5 space-y-4">
-                                <div className="flex items-center gap-2"><Cpu size={16} className="text-indigo-400" /><span className="text-[10px] font-black uppercase tracking-widest text-indigo-400">Prompt de Refinamento IA</span></div>
-                                <input className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-xs text-white placeholder:text-indigo-300/30" placeholder="Ex: 'Seja mais formal', 'Mencione a equipe de campo'..." value={capturasData.aiInstructions} onChange={e => setCapturasData({ ...capturasData, aiInstructions: e.target.value })} />
-                                <button onClick={handleRefreshAiReport} disabled={isGeneratingAiReport} className="w-full py-3 bg-indigo-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/20">{isGeneratingAiReport ? <RefreshCw size={14} className="animate-spin" /> : <Bot size={14} />} {isGeneratingAiReport ? 'ANTIGRAVITY PROCESSANDO...' : 'EXECUTAR ANÁLISE E REDAÇÃO IA'}</button>
+                            <div className="flex-1 overflow-y-auto p-6 space-y-6 scrollbar-none">
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-1"><label className="text-[10px] font-black text-primary uppercase tracking-widest">Identificador Relatório</label><input className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm text-white" value={capturasData.reportNumber} onChange={e => setCapturasData({ ...capturasData, reportNumber: e.target.value })} /></div>
+                                    <div className="space-y-1"><label className="text-[10px] font-black text-primary uppercase tracking-widest">Comarca Judiciária</label><input className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm text-white" value={capturasData.court} onChange={e => setCapturasData({ ...capturasData, court: e.target.value })} /></div>
+                                </div>
+                                <div className="bg-indigo-500/5 border border-indigo-500/20 rounded-2xl p-5 space-y-4">
+                                    <div className="flex items-center gap-2"><Cpu size={16} className="text-indigo-400" /><span className="text-[10px] font-black uppercase tracking-widest text-indigo-400">Prompt de Refinamento IA</span></div>
+                                    <input className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-xs text-white placeholder:text-indigo-300/30" placeholder="Ex: 'Seja mais formal', 'Mencione a equipe de campo'..." value={capturasData.aiInstructions} onChange={e => setCapturasData({ ...capturasData, aiInstructions: e.target.value })} />
+                                    <button onClick={handleRefreshAiReport} disabled={isGeneratingAiReport} className="w-full py-3 bg-indigo-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/20">{isGeneratingAiReport ? <RefreshCw size={14} className="animate-spin" /> : <Bot size={14} />} {isGeneratingAiReport ? 'ANTIGRAVITY PROCESSANDO...' : 'EXECUTAR ANÁLISE E REDAÇÃO IA'}</button>
+                                </div>
+                                <textarea className="w-full bg-white/5 border border-white/10 rounded-2xl p-5 text-sm leading-relaxed text-white min-h-[300px] font-serif" value={capturasData.body} onChange={e => setCapturasData({ ...capturasData, body: e.target.value })} />
                             </div>
-                            <textarea className="w-full bg-white/5 border border-white/10 rounded-2xl p-5 text-sm leading-relaxed text-white min-h-[300px] font-serif" value={capturasData.body} onChange={e => setCapturasData({ ...capturasData, body: e.target.value })} />
-                        </div>
-                        <div className="p-5 border-t border-white/10 bg-white/5">
-                            <button onClick={handleGenerateCapturasPDF} className="w-full py-4 bg-primary text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-tactic flex items-center justify-center gap-2"><Printer size={18} /> IMPRIMIR E ANEXAR PDF OFICIAL</button>
+                            <div className="p-5 border-t border-white/10 bg-white/5">
+                                <button onClick={handleGenerateCapturasPDF} className="w-full py-4 bg-primary text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-tactic flex items-center justify-center gap-2"><Printer size={18} /> IMPRIMIR E ANEXAR PDF OFICIAL</button>
+                            </div>
                         </div>
                     </div>
-                </div>
-            )}
+                )
+            }
 
-            {isFinalizeModalOpen && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-                    <div className="bg-surface-dark border border-white/10 rounded-3xl w-full max-w-md p-6 shadow-tactic space-y-6">
-                        <div className="flex items-center gap-3 border-b border-white/5 pb-4"><CheckCircle className="text-green-500" size={24} /><h3 className="text-xl font-black uppercase text-white tracking-tighter">Encerrar Protocolo</h3></div>
-                        <div className="space-y-4">
-                            <div className="space-y-1"><label className="text-[10px] font-black text-text-muted uppercase tracking-widest">Data Cumprimento</label><input type="date" className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white" value={finalizeFormData.date} onChange={e => setFinalizeFormData({ ...finalizeFormData, date: e.target.value })} /></div>
-                            <div className="space-y-1"><label className="text-[10px] font-black text-text-muted uppercase tracking-widest">Ofício DIG Vinculado</label><input type="text" className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white" value={finalizeFormData.digOffice} onChange={e => setFinalizeFormData({ ...finalizeFormData, digOffice: e.target.value })} /></div>
-                            <div className="space-y-1"><label className="text-[10px] font-black text-text-muted uppercase tracking-widest">Resultado Final</label><select className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white appearance-none" value={finalizeFormData.result} onChange={e => setFinalizeFormData({ ...finalizeFormData, result: e.target.value })}>{['PRESO', 'NEGATIVO', 'ENCAMINHADO', 'ÓBITO', 'CONTRA', 'LOCALIZADO'].map(opt => <option key={opt} value={opt} className="bg-surface-dark">{opt}</option>)}</select></div>
-                        </div>
-                        <div className="flex gap-3">
-                            <button onClick={() => setIsFinalizeModalOpen(false)} className="flex-1 py-3.5 rounded-2xl font-black text-[10px] uppercase tracking-widest bg-white/5 text-white hover:bg-white/10 transition-all">Cancelar</button>
-                            <button onClick={handleConfirmFinalize} className="flex-1 py-3.5 rounded-2xl font-black text-[10px] uppercase tracking-widest bg-green-500 text-white shadow-lg shadow-green-500/20">Finalizar Alvo</button>
+            {
+                isFinalizeModalOpen && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+                        <div className="bg-surface-dark border border-white/10 rounded-3xl w-full max-w-md p-6 shadow-tactic space-y-6">
+                            <div className="flex items-center gap-3 border-b border-white/5 pb-4"><CheckCircle className="text-green-500" size={24} /><h3 className="text-xl font-black uppercase text-white tracking-tighter">Encerrar Protocolo</h3></div>
+                            <div className="space-y-4">
+                                <div className="space-y-1"><label className="text-[10px] font-black text-text-muted uppercase tracking-widest">Data Cumprimento</label><input type="date" className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white" value={finalizeFormData.date} onChange={e => setFinalizeFormData({ ...finalizeFormData, date: e.target.value })} /></div>
+                                <div className="space-y-1"><label className="text-[10px] font-black text-text-muted uppercase tracking-widest">Ofício DIG Vinculado</label><input type="text" className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white" value={finalizeFormData.digOffice} onChange={e => setFinalizeFormData({ ...finalizeFormData, digOffice: e.target.value })} /></div>
+                                <div className="space-y-1"><label className="text-[10px] font-black text-text-muted uppercase tracking-widest">Resultado Final</label><select className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white appearance-none" value={finalizeFormData.result} onChange={e => setFinalizeFormData({ ...finalizeFormData, result: e.target.value })}>{['PRESO', 'NEGATIVO', 'ENCAMINHADO', 'ÓBITO', 'CONTRA', 'LOCALIZADO'].map(opt => <option key={opt} value={opt} className="bg-surface-dark">{opt}</option>)}</select></div>
+                            </div>
+                            <div className="flex gap-3">
+                                <button onClick={() => setIsFinalizeModalOpen(false)} className="flex-1 py-3.5 rounded-2xl font-black text-[10px] uppercase tracking-widest bg-white/5 text-white hover:bg-white/10 transition-all">Cancelar</button>
+                                <button onClick={handleConfirmFinalize} className="flex-1 py-3.5 rounded-2xl font-black text-[10px] uppercase tracking-widest bg-green-500 text-white shadow-lg shadow-green-500/20">Finalizar Alvo</button>
+                            </div>
                         </div>
                     </div>
-                </div>
-            )}
+                )
+            }
 
-            {isPhotoModalOpen && (
-                <div className="fixed inset-0 z-[200] bg-black/95 backdrop-blur-xl flex items-start justify-center p-4 pt-20 overflow-y-auto" onClick={() => setIsPhotoModalOpen(false)}>
-                    <img src={data.img || `https://ui-avatars.com/api/?name=${encodeURIComponent(data.name)}&background=random&color=fff`} className="max-h-[85vh] max-w-full rounded-2xl shadow-tactic border border-white/20 object-contain animate-in zoom-in-95" alt={data.name} />
-                </div>
-            )}
-        </div>
+            {
+                isPhotoModalOpen && (
+                    <div className="fixed inset-0 z-[200] bg-black/95 backdrop-blur-xl flex items-start justify-center p-4 pt-20 overflow-y-auto" onClick={() => setIsPhotoModalOpen(false)}>
+                        <img src={data.img || `https://ui-avatars.com/api/?name=${encodeURIComponent(data.name)}&background=random&color=fff`} className="max-h-[85vh] max-w-full rounded-2xl shadow-tactic border border-white/20 object-contain animate-in zoom-in-95" alt={data.name} />
+                    </div>
+                )
+            }
+        </div >
     );
 };
 export default WarrantDetail;

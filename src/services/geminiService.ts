@@ -349,3 +349,40 @@ export async function analyzeDocumentStrategy(warrantData: any, docText: string)
         return "Erro ao processar documento.";
     }
 }
+
+export async function askAssistantStrategy(warrantData: any, docContext: string, question: string, history: { role: string, content: string }[]) {
+    if (!(await isGeminiEnabled())) return "IA indisponível.";
+
+    const historyText = history.map(h => `${h.role === 'user' ? 'PERGUNTA' : 'RESPOSTA'}: ${h.content}`).join('\n');
+
+    const prompt = `
+        VOCÊ É O ASSISTENTE DE ELITE "ANTIGRAVITY" DA POLÍCIA CIVIL.
+        
+        CONTEXTO DO ALVO:
+        ${JSON.stringify(warrantData, null, 2)}
+
+        CONTEXTO DO DOCUMENTO ANALISADO (SE HOUVER):
+        "${docContext || 'Nenhum documento específico carregado agora. Use apenas os dados do alvo.'}"
+
+        HISTÓRICO DA CONVERSA:
+        ${historyText}
+
+        PERGUNTA ATUAL DO AGENTE:
+        "${question}"
+
+        SUA MISSÃO:
+        Responder com precisão tática, usando os dados fornecidos. 
+        Se a pergunta for sobre o documento, cite onde está a informação.
+        Se for sobre o alvo, use o contexto geral.
+        
+        ESTILO:
+        Curto, direto, militar, profissional. Sem enrolação.
+    `;
+
+    try {
+        return await tryGenerateContent(prompt);
+    } catch (error: any) {
+        console.error("Erro no Chat IA:", error);
+        return "Erro ao processar resposta.";
+    }
+}
