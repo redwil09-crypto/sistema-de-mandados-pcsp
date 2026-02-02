@@ -579,7 +579,15 @@ const WarrantDetail = () => {
         // Append AI Analysis Summary if available to ensure it appears in History and PDF
         let finalNotes = newDiligence;
         if (aiDiligenceResult && typeof aiDiligenceResult !== 'string') {
-            const riskInfo = aiDiligenceResult.riskLevel ? `\n[NÍVEL DE RISCO: ${aiDiligenceResult.riskLevel.toUpperCase()}]` : '';
+            // Translate Risk Level to PT-BR for persistence
+            const riskRaw = aiDiligenceResult.riskLevel?.toUpperCase() || '';
+            let riskPT = riskRaw;
+            if (riskRaw.includes('CRITIC') || riskRaw.includes('CRÍTIC')) riskPT = 'CRÍTICO';
+            else if (riskRaw.includes('HIGH') || riskRaw.includes('ALTO')) riskPT = 'ALTO';
+            else if (riskRaw.includes('MEDIUM') || riskRaw.includes('MÉDIO')) riskPT = 'MÉDIO';
+            else if (riskRaw.includes('LOW') || riskRaw.includes('BAIXO')) riskPT = 'BAIXO';
+
+            const riskInfo = riskPT ? `\n[NÍVEL DE RISCO: ${riskPT}]` : '';
             const summaryInfo = aiDiligenceResult.summary ? `\n\nANÁLISE ESTRATÉGICA:\n${aiDiligenceResult.summary}` : '';
             const reasonInfo = aiDiligenceResult.riskReason ? `\n\nMOTIVAÇÃO DO RISCO:\n${aiDiligenceResult.riskReason}` : '';
 
@@ -2143,8 +2151,8 @@ Equipe de Capturas - DIG / PCSP
                                                                         <span className="text-[10px] font-black uppercase tracking-widest text-text-muted">Nível de Risco</span>
                                                                     </div>
                                                                     <span className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase ${(aiDiligenceResult.riskLevel?.toUpperCase().includes('CRÍTICO') || aiDiligenceResult.riskLevel?.toUpperCase().includes('CRITICAL')) ? 'bg-red-500/20 text-red-500' :
-                                                                            (aiDiligenceResult.riskLevel?.toUpperCase().includes('ALTO') || aiDiligenceResult.riskLevel?.toUpperCase().includes('HIGH')) ? 'bg-orange-500/20 text-orange-500' :
-                                                                                (aiDiligenceResult.riskLevel?.toUpperCase().includes('MÉDIO') || aiDiligenceResult.riskLevel?.toUpperCase().includes('MEDIUM')) ? 'bg-yellow-500/20 text-yellow-500' : 'bg-green-500/20 text-green-500'
+                                                                        (aiDiligenceResult.riskLevel?.toUpperCase().includes('ALTO') || aiDiligenceResult.riskLevel?.toUpperCase().includes('HIGH')) ? 'bg-orange-500/20 text-orange-500' :
+                                                                            (aiDiligenceResult.riskLevel?.toUpperCase().includes('MÉDIO') || aiDiligenceResult.riskLevel?.toUpperCase().includes('MEDIUM')) ? 'bg-yellow-500/20 text-yellow-500' : 'bg-green-500/20 text-green-500'
                                                                         }`}>
                                                                         {(aiDiligenceResult.riskLevel?.toUpperCase().includes('CRITICAL') ? 'CRÍTICO' :
                                                                             aiDiligenceResult.riskLevel?.toUpperCase().includes('HIGH') ? 'ALTO' :
@@ -2155,8 +2163,8 @@ Equipe de Capturas - DIG / PCSP
                                                                 </div>
                                                                 <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
                                                                     <div className={`h-full transition-all duration-1000 ${(aiDiligenceResult.riskLevel?.toUpperCase().includes('CRÍTICO') || aiDiligenceResult.riskLevel?.toUpperCase().includes('CRITICAL')) ? 'w-full bg-red-500' :
-                                                                            (aiDiligenceResult.riskLevel?.toUpperCase().includes('ALTO') || aiDiligenceResult.riskLevel?.toUpperCase().includes('HIGH')) ? 'w-3/4 bg-orange-500' :
-                                                                                (aiDiligenceResult.riskLevel?.toUpperCase().includes('MÉDIO') || aiDiligenceResult.riskLevel?.toUpperCase().includes('MEDIUM')) ? 'w-1/2 bg-yellow-500' : 'w-1/4 bg-green-500'
+                                                                        (aiDiligenceResult.riskLevel?.toUpperCase().includes('ALTO') || aiDiligenceResult.riskLevel?.toUpperCase().includes('HIGH')) ? 'w-3/4 bg-orange-500' :
+                                                                            (aiDiligenceResult.riskLevel?.toUpperCase().includes('MÉDIO') || aiDiligenceResult.riskLevel?.toUpperCase().includes('MEDIUM')) ? 'w-1/2 bg-yellow-500' : 'w-1/4 bg-green-500'
                                                                         }`}></div>
                                                                 </div>
                                                                 <p className="mt-2 text-sm text-text-secondary-dark">{aiDiligenceResult.riskReason}</p>
@@ -2454,6 +2462,8 @@ Equipe de Capturas - DIG / PCSP
                     )
                 }
             </div>
-            );
+        </div>
+    );
 };
-            export default WarrantDetail;
+
+export default WarrantDetail;
