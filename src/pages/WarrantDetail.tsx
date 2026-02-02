@@ -2289,7 +2289,7 @@ Equipe de Capturas - DIG / PCSP
                                                         <Trash2 size={14} />
                                                     </button>
                                                 </div>
-                                                <p className="text-sm text-text-dark/90 leading-relaxed font-medium">{h.notes}</p>
+                                                <p className="text-base text-text-dark/90 leading-relaxed font-medium">{h.notes}</p>
                                             </div>
                                         </div>
                                     ))

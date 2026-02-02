@@ -220,8 +220,10 @@ export const generateWarrantPDF = async (
             y += 10;
 
             data.diligentHistory.forEach((h: any) => {
-                const dateStr = new Date(h.date).toLocaleDateString('pt-BR');
-                const header = `${dateStr} - [${h.type.toUpperCase()}]`;
+                const dateObj = new Date(h.date);
+                const dateStr = dateObj.toLocaleDateString('pt-BR');
+                const timeStr = dateObj.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+                const header = `${dateStr} às ${timeStr} - [${h.type.toUpperCase()}]`;
                 const notes = h.notes || "-";
                 const splitNotes = doc.splitTextToSize(notes, contentWidth - 5);
 
