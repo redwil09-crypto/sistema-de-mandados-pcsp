@@ -592,7 +592,8 @@ const WarrantDetail = () => {
             birthDate: localData.birthDate,
             expirationDate: localData.expirationDate,
             ifoodResult: localData.ifoodResult,
-            ifoodNumber: localData.ifoodNumber
+            ifoodNumber: localData.ifoodNumber,
+            dischargeDate: localData.dischargeDate
         };
 
         const success = await updateWarrant(data.id, updates);
@@ -1692,6 +1693,10 @@ Equipe de Capturas - DIG / PCSP
                                     <div className="space-y-1">
                                         <label className="text-[9px] font-black text-text-muted uppercase tracking-wider">Expiração Mandado</label>
                                         <input className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-sm font-mono text-risk-high outline-none focus:ring-1 focus:ring-risk-high" value={localData.expirationDate || ''} onChange={e => handleFieldChange('expirationDate', e.target.value)} />
+                                    </div>
+                                    <div className="space-y-1 col-span-2">
+                                        <label className="text-[9px] font-black text-text-muted uppercase tracking-wider flex items-center gap-1"><CheckCircle size={10} className="text-primary" /> Data do Cumprimento</label>
+                                        <input className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-sm font-mono text-primary outline-none focus:ring-1 focus:ring-primary" placeholder="DD/MM/AAAA" value={localData.dischargeDate || ''} onChange={e => handleFieldChange('dischargeDate', e.target.value)} />
                                     </div>
                                 </div>
                             </div>
