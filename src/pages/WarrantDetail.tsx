@@ -2136,21 +2136,27 @@ Equipe de Capturas - DIG / PCSP
                                                                 <div className="flex justify-between items-center mb-2">
                                                                     <div className="flex items-center gap-2">
                                                                         <Siren size={14} className={
-                                                                            aiDiligenceResult.riskLevel === 'Crítico' ? 'text-red-500 animate-pulse' :
-                                                                                aiDiligenceResult.riskLevel === 'Alto' ? 'text-orange-500' :
-                                                                                    aiDiligenceResult.riskLevel === 'Médio' ? 'text-yellow-500' : 'text-green-500'
+                                                                            (aiDiligenceResult.riskLevel?.toUpperCase().includes('CRÍTICO') || aiDiligenceResult.riskLevel?.toUpperCase().includes('CRITICAL')) ? 'text-red-500 animate-pulse' :
+                                                                                (aiDiligenceResult.riskLevel?.toUpperCase().includes('ALTO') || aiDiligenceResult.riskLevel?.toUpperCase().includes('HIGH')) ? 'text-orange-500' :
+                                                                                    (aiDiligenceResult.riskLevel?.toUpperCase().includes('MÉDIO') || aiDiligenceResult.riskLevel?.toUpperCase().includes('MEDIUM')) ? 'text-yellow-500' : 'text-green-500'
                                                                         } />
                                                                         <span className="text-[10px] font-black uppercase tracking-widest text-text-muted">Nível de Risco</span>
                                                                     </div>
-                                                                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase ${aiDiligenceResult.riskLevel === 'Crítico' ? 'bg-red-500/20 text-red-500' :
-                                                                        aiDiligenceResult.riskLevel === 'Alto' ? 'bg-orange-500/20 text-orange-500' :
-                                                                            aiDiligenceResult.riskLevel === 'Médio' ? 'bg-yellow-500/20 text-yellow-500' : 'bg-green-500/20 text-green-500'
-                                                                        }`}>{aiDiligenceResult.riskLevel}</span>
+                                                                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase ${(aiDiligenceResult.riskLevel?.toUpperCase().includes('CRÍTICO') || aiDiligenceResult.riskLevel?.toUpperCase().includes('CRITICAL')) ? 'bg-red-500/20 text-red-500' :
+                                                                            (aiDiligenceResult.riskLevel?.toUpperCase().includes('ALTO') || aiDiligenceResult.riskLevel?.toUpperCase().includes('HIGH')) ? 'bg-orange-500/20 text-orange-500' :
+                                                                                (aiDiligenceResult.riskLevel?.toUpperCase().includes('MÉDIO') || aiDiligenceResult.riskLevel?.toUpperCase().includes('MEDIUM')) ? 'bg-yellow-500/20 text-yellow-500' : 'bg-green-500/20 text-green-500'
+                                                                        }`}>
+                                                                        {(aiDiligenceResult.riskLevel?.toUpperCase().includes('CRITICAL') ? 'CRÍTICO' :
+                                                                            aiDiligenceResult.riskLevel?.toUpperCase().includes('HIGH') ? 'ALTO' :
+                                                                                aiDiligenceResult.riskLevel?.toUpperCase().includes('MEDIUM') ? 'MÉDIO' :
+                                                                                    aiDiligenceResult.riskLevel?.toUpperCase().includes('LOW') ? 'BAIXO' :
+                                                                                        aiDiligenceResult.riskLevel) || 'EM ANÁLISE'}
+                                                                    </span>
                                                                 </div>
                                                                 <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
-                                                                    <div className={`h-full transition-all duration-1000 ${aiDiligenceResult.riskLevel === 'Crítico' ? 'w-full bg-red-500' :
-                                                                        aiDiligenceResult.riskLevel === 'Alto' ? 'w-3/4 bg-orange-500' :
-                                                                            aiDiligenceResult.riskLevel === 'Médio' ? 'w-1/2 bg-yellow-500' : 'w-1/4 bg-green-500'
+                                                                    <div className={`h-full transition-all duration-1000 ${(aiDiligenceResult.riskLevel?.toUpperCase().includes('CRÍTICO') || aiDiligenceResult.riskLevel?.toUpperCase().includes('CRITICAL')) ? 'w-full bg-red-500' :
+                                                                            (aiDiligenceResult.riskLevel?.toUpperCase().includes('ALTO') || aiDiligenceResult.riskLevel?.toUpperCase().includes('HIGH')) ? 'w-3/4 bg-orange-500' :
+                                                                                (aiDiligenceResult.riskLevel?.toUpperCase().includes('MÉDIO') || aiDiligenceResult.riskLevel?.toUpperCase().includes('MEDIUM')) ? 'w-1/2 bg-yellow-500' : 'w-1/4 bg-green-500'
                                                                         }`}></div>
                                                                 </div>
                                                                 <p className="mt-2 text-sm text-text-secondary-dark">{aiDiligenceResult.riskReason}</p>
