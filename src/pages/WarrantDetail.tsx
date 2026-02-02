@@ -27,7 +27,7 @@ import { CRIME_OPTIONS, REGIME_OPTIONS } from '../data/constants';
 import { useWarrants } from '../contexts/WarrantContext';
 
 const WarrantDetail = () => {
-    const { warrants, updateWarrant, deleteWarrant, routeWarrants, toggleRouteWarrant } = useWarrants();
+    const { warrants, updateWarrant, deleteWarrant, routeWarrants, toggleRouteWarrant, refreshWarrants } = useWarrants();
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
 
@@ -568,8 +568,11 @@ const WarrantDetail = () => {
         setTagToRemove(null);
     };
 
+    const [isSavingDiligence, setIsSavingDiligence] = useState(false);
+
     const handleAddDiligence = async () => {
         if (!newDiligence.trim()) return;
+        setIsSavingDiligence(true);
 
         const entry: any = {
             id: Date.now().toString(),
@@ -602,9 +605,14 @@ const WarrantDetail = () => {
             setNewDiligence('');
             setAiDiligenceResult(null);
 
-            // Force exact text user asked for to confirm it saves to "ficha"
+            // Force refresh to ensure UI and subsequent PDFs have latest data
+            await refreshWarrants();
+
             toast.success("Prontuário e Ficha do Alvo atualizados com sucesso!");
+        } else {
+            toast.error("Erro ao salvar no prontuário.");
         }
+        setIsSavingDiligence(false);
     };
 
     const handleAnalyzeDiligence = async () => {
@@ -904,6 +912,8 @@ Equipe de Capturas - DIG / PCSP
 
     const handleDownloadPDF = async () => {
         if (!data) return;
+        // Refresh data to ensure history is included
+        await refreshWarrants();
         await generateWarrantPDF(data, updateWarrant, aiTimeSuggestion);
     };
 
@@ -1555,8 +1565,8 @@ Equipe de Capturas - DIG / PCSP
     };
 
     const handleBack = () => {
-        // Enforce returning to list as requested to fix "bad back button"
-        navigate('/warrant-list');
+        // Force navigate to Home Screen as requested
+        navigate('/');
     };
 
     return (
@@ -2231,8 +2241,9 @@ Equipe de Capturas - DIG / PCSP
                                             </div>
                                         </div>
                                     )}
-                                    <button onClick={handleAddDiligence} disabled={!newDiligence.trim()} className="w-full mt-4 bg-primary hover:bg-primary-dark text-white py-3.5 rounded-xl font-black text-xs uppercase tracking-widest shadow-tactic transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2">
-                                        <PlusCircle size={18} /> REGISTRAR NO PRONTUÁRIO
+                                    <button onClick={handleAddDiligence} disabled={!newDiligence.trim() || isSavingDiligence} className="w-full mt-4 bg-primary hover:bg-primary-dark text-white py-3.5 rounded-xl font-black text-xs uppercase tracking-widest shadow-tactic transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2">
+                                        {isSavingDiligence ? <RefreshCw className="animate-spin" size={18} /> : <PlusCircle size={18} />}
+                                        {isSavingDiligence ? 'SALVANDO...' : 'REGISTRAR NO PRONTUÁRIO'}
                                     </button>
                                 </div>
                             </div>
