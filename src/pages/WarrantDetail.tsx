@@ -2152,6 +2152,34 @@ Equipe de Capturas - DIG / PCSP
                                                         </div>
                                                     )}
 
+                                                    {/* Geo Intelligence */}
+                                                    {aiDiligenceResult.locations && aiDiligenceResult.locations.length > 0 && (
+                                                        <div>
+                                                            <p className="text-[9px] font-black uppercase text-indigo-300 mb-2 flex items-center gap-1"><MapPin size={12} /> Rastro Geográfico</p>
+                                                            <div className="space-y-1.5">
+                                                                {aiDiligenceResult.locations.map((loc: any, i: number) => (
+                                                                    <div key={i} className="bg-white/5 border border-white/5 p-2 rounded-lg flex items-start gap-2 group hover:bg-white/10 transition-all">
+                                                                        <div className="p-1.5 bg-indigo-500/20 text-indigo-400 rounded-lg group-hover:bg-indigo-500 group-hover:text-white transition-colors">
+                                                                            <MapIcon size={12} />
+                                                                        </div>
+                                                                        <div className="flex-1 min-w-0">
+                                                                            <p className="text-[10px] font-bold text-white truncate">{loc.address}</p>
+                                                                            <p className="text-[9px] text-text-muted">{loc.context}</p>
+                                                                        </div>
+                                                                        <a
+                                                                            href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(loc.address)}`}
+                                                                            target="_blank"
+                                                                            rel="noreferrer"
+                                                                            className="p-1.5 text-text-muted hover:text-white bg-black/20 hover:bg-indigo-600 rounded-lg transition-all"
+                                                                        >
+                                                                            <ExternalLink size={10} />
+                                                                        </a>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                    )}
+
                                                     {/* Summary */}
                                                     <div className="pt-2 text-[10px] text-text-secondary-dark border-t border-white/5 italic">
                                                         "{aiDiligenceResult.summary}"
