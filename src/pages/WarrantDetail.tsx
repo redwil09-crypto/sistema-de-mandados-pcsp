@@ -7,7 +7,8 @@ import {
     Bike, FileCheck, FileText, Paperclip, Edit,
     Route as RouteIcon, RotateCcw, CheckCircle, Printer,
     Trash2, Zap, Bell, Eye, History, Send, Copy,
-    ShieldAlert, MessageSquare, Plus, PlusCircle, X, ChevronRight, Bot, Cpu, Sparkles, RefreshCw, AlertTriangle, ExternalLink
+    ShieldAlert, MessageSquare, Plus, PlusCircle, X, ChevronRight, Bot, Cpu, Sparkles, RefreshCw, AlertTriangle, ExternalLink,
+    CheckSquare, Users, AlertOctagon, Search, Siren, Scale
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '../supabaseClient';
@@ -807,6 +808,14 @@ Equipe de Capturas - DIG / PCSP
             setAnalyzedDocumentText('');
             setChatHistory([]);
             setChatInput('');
+        }
+    };
+
+    const handleToggleChecklist = (idx: number) => {
+        if (aiDiligenceResult && typeof aiDiligenceResult !== 'string' && aiDiligenceResult.checklist) {
+            const newResult = { ...aiDiligenceResult };
+            newResult.checklist[idx].checked = !newResult.checklist[idx].checked;
+            setAiDiligenceResult(newResult);
         }
     };
 
@@ -2035,7 +2044,100 @@ Equipe de Capturas - DIG / PCSP
                                                     <Trash2 size={12} />
                                                 </button>
                                             </div>
-                                            <p className="text-xs text-text-dark/90 leading-relaxed whitespace-pre-wrap">{aiDiligenceResult}</p>
+
+                                            {typeof aiDiligenceResult === 'string' ? (
+                                                <p className="text-xs text-text-dark/90 leading-relaxed whitespace-pre-wrap">{aiDiligenceResult}</p>
+                                            ) : (
+                                                <div className="space-y-5 animate-in slide-in-from-bottom-2">
+                                                    {/* Risk Meter */}
+                                                    <div className="bg-black/20 rounded-xl p-3 border border-white/5">
+                                                        <div className="flex justify-between items-center mb-2">
+                                                            <div className="flex items-center gap-2">
+                                                                <Siren size={14} className={
+                                                                    aiDiligenceResult.riskLevel === 'Crítico' ? 'text-red-500 animate-pulse' :
+                                                                        aiDiligenceResult.riskLevel === 'Alto' ? 'text-orange-500' :
+                                                                            aiDiligenceResult.riskLevel === 'Médio' ? 'text-yellow-500' : 'text-green-500'
+                                                                } />
+                                                                <span className="text-[10px] font-black uppercase tracking-widest text-text-muted">Nível de Risco</span>
+                                                            </div>
+                                                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase ${aiDiligenceResult.riskLevel === 'Crítico' ? 'bg-red-500/20 text-red-500' :
+                                                                    aiDiligenceResult.riskLevel === 'Alto' ? 'bg-orange-500/20 text-orange-500' :
+                                                                        aiDiligenceResult.riskLevel === 'Médio' ? 'bg-yellow-500/20 text-yellow-500' : 'bg-green-500/20 text-green-500'
+                                                                }`}>{aiDiligenceResult.riskLevel}</span>
+                                                        </div>
+                                                        <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
+                                                            <div className={`h-full transition-all duration-1000 ${aiDiligenceResult.riskLevel === 'Crítico' ? 'w-full bg-red-500' :
+                                                                    aiDiligenceResult.riskLevel === 'Alto' ? 'w-3/4 bg-orange-500' :
+                                                                        aiDiligenceResult.riskLevel === 'Médio' ? 'w-1/2 bg-yellow-500' : 'w-1/4 bg-green-500'
+                                                                }`}></div>
+                                                        </div>
+                                                        <p className="mt-2 text-[10px] text-text-secondary-dark">{aiDiligenceResult.riskReason}</p>
+                                                    </div>
+
+                                                    {/* Entities Graph */}
+                                                    {aiDiligenceResult.entities && aiDiligenceResult.entities.length > 0 && (
+                                                        <div>
+                                                            <p className="text-[9px] font-black uppercase text-indigo-300 mb-2 flex items-center gap-1"><Users size={12} /> Vínculos Identificados</p>
+                                                            <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none">
+                                                                {aiDiligenceResult.entities.map((ent: any, i: number) => (
+                                                                    <div key={i} className="min-w-[140px] bg-white/5 border border-white/5 p-2 rounded-lg flex flex-col gap-1 shrink-0">
+                                                                        <div className="flex items-center gap-1.5">
+                                                                            <User size={12} className="text-primary" />
+                                                                            <span className="text-[10px] font-bold text-white truncate">{ent.name}</span>
+                                                                        </div>
+                                                                        <span className="text-[9px] text-indigo-300 bg-indigo-500/10 px-1.5 py-0.5 rounded w-fit">{ent.role}</span>
+                                                                        <a
+                                                                            href={`https://www.google.com/search?q=${encodeURIComponent(ent.name)}`}
+                                                                            target="_blank"
+                                                                            rel="noreferrer"
+                                                                            className="mt-1 text-[9px] text-text-muted hover:text-white flex items-center gap-1 transition-colors"
+                                                                        >
+                                                                            <Search size={10} /> Pesquisar
+                                                                        </a>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                    )}
+
+                                                    {/* Tactical Checklist */}
+                                                    {aiDiligenceResult.checklist && aiDiligenceResult.checklist.length > 0 && (
+                                                        <div>
+                                                            <p className="text-[9px] font-black uppercase text-indigo-300 mb-2 flex items-center gap-1"><CheckSquare size={12} /> Plano de Ação</p>
+                                                            <div className="space-y-1.5">
+                                                                {aiDiligenceResult.checklist.map((item: any, i: number) => (
+                                                                    <div
+                                                                        key={i}
+                                                                        onClick={() => handleToggleChecklist(i)}
+                                                                        className={`p-2 rounded-lg border flex items-start gap-2 cursor-pointer transition-all ${item.checked
+                                                                                ? 'bg-green-500/5 border-green-500/20 opacity-60'
+                                                                                : 'bg-white/5 border-white/5 hover:bg-white/10'
+                                                                            }`}
+                                                                    >
+                                                                        <div className={`mt-0.5 w-3 h-3 rounded border flex items-center justify-center transition-colors ${item.checked ? 'bg-green-500 border-green-500' : 'border-white/30'
+                                                                            }`}>
+                                                                            {item.checked && <CheckSquare size={8} className="text-black" />}
+                                                                        </div>
+                                                                        <div>
+                                                                            <p className={`text-[10px] font-medium ${item.checked ? 'text-text-muted line-through' : 'text-white'}`}>
+                                                                                {item.task}
+                                                                            </p>
+                                                                            {item.priority === 'Alta' && !item.checked && (
+                                                                                <span className="text-[8px] font-black uppercase text-red-400 bg-red-400/10 px-1.5 rounded mt-1 inline-block">Prioridade Alta</span>
+                                                                            )}
+                                                                        </div>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                    )}
+
+                                                    {/* Summary */}
+                                                    <div className="pt-2 text-[10px] text-text-secondary-dark border-t border-white/5 italic">
+                                                        "{aiDiligenceResult.summary}"
+                                                    </div>
+                                                </div>
+                                            )}
 
                                             {/* Chat Interface */}
                                             <div className="mt-4 pt-4 border-t border-indigo-500/20">

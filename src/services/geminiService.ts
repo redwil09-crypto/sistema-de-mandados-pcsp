@@ -318,35 +318,36 @@ export async function analyzeDocumentStrategy(warrantData: any, docText: string)
         "${docText}"
 
         DIRETRIZES DE PENSAMENTO (CHAIN OF THOUGHT):
-        1. PARENTESCOS E VÍNCULOS: Quem são as pessoas citadas? Pai, mãe, cônjuges, advogados? Qual a relação?
-        2. GEO-INTELIGÊNCIA: Extraia todo e qualquer endereço, citando o contexto (ex: "casa da mãe", "local de trabalho antigo").
-        3. LINHA DO TEMPO: O documento é recente ou antigo? O que mudou?
-        4. CONTRADIÇÕES: O documento diz algo diferente do que já sabemos?
-        5. IDEIAS TÁTICAS: Com base nisso, onde podemos procurar? (ex: "Se ele assinou isso no cartório X semana passada, ele está na região Y").
+        1. PARENTESCOS E VÍNCULOS: Quem são as pessoas citadas? (Mãe, Advogado, Comparsa).
+        2. CHECKLIST TÁTICO: O que o policial deve fazer AGORA com essa informação? (Ex: "Verificar endereço tal", "Pesquisar placa tal").
+        3. RISCO: Qual o tom do documento? (Ameaça, Porte de Arma, Violência).
+        4. RESUMO: O que esse documento traz de novo?
 
-        SAÍDA (FORMATO MARKDOWN RIGOROSO):
-        
-        ### 🔍 ANÁLISE DE VÍNCULOS E PARENTESCO
-        - [Nome] ([Grau]): [Contexto]
-
-        ### 📍 RASTRO GEOGRÁFICO (NOVOS ENDEREÇOS)
-        - 🏠 [Endereço Completo] - *[Fonte/Data]*
-
-        ### 💡 INSIGHTS ESTRATÉGICOS
-        - [Análise cruzada de dados]
-        - [Sugestão de onde diligenciar]
-
-        ### ⚠️ PONTOS DE ATENÇÃO
-        - [Alertas de periculosidade ou contradições]
-
-        **Regra de Ouro:** NÃO ALUCINE. Se o dado não está lá, não invente. Se for uma dedução, deixe claro ("Sugere-se que...").
+        SAÍDA OBRIGATÓRIA EM JSON (SEM MARKDOWN):
+        {
+            "summary": "Resumo executivo de 2 linhas.",
+            "riskLevel": "Baixo" | "Médio" | "Alto" | "Crítico",
+            "riskReason": "Justificativa curta do risco.",
+            "entities": [
+                { "name": "Nome da Pessoa", "role": "Mãe/Advogado/Comparsa", "context": "Citado como residente no endereço X" }
+            ],
+            "checklist": [
+                { "task": "Ação sugerida curta", "priority": "Alta" | "Normal" }
+            ],
+            "locations": [
+                { "address": "Endereço encontrado", "context": "Local de trabalho antigo" }
+            ]
+        }
     `;
 
     try {
-        return await tryGenerateContent(prompt);
+        const text = await tryGenerateContent(prompt);
+        // Clean markdown code blocks if present
+        const jsonStr = text.replace(/```json|```/g, '').trim();
+        return JSON.parse(jsonStr);
     } catch (error) {
         console.error("Erro na Análise Profunda:", error);
-        return "Erro ao processar documento.";
+        return null;
     }
 }
 
