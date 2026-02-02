@@ -577,11 +577,21 @@ const WarrantDetail = () => {
         // Append AI Analysis Summary if available to ensure it appears in History and PDF
         let finalNotes = newDiligence;
         if (aiDiligenceResult && typeof aiDiligenceResult !== 'string') {
-            const riskInfo = aiDiligenceResult.riskLevel ? `[RISCO ${aiDiligenceResult.riskLevel.toUpperCase()}]` : '';
-            const summaryInfo = aiDiligenceResult.summary ? `\nANÁLISE IA: ${aiDiligenceResult.summary}` : '';
-            const reasonInfo = aiDiligenceResult.riskReason ? `\nMOTIVO DO RISCO: ${aiDiligenceResult.riskReason}` : '';
+            const riskInfo = aiDiligenceResult.riskLevel ? `\n[NÍVEL DE RISCO: ${aiDiligenceResult.riskLevel.toUpperCase()}]` : '';
+            const summaryInfo = aiDiligenceResult.summary ? `\n\nANÁLISE ESTRATÉGICA:\n${aiDiligenceResult.summary}` : '';
+            const reasonInfo = aiDiligenceResult.riskReason ? `\n\nMOTIVAÇÃO DO RISCO:\n${aiDiligenceResult.riskReason}` : '';
 
-            finalNotes = `${newDiligence}\n${riskInfo}${summaryInfo}${reasonInfo}`;
+            let checklistInfo = '';
+            if (aiDiligenceResult.checklist && aiDiligenceResult.checklist.length > 0) {
+                checklistInfo = '\n\nPLANO DE AÇÃO SUGERIDO:\n' + aiDiligenceResult.checklist.map((i: any) => `- [${i.priority ? i.priority.toUpperCase() : 'GERAL'}] ${i.task}`).join('\n');
+            }
+
+            let locationInfo = '';
+            if (aiDiligenceResult.locations && aiDiligenceResult.locations.length > 0) {
+                locationInfo = '\n\nRASTRO GEOGRÁFICO:\n' + aiDiligenceResult.locations.map((l: any) => `- ${l.address} (${l.context})`).join('\n');
+            }
+
+            finalNotes = `${newDiligence}${riskInfo}${summaryInfo}${reasonInfo}${checklistInfo}${locationInfo}`;
         }
 
         const entry: any = {
@@ -2067,13 +2077,13 @@ Equipe de Capturas - DIG / PCSP
 
                                 <div className="bg-white/5 border border-white/10 rounded-2xl p-4 focus-within:ring-2 focus-within:ring-primary/40 transition-all shadow-inner relative group">
                                     <div className="flex justify-between items-center mb-3">
-                                        <span className="text-[10px] font-black uppercase tracking-widest text-primary/80">Entrada de Informe de Campo</span>
-                                        <button onClick={handleAnalyzeDiligence} disabled={!newDiligence.trim() || isAnalyzingDiligence} className="text-[9px] font-black uppercase bg-indigo-500 text-white px-3 py-1.5 rounded-lg flex items-center gap-2 shadow-lg shadow-indigo-500/20 active:scale-95 disabled:opacity-50">
-                                            <Sparkles size={12} className={isAnalyzingDiligence ? 'animate-spin' : ''} /> ANALISAR INTELIGÊNCIA
+                                        <span className="text-xs font-black uppercase tracking-widest text-primary/80">Entrada de Informe de Campo</span>
+                                        <button onClick={handleAnalyzeDiligence} disabled={!newDiligence.trim() || isAnalyzingDiligence} className="text-[10px] font-black uppercase bg-indigo-500 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow-lg shadow-indigo-500/20 active:scale-95 disabled:opacity-50">
+                                            <Sparkles size={14} className={isAnalyzingDiligence ? 'animate-spin' : ''} /> ANALISAR INTELIGÊNCIA
                                         </button>
                                     </div>
                                     <div className="relative">
-                                        <textarea value={newDiligence} onChange={e => setNewDiligence(e.target.value)} className="w-full bg-transparent border-none text-white text-sm outline-none resize-none min-h-[120px] pr-12 scrollbar-none" placeholder="Descreva informes brutos, vizinhos, veículos, placas..." />
+                                        <textarea value={newDiligence} onChange={e => setNewDiligence(e.target.value)} className="w-full bg-transparent border-none text-white text-lg leading-relaxed outline-none resize-none min-h-[160px] pr-12 scrollbar-none placeholder:text-white/20" placeholder="Descreva informes brutos, vizinhos, veículos, placas..." />
                                         <div className="absolute right-0 bottom-0 p-2">
                                             <VoiceInput onTranscript={t => setNewDiligence(t)} currentValue={newDiligence} />
                                         </div>
