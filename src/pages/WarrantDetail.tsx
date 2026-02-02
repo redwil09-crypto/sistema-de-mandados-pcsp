@@ -1536,7 +1536,13 @@ Equipe de Capturas - DIG / PCSP
         }
     };
 
-
+    const handleBack = () => {
+        if (window.history.state && window.history.state.idx > 0) {
+            navigate(-1);
+        } else {
+            navigate('/warrant-list'); // Fallback to list if explicit direct entry
+        }
+    };
 
     return (
         <div className="min-h-screen bg-background-dark text-text-dark font-display relative overflow-x-hidden pb-40">
@@ -1546,7 +1552,7 @@ Equipe de Capturas - DIG / PCSP
                 <div className="absolute inset-0 tactical-glow"></div>
             </div>
 
-            <Header title="Dossiê Tático" back showHome />
+            <Header title="Dossiê Tático" back onBack={handleBack} showHome />
 
             {/* Main Content Layout */}
             <div className="relative z-10 p-4 space-y-4 max-w-5xl mx-auto">
@@ -2061,14 +2067,14 @@ Equipe de Capturas - DIG / PCSP
                                                                 <span className="text-[10px] font-black uppercase tracking-widest text-text-muted">Nível de Risco</span>
                                                             </div>
                                                             <span className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase ${aiDiligenceResult.riskLevel === 'Crítico' ? 'bg-red-500/20 text-red-500' :
-                                                                    aiDiligenceResult.riskLevel === 'Alto' ? 'bg-orange-500/20 text-orange-500' :
-                                                                        aiDiligenceResult.riskLevel === 'Médio' ? 'bg-yellow-500/20 text-yellow-500' : 'bg-green-500/20 text-green-500'
+                                                                aiDiligenceResult.riskLevel === 'Alto' ? 'bg-orange-500/20 text-orange-500' :
+                                                                    aiDiligenceResult.riskLevel === 'Médio' ? 'bg-yellow-500/20 text-yellow-500' : 'bg-green-500/20 text-green-500'
                                                                 }`}>{aiDiligenceResult.riskLevel}</span>
                                                         </div>
                                                         <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
                                                             <div className={`h-full transition-all duration-1000 ${aiDiligenceResult.riskLevel === 'Crítico' ? 'w-full bg-red-500' :
-                                                                    aiDiligenceResult.riskLevel === 'Alto' ? 'w-3/4 bg-orange-500' :
-                                                                        aiDiligenceResult.riskLevel === 'Médio' ? 'w-1/2 bg-yellow-500' : 'w-1/4 bg-green-500'
+                                                                aiDiligenceResult.riskLevel === 'Alto' ? 'w-3/4 bg-orange-500' :
+                                                                    aiDiligenceResult.riskLevel === 'Médio' ? 'w-1/2 bg-yellow-500' : 'w-1/4 bg-green-500'
                                                                 }`}></div>
                                                         </div>
                                                         <p className="mt-2 text-[10px] text-text-secondary-dark">{aiDiligenceResult.riskReason}</p>
@@ -2110,8 +2116,8 @@ Equipe de Capturas - DIG / PCSP
                                                                         key={i}
                                                                         onClick={() => handleToggleChecklist(i)}
                                                                         className={`p-2 rounded-lg border flex items-start gap-2 cursor-pointer transition-all ${item.checked
-                                                                                ? 'bg-green-500/5 border-green-500/20 opacity-60'
-                                                                                : 'bg-white/5 border-white/5 hover:bg-white/10'
+                                                                            ? 'bg-green-500/5 border-green-500/20 opacity-60'
+                                                                            : 'bg-white/5 border-white/5 hover:bg-white/10'
                                                                             }`}
                                                                     >
                                                                         <div className={`mt-0.5 w-3 h-3 rounded border flex items-center justify-center transition-colors ${item.checked ? 'bg-green-500 border-green-500' : 'border-white/30'
