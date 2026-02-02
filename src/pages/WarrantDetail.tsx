@@ -70,7 +70,9 @@ const WarrantDetail = () => {
 
     const [isUploadingFile, setIsUploadingFile] = useState(false);
     const [isAnalyzingDiligence, setIsAnalyzingDiligence] = useState(false);
-    const [aiDiligenceResult, setAiDiligenceResult] = useState<string | null>(null);
+    const [aiTimeSuggestion, setAiTimeSuggestion] = useState<any>(null);
+    const [aiDiligenceResult, setAiDiligenceResult] = useState<any>(null);
+    const [aiAnalysisSaved, setAiAnalysisSaved] = useState(false);
     const [isAiReportModalOpen, setIsAiReportModalOpen] = useState(false);
 
     // Load Draft from LocalStorage
@@ -623,12 +625,19 @@ const WarrantDetail = () => {
 
         if (success) {
             setNewDiligence('');
-            setAiDiligenceResult(null);
+            // Trigger visual confirmation
+            setAiAnalysisSaved(true);
 
             // Force refresh to ensure UI and subsequent PDFs have latest data
             await refreshWarrants();
 
             toast.success("Prontuário e Ficha do Alvo atualizados com sucesso!");
+
+            // Clear visualization after delay
+            setTimeout(() => {
+                setAiAnalysisSaved(false);
+                setAiDiligenceResult(null);
+            }, 3000);
         } else {
             toast.error("Erro ao salvar no prontuário.");
         }
@@ -2088,340 +2097,360 @@ Equipe de Capturas - DIG / PCSP
                                             <VoiceInput onTranscript={t => setNewDiligence(t)} currentValue={newDiligence} />
                                         </div>
                                     </div>
+
                                     {aiDiligenceResult && (
-                                        <div className="mt-4 p-4 bg-indigo-500/10 border border-indigo-500/20 rounded-xl animate-in fade-in zoom-in-95">
-                                            <div className="flex items-center justify-between gap-2 mb-2">
-                                                <div className="flex items-center gap-2">
-                                                    <Bot size={14} className="text-indigo-400" />
-                                                    <span className="text-[9px] font-black uppercase text-indigo-400 tracking-widest">Relatório Estratégico (IA)</span>
+                                        <div className="mt-4 animate-in fade-in zoom-in-95">
+                                            {aiAnalysisSaved ? (
+                                                <div className="p-6 bg-green-500/10 border border-green-500/30 rounded-xl text-center shadow-lg shadow-green-500/10 transition-all duration-500 transform scale-100 opacity-100">
+                                                    <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4 text-green-500 animate-bounce">
+                                                        <CheckCircle size={32} />
+                                                    </div>
+                                                    <h3 className="text-lg font-black uppercase text-white mb-1 tracking-wider">Inteligência Registrada</h3>
+                                                    <p className="text-xs text-green-400 font-bold uppercase tracking-widest mb-4">Dossiê e Prontuário Atualizados</p>
+
+                                                    {aiTimeSuggestion && (
+                                                        <div className="mt-4 p-3 bg-indigo-500/10 border border-indigo-500/20 rounded-lg flex items-center justify-center gap-3 animate-pulse">
+                                                            <Sparkles size={16} className="text-indigo-400" />
+                                                            <span className="text-xs font-black uppercase text-indigo-300 tracking-wider">Sugestão Tática Otimizada</span>
+                                                        </div>
+                                                    )}
                                                 </div>
-                                                <button onClick={handleClearAnalysis} className="p-1.5 hover:bg-white/10 rounded-lg text-text-muted hover:text-white transition-colors" title="Apagar análise e histórico">
-                                                    <Trash2 size={12} />
-                                                </button>
-                                            </div>
-
-                                            {typeof aiDiligenceResult === 'string' ? (
-                                                <p className="text-xs text-text-dark/90 leading-relaxed whitespace-pre-wrap">{aiDiligenceResult}</p>
                                             ) : (
-                                                <div className="space-y-5 animate-in slide-in-from-bottom-2">
-                                                    {/* Risk Meter */}
-                                                    <div className="bg-black/20 rounded-xl p-3 border border-white/5">
-                                                        <div className="flex justify-between items-center mb-2">
-                                                            <div className="flex items-center gap-2">
-                                                                <Siren size={14} className={
-                                                                    aiDiligenceResult.riskLevel === 'Crítico' ? 'text-red-500 animate-pulse' :
-                                                                        aiDiligenceResult.riskLevel === 'Alto' ? 'text-orange-500' :
-                                                                            aiDiligenceResult.riskLevel === 'Médio' ? 'text-yellow-500' : 'text-green-500'
-                                                                } />
-                                                                <span className="text-[10px] font-black uppercase tracking-widest text-text-muted">Nível de Risco</span>
-                                                            </div>
-                                                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase ${aiDiligenceResult.riskLevel === 'Crítico' ? 'bg-red-500/20 text-red-500' :
-                                                                aiDiligenceResult.riskLevel === 'Alto' ? 'bg-orange-500/20 text-orange-500' :
-                                                                    aiDiligenceResult.riskLevel === 'Médio' ? 'bg-yellow-500/20 text-yellow-500' : 'bg-green-500/20 text-green-500'
-                                                                }`}>{aiDiligenceResult.riskLevel}</span>
+                                                <div className="p-4 bg-indigo-500/10 border border-indigo-500/20 rounded-xl">
+                                                    <div className="flex items-center justify-between gap-2 mb-2">
+                                                        <div className="flex items-center gap-2">
+                                                            <Bot size={14} className="text-indigo-400" />
+                                                            <span className="text-[9px] font-black uppercase text-indigo-400 tracking-widest">Relatório Estratégico (IA)</span>
                                                         </div>
-                                                        <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
-                                                            <div className={`h-full transition-all duration-1000 ${aiDiligenceResult.riskLevel === 'Crítico' ? 'w-full bg-red-500' :
-                                                                aiDiligenceResult.riskLevel === 'Alto' ? 'w-3/4 bg-orange-500' :
-                                                                    aiDiligenceResult.riskLevel === 'Médio' ? 'w-1/2 bg-yellow-500' : 'w-1/4 bg-green-500'
-                                                                }`}></div>
-                                                        </div>
-                                                        <p className="mt-2 text-sm text-text-secondary-dark">{aiDiligenceResult.riskReason}</p>
+                                                        <button onClick={handleClearAnalysis} className="p-1.5 hover:bg-white/10 rounded-lg text-text-muted hover:text-white transition-colors" title="Apagar análise e histórico">
+                                                            <Trash2 size={12} />
+                                                        </button>
                                                     </div>
 
-                                                    {/* Entities Graph - Restored */}
-                                                    {aiDiligenceResult.entities && aiDiligenceResult.entities.length > 0 && (
-                                                        <div>
-                                                            <p className="text-xs font-black uppercase text-indigo-300 mb-2 flex items-center gap-1"><Users size={14} /> Vínculos Identificados</p>
-                                                            <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none">
-                                                                {aiDiligenceResult.entities.map((ent: any, i: number) => (
-                                                                    <div key={i} className="min-w-[150px] bg-white/5 border border-white/5 p-3 rounded-lg flex flex-col gap-1 shrink-0">
-                                                                        <div className="flex items-center gap-1.5">
-                                                                            <User size={14} className="text-primary" />
-                                                                            <span className="text-xs font-bold text-white truncate">{ent.name}</span>
-                                                                        </div>
-                                                                        <span className="text-[10px] text-indigo-300 bg-indigo-500/10 px-1.5 py-0.5 rounded w-fit">{ent.role}</span>
-                                                                        <a
-                                                                            href={`https://www.google.com/search?q=${encodeURIComponent(ent.name)}`}
-                                                                            target="_blank"
-                                                                            rel="noreferrer"
-                                                                            className="mt-1 text-[10px] text-text-muted hover:text-white flex items-center gap-1 transition-colors"
-                                                                        >
-                                                                            <Search size={12} /> Pesquisar
-                                                                        </a>
+                                                    {typeof aiDiligenceResult === 'string' ? (
+                                                        <p className="text-xs text-text-dark/90 leading-relaxed whitespace-pre-wrap">{aiDiligenceResult}</p>
+                                                    ) : (
+                                                        <div className="space-y-5 animate-in slide-in-from-bottom-2">
+                                                            {/* Risk Meter */}
+                                                            <div className="bg-black/20 rounded-xl p-3 border border-white/5">
+                                                                <div className="flex justify-between items-center mb-2">
+                                                                    <div className="flex items-center gap-2">
+                                                                        <Siren size={14} className={
+                                                                            aiDiligenceResult.riskLevel === 'Crítico' ? 'text-red-500 animate-pulse' :
+                                                                                aiDiligenceResult.riskLevel === 'Alto' ? 'text-orange-500' :
+                                                                                    aiDiligenceResult.riskLevel === 'Médio' ? 'text-yellow-500' : 'text-green-500'
+                                                                        } />
+                                                                        <span className="text-[10px] font-black uppercase tracking-widest text-text-muted">Nível de Risco</span>
                                                                     </div>
-                                                                ))}
+                                                                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase ${aiDiligenceResult.riskLevel === 'Crítico' ? 'bg-red-500/20 text-red-500' :
+                                                                        aiDiligenceResult.riskLevel === 'Alto' ? 'bg-orange-500/20 text-orange-500' :
+                                                                            aiDiligenceResult.riskLevel === 'Médio' ? 'bg-yellow-500/20 text-yellow-500' : 'bg-green-500/20 text-green-500'
+                                                                        }`}>{aiDiligenceResult.riskLevel}</span>
+                                                                </div>
+                                                                <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
+                                                                    <div className={`h-full transition-all duration-1000 ${aiDiligenceResult.riskLevel === 'Crítico' ? 'w-full bg-red-500' :
+                                                                        aiDiligenceResult.riskLevel === 'Alto' ? 'w-3/4 bg-orange-500' :
+                                                                            aiDiligenceResult.riskLevel === 'Médio' ? 'w-1/2 bg-yellow-500' : 'w-1/4 bg-green-500'
+                                                                        }`}></div>
+                                                                </div>
+                                                                <p className="mt-2 text-sm text-text-secondary-dark">{aiDiligenceResult.riskReason}</p>
                                                             </div>
-                                                        </div>
-                                                    )}
 
-                                                    {/* Tactical Checklist */}
-                                                    {aiDiligenceResult.checklist && aiDiligenceResult.checklist.length > 0 && (
-                                                        <div>
-                                                            <p className="text-[9px] font-black uppercase text-indigo-300 mb-2 flex items-center gap-1"><CheckSquare size={12} /> Plano de Ação</p>
-                                                            <div className="space-y-1.5">
-                                                                {aiDiligenceResult.checklist.map((item: any, i: number) => (
-                                                                    <div
-                                                                        key={i}
-                                                                        onClick={() => handleToggleChecklist(i)}
-                                                                        className={`p-2 rounded-lg border flex items-start gap-2 cursor-pointer transition-all ${item.checked
-                                                                            ? 'bg-green-500/5 border-green-500/20 opacity-60'
-                                                                            : 'bg-white/5 border-white/5 hover:bg-white/10'
-                                                                            }`}
+                                                            {/* Entities Graph - Restored */}
+                                                            {aiDiligenceResult.entities && aiDiligenceResult.entities.length > 0 && (
+                                                                <div>
+                                                                    <p className="text-xs font-black uppercase text-indigo-300 mb-2 flex items-center gap-1"><Users size={14} /> Vínculos Identificados</p>
+                                                                    <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none">
+                                                                        {aiDiligenceResult.entities.map((ent: any, i: number) => (
+                                                                            <div key={i} className="min-w-[150px] bg-white/5 border border-white/5 p-3 rounded-lg flex flex-col gap-1 shrink-0">
+                                                                                <div className="flex items-center gap-1.5">
+                                                                                    <User size={14} className="text-primary" />
+                                                                                    <span className="text-xs font-bold text-white truncate">{ent.name}</span>
+                                                                                </div>
+                                                                                <span className="text-[10px] text-indigo-300 bg-indigo-500/10 px-1.5 py-0.5 rounded w-fit">{ent.role}</span>
+                                                                                <a
+                                                                                    href={`https://www.google.com/search?q=${encodeURIComponent(ent.name)}`}
+                                                                                    target="_blank"
+                                                                                    rel="noreferrer"
+                                                                                    className="mt-1 text-[10px] text-text-muted hover:text-white flex items-center gap-1 transition-colors"
+                                                                                >
+                                                                                    <Search size={12} /> Pesquisar
+                                                                                </a>
+                                                                            </div>
+                                                                        ))}
+                                                                    </div>
+                                                                </div>
+                                                            )}
+
+                                                            {/* Tactical Checklist */}
+                                                            {aiDiligenceResult.checklist && aiDiligenceResult.checklist.length > 0 && (
+                                                                <div>
+                                                                    <p className="text-[9px] font-black uppercase text-indigo-300 mb-2 flex items-center gap-1"><CheckSquare size={12} /> Plano de Ação</p>
+                                                                    <div className="space-y-1.5">
+                                                                        {aiDiligenceResult.checklist.map((item: any, i: number) => (
+                                                                            <div
+                                                                                key={i}
+                                                                                onClick={() => handleToggleChecklist(i)}
+                                                                                className={`p-2 rounded-lg border flex items-start gap-2 cursor-pointer transition-all ${item.checked
+                                                                                    ? 'bg-green-500/5 border-green-500/20 opacity-60'
+                                                                                    : 'bg-white/5 border-white/5 hover:bg-white/10'
+                                                                                    }`}
+                                                                            >
+                                                                                <div className={`mt-0.5 w-3 h-3 rounded border flex items-center justify-center transition-colors ${item.checked ? 'bg-green-500 border-green-500' : 'border-white/30'
+                                                                                    }`}>
+                                                                                    {item.checked && <CheckSquare size={8} className="text-black" />}
+                                                                                </div>
+                                                                                <div>
+                                                                                    <p className={`text-[10px] font-medium ${item.checked ? 'text-text-muted line-through' : 'text-white'}`}>
+                                                                                        {item.task}
+                                                                                    </p>
+                                                                                    {item.priority === 'Alta' && !item.checked && (
+                                                                                        <span className="text-[8px] font-black uppercase text-red-400 bg-red-400/10 px-1.5 rounded mt-1 inline-block">Prioridade Alta</span>
+                                                                                    )}
+                                                                                </div>
+                                                                            </div>
+                                                                        ))}
+                                                                    </div>
+                                                                </div>
+                                                            )}
+
+                                                            {/* Geo Intelligence */}
+                                                            {aiDiligenceResult.locations && aiDiligenceResult.locations.length > 0 && (
+                                                                <div>
+                                                                    <p className="text-[9px] font-black uppercase text-indigo-300 mb-2 flex items-center gap-1"><MapPin size={12} /> Rastro Geográfico</p>
+                                                                    <div className="space-y-1.5">
+                                                                        {aiDiligenceResult.locations.map((loc: any, i: number) => (
+                                                                            <div key={i} className="bg-white/5 border border-white/5 p-2 rounded-lg flex items-start gap-2 group hover:bg-white/10 transition-all">
+                                                                                <div className="p-1.5 bg-indigo-500/20 text-indigo-400 rounded-lg group-hover:bg-indigo-500 group-hover:text-white transition-colors">
+                                                                                    <MapIcon size={12} />
+                                                                                </div>
+                                                                                <div className="flex-1 min-w-0">
+                                                                                    <p className="text-[10px] font-bold text-white truncate">{loc.address}</p>
+                                                                                    <p className="text-[9px] text-text-muted">{loc.context}</p>
+                                                                                </div>
+                                                                                <a
+                                                                                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(loc.address)}`}
+                                                                                    target="_blank"
+                                                                                    rel="noreferrer"
+                                                                                    className="p-1.5 text-text-muted hover:text-white bg-black/20 hover:bg-indigo-600 rounded-lg transition-all"
+                                                                                >
+                                                                                    <ExternalLink size={10} />
+                                                                                </a>
+                                                                            </div>
+                                                                        ))}
+                                                                    </div>
+                                                                </div>
+                                                            )}
+
+                                                            {/* Summary */}
+                                                            <div className="pt-2 text-[10px] text-text-secondary-dark border-t border-white/5 italic">
+                                                                "{aiDiligenceResult.summary}"
+                                                            </div>
+
+                                                            {/* Chat Interface */}
+                                                            <div className="mt-4 pt-4 border-t border-indigo-500/20">
+                                                                <div className="space-y-3 mb-3 max-h-[200px] overflow-y-auto scrollbar-thin scrollbar-thumb-indigo-500/30 pr-2">
+                                                                    {Array.isArray(chatHistory) && chatHistory.map((msg, idx) => (
+                                                                        <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                                                                            <div className={`max-w-[85%] p-2 rounded-xl text-[11px] leading-relaxed ${msg.role === 'user' ? 'bg-indigo-600 text-white rounded-tr-sm' : 'bg-white/10 text-text-dark rounded-tl-sm'}`}>
+                                                                                {msg.content}
+                                                                            </div>
+                                                                        </div>
+                                                                    ))}
+                                                                    {isChatThinking && (
+                                                                        <div className="flex justify-start">
+                                                                            <div className="bg-white/10 text-text-muted p-2 rounded-xl rounded-tl-sm flex items-center gap-1">
+                                                                                <span className="w-1 h-1 bg-current rounded-full animate-bounce"></span>
+                                                                                <span className="w-1 h-1 bg-current rounded-full animate-bounce delay-100"></span>
+                                                                                <span className="w-1 h-1 bg-current rounded-full animate-bounce delay-200"></span>
+                                                                            </div>
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                                <div className="relative">
+                                                                    <input
+                                                                        value={chatInput}
+                                                                        onChange={e => setChatInput(e.target.value)}
+                                                                        onKeyDown={e => e.key === 'Enter' && handleAssistantChat()}
+                                                                        placeholder="Pergunte ao Agente sobre os dados..."
+                                                                        className="w-full bg-black/20 border border-indigo-500/20 rounded-xl pl-3 pr-10 py-2.5 text-xs text-white outline-none focus:ring-1 focus:ring-indigo-500/50 placeholder:text-indigo-300/30"
+                                                                    />
+                                                                    <button
+                                                                        onClick={handleAssistantChat}
+                                                                        disabled={!chatInput.trim() || isChatThinking}
+                                                                        className="absolute right-1 top-1 p-1.5 bg-indigo-500 text-white rounded-lg hover:bg-indigo-400 transition-colors disabled:opacity-50"
                                                                     >
-                                                                        <div className={`mt-0.5 w-3 h-3 rounded border flex items-center justify-center transition-colors ${item.checked ? 'bg-green-500 border-green-500' : 'border-white/30'
-                                                                            }`}>
-                                                                            {item.checked && <CheckSquare size={8} className="text-black" />}
-                                                                        </div>
-                                                                        <div>
-                                                                            <p className={`text-[10px] font-medium ${item.checked ? 'text-text-muted line-through' : 'text-white'}`}>
-                                                                                {item.task}
-                                                                            </p>
-                                                                            {item.priority === 'Alta' && !item.checked && (
-                                                                                <span className="text-[8px] font-black uppercase text-red-400 bg-red-400/10 px-1.5 rounded mt-1 inline-block">Prioridade Alta</span>
-                                                                            )}
-                                                                        </div>
-                                                                    </div>
-                                                                ))}
+                                                                        <Send size={12} />
+                                                                    </button>
+                                                                </div>
                                                             </div>
                                                         </div>
                                                     )}
-
-                                                    {/* Geo Intelligence */}
-                                                    {aiDiligenceResult.locations && aiDiligenceResult.locations.length > 0 && (
-                                                        <div>
-                                                            <p className="text-[9px] font-black uppercase text-indigo-300 mb-2 flex items-center gap-1"><MapPin size={12} /> Rastro Geográfico</p>
-                                                            <div className="space-y-1.5">
-                                                                {aiDiligenceResult.locations.map((loc: any, i: number) => (
-                                                                    <div key={i} className="bg-white/5 border border-white/5 p-2 rounded-lg flex items-start gap-2 group hover:bg-white/10 transition-all">
-                                                                        <div className="p-1.5 bg-indigo-500/20 text-indigo-400 rounded-lg group-hover:bg-indigo-500 group-hover:text-white transition-colors">
-                                                                            <MapIcon size={12} />
-                                                                        </div>
-                                                                        <div className="flex-1 min-w-0">
-                                                                            <p className="text-[10px] font-bold text-white truncate">{loc.address}</p>
-                                                                            <p className="text-[9px] text-text-muted">{loc.context}</p>
-                                                                        </div>
-                                                                        <a
-                                                                            href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(loc.address)}`}
-                                                                            target="_blank"
-                                                                            rel="noreferrer"
-                                                                            className="p-1.5 text-text-muted hover:text-white bg-black/20 hover:bg-indigo-600 rounded-lg transition-all"
-                                                                        >
-                                                                            <ExternalLink size={10} />
-                                                                        </a>
-                                                                    </div>
-                                                                ))}
-                                                            </div>
-                                                        </div>
-                                                    )}
-
-                                                    {/* Summary */}
-                                                    <div className="pt-2 text-[10px] text-text-secondary-dark border-t border-white/5 italic">
-                                                        "{aiDiligenceResult.summary}"
-                                                    </div>
                                                 </div>
                                             )}
-
-                                            {/* Chat Interface */}
-                                            <div className="mt-4 pt-4 border-t border-indigo-500/20">
-                                                <div className="space-y-3 mb-3 max-h-[200px] overflow-y-auto scrollbar-thin scrollbar-thumb-indigo-500/30 pr-2">
-                                                    {Array.isArray(chatHistory) && chatHistory.map((msg, idx) => (
-                                                        <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                                                            <div className={`max-w-[85%] p-2 rounded-xl text-[11px] leading-relaxed ${msg.role === 'user' ? 'bg-indigo-600 text-white rounded-tr-sm' : 'bg-white/10 text-text-dark rounded-tl-sm'}`}>
-                                                                {msg.content}
-                                                            </div>
-                                                        </div>
-                                                    ))}
-                                                    {isChatThinking && (
-                                                        <div className="flex justify-start">
-                                                            <div className="bg-white/10 text-text-muted p-2 rounded-xl rounded-tl-sm flex items-center gap-1">
-                                                                <span className="w-1 h-1 bg-current rounded-full animate-bounce"></span>
-                                                                <span className="w-1 h-1 bg-current rounded-full animate-bounce delay-100"></span>
-                                                                <span className="w-1 h-1 bg-current rounded-full animate-bounce delay-200"></span>
-                                                            </div>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                                <div className="relative">
-                                                    <input
-                                                        value={chatInput}
-                                                        onChange={e => setChatInput(e.target.value)}
-                                                        onKeyDown={e => e.key === 'Enter' && handleAssistantChat()}
-                                                        placeholder="Pergunte ao Agente sobre os dados..."
-                                                        className="w-full bg-black/20 border border-indigo-500/20 rounded-xl pl-3 pr-10 py-2.5 text-xs text-white outline-none focus:ring-1 focus:ring-indigo-500/50 placeholder:text-indigo-300/30"
-                                                    />
-                                                    <button
-                                                        onClick={handleAssistantChat}
-                                                        disabled={!chatInput.trim() || isChatThinking}
-                                                        className="absolute right-1 top-1 p-1.5 bg-indigo-500 text-white rounded-lg hover:bg-indigo-400 transition-colors disabled:opacity-50"
-                                                    >
-                                                        <Send size={12} />
-                                                    </button>
-                                                </div>
-                                            </div>
                                         </div>
                                     )}
+
                                     <button onClick={handleAddDiligence} disabled={!newDiligence.trim() || isSavingDiligence} className="w-full mt-4 bg-primary hover:bg-primary-dark text-white py-3.5 rounded-xl font-black text-xs uppercase tracking-widest shadow-tactic transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2">
                                         {isSavingDiligence ? <RefreshCw className="animate-spin" size={18} /> : <PlusCircle size={18} />}
                                         {isSavingDiligence ? 'SALVANDO...' : 'REGISTRAR NO PRONTUÁRIO'}
                                     </button>
                                 </div>
-                            </div>
 
-                            {/* Document Analysis Button */}
-                            <div className="bg-white/5 border border-white/10 rounded-2xl p-4 flex flex-col items-center justify-center gap-3 text-center group hover:bg-white/10 transition-all cursor-dashed border-2 border-indigo-500/20">
-                                <Bot size={24} className="text-indigo-400 group-hover:scale-110 transition-transform" />
-                                <div>
-                                    <h4 className="text-sm font-black text-white uppercase tracking-wider">Centro de Fusão de Dados</h4>
-                                    <p className="text-[10px] text-text-muted mt-1 uppercase">Carregar arquivos externos (PDF/TXT) para cruzamento de dados</p>
-                                </div>
-                                <input
-                                    type="file"
-                                    id="doc-analysis-upload"
-                                    className="hidden"
-                                    accept=".pdf,.txt"
-                                    onChange={handleAnalyzeDocument}
-                                    disabled={isAnalyzingDoc}
-                                />
-                                <label
-                                    htmlFor="doc-analysis-upload"
-                                    className={`px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-[10px] font-black uppercase tracking-widest cursor-pointer shadow-lg shadow-indigo-600/20 flex items-center gap-2 transition-all active:scale-95 ${isAnalyzingDoc ? 'opacity-50 pointer-events-none' : ''}`}
-                                >
-                                    {isAnalyzingDoc ? <RefreshCw className="animate-spin" size={14} /> : <FileText size={14} />}
-                                    {isAnalyzingDoc ? 'PROCESSANDO INTELIGÊNCIA...' : 'ANALISAR DOCUMENTO AGORA'}
-                                </label>
-                            </div>
-
-                            <div className="space-y-4 relative before:absolute before:left-[17px] before:top-4 before:bottom-0 before:w-0.5 before:bg-white/10">
-                                {Array.isArray(data.diligentHistory) && data.diligentHistory.length > 0 ? (
-                                    [...data.diligentHistory].reverse().map((h: any, idx: number) => (
-                                        <div key={h.id} className="relative pl-12 animate-in slide-in-from-left duration-500" style={{ animationDelay: `${idx * 100}ms` }}>
-                                            <div className="absolute left-0 top-1 w-9 h-9 rounded-xl bg-surface-dark border border-white/10 flex items-center justify-center z-10 shadow-glass">
-                                                <History size={16} className="text-primary" />
-                                            </div>
-                                            <div className="bg-surface-dark/90 backdrop-blur border border-white/5 rounded-2xl p-4 group hover:border-primary/30 transition-all shadow-glass">
-                                                <div className="flex justify-between items-center mb-3">
-                                                    <div className="flex items-center gap-2">
-                                                        <span className="text-[10px] font-black text-primary font-mono bg-primary/10 px-2 py-0.5 rounded border border-primary/20">{new Date(h.date).toLocaleDateString('pt-BR')}</span>
-                                                        <span className="text-[10px] text-text-muted font-mono opacity-60">{new Date(h.date).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>
-                                                    </div>
-                                                    <button onClick={() => handleDeleteDiligence(h.id)} className="p-2 text-text-muted hover:text-red-500 transition-colors">
-                                                        <Trash2 size={14} />
-                                                    </button>
-                                                </div>
-                                                <p className="text-base text-text-dark/90 leading-relaxed font-medium">{h.notes}</p>
-                                            </div>
-                                        </div>
-                                    ))
-                                ) : (
-                                    <div className="text-center py-20 bg-white/5 rounded-3xl border-2 border-dashed border-white/5 mx-4">
-                                        <History size={40} className="mx-auto text-white/10 mb-4" />
-                                        <p className="text-xs text-text-muted font-black uppercase tracking-[0.2em]">Sem Histórico Operacional</p>
+                                {/* Document Analysis Button */}
+                                <div className="bg-white/5 border border-white/10 rounded-2xl p-4 flex flex-col items-center justify-center gap-3 text-center group hover:bg-white/10 transition-all cursor-dashed border-2 border-indigo-500/20">
+                                    <Bot size={24} className="text-indigo-400 group-hover:scale-110 transition-transform" />
+                                    <div>
+                                        <h4 className="text-sm font-black text-white uppercase tracking-wider">Centro de Fusão de Dados</h4>
+                                        <p className="text-[10px] text-text-muted mt-1 uppercase">Carregar arquivos externos (PDF/TXT) para cruzamento de dados</p>
                                     </div>
-                                )}
+                                    <input
+                                        type="file"
+                                        id="doc-analysis-upload"
+                                        className="hidden"
+                                        accept=".pdf,.txt"
+                                        onChange={handleAnalyzeDocument}
+                                        disabled={isAnalyzingDoc}
+                                    />
+                                    <label
+                                        htmlFor="doc-analysis-upload"
+                                        className={`px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-[10px] font-black uppercase tracking-widest cursor-pointer shadow-lg shadow-indigo-600/20 flex items-center gap-2 transition-all active:scale-95 ${isAnalyzingDoc ? 'opacity-50 pointer-events-none' : ''}`}
+                                    >
+                                        {isAnalyzingDoc ? <RefreshCw className="animate-spin" size={14} /> : <FileText size={14} />}
+                                        {isAnalyzingDoc ? 'PROCESSANDO INTELIGÊNCIA...' : 'ANALISAR DOCUMENTO AGORA'}
+                                    </label>
+                                </div>
+
+                                <div className="space-y-4 relative before:absolute before:left-[17px] before:top-4 before:bottom-0 before:w-0.5 before:bg-white/10">
+                                    {Array.isArray(data.diligentHistory) && data.diligentHistory.length > 0 ? (
+                                        [...data.diligentHistory].reverse().map((h: any, idx: number) => (
+                                            <div key={h.id} className="relative pl-12 animate-in slide-in-from-left duration-500" style={{ animationDelay: `${idx * 100}ms` }}>
+                                                <div className="absolute left-0 top-1 w-9 h-9 rounded-xl bg-surface-dark border border-white/10 flex items-center justify-center z-10 shadow-glass">
+                                                    <History size={16} className="text-primary" />
+                                                </div>
+                                                <div className="bg-surface-dark/90 backdrop-blur border border-white/5 rounded-2xl p-4 group hover:border-primary/30 transition-all shadow-glass">
+                                                    <div className="flex justify-between items-center mb-3">
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="text-[10px] font-black text-primary font-mono bg-primary/10 px-2 py-0.5 rounded border border-primary/20">{new Date(h.date).toLocaleDateString('pt-BR')}</span>
+                                                            <span className="text-[10px] text-text-muted font-mono opacity-60">{new Date(h.date).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>
+                                                        </div>
+                                                        <button onClick={() => handleDeleteDiligence(h.id)} className="p-2 text-text-muted hover:text-red-500 transition-colors">
+                                                            <Trash2 size={14} />
+                                                        </button>
+                                                    </div>
+                                                    <p className="text-base text-text-dark/90 leading-relaxed font-medium">{h.notes}</p>
+                                                </div>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <div className="text-center py-20 bg-white/5 rounded-3xl border-2 border-dashed border-white/5 mx-4">
+                                            <History size={40} className="mx-auto text-white/10 mb-4" />
+                                            <p className="text-xs text-text-muted font-black uppercase tracking-[0.2em]">Sem Histórico Operacional</p>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
-                        </div>
                     )}
 
 
 
-                </div>
+                        </div>
 
                 {/* Sticky Tactical Confirmation Bar */}
-                {hasChanges && (
-                    <div className="fixed bottom-[110px] left-4 right-4 p-4 bg-primary/90 backdrop-blur-xl border border-white/20 rounded-2xl z-[60] flex gap-3 animate-in slide-in-from-bottom duration-500 shadow-tactic">
-                        <button onClick={handleCancelEdits} className="flex-1 py-4 px-4 rounded-xl font-black text-[10px] uppercase tracking-widest bg-white/10 text-white hover:bg-white/20 transition-colors">Abortar Alterações</button>
-                        <button onClick={() => setIsConfirmSaveOpen(true)} className="flex-1 py-4 px-4 rounded-xl font-black text-[10px] uppercase tracking-widest bg-white text-primary shadow-lg hover:shadow-white/20 transition-all flex items-center justify-center gap-2 active:scale-95">
-                            <CheckCircle size={18} /> SINCRONIZAR DADOS
-                        </button>
-                    </div>
-                )}
-            </div>
-
-            {/* Tactical Action Dock */}
-            <div className="fixed bottom-0 left-0 right-0 p-4 pb-8 md:pb-8 bg-surface-dark/90 backdrop-blur-2xl border-t border-white/10 z-50 shadow-glass">
-                <div className="max-w-xl mx-auto flex items-stretch gap-2">
-                    <Link to="/" className="flex-1 flex flex-col items-center justify-center gap-1 py-3 rounded-2xl bg-white/5 text-text-muted hover:bg-white/10 transition-all active:scale-95 border border-white/5">
-                        <Home size={18} /><span className="text-[8px] font-black uppercase tracking-widest">Pátio</span>
-                    </Link>
-                    <Link to={`/new-warrant?edit=${data.id}`} className="flex-1 flex flex-col items-center justify-center gap-1 py-3 rounded-2xl bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition-all active:scale-95 shadow-inner">
-                        <Edit size={18} /><span className="text-[8px] font-black uppercase tracking-widest">Ajustar</span>
-                    </Link>
-                    <button onClick={data.status === 'CUMPRIDO' ? handleReopen : handleFinalize} className={`flex-1 flex flex-col items-center justify-center gap-1 py-3 rounded-2xl border transition-all active:scale-95 shadow-glass ${data.status === 'CUMPRIDO' ? 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20 hover:bg-indigo-500/20' : 'bg-green-500/10 text-green-400 border-green-500/20 hover:bg-green-500/20'}`}>
-                        {data.status === 'CUMPRIDO' ? <RotateCcw size={18} /> : <CheckCircle size={18} />}
-                        <span className="text-[8px] font-black uppercase tracking-widest">{data.status === 'CUMPRIDO' ? 'REABRIR' : 'FECHAR'}</span>
-                    </button>
-                    <button onClick={handleDownloadPDF} className="flex-1 flex flex-col items-center justify-center gap-1 py-3 rounded-2xl bg-white text-primary shadow-tactic hover:shadow-white/20 transition-all active:scale-95">
-                        <Printer size={18} /><span className="text-[8px] font-black uppercase tracking-widest text-primary">Dossiê PDF</span>
-                    </button>
-                    {isAdmin && (
-                        <button onClick={handleDelete} className="flex-1 flex flex-col items-center justify-center gap-1 py-3 rounded-2xl bg-risk-high/10 text-risk-high border border-risk-high/20 hover:bg-risk-high/20 transition-all active:scale-95">
-                            <Trash2 size={18} /><span className="text-[8px] font-black uppercase tracking-widest">Deletar</span>
-                        </button>
+                    {hasChanges && (
+                        <div className="fixed bottom-[110px] left-4 right-4 p-4 bg-primary/90 backdrop-blur-xl border border-white/20 rounded-2xl z-[60] flex gap-3 animate-in slide-in-from-bottom duration-500 shadow-tactic">
+                            <button onClick={handleCancelEdits} className="flex-1 py-4 px-4 rounded-xl font-black text-[10px] uppercase tracking-widest bg-white/10 text-white hover:bg-white/20 transition-colors">Abortar Alterações</button>
+                            <button onClick={() => setIsConfirmSaveOpen(true)} className="flex-1 py-4 px-4 rounded-xl font-black text-[10px] uppercase tracking-widest bg-white text-primary shadow-lg hover:shadow-white/20 transition-all flex items-center justify-center gap-2 active:scale-95">
+                                <CheckCircle size={18} /> SINCRONIZAR DADOS
+                            </button>
+                        </div>
                     )}
                 </div>
-            </div>
 
-            {/* Modals & Overlays */}
-            <ConfirmModal isOpen={isConfirmSaveOpen} onCancel={() => setIsConfirmSaveOpen(false)} onConfirm={handleSaveChanges} title="Sincronizar Protocolo" message="Deseja registrar as alterações no prontuário oficial deste alvo?" confirmText="Sincronizar" cancelText="Abortar" variant="primary" />
-            <ConfirmModal isOpen={isReopenConfirmOpen} onCancel={() => setIsReopenConfirmOpen(false)} onConfirm={handleConfirmReopen} title="Reabrir Prontuário" message="Confirmar reabertura do status para 'EM ABERTO'?" confirmText="Reabrir" cancelText="Cancelar" variant="primary" />
-            <ConfirmModal isOpen={isDeleteConfirmOpen} onCancel={() => setIsDeleteConfirmOpen(false)} onConfirm={handleConfirmDelete} title="Excluir Alvo" message="Deseja remover PERMANENTEMENTE este registro? Esta ação é irreversível." confirmText="Excluir" cancelText="Cancelar" variant="danger" />
+                {/* Tactical Action Dock */}
+                <div className="fixed bottom-0 left-0 right-0 p-4 pb-8 md:pb-8 bg-surface-dark/90 backdrop-blur-2xl border-t border-white/10 z-50 shadow-glass">
+                    <div className="max-w-xl mx-auto flex items-stretch gap-2">
+                        <Link to="/" className="flex-1 flex flex-col items-center justify-center gap-1 py-3 rounded-2xl bg-white/5 text-text-muted hover:bg-white/10 transition-all active:scale-95 border border-white/5">
+                            <Home size={18} /><span className="text-[8px] font-black uppercase tracking-widest">Pátio</span>
+                        </Link>
+                        <Link to={`/new-warrant?edit=${data.id}`} className="flex-1 flex flex-col items-center justify-center gap-1 py-3 rounded-2xl bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition-all active:scale-95 shadow-inner">
+                            <Edit size={18} /><span className="text-[8px] font-black uppercase tracking-widest">Ajustar</span>
+                        </Link>
+                        <button onClick={data.status === 'CUMPRIDO' ? handleReopen : handleFinalize} className={`flex-1 flex flex-col items-center justify-center gap-1 py-3 rounded-2xl border transition-all active:scale-95 shadow-glass ${data.status === 'CUMPRIDO' ? 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20 hover:bg-indigo-500/20' : 'bg-green-500/10 text-green-400 border-green-500/20 hover:bg-green-500/20'}`}>
+                            {data.status === 'CUMPRIDO' ? <RotateCcw size={18} /> : <CheckCircle size={18} />}
+                            <span className="text-[8px] font-black uppercase tracking-widest">{data.status === 'CUMPRIDO' ? 'REABRIR' : 'FECHAR'}</span>
+                        </button>
+                        <button onClick={handleDownloadPDF} className="flex-1 flex flex-col items-center justify-center gap-1 py-3 rounded-2xl bg-white text-primary shadow-tactic hover:shadow-white/20 transition-all active:scale-95">
+                            <Printer size={18} /><span className="text-[8px] font-black uppercase tracking-widest text-primary">Dossiê PDF</span>
+                        </button>
+                        {isAdmin && (
+                            <button onClick={handleDelete} className="flex-1 flex flex-col items-center justify-center gap-1 py-3 rounded-2xl bg-risk-high/10 text-risk-high border border-risk-high/20 hover:bg-risk-high/20 transition-all active:scale-95">
+                                <Trash2 size={18} /><span className="text-[8px] font-black uppercase tracking-widest">Deletar</span>
+                            </button>
+                        )}
+                    </div>
+                </div>
 
-            {
-                isCapturasModalOpen && (
-                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-300">
-                        <div className="bg-surface-dark border border-white/10 rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col shadow-tactic">
-                            <div className="p-5 border-b border-white/10 flex justify-between items-center bg-white/5">
-                                <div className="flex items-center gap-3"><Sparkles className="text-primary animate-pulse" size={20} /><h3 className="text-lg font-black uppercase tracking-tighter text-white">Centro de Redação Inteligente</h3></div>
-                                <button onClick={() => setIsCapturasModalOpen(false)} className="p-2 text-text-muted hover:text-white"><X size={24} /></button>
-                            </div>
-                            <div className="flex-1 overflow-y-auto p-6 space-y-6 scrollbar-none">
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="space-y-1"><label className="text-[10px] font-black text-primary uppercase tracking-widest">Identificador Relatório</label><input className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm text-white" value={capturasData.reportNumber} onChange={e => setCapturasData({ ...capturasData, reportNumber: e.target.value })} /></div>
-                                    <div className="space-y-1"><label className="text-[10px] font-black text-primary uppercase tracking-widest">Comarca Judiciária</label><input className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm text-white" value={capturasData.court} onChange={e => setCapturasData({ ...capturasData, court: e.target.value })} /></div>
+                {/* Modals & Overlays */}
+                <ConfirmModal isOpen={isConfirmSaveOpen} onCancel={() => setIsConfirmSaveOpen(false)} onConfirm={handleSaveChanges} title="Sincronizar Protocolo" message="Deseja registrar as alterações no prontuário oficial deste alvo?" confirmText="Sincronizar" cancelText="Abortar" variant="primary" />
+                <ConfirmModal isOpen={isReopenConfirmOpen} onCancel={() => setIsReopenConfirmOpen(false)} onConfirm={handleConfirmReopen} title="Reabrir Prontuário" message="Confirmar reabertura do status para 'EM ABERTO'?" confirmText="Reabrir" cancelText="Cancelar" variant="primary" />
+                <ConfirmModal isOpen={isDeleteConfirmOpen} onCancel={() => setIsDeleteConfirmOpen(false)} onConfirm={handleConfirmDelete} title="Excluir Alvo" message="Deseja remover PERMANENTEMENTE este registro? Esta ação é irreversível." confirmText="Excluir" cancelText="Cancelar" variant="danger" />
+
+                {
+                    isCapturasModalOpen && (
+                        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-300">
+                            <div className="bg-surface-dark border border-white/10 rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col shadow-tactic">
+                                <div className="p-5 border-b border-white/10 flex justify-between items-center bg-white/5">
+                                    <div className="flex items-center gap-3"><Sparkles className="text-primary animate-pulse" size={20} /><h3 className="text-lg font-black uppercase tracking-tighter text-white">Centro de Redação Inteligente</h3></div>
+                                    <button onClick={() => setIsCapturasModalOpen(false)} className="p-2 text-text-muted hover:text-white"><X size={24} /></button>
                                 </div>
-                                <div className="bg-indigo-500/5 border border-indigo-500/20 rounded-2xl p-5 space-y-4">
-                                    <div className="flex items-center gap-2"><Cpu size={16} className="text-indigo-400" /><span className="text-[10px] font-black uppercase tracking-widest text-indigo-400">Prompt de Refinamento IA</span></div>
-                                    <input className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-xs text-white placeholder:text-indigo-300/30" placeholder="Ex: 'Seja mais formal', 'Mencione a equipe de campo'..." value={capturasData.aiInstructions} onChange={e => setCapturasData({ ...capturasData, aiInstructions: e.target.value })} />
-                                    <button onClick={handleRefreshAiReport} disabled={isGeneratingAiReport} className="w-full py-3 bg-indigo-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/20">{isGeneratingAiReport ? <RefreshCw size={14} className="animate-spin" /> : <Bot size={14} />} {isGeneratingAiReport ? 'ANTIGRAVITY PROCESSANDO...' : 'EXECUTAR ANÁLISE E REDAÇÃO IA'}</button>
+                                <div className="flex-1 overflow-y-auto p-6 space-y-6 scrollbar-none">
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="space-y-1"><label className="text-[10px] font-black text-primary uppercase tracking-widest">Identificador Relatório</label><input className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm text-white" value={capturasData.reportNumber} onChange={e => setCapturasData({ ...capturasData, reportNumber: e.target.value })} /></div>
+                                        <div className="space-y-1"><label className="text-[10px] font-black text-primary uppercase tracking-widest">Comarca Judiciária</label><input className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm text-white" value={capturasData.court} onChange={e => setCapturasData({ ...capturasData, court: e.target.value })} /></div>
+                                    </div>
+                                    <div className="bg-indigo-500/5 border border-indigo-500/20 rounded-2xl p-5 space-y-4">
+                                        <div className="flex items-center gap-2"><Cpu size={16} className="text-indigo-400" /><span className="text-[10px] font-black uppercase tracking-widest text-indigo-400">Prompt de Refinamento IA</span></div>
+                                        <input className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-xs text-white placeholder:text-indigo-300/30" placeholder="Ex: 'Seja mais formal', 'Mencione a equipe de campo'..." value={capturasData.aiInstructions} onChange={e => setCapturasData({ ...capturasData, aiInstructions: e.target.value })} />
+                                        <button onClick={handleRefreshAiReport} disabled={isGeneratingAiReport} className="w-full py-3 bg-indigo-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/20">{isGeneratingAiReport ? <RefreshCw size={14} className="animate-spin" /> : <Bot size={14} />} {isGeneratingAiReport ? 'ANTIGRAVITY PROCESSANDO...' : 'EXECUTAR ANÁLISE E REDAÇÃO IA'}</button>
+                                    </div>
+                                    <textarea className="w-full bg-white/5 border border-white/10 rounded-2xl p-5 text-sm leading-relaxed text-white min-h-[300px] font-serif" value={capturasData.body} onChange={e => setCapturasData({ ...capturasData, body: e.target.value })} />
                                 </div>
-                                <textarea className="w-full bg-white/5 border border-white/10 rounded-2xl p-5 text-sm leading-relaxed text-white min-h-[300px] font-serif" value={capturasData.body} onChange={e => setCapturasData({ ...capturasData, body: e.target.value })} />
-                            </div>
-                            <div className="p-5 border-t border-white/10 bg-white/5">
-                                <button onClick={handleGenerateCapturasPDF} className="w-full py-4 bg-primary text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-tactic flex items-center justify-center gap-2"><Printer size={18} /> IMPRIMIR E ANEXAR PDF OFICIAL</button>
+                                <div className="p-5 border-t border-white/10 bg-white/5">
+                                    <button onClick={handleGenerateCapturasPDF} className="w-full py-4 bg-primary text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-tactic flex items-center justify-center gap-2"><Printer size={18} /> IMPRIMIR E ANEXAR PDF OFICIAL</button>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                )
-            }
+                    )
+                }
 
-            {
-                isFinalizeModalOpen && (
-                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-                        <div className="bg-surface-dark border border-white/10 rounded-3xl w-full max-w-md p-6 shadow-tactic space-y-6">
-                            <div className="flex items-center gap-3 border-b border-white/5 pb-4"><CheckCircle className="text-green-500" size={24} /><h3 className="text-xl font-black uppercase text-white tracking-tighter">Encerrar Protocolo</h3></div>
-                            <div className="space-y-4">
-                                <div className="space-y-1"><label className="text-[10px] font-black text-text-muted uppercase tracking-widest">Data Cumprimento</label><input type="date" className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white" value={finalizeFormData.date} onChange={e => setFinalizeFormData({ ...finalizeFormData, date: e.target.value })} /></div>
-                                <div className="space-y-1"><label className="text-[10px] font-black text-text-muted uppercase tracking-widest">Ofício DIG Vinculado</label><input type="text" className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white" value={finalizeFormData.digOffice} onChange={e => setFinalizeFormData({ ...finalizeFormData, digOffice: e.target.value })} /></div>
-                                <div className="space-y-1"><label className="text-[10px] font-black text-text-muted uppercase tracking-widest">Resultado Final</label><select className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white appearance-none" value={finalizeFormData.result} onChange={e => setFinalizeFormData({ ...finalizeFormData, result: e.target.value })}>{['PRESO', 'NEGATIVO', 'ENCAMINHADO', 'ÓBITO', 'CONTRA', 'LOCALIZADO'].map(opt => <option key={opt} value={opt} className="bg-surface-dark">{opt}</option>)}</select></div>
-                            </div>
-                            <div className="flex gap-3">
-                                <button onClick={() => setIsFinalizeModalOpen(false)} className="flex-1 py-3.5 rounded-2xl font-black text-[10px] uppercase tracking-widest bg-white/5 text-white hover:bg-white/10 transition-all">Cancelar</button>
-                                <button onClick={handleConfirmFinalize} className="flex-1 py-3.5 rounded-2xl font-black text-[10px] uppercase tracking-widest bg-green-500 text-white shadow-lg shadow-green-500/20">Finalizar Alvo</button>
+                {
+                    isFinalizeModalOpen && (
+                        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+                            <div className="bg-surface-dark border border-white/10 rounded-3xl w-full max-w-md p-6 shadow-tactic space-y-6">
+                                <div className="flex items-center gap-3 border-b border-white/5 pb-4"><CheckCircle className="text-green-500" size={24} /><h3 className="text-xl font-black uppercase text-white tracking-tighter">Encerrar Protocolo</h3></div>
+                                <div className="space-y-4">
+                                    <div className="space-y-1"><label className="text-[10px] font-black text-text-muted uppercase tracking-widest">Data Cumprimento</label><input type="date" className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white" value={finalizeFormData.date} onChange={e => setFinalizeFormData({ ...finalizeFormData, date: e.target.value })} /></div>
+                                    <div className="space-y-1"><label className="text-[10px] font-black text-text-muted uppercase tracking-widest">Ofício DIG Vinculado</label><input type="text" className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white" value={finalizeFormData.digOffice} onChange={e => setFinalizeFormData({ ...finalizeFormData, digOffice: e.target.value })} /></div>
+                                    <div className="space-y-1"><label className="text-[10px] font-black text-text-muted uppercase tracking-widest">Resultado Final</label><select className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white appearance-none" value={finalizeFormData.result} onChange={e => setFinalizeFormData({ ...finalizeFormData, result: e.target.value })}>{['PRESO', 'NEGATIVO', 'ENCAMINHADO', 'ÓBITO', 'CONTRA', 'LOCALIZADO'].map(opt => <option key={opt} value={opt} className="bg-surface-dark">{opt}</option>)}</select></div>
+                                </div>
+                                <div className="flex gap-3">
+                                    <button onClick={() => setIsFinalizeModalOpen(false)} className="flex-1 py-3.5 rounded-2xl font-black text-[10px] uppercase tracking-widest bg-white/5 text-white hover:bg-white/10 transition-all">Cancelar</button>
+                                    <button onClick={handleConfirmFinalize} className="flex-1 py-3.5 rounded-2xl font-black text-[10px] uppercase tracking-widest bg-green-500 text-white shadow-lg shadow-green-500/20">Finalizar Alvo</button>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                )
-            }
+                    )
+                }
 
-            {
-                isPhotoModalOpen && (
-                    <div className="fixed inset-0 z-[200] bg-black/95 backdrop-blur-xl flex items-start justify-center p-4 pt-20 overflow-y-auto" onClick={() => setIsPhotoModalOpen(false)}>
-                        <img src={data.img || `https://ui-avatars.com/api/?name=${encodeURIComponent(data.name)}&background=random&color=fff`} className="max-h-[85vh] max-w-full rounded-2xl shadow-tactic border border-white/20 object-contain animate-in zoom-in-95" alt={data.name} />
-                    </div>
-                )
-            }
-        </div >
-    );
+                {
+                    isPhotoModalOpen && (
+                        <div className="fixed inset-0 z-[200] bg-black/95 backdrop-blur-xl flex items-start justify-center p-4 pt-20 overflow-y-auto" onClick={() => setIsPhotoModalOpen(false)}>
+                            <img src={data.img || `https://ui-avatars.com/api/?name=${encodeURIComponent(data.name)}&background=random&color=fff`} className="max-h-[85vh] max-w-full rounded-2xl shadow-tactic border border-white/20 object-contain animate-in zoom-in-95" alt={data.name} />
+                        </div>
+                    )
+                }
+            </div >
+            );
 };
-export default WarrantDetail;
+            export default WarrantDetail;
