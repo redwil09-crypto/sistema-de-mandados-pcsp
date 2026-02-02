@@ -600,7 +600,9 @@ const WarrantDetail = () => {
         if (success) {
             setNewDiligence('');
             setAiDiligenceResult(null);
-            toast.success("Prontuário e Ficha atualizados com sucesso.");
+
+            // Force exact text user asked for to confirm it saves to "ficha"
+            toast.success("Prontuário e Ficha do Alvo atualizados com sucesso!");
         }
     };
 
@@ -1219,8 +1221,8 @@ Equipe de Capturas - DIG / PCSP
                 ? `Constam as seguintes diligências realizadas: ${history.map(h => `${new Date(h.date).toLocaleDateString()} - ${h.notes}`).join('; ')}.`
                 : '';
 
-            const obsText = observations
-                ? `Observa-se ainda que: ${observations}.`
+            const obsText = localData.observation
+                ? `Observa-se ainda que: ${localData.observation}.`
                 : '';
 
             return `Registra-se o presente para dar cumprimento ao Mandado de Prisão expedido em desfavor de ${name}, nos autos do processo nº ${process}, oriundo da Comarca de Jacareí/SP.\n\nA equipe desta especializada procedeu às diligências nos endereços vinculados ao réu, notadamente na ${address}. \n\n${diligentHistoryText}\n\n${obsText}\n\nAté o presente momento, não foi possível localizar o investigado, restando negativas as diligências realizadas por esta equipe para cumprimento da ordem judicial em Jacareí/SP.`;
@@ -1552,12 +1554,8 @@ Equipe de Capturas - DIG / PCSP
     };
 
     const handleBack = () => {
-        // Semantic navigation: prefer history, but fallback to list if no history
-        if (window.history.state && window.history.state.idx > 0) {
-            navigate(-1);
-        } else {
-            navigate('/warrant-list');
-        }
+        // Enforce returning to list as requested to fix "bad back button"
+        navigate('/warrant-list');
     };
 
     return (
