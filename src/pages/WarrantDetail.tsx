@@ -580,12 +580,27 @@ const WarrantDetail = () => {
         };
 
         const updatedHistory = [...(data.diligentHistory || []), entry];
-        const success = await updateWarrant(data.id, { diligentHistory: updatedHistory });
+
+        // Save both the new diligence AND any pending edits in the dossier forms
+        const updates: any = {
+            diligentHistory: updatedHistory,
+            // Merge form data to ensure persistence
+            observation: localData.observation,
+            location: localData.location,
+            rg: localData.rg,
+            cpf: localData.cpf,
+            birthDate: localData.birthDate,
+            expirationDate: localData.expirationDate,
+            ifoodResult: localData.ifoodResult,
+            ifoodNumber: localData.ifoodNumber
+        };
+
+        const success = await updateWarrant(data.id, updates);
 
         if (success) {
             setNewDiligence('');
             setAiDiligenceResult(null);
-            toast.success("Informação registrada na linha do tempo.");
+            toast.success("Prontuário e Ficha atualizados com sucesso.");
         }
     };
 
@@ -596,7 +611,7 @@ const WarrantDetail = () => {
         }
 
         setIsAnalyzingDiligence(true);
-        const tid = toast.loading("Antigravity processando análise estratégica...");
+        const tid = toast.loading("Assistente IA processando análise estratégica...");
         try {
             const result = await analyzeRawDiligence(data, newDiligence);
             if (result) {
@@ -1537,10 +1552,11 @@ Equipe de Capturas - DIG / PCSP
     };
 
     const handleBack = () => {
+        // Semantic navigation: prefer history, but fallback to list if no history
         if (window.history.state && window.history.state.idx > 0) {
             navigate(-1);
         } else {
-            navigate('/warrant-list'); // Fallback to list if explicit direct entry
+            navigate('/warrant-list');
         }
     };
 
