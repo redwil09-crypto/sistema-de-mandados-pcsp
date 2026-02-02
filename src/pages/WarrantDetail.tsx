@@ -574,11 +574,21 @@ const WarrantDetail = () => {
         if (!newDiligence.trim()) return;
         setIsSavingDiligence(true);
 
+        // Append AI Analysis Summary if available to ensure it appears in History and PDF
+        let finalNotes = newDiligence;
+        if (aiDiligenceResult && typeof aiDiligenceResult !== 'string') {
+            const riskInfo = aiDiligenceResult.riskLevel ? `[RISCO ${aiDiligenceResult.riskLevel.toUpperCase()}]` : '';
+            const summaryInfo = aiDiligenceResult.summary ? `\nANÁLISE IA: ${aiDiligenceResult.summary}` : '';
+            const reasonInfo = aiDiligenceResult.riskReason ? `\nMOTIVO DO RISCO: ${aiDiligenceResult.riskReason}` : '';
+
+            finalNotes = `${newDiligence}\n${riskInfo}${summaryInfo}${reasonInfo}`;
+        }
+
         const entry: any = {
             id: Date.now().toString(),
             date: new Date().toISOString(),
             investigator: "Policial",
-            notes: newDiligence,
+            notes: finalNotes,
             type: 'intelligence' // Tipo padrão já que os botões foram removidos
         };
 
@@ -1580,7 +1590,7 @@ Equipe de Capturas - DIG / PCSP
             <Header title="Dossiê Tático" back onBack={handleBack} showHome />
 
             {/* Main Content Layout */}
-            <div className="relative z-10 p-4 space-y-4 max-w-5xl mx-auto">
+            <div className="relative z-10 p-4 space-y-4 max-w-[1600px] mx-auto">
 
                 {/* 1. Tactical Profile Header */}
                 <div className="bg-surface-dark/60 backdrop-blur-xl border border-white/10 rounded-2xl p-4 shadow-tactic overflow-hidden relative group">
@@ -2106,28 +2116,28 @@ Equipe de Capturas - DIG / PCSP
                                                                     aiDiligenceResult.riskLevel === 'Médio' ? 'w-1/2 bg-yellow-500' : 'w-1/4 bg-green-500'
                                                                 }`}></div>
                                                         </div>
-                                                        <p className="mt-2 text-[10px] text-text-secondary-dark">{aiDiligenceResult.riskReason}</p>
+                                                        <p className="mt-2 text-sm text-text-secondary-dark">{aiDiligenceResult.riskReason}</p>
                                                     </div>
 
-                                                    {/* Entities Graph */}
+                                                    {/* Entities Graph - Restored */}
                                                     {aiDiligenceResult.entities && aiDiligenceResult.entities.length > 0 && (
                                                         <div>
-                                                            <p className="text-[9px] font-black uppercase text-indigo-300 mb-2 flex items-center gap-1"><Users size={12} /> Vínculos Identificados</p>
+                                                            <p className="text-xs font-black uppercase text-indigo-300 mb-2 flex items-center gap-1"><Users size={14} /> Vínculos Identificados</p>
                                                             <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none">
                                                                 {aiDiligenceResult.entities.map((ent: any, i: number) => (
-                                                                    <div key={i} className="min-w-[140px] bg-white/5 border border-white/5 p-2 rounded-lg flex flex-col gap-1 shrink-0">
+                                                                    <div key={i} className="min-w-[150px] bg-white/5 border border-white/5 p-3 rounded-lg flex flex-col gap-1 shrink-0">
                                                                         <div className="flex items-center gap-1.5">
-                                                                            <User size={12} className="text-primary" />
-                                                                            <span className="text-[10px] font-bold text-white truncate">{ent.name}</span>
+                                                                            <User size={14} className="text-primary" />
+                                                                            <span className="text-xs font-bold text-white truncate">{ent.name}</span>
                                                                         </div>
-                                                                        <span className="text-[9px] text-indigo-300 bg-indigo-500/10 px-1.5 py-0.5 rounded w-fit">{ent.role}</span>
+                                                                        <span className="text-[10px] text-indigo-300 bg-indigo-500/10 px-1.5 py-0.5 rounded w-fit">{ent.role}</span>
                                                                         <a
                                                                             href={`https://www.google.com/search?q=${encodeURIComponent(ent.name)}`}
                                                                             target="_blank"
                                                                             rel="noreferrer"
-                                                                            className="mt-1 text-[9px] text-text-muted hover:text-white flex items-center gap-1 transition-colors"
+                                                                            className="mt-1 text-[10px] text-text-muted hover:text-white flex items-center gap-1 transition-colors"
                                                                         >
-                                                                            <Search size={10} /> Pesquisar
+                                                                            <Search size={12} /> Pesquisar
                                                                         </a>
                                                                     </div>
                                                                 ))}
