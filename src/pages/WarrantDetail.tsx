@@ -2350,13 +2350,10 @@ Equipe de Capturas - DIG / PCSP
                                     )}
                                 </div>
                             </div>
+                        </div>
                     )}
 
-
-
-                        </div>
-
-                {/* Sticky Tactical Confirmation Bar */}
+                    {/* Sticky Tactical Confirmation Bar */}
                     {hasChanges && (
                         <div className="fixed bottom-[110px] left-4 right-4 p-4 bg-primary/90 backdrop-blur-xl border border-white/20 rounded-2xl z-[60] flex gap-3 animate-in slide-in-from-bottom duration-500 shadow-tactic">
                             <button onClick={handleCancelEdits} className="flex-1 py-4 px-4 rounded-xl font-black text-[10px] uppercase tracking-widest bg-white/10 text-white hover:bg-white/20 transition-colors">Abortar Alterações</button>
@@ -2450,7 +2447,7 @@ Equipe de Capturas - DIG / PCSP
                         </div>
                     )
                 }
-            </div >
+            </div>
             );
 };
             export default WarrantDetail;
