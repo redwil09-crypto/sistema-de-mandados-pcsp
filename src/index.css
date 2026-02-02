@@ -134,3 +134,9 @@
     linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
   background-size: 20px 20px;
 }
+
+::selection {
+  background-color: rgba(34, 211, 238, 0.3);
+  /* Cyan 400 with opacity */
+  color: #ffffff;
+}

@@ -1,6 +1,6 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { jsPDF } from 'jspdf';
 import {
     AlertCircle, User, Gavel, Calendar, MapPin, Map as MapIcon, Home,
@@ -28,6 +28,21 @@ const WarrantDetail = () => {
     const { warrants, updateWarrant, deleteWarrant, routeWarrants, toggleRouteWarrant } = useWarrants();
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
+
+    // URL Persistence
+    const [searchParams, setSearchParams] = useSearchParams();
+    const [activeDetailTab, setActiveDetailTab] = useState<'documents' | 'reports' | 'investigation' | 'timeline' | 'ifood'>((searchParams.get('tab') as any) || 'documents');
+
+    // Persistence Effect
+    useEffect(() => {
+        setSearchParams({ tab: activeDetailTab });
+    }, [activeDetailTab, setSearchParams]);
+
+    // New Document Form Local State
+    const [newDocSource, setNewDocSource] = useState('');
+    const [newDocNumber, setNewDocNumber] = useState('');
+    const [newDocType, setNewDocType] = useState('Mandado'); // Mandado, IFFO, Outros
+
     const [isFinalizeModalOpen, setIsFinalizeModalOpen] = useState(false);
     const [finalizeFormData, setFinalizeFormData] = useState({
         date: new Date().toISOString().split('T')[0],
@@ -43,13 +58,36 @@ const WarrantDetail = () => {
 
     // Investigative States
     const [newDiligence, setNewDiligence] = useState('');
+
+    // Load Draft from LocalStorage
+    useEffect(() => {
+        if (id) {
+            const savedDraft = localStorage.getItem(`warrant_draft_${id}`);
+            if (savedDraft) {
+                try {
+                    const parsed = JSON.parse(savedDraft);
+                    if (parsed.diligence) setNewDiligence(parsed.diligence);
+                } catch (e) {
+                    console.error("Failed to load draft");
+                }
+            }
+        }
+    }, [id]);
+
+    // Save Draft to LocalStorage
+    useEffect(() => {
+        if (id) {
+            const draft = { diligence: newDiligence };
+            localStorage.setItem(`warrant_draft_${id}`, JSON.stringify(draft));
+        }
+    }, [id, newDiligence]);
+
     const [isDraftOpen, setIsDraftOpen] = useState(false);
     const [isUploadingFile, setIsUploadingFile] = useState(false);
     const [isAnalyzingDiligence, setIsAnalyzingDiligence] = useState(false);
     const [aiDiligenceResult, setAiDiligenceResult] = useState<string | null>(null);
     const [isAiReportModalOpen, setIsAiReportModalOpen] = useState(false);
 
-    const [activeDetailTab, setActiveDetailTab] = useState<'documents' | 'reports' | 'investigation' | 'timeline' | 'ifood'>('documents');
     const [isCapturasModalOpen, setIsCapturasModalOpen] = useState(false);
     const [capturasData, setCapturasData] = useState({
         reportNumber: '',
@@ -684,8 +722,9 @@ Equipe de Capturas - DIG / PCSP
                 const url = getPublicUrl(uploadedPath);
                 console.log(`WarrantDetail: Public URL generated: ${url}`);
 
-                let currentAttachments = data.attachments || [];
-                const success = await updateWarrant(data.id, { attachments: [...currentAttachments, url] });
+                const currentFiles = data[type] || [];
+                const success = await updateWarrant(data.id, { [type]: [...currentFiles, url] });
+
                 if (success) {
                     toast.success("Arquivo anexado com sucesso!", { id: toastId });
                 } else {
@@ -701,10 +740,11 @@ Equipe de Capturas - DIG / PCSP
             toast.error("Erro ao subir arquivo.", { id: toastId });
         } finally {
             setIsUploadingFile(false);
-            e.target.value = '';
+            if (e.target && 'value' in e.target) {
+                e.target.value = '';
+            }
         }
     };
-
     const handleDeleteAttachment = async (urlToDelete: string) => {
         if (!data) return;
 
@@ -1498,9 +1538,8 @@ Equipe de Capturas - DIG / PCSP
                 <div className="flex bg-surface-dark/80 backdrop-blur border border-white/10 rounded-2xl p-1.5 gap-1.5 shadow-glass sticky top-2 z-[30]">
                     {[
                         { id: 'documents', label: 'Dossiê', icon: FileText },
-                        { id: 'investigation', label: 'Radar IA', icon: Bot },
-                        { id: 'timeline', label: 'Operações', icon: History },
-                        { id: 'ifood', label: 'iFood', icon: Bike }
+                        { id: 'investigation', label: 'Investigações', icon: Bot },
+                        { id: 'timeline', label: 'Operações', icon: History }
                     ].map(tab => (
                         <button
                             key={tab.id}
@@ -1580,16 +1619,69 @@ Equipe de Capturas - DIG / PCSP
 
                             {/* Attachments Section (Dossiê) */}
                             <div className="md:col-span-2 bg-surface-dark/60 backdrop-blur border border-white/10 rounded-2xl p-5 shadow-glass">
-                                <div className="flex items-center justify-between mb-4 pb-2 border-b border-white/5">
+                                <div className="flex flex-col mb-4 pb-4 border-b border-white/5 gap-3">
                                     <div className="flex items-center gap-2">
                                         <Paperclip className="text-primary" size={16} />
                                         <span className="text-[11px] font-black uppercase tracking-widest">Repositório de Documentos</span>
                                     </div>
-                                    <div className="flex gap-2">
-                                        <input type="file" id="file-upload-dossier" className="hidden" multiple onChange={(e) => e.target.files && handleAttachFile(e, 'attachments')} />
-                                        <label htmlFor="file-upload-dossier" className="bg-primary hover:bg-primary-dark text-white px-3 py-1.5 rounded-lg text-[10px] font-black uppercase cursor-pointer flex items-center gap-2 transition-all">
-                                            <Plus size={14} /> ADICIONAR
-                                        </label>
+
+                                    {/* New Document Inputs */}
+                                    <div className="bg-white/5 rounded-xl p-3 grid grid-cols-1 md:grid-cols-4 gap-2 items-end">
+                                        <div className="space-y-1">
+                                            <label className="text-[9px] font-black text-text-muted uppercase tracking-wider">Tipo</label>
+                                            <select
+                                                className="w-full bg-surface-dark border border-white/10 rounded-lg p-2 text-[10px] text-white outline-none"
+                                                value={newDocType}
+                                                onChange={e => setNewDocType(e.target.value)}
+                                            >
+                                                <option value="Mandado">Mandado de Prisão</option>
+                                                <option value="IFFO">IFFO (iFood)</option>
+                                                <option value="Oficio">Ofício</option>
+                                                <option value="Outros">Outros</option>
+                                            </select>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="text-[9px] font-black text-text-muted uppercase tracking-wider">Origem/Vara</label>
+                                            <input
+                                                className="w-full bg-surface-dark border border-white/10 rounded-lg p-2 text-[10px] text-white outline-none placeholder:text-white/20"
+                                                placeholder="Ex: 1ª Vara Criminal"
+                                                value={newDocSource}
+                                                onChange={e => setNewDocSource(e.target.value)}
+                                            />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="text-[9px] font-black text-text-muted uppercase tracking-wider">Numeração/Edição</label>
+                                            <input
+                                                className="w-full bg-surface-dark border border-white/10 rounded-lg p-2 text-[10px] text-white outline-none placeholder:text-white/20"
+                                                placeholder="Ex: 001/2026"
+                                                value={newDocNumber}
+                                                onChange={e => setNewDocNumber(e.target.value)}
+                                            />
+                                        </div>
+                                        <div>
+                                            <input
+                                                type="file"
+                                                id="file-upload-dossier"
+                                                className="hidden"
+                                                multiple
+                                                onChange={(e) => {
+                                                    const files = e.target.files;
+                                                    if (files && files.length > 0) {
+                                                        const file = files[0];
+                                                        const extension = file.name.split('.').pop();
+                                                        const cleanSource = newDocSource.replace(/[^a-zA-Z0-9]/g, '');
+                                                        const cleanNum = newDocNumber.replace(/[^a-zA-Z0-9]/g, '');
+                                                        const finalName = `${newDocType}_${cleanSource}_${cleanNum}_${Date.now()}.${extension}`;
+                                                        const renamedFile = new File([file], finalName, { type: file.type });
+                                                        const mockEvent = { target: { files: [renamedFile] } } as any;
+                                                        handleAttachFile(mockEvent, 'attachments');
+                                                    }
+                                                }}
+                                            />
+                                            <label htmlFor="file-upload-dossier" className="w-full bg-primary hover:bg-primary-dark text-white px-3 py-2 rounded-lg text-[10px] font-black uppercase cursor-pointer flex items-center justify-center gap-2 transition-all">
+                                                <Plus size={14} /> Upload
+                                            </label>
+                                        </div>
                                     </div>
                                 </div>
 
@@ -1602,7 +1694,13 @@ Equipe de Capturas - DIG / PCSP
                                                         <FileText size={16} />
                                                     </div>
                                                     <span className="text-[11px] font-bold text-white truncate max-w-[120px]">
-                                                        {file.split('/').pop()?.replace(/^\d+_/, '')}
+                                                        {(() => {
+                                                            const parts = file.split('/').pop()?.split('_') || [];
+                                                            if (parts.length >= 4 && (parts[0] === 'Mandado' || parts[0] === 'IFFO' || parts[0] === 'Oficio')) {
+                                                                return `${parts[0]} ${parts[2] || ''}`;
+                                                            }
+                                                            return file.split('/').pop()?.replace(/^\d+_/, '')
+                                                        })()}
                                                     </span>
                                                 </div>
                                                 <div className="flex items-center gap-1">
@@ -1659,6 +1757,114 @@ Equipe de Capturas - DIG / PCSP
                                     </div>
                                 </div>
                             )}
+
+                            {/* Investigation: iFood Intelligence (Merged) */}
+                            <div className="bg-surface-dark/90 backdrop-blur-xl border border-white/10 rounded-2xl p-5 shadow-glass">
+                                <div className="flex items-center justify-between mb-4 border-b border-white/5 pb-4">
+                                    <div className="flex items-center gap-2">
+                                        <Bike className="text-primary" size={20} />
+                                        <div>
+                                            <h3 className="text-sm font-black uppercase text-white tracking-widest">Inteligência iFood</h3>
+                                            <p className="text-[10px] text-text-muted font-bold uppercase">Rastreamento de Pedidos e Endereços</p>
+                                        </div>
+                                    </div>
+                                    <button
+                                        onClick={handleGenerateIfoodOffice}
+                                        className="bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-tactic flex items-center gap-2 transition-all active:scale-95"
+                                    >
+                                        <FileText size={14} /> Gerar Ofício
+                                    </button>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div className="space-y-4">
+                                        <div className="space-y-1">
+                                            <label className="text-[9px] font-black text-text-muted uppercase tracking-wider">Número do Ofício</label>
+                                            <input
+                                                className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm font-mono text-white outline-none focus:ring-1 focus:ring-primary"
+                                                placeholder="Ex: 001/CAPT/2026"
+                                                value={localData.ifoodNumber || ''}
+                                                onChange={e => handleFieldChange('ifoodNumber', e.target.value)}
+                                            />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="text-[9px] font-black text-text-muted uppercase tracking-wider">Resultado da Pesquisa</label>
+                                            <textarea
+                                                className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm text-white outline-none focus:ring-1 focus:ring-primary min-h-[120px] resize-none"
+                                                placeholder="Cole aqui os endereços e dados obtidos..."
+                                                value={localData.ifoodResult || ''}
+                                                onChange={e => handleFieldChange('ifoodResult', e.target.value)}
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-4">
+                                        <div className="flex items-center justify-between">
+                                            <label className="text-[9px] font-black text-text-muted uppercase tracking-wider">Documentos Resposta</label>
+                                            <div className="flex gap-2">
+                                                <input
+                                                    type="file"
+                                                    id="ifood-upload"
+                                                    className="hidden"
+                                                    onChange={(e) => handleAttachFile(e, 'ifoodDocs')}
+                                                />
+                                                <label
+                                                    htmlFor="ifood-upload"
+                                                    className="px-3 py-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-[10px] font-bold uppercase cursor-pointer transition-all text-white flex items-center gap-2"
+                                                >
+                                                    <Paperclip size={12} /> Anexar
+                                                </label>
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-2 max-h-[220px] overflow-y-auto pr-2 scrollbar-thumb-white/10 scrollbar-track-transparent">
+                                            {data.ifoodDocs && data.ifoodDocs.length > 0 ? (
+                                                data.ifoodDocs.map((doc: string, idx: number) => (
+                                                    <div key={idx} className="flex items-center justify-between bg-white/5 border border-white/5 p-3 rounded-xl group hover:bg-white/10 transition-all">
+                                                        <div className="flex items-center gap-3 overflow-hidden">
+                                                            <div className="p-2 bg-amber-500/10 text-amber-500 rounded-lg">
+                                                                <FileText size={14} />
+                                                            </div>
+                                                            <span className="text-xs text-white truncate max-w-[150px]">
+                                                                {doc.split('/').pop()?.replace(/^\d+_/, '')}
+                                                            </span>
+                                                        </div>
+                                                        <div className="flex gap-1">
+                                                            <a href={getPublicUrl(doc)} target="_blank" rel="noopener noreferrer" className="p-1.5 text-text-muted hover:text-white" title="Visualizar">
+                                                                <Eye size={14} />
+                                                            </a>
+                                                            <button
+                                                                onClick={async () => {
+                                                                    if (window.confirm("Excluir este documento do iFood?")) {
+                                                                        const updatedDocs = data.ifoodDocs?.filter((d: string) => d !== doc);
+                                                                        await updateWarrant(data.id, { ifoodDocs: updatedDocs });
+                                                                    }
+                                                                }}
+                                                                className="p-1.5 text-red-500 hover:text-red-400"
+                                                            >
+                                                                <Trash2 size={14} />
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                ))
+                                            ) : (
+                                                <div className="text-center py-8 border-2 border-dashed border-white/5 rounded-xl">
+                                                    <p className="text-[10px] text-text-muted font-bold uppercase">Nenhum retorno anexado</p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Investigation: Analytic Observations (Merged) */}
+                            <div className="bg-surface-dark/90 backdrop-blur-xl border border-white/10 rounded-2xl p-5 shadow-glass space-y-4">
+                                <div className="flex items-center gap-2 mb-2 pb-2 border-b border-white/5">
+                                    <MessageSquare className="text-primary" size={16} />
+                                    <span className="text-[11px] font-black uppercase tracking-widest">Observações Analíticas</span>
+                                </div>
+                                <textarea value={localData.observation || ''} onChange={e => handleFieldChange('observation', e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-sm text-white outline-none focus:ring-2 focus:ring-primary/20 transition-all resize-none min-h-[140px]" placeholder="Adicione considerações estratégicas para futuras equipes..." />
+                            </div>
 
                             {/* Intelligent Report Generator HUD */}
                             <div className="bg-surface-dark/80 backdrop-blur-xl border border-white/10 rounded-2xl p-5 shadow-glass space-y-5">
@@ -1783,116 +1989,8 @@ Equipe de Capturas - DIG / PCSP
                         </div>
                     )}
 
-                    {activeDetailTab === 'ifood' && (
-                        <div className="space-y-4">
-                            <div className="bg-surface-dark/90 backdrop-blur-xl border border-white/10 rounded-2xl p-5 shadow-glass">
-                                <div className="flex items-center justify-between mb-4 border-b border-white/5 pb-4">
-                                    <div className="flex items-center gap-2">
-                                        <Bike className="text-primary" size={20} />
-                                        <div>
-                                            <h3 className="text-sm font-black uppercase text-white tracking-widest">Inteligência iFood</h3>
-                                            <p className="text-[10px] text-text-muted font-bold uppercase">Rastreamento de Pedidos e Endereços</p>
-                                        </div>
-                                    </div>
-                                    <button
-                                        onClick={handleGenerateIfoodOffice}
-                                        className="bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-tactic flex items-center gap-2 transition-all active:scale-95"
-                                    >
-                                        <FileText size={14} /> Gerar Ofício
-                                    </button>
-                                </div>
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div className="space-y-4">
-                                        <div className="space-y-1">
-                                            <label className="text-[9px] font-black text-text-muted uppercase tracking-wider">Número do Ofício</label>
-                                            <input
-                                                className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm font-mono text-white outline-none focus:ring-1 focus:ring-primary"
-                                                placeholder="Ex: 001/CAPT/2026"
-                                                value={localData.ifoodNumber || ''}
-                                                onChange={e => handleFieldChange('ifoodNumber', e.target.value)}
-                                            />
-                                        </div>
-                                        <div className="space-y-1">
-                                            <label className="text-[9px] font-black text-text-muted uppercase tracking-wider">Resultado da Pesquisa</label>
-                                            <textarea
-                                                className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm text-white outline-none focus:ring-1 focus:ring-primary min-h-[120px] resize-none"
-                                                placeholder="Cole aqui os endereços e dados obtidos..."
-                                                value={localData.ifoodResult || ''}
-                                                onChange={e => handleFieldChange('ifoodResult', e.target.value)}
-                                            />
-                                        </div>
-                                    </div>
 
-                                    <div className="space-y-4">
-                                        <div className="flex items-center justify-between">
-                                            <label className="text-[9px] font-black text-text-muted uppercase tracking-wider">Documentos Resposta</label>
-                                            <div className="flex gap-2">
-                                                <input
-                                                    type="file"
-                                                    id="ifood-upload"
-                                                    className="hidden"
-                                                    onChange={(e) => handleAttachFile(e, 'ifoodDocs')}
-                                                />
-                                                <label
-                                                    htmlFor="ifood-upload"
-                                                    className="px-3 py-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-[10px] font-bold uppercase cursor-pointer transition-all text-white flex items-center gap-2"
-                                                >
-                                                    <Paperclip size={12} /> Anexar
-                                                </label>
-                                            </div>
-                                        </div>
-
-                                        <div className="space-y-2 max-h-[220px] overflow-y-auto pr-2 scrollbar-thumb-white/10 scrollbar-track-transparent">
-                                            {data.ifoodDocs && data.ifoodDocs.length > 0 ? (
-                                                data.ifoodDocs.map((doc: string, idx: number) => (
-                                                    <div key={idx} className="flex items-center justify-between bg-white/5 border border-white/5 p-3 rounded-xl group hover:bg-white/10 transition-all">
-                                                        <div className="flex items-center gap-3 overflow-hidden">
-                                                            <div className="p-2 bg-amber-500/10 text-amber-500 rounded-lg">
-                                                                <FileText size={14} />
-                                                            </div>
-                                                            <span className="text-xs text-white truncate max-w-[150px]">
-                                                                {doc.split('/').pop()?.replace(/^\d+_/, '')}
-                                                            </span>
-                                                        </div>
-                                                        <div className="flex gap-1">
-                                                            <a href={getPublicUrl(doc)} target="_blank" rel="noopener noreferrer" className="p-1.5 text-text-muted hover:text-white" title="Visualizar">
-                                                                <Eye size={14} />
-                                                            </a>
-                                                            <button
-                                                                onClick={async () => {
-                                                                    if (window.confirm("Excluir este documento do iFood?")) {
-                                                                        const updatedDocs = data.ifoodDocs?.filter((d: string) => d !== doc);
-                                                                        await updateWarrant(data.id, { ifoodDocs: updatedDocs });
-                                                                    }
-                                                                }}
-                                                                className="p-1.5 text-red-500 hover:text-red-400"
-                                                            >
-                                                                <Trash2 size={14} />
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                ))
-                                            ) : (
-                                                <div className="text-center py-8 border-2 border-dashed border-white/5 rounded-xl">
-                                                    <p className="text-[10px] text-text-muted font-bold uppercase">Nenhum retorno anexado</p>
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-                </div>
-
-                {/* Tactical Footer: Observações Gerais */}
-                <div className="bg-surface-dark/90 backdrop-blur-xl border border-white/10 rounded-2xl p-5 shadow-glass space-y-4">
-                    <div className="flex items-center gap-2 mb-2 pb-2 border-b border-white/5">
-                        <MessageSquare className="text-primary" size={16} />
-                        <span className="text-[11px] font-black uppercase tracking-widest">Observações Analíticas</span>
-                    </div>
-                    <textarea value={localData.observation || ''} onChange={e => handleFieldChange('observation', e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-sm text-white outline-none focus:ring-2 focus:ring-primary/20 transition-all resize-none min-h-[140px]" placeholder="Adicione considerações estratégicas para futuras equipes..." />
                 </div>
 
                 {/* Sticky Tactical Confirmation Bar */}
