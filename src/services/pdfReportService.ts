@@ -200,7 +200,35 @@ export const generateWarrantPDF = async (
             }
         }
 
-        drawSection("Análise e Observações", intelFields);
+        // --- NEW: TACTICAL CENTER DATA ---
+        try {
+            if (data.tacticalSummary && data.tacticalSummary.length > 5) {
+                const intel = JSON.parse(data.tacticalSummary);
+
+                if (intel.risk) {
+                    intelFields.push(["Nível de Risco:", intel.risk]);
+                }
+
+                if (intel.entities && Array.isArray(intel.entities) && intel.entities.length > 0) {
+                    const entitiesText = intel.entities.map((e: any) => `${e.name} (${e.role})`).join('; ');
+                    intelFields.push(["Vínculos Identificados:", entitiesText]);
+                }
+
+                if (intel.locations && Array.isArray(intel.locations) && intel.locations.length > 0) {
+                    const locsText = intel.locations.map((l: any) => `${l.address} - ${l.context}`).join('\n');
+                    intelFields.push(["Mapeamento Geo:", locsText]);
+                }
+
+                if (intel.checklist && Array.isArray(intel.checklist) && intel.checklist.length > 0) {
+                    const checkText = intel.checklist.map((c: any) => `[${c.priority || 'NORMAL'}] ${c.task}`).join('\n');
+                    intelFields.push(["Plano de Ação:", checkText]);
+                }
+            }
+        } catch (e) {
+            console.error("Error parsing tactical summary for PDF", e);
+        }
+
+        drawSection("Análise e Inteligência Tática", intelFields);
 
         if (data.attachments && data.attachments.length > 0) {
             const docFields: [string, string][] = data.attachments.map((at, idx) => {

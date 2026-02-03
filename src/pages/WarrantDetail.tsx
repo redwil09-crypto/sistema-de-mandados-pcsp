@@ -578,6 +578,8 @@ const WarrantDetail = () => {
 
         // Append AI Analysis Summary if available to ensure it appears in History and PDF
         let finalNotes = newDiligence;
+        let updatedTacticalSummary = data?.tacticalSummary || '{}';
+
         if (aiDiligenceResult && typeof aiDiligenceResult !== 'string') {
             // Translate Risk Level to PT-BR for persistence
             const riskRaw = aiDiligenceResult.riskLevel?.toUpperCase() || '';
@@ -602,6 +604,50 @@ const WarrantDetail = () => {
             }
 
             finalNotes = `${newDiligence}${riskInfo}${summaryInfo}${reasonInfo}${checklistInfo}${locationInfo}`;
+
+            // --- INTELLIGENT MERGE LOGIC ---
+            // Merge the new analysis into the permanent tactical summary
+            try {
+                let currentIntel = { entities: [], locations: [], checklist: [], summary: '', risk: 'BAIXO' };
+                try {
+                    currentIntel = JSON.parse(updatedTacticalSummary);
+                    if (!currentIntel || typeof currentIntel !== 'object') currentIntel = { entities: [], locations: [], checklist: [], summary: '', risk: 'BAIXO' };
+                } catch (e) { }
+
+                // 1. Entities (Vínculos) - Deduplicate by name
+                const newEntities = aiDiligenceResult.entities || [];
+                const currentEntities = Array.isArray(currentIntel.entities) ? currentIntel.entities : [];
+                // Filter out entities that already exist (fuzzy match)
+                const uniqueNewEntities = newEntities.filter((ne: any) => 
+                    !currentEntities.some((ce: any) => ce.name?.toLowerCase().trim() === ne.name?.toLowerCase().trim())
+                );
+                currentIntel.entities = [...currentEntities, ...uniqueNewEntities];
+
+                // 2. Locations (Mapeamento) - Deduplicate by address
+                const newLocs = aiDiligenceResult.locations || [];
+                const currentLocs = Array.isArray(currentIntel.locations) ? currentIntel.locations : [];
+                const uniqueNewLocs = newLocs.filter((nl: any) => 
+                    !currentLocs.some((cl: any) => cl.address?.toLowerCase().trim() === nl.address?.toLowerCase().trim())
+                );
+                currentIntel.locations = [...currentLocs, ...uniqueNewLocs];
+
+                // 3. Checklist (Plano de Ação) - Keep all, maybe filter completed later
+                const newCheck = aiDiligenceResult.checklist || [];
+                const currentCheck = Array.isArray(currentIntel.checklist) ? currentIntel.checklist : [];
+                // Add new items, deduplicate by task text
+                const uniqueNewCheck = newCheck.filter((nc: any) => 
+                    !currentCheck.some((cc: any) => cc.task?.toLowerCase().trim() === nc.task?.toLowerCase().trim())
+                );
+                currentIntel.checklist = [...currentCheck, ...uniqueNewCheck];
+
+                // 4. Update Summary & Risk
+                currentIntel.summary = aiDiligenceResult.summary || currentIntel.summary;
+                currentIntel.risk = riskPT || currentIntel.risk;
+
+                updatedTacticalSummary = JSON.stringify(currentIntel);
+            } catch (mergeError) {
+                console.error("Error merging intelligence:", mergeError);
+            }
         }
 
         const entry: any = {
@@ -617,6 +663,7 @@ const WarrantDetail = () => {
         // Save both the new diligence AND any pending edits in the dossier forms
         const updates: any = {
             diligentHistory: updatedHistory,
+            tacticalSummary: updatedTacticalSummary, // Update the Intelligence Center
             // Merge form data to ensure persistence
             observation: localData.observation,
             location: localData.location,
@@ -639,12 +686,12 @@ const WarrantDetail = () => {
             // Force refresh to ensure UI and subsequent PDFs have latest data
             await refreshWarrants();
 
-            toast.success("Prontuário e Ficha do Alvo atualizados com sucesso!");
+            toast.success("Inteligência Processada e Central Atualizada!");
 
             // Clear visualization after delay
             setTimeout(() => {
                 setAiAnalysisSaved(false);
-                setAiDiligenceResult(null);
+                setAiDiligenceResult(null); // Clear the 'timeline' view as requested
             }, 3000);
         } else {
             toast.error("Erro ao salvar no prontuário.");
@@ -1884,39 +1931,159 @@ Equipe de Capturas - DIG / PCSP
                     )}
 
                     {activeDetailTab === 'investigation' && (
-                        <div className="space-y-4">
-                            {/* Tactical Suggestion Card */}
-                            {aiTimeSuggestion && (
-                                <div className="bg-indigo-600/10 border border-indigo-500/30 rounded-2xl p-6 shadow-tactic relative overflow-hidden group">
-                                    <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:rotate-12 transition-transform">
-                                        <Sparkles size={80} />
-                                    </div>
-                                    <div className="flex items-center gap-3 mb-4">
-                                        <div className="p-3 bg-indigo-500 rounded-2xl shadow-lg shadow-indigo-500/40">
-                                            <Zap size={24} className="text-white fill-current" />
-                                        </div>
-                                        <div>
-                                            <h4 className="text-lg font-black text-white uppercase tracking-tighter">Sugestão Tática Inteligente</h4>
-                                            <div className="flex items-center gap-2">
-                                                <span className={`text-[10px] font-black px-2 py-0.5 rounded ${aiTimeSuggestion.confidence === 'Alta' ? 'bg-green-500/20 text-green-400' : 'bg-amber-500/20 text-amber-400'}`}>Confiança: {aiTimeSuggestion.confidence}</span>
+                        <div className="space-y-6">
+                            {/* --- INTELLIGENCE CENTER DASHBOARD --- */}
+                            {(aiTimeSuggestion || (data.tacticalSummary && data.tacticalSummary.length > 5)) && (
+                                <div className="space-y-4 animate-in fade-in slide-in-from-bottom duration-500">
+                                    
+                                    {/* 1. Header & Risk */}
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-3">
+                                            <div className="p-3 bg-indigo-500 rounded-2xl shadow-lg shadow-indigo-500/40">
+                                                <Zap size={24} className="text-white fill-current" />
+                                            </div>
+                                            <div>
+                                                <h4 className="text-lg font-black text-white uppercase tracking-tighter">Centro de Inteligência</h4>
+                                                <p className="text-[10px] text-indigo-300 font-bold uppercase tracking-widest">Análise Tática Unificada</p>
                                             </div>
                                         </div>
+                                        {(() => {
+                                            let risk = 'ANÁLISE';
+                                            try {
+                                                const intel = JSON.parse(data.tacticalSummary || '{}');
+                                                if(intel.risk) risk = intel.risk;
+                                            } catch(e) {}
+                                            return (
+                                                <div className={`px-4 py-2 rounded-xl border flex flex-col items-center ${
+                                                    risk.includes('CRÍTICO') ? 'bg-red-500/20 border-red-500/50 text-red-500' :
+                                                    risk.includes('ALTO') ? 'bg-orange-500/20 border-orange-500/50 text-orange-500' :
+                                                    'bg-green-500/20 border-green-500/50 text-green-500'
+                                                }`}>
+                                                    <span className="text-[9px] font-black uppercase tracking-widest opacity-80">Risco</span>
+                                                    <span className="text-sm font-black tracking-tighter">{risk}</span>
+                                                </div>
+                                            )
+                                        })()}
                                     </div>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 relative z-10">
-                                        <div className="bg-white/5 border border-white/5 rounded-xl p-4">
-                                            <p className="text-[10px] uppercase font-black text-indigo-400 mb-2 tracking-widest flex items-center gap-2">
-                                                <Calendar size={12} /> Janela Ideal
-                                            </p>
-                                            <p className="text-xl font-black text-white">{aiTimeSuggestion.suggestion}</p>
-                                            <p className="text-xs text-text-secondary-dark mt-2 leading-relaxed opacity-80">{aiTimeSuggestion.reason}</p>
+
+                                    {/* 2. Tactical Suggestion (Time & Strategy) */}
+                                    {aiTimeSuggestion && (
+                                        <div className="bg-indigo-600/10 border border-indigo-500/30 rounded-2xl p-6 shadow-tactic relative overflow-hidden group">
+                                            <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:rotate-12 transition-transform">
+                                                <Sparkles size={80} />
+                                            </div>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 relative z-10">
+                                                <div className="bg-white/5 border border-white/5 rounded-xl p-4 hover:bg-white/10 transition-colors">
+                                                    <p className="text-[10px] uppercase font-black text-indigo-400 mb-2 tracking-widest flex items-center gap-2">
+                                                        <Calendar size={12} /> Sugestão Operacional
+                                                    </p>
+                                                    <p className="text-xl font-black text-white">{aiTimeSuggestion.suggestion}</p>
+                                                    <p className="text-xs text-text-secondary-dark mt-2 leading-relaxed opacity-80">{aiTimeSuggestion.reason}</p>
+                                                </div>
+                                                <div className="bg-white/10 border border-white/10 rounded-xl p-4 hover:bg-white/15 transition-colors">
+                                                    <p className="text-[10px] uppercase font-black text-indigo-400 mb-2 tracking-widest flex items-center gap-2">
+                                                        <ShieldAlert size={12} /> Vetor Tático
+                                                    </p>
+                                                    <p className="text-xs font-bold text-white leading-relaxed">{aiTimeSuggestion.strategy}</p>
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div className="bg-white/10 border border-white/10 rounded-xl p-4">
-                                            <p className="text-[10px] uppercase font-black text-indigo-400 mb-2 tracking-widest flex items-center gap-2">
-                                                <ShieldAlert size={12} /> Vetor de Abordagem
-                                            </p>
-                                            <p className="text-xs font-bold text-white leading-relaxed">{aiTimeSuggestion.strategy}</p>
-                                        </div>
-                                    </div>
+                                    )}
+
+                                    {/* 3. Consolidated Intelligence Grid */}
+                                    {(() => {
+                                        let intel = { entities: [], locations: [], checklist: [] };
+                                        try {
+                                            intel = JSON.parse(data.tacticalSummary || '{}');
+                                        } catch (e) { }
+
+                                        // Fallbacks to empty arrays if undefined
+                                        const entities = Array.isArray(intel.entities) ? intel.entities : [];
+                                        const locations = Array.isArray(intel.locations) ? intel.locations : [];
+                                        const checklist = Array.isArray(intel.checklist) ? intel.checklist : [];
+
+                                        return (
+                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                                {/* ENTITIES CARD */}
+                                                <div className="bg-surface-dark/80 backdrop-blur border border-white/10 rounded-2xl p-5 shadow-glass flex flex-col h-full">
+                                                    <p className="text-xs font-black uppercase text-indigo-300 mb-4 flex items-center gap-2 pb-2 border-b border-white/5">
+                                                        <Users size={14} /> Rede de Vínculos
+                                                        <span className="ml-auto bg-indigo-500/20 text-indigo-300 px-1.5 py-0.5 rounded text-[9px]">{entities.length}</span>
+                                                    </p>
+                                                    <div className="space-y-2 flex-1 overflow-y-auto max-h-[300px] scrollbar-thin scrollbar-thumb-white/10 pr-2">
+                                                        {entities.length > 0 ? entities.map((e: any, i: number) => (
+                                                            <div key={i} className="bg-white/5 p-3 rounded-xl flex items-center gap-3 group hover:bg-white/10 transition-all">
+                                                                <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-text-muted group-hover:bg-primary group-hover:text-white transition-colors">
+                                                                    <User size={14} />
+                                                                </div>
+                                                                <div className="flex-1 min-w-0">
+                                                                    <p className="text-xs font-bold text-white truncate">{e.name}</p>
+                                                                    <p className="text-[10px] text-indigo-300">{e.role}</p>
+                                                                </div>
+                                                            </div>
+                                                        )) : (
+                                                            <div className="text-center py-8 opacity-30">
+                                                                <User size={24} className="mx-auto mb-2" />
+                                                                <p className="text-[10px]">Nenhum vínculo</p>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+
+                                                {/* LOCATIONS CARD */}
+                                                <div className="bg-surface-dark/80 backdrop-blur border border-white/10 rounded-2xl p-5 shadow-glass flex flex-col h-full">
+                                                    <p className="text-xs font-black uppercase text-indigo-300 mb-4 flex items-center gap-2 pb-2 border-b border-white/5">
+                                                        <MapPin size={14} /> Mapeamento
+                                                        <span className="ml-auto bg-indigo-500/20 text-indigo-300 px-1.5 py-0.5 rounded text-[9px]">{locations.length}</span>
+                                                    </p>
+                                                    <div className="space-y-2 flex-1 overflow-y-auto max-h-[300px] scrollbar-thin scrollbar-thumb-white/10 pr-2">
+                                                        {locations.length > 0 ? locations.map((l: any, i: number) => (
+                                                            <div key={i} className="bg-white/5 p-3 rounded-xl gap-2 group hover:bg-white/10 transition-all">
+                                                                <div className="flex items-start gap-2 mb-1">
+                                                                     <MapIcon size={12} className="mt-0.5 text-indigo-400" />
+                                                                     <p className="text-xs font-bold text-white leading-tight">{l.address}</p>
+                                                                </div>
+                                                                <p className="text-[10px] text-gray-400 pl-5 mb-2 line-clamp-2">{l.context}</p>
+                                                                <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(l.address)}`} target="_blank" rel="noreferrer" className="ml-5 text-[9px] bg-indigo-500/20 hover:bg-indigo-500 text-indigo-300 hover:text-white px-2 py-1 rounded-md transition-colors inline-flex items-center gap-1">
+                                                                    <ExternalLink size={8} /> Ver no Mapa
+                                                                </a>
+                                                            </div>
+                                                        )) : (
+                                                            <div className="text-center py-8 opacity-30">
+                                                                <MapIcon size={24} className="mx-auto mb-2" />
+                                                                <p className="text-[10px]">Nenhum local</p>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+
+                                                 {/* CHECKLIST CARD */}
+                                                 <div className="bg-surface-dark/80 backdrop-blur border border-white/10 rounded-2xl p-5 shadow-glass flex flex-col h-full">
+                                                    <p className="text-xs font-black uppercase text-indigo-300 mb-4 flex items-center gap-2 pb-2 border-b border-white/5">
+                                                        <CheckSquare size={14} /> Próximos Passos
+                                                        <span className="ml-auto bg-indigo-500/20 text-indigo-300 px-1.5 py-0.5 rounded text-[9px]">{checklist.length}</span>
+                                                    </p>
+                                                    <div className="space-y-2 flex-1 overflow-y-auto max-h-[300px] scrollbar-thin scrollbar-thumb-white/10 pr-2">
+                                                        {checklist.length > 0 ? checklist.map((c: any, i: number) => (
+                                                            <div key={i} className="bg-white/5 p-3 rounded-xl flex items-start gap-2 group hover:bg-white/10 transition-all">
+                                                                <div className="mt-1 w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></div>
+                                                                <div className="flex-1">
+                                                                    <p className="text-xs text-white font-medium leading-relaxed">{c.task}</p>
+                                                                    {c.priority === 'Alta' && <span className="text-[9px] text-red-400 font-black uppercase mt-1 block">Prioridade Alta</span>}
+                                                                </div>
+                                                            </div>
+                                                        )) : (
+                                                            <div className="text-center py-8 opacity-30">
+                                                                <CheckSquare size={24} className="mx-auto mb-2" />
+                                                                <p className="text-[10px]">Sem pendências</p>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        );
+                                    })()}
+
                                 </div>
                             )}
 
