@@ -1884,7 +1884,7 @@ Equipe de Capturas - DIG / PCSP
                             {/* HEADER DO CENTRO DE INTELIGÊNCIA */}
                             <div className="flex items-center justify-between pb-4 border-b border-white/10">
                                 <div className="flex items-center gap-3">
-                                    <div className="p-3 bg-indigo-600 rounded-2xl shadow-lg shadow-indigo-600/30 ring-1 ring-inset ring-white/10">
+                                    <div className="p-3 bg-indigo-500 rounded-2xl shadow-lg shadow-indigo-500/50 ring-1 ring-inset ring-white/20">
                                         <Bot size={28} className="text-white" />
                                     </div>
                                     <div>
@@ -2502,9 +2502,23 @@ Equipe de Capturas - DIG / PCSP
                                         </div>
                                     )}
 
-                                    <button onClick={handleAddDiligence} disabled={!newDiligence.trim() || isSavingDiligence} className="w-full mt-4 bg-primary hover:bg-primary-dark text-white py-3.5 rounded-xl font-black text-xs uppercase tracking-widest shadow-tactic transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2">
+                                    <button
+                                        onClick={() => {
+                                            handleAddDiligence();
+                                            toast.success("INTELIGÊNCIA COMPUTADA E FUNDIDA COM SUCESSO!", {
+                                                icon: '🧠',
+                                                style: {
+                                                    background: '#1e1b4b',
+                                                    color: '#fff',
+                                                    border: '1px solid #6366f1'
+                                                }
+                                            });
+                                        }}
+                                        disabled={(!newDiligence.trim() && !aiDiligenceResult) || isSavingDiligence}
+                                        className="w-full mt-4 bg-transparent border-2 border-primary hover:bg-primary/10 text-primary py-3.5 rounded-xl font-black text-xs uppercase tracking-widest shadow-[0_0_10px_rgba(99,102,241,0.5)] hover:shadow-[0_0_20px_rgba(99,102,241,0.7)] transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
+                                    >
                                         {isSavingDiligence ? <RefreshCw className="animate-spin" size={18} /> : <PlusCircle size={18} />}
-                                        {isSavingDiligence ? 'SALVANDO...' : 'REGISTRAR NO PRONTUÁRIO'}
+                                        {isSavingDiligence ? 'PROCESSANDO FUSÃO...' : 'REGISTRAR NO PRONTUÁRIO'}
                                     </button>
                                 </div>
 
