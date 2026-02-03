@@ -2128,7 +2128,7 @@ Equipe de Capturas - DIG / PCSP
                                                     <div className="flex items-center justify-between gap-2 mb-2">
                                                         <div className="flex items-center gap-2">
                                                             <Bot size={14} className="text-indigo-400" />
-                                                            <span className="text-[9px] font-black uppercase text-indigo-400 tracking-widest">Relatório Estratégico (IA)</span>
+                                                            <span className="text-xs font-black uppercase text-indigo-300 tracking-widest">Relatório Estratégico (IA)</span>
                                                         </div>
                                                         <button onClick={handleClearAnalysis} className="p-1.5 hover:bg-white/10 rounded-lg text-text-muted hover:text-white transition-colors" title="Apagar análise e histórico">
                                                             <Trash2 size={12} />
@@ -2136,7 +2136,7 @@ Equipe de Capturas - DIG / PCSP
                                                     </div>
 
                                                     {typeof aiDiligenceResult === 'string' ? (
-                                                        <p className="text-xs text-text-dark/90 leading-relaxed whitespace-pre-wrap">{aiDiligenceResult}</p>
+                                                        <p className="text-sm text-gray-200 leading-relaxed whitespace-pre-wrap">{aiDiligenceResult}</p>
                                                     ) : (
                                                         <div className="space-y-5 animate-in slide-in-from-bottom-2">
                                                             {/* Risk Meter */}
@@ -2199,7 +2199,7 @@ Equipe de Capturas - DIG / PCSP
                                                             {/* Tactical Checklist */}
                                                             {aiDiligenceResult.checklist && aiDiligenceResult.checklist.length > 0 && (
                                                                 <div>
-                                                                    <p className="text-[9px] font-black uppercase text-indigo-300 mb-2 flex items-center gap-1"><CheckSquare size={12} /> Plano de Ação</p>
+                                                                    <p className="text-xs font-black uppercase text-indigo-300 mb-2 flex items-center gap-1"><CheckSquare size={14} /> Plano de Ação</p>
                                                                     <div className="space-y-1.5">
                                                                         {aiDiligenceResult.checklist.map((item: any, i: number) => (
                                                                             <div
@@ -2215,11 +2215,11 @@ Equipe de Capturas - DIG / PCSP
                                                                                     {item.checked && <CheckSquare size={8} className="text-black" />}
                                                                                 </div>
                                                                                 <div>
-                                                                                    <p className={`text-[10px] font-medium ${item.checked ? 'text-text-muted line-through' : 'text-white'}`}>
+                                                                                    <p className={`text-sm font-medium ${item.checked ? 'text-gray-500 line-through' : 'text-gray-100'}`}>
                                                                                         {item.task}
                                                                                     </p>
                                                                                     {item.priority === 'Alta' && !item.checked && (
-                                                                                        <span className="text-[8px] font-black uppercase text-red-400 bg-red-400/10 px-1.5 rounded mt-1 inline-block">Prioridade Alta</span>
+                                                                                        <span className="text-[10px] font-black uppercase text-red-400 bg-red-400/10 px-1.5 rounded mt-1 inline-block">Prioridade Alta</span>
                                                                                     )}
                                                                                 </div>
                                                                             </div>
@@ -2231,7 +2231,7 @@ Equipe de Capturas - DIG / PCSP
                                                             {/* Geo Intelligence */}
                                                             {aiDiligenceResult.locations && aiDiligenceResult.locations.length > 0 && (
                                                                 <div>
-                                                                    <p className="text-[9px] font-black uppercase text-indigo-300 mb-2 flex items-center gap-1"><MapPin size={12} /> Rastro Geográfico</p>
+                                                                    <p className="text-xs font-black uppercase text-indigo-300 mb-2 flex items-center gap-1"><MapPin size={14} /> Rastro Geográfico</p>
                                                                     <div className="space-y-1.5">
                                                                         {aiDiligenceResult.locations.map((loc: any, i: number) => (
                                                                             <div key={i} className="bg-white/5 border border-white/5 p-2 rounded-lg flex items-start gap-2 group hover:bg-white/10 transition-all">
@@ -2239,8 +2239,8 @@ Equipe de Capturas - DIG / PCSP
                                                                                     <MapIcon size={12} />
                                                                                 </div>
                                                                                 <div className="flex-1 min-w-0">
-                                                                                    <p className="text-[10px] font-bold text-white truncate">{loc.address}</p>
-                                                                                    <p className="text-[9px] text-text-muted">{loc.context}</p>
+                                                                                    <p className="text-sm font-bold text-gray-100 truncate">{loc.address}</p>
+                                                                                    <p className="text-xs text-gray-400">{loc.context}</p>
                                                                                 </div>
                                                                                 <a
                                                                                     href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(loc.address)}`}
@@ -2257,7 +2257,7 @@ Equipe de Capturas - DIG / PCSP
                                                             )}
 
                                                             {/* Summary */}
-                                                            <div className="pt-2 text-[10px] text-text-secondary-dark border-t border-white/5 italic">
+                                                            <div className="pt-2 text-sm text-gray-300 border-t border-white/5 italic">
                                                                 "{aiDiligenceResult.summary}"
                                                             </div>
 
