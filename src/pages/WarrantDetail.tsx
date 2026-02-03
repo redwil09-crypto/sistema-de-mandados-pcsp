@@ -1698,19 +1698,19 @@ Equipe de Capturas - DIG / PCSP
                 {/* 2. Tactical Navigation Tabs */}
                 <div className="flex bg-surface-dark/80 backdrop-blur border border-white/10 rounded-2xl p-1.5 gap-1.5 shadow-glass sticky top-2 z-[30]">
                     {[
-                        { id: 'documents', label: 'Dossiê', icon: FileText },
-                        { id: 'investigation', label: 'Investigações', icon: Bot },
-                        { id: 'timeline', label: 'Operações', icon: History }
+                        { id: 'documents', label: 'Dossiê', icon: FileText, color: 'bg-gradient-to-r from-blue-600 to-cyan-500 shadow-blue-500/25 border-blue-400/20' },
+                        { id: 'investigation', label: 'Investigações', icon: Bot, color: 'bg-gradient-to-r from-violet-600 to-fuchsia-500 shadow-violet-500/25 border-violet-400/20' },
+                        { id: 'timeline', label: 'Operações', icon: History, color: 'bg-gradient-to-r from-emerald-500 to-teal-500 shadow-emerald-500/25 border-emerald-400/20' }
                     ].map(tab => (
                         <button
                             key={tab.id}
                             onClick={() => setActiveDetailTab(tab.id as any)}
-                            className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${activeDetailTab === tab.id
-                                ? 'bg-primary text-white shadow-tactic scale-[1.02]'
-                                : 'text-text-secondary-dark hover:bg-white/5'
+                            className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all duration-300 ${activeDetailTab === tab.id
+                                ? `${tab.color} text-white shadow-lg scale-[1.02] border`
+                                : 'text-text-secondary-dark hover:bg-white/5 hover:text-white border border-transparent'
                                 }`}
                         >
-                            <tab.icon size={16} />
+                            <tab.icon size={16} className={activeDetailTab === tab.id ? 'animate-pulse' : ''} />
                             <span className="hidden sm:inline">{tab.label}</span>
                         </button>
                     ))}
