@@ -573,16 +573,22 @@ const WarrantDetail = () => {
     const [isSavingDiligence, setIsSavingDiligence] = useState(false);
 
     const handleAddDiligence = async () => {
-        if (!newDiligence.trim()) return;
-        setIsSavingDiligence(true);
+        // Validation: Must have either text OR AI result
+        if (!newDiligence.trim() && !aiDiligenceResult) {
+            toast.error("Nada para registrar.");
+            return;
+        }
 
+        setIsSavingDiligence(true);
         const toastId = toast.loading("Processando Inteligência e Fusão de Dados...");
 
         // 1. Prepare raw note for history (Audit purpose)
         let finalNotes = newDiligence;
         if (aiDiligenceResult && typeof aiDiligenceResult !== 'string') {
-            // Keep the raw text plus a small marker that it was AI processed, but main intel goes to tacticalSummary
-            finalNotes = `${newDiligence}\n\n[ANÁLISE IA REALIZADA E ENVIADA AO CENTRO DE INTELIGÊNCIA]`;
+            const hasText = newDiligence.trim().length > 0;
+            finalNotes = hasText
+                ? `${newDiligence}\n\n[ANÁLISE IA REALIZADA E ENVIADA AO CENTRO DE INTELIGÊNCIA]`
+                : `[ANÁLISE DE INTELIGÊNCIA AUTOMÁTICA COMPUTADA E MERGEADA]`;
         }
 
         // 2. INTELLIGENT MERGE LOGIC (THE CORE)
@@ -602,7 +608,7 @@ const WarrantDetail = () => {
                 updatedTacticalSummary = JSON.stringify(mergedIntel);
             } catch (mergeError) {
                 console.error("Error calling AI Merge:", mergeError);
-                toast.error("Falha na fusão inteligente. Salvando dados brutos.");
+                toast.error("Falha na fusão inteligente. Salvando dados brutos.", { id: toastId });
             }
         }
 
@@ -629,7 +635,11 @@ const WarrantDetail = () => {
         if (success) {
             setNewDiligence('');
             setAiAnalysisSaved(true);
-            await refreshWarrants();
+            setAnalyzedDocumentText('');
+
+            // Critical: Update parent state immediately if handler provided
+            if (onUpdate) await onUpdate();
+            else await refreshWarrants();
 
             toast.success("Informações Transferidas para o Centro de Inteligência!", { id: toastId });
 
@@ -638,7 +648,6 @@ const WarrantDetail = () => {
             setTimeout(() => {
                 setAiAnalysisSaved(false);
                 setAiDiligenceResult(null);
-                setAnalyzedDocumentText(''); // Clear doc context too if used
             }, 1000);
         } else {
             toast.error("Erro ao salvar no prontuário.", { id: toastId });
@@ -1884,7 +1893,7 @@ Equipe de Capturas - DIG / PCSP
                             {/* HEADER DO CENTRO DE INTELIGÊNCIA */}
                             <div className="flex items-center justify-between pb-4 border-b border-white/10">
                                 <div className="flex items-center gap-3">
-                                    <div className="p-3 bg-indigo-500 rounded-2xl shadow-lg shadow-indigo-500/50 ring-1 ring-inset ring-white/20">
+                                    <div className="p-3 bg-indigo-600 rounded-2xl shadow-lg shadow-indigo-600/30 ring-1 ring-inset ring-white/10">
                                         <Bot size={28} className="text-white" />
                                     </div>
                                     <div>
@@ -2515,7 +2524,7 @@ Equipe de Capturas - DIG / PCSP
                                             });
                                         }}
                                         disabled={(!newDiligence.trim() && !aiDiligenceResult) || isSavingDiligence}
-                                        className="w-full mt-4 bg-transparent border-2 border-primary hover:bg-primary/10 text-primary py-3.5 rounded-xl font-black text-xs uppercase tracking-widest shadow-[0_0_10px_rgba(99,102,241,0.5)] hover:shadow-[0_0_20px_rgba(99,102,241,0.7)] transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
+                                        className="w-full mt-4 bg-primary hover:bg-primary-dark text-white py-3.5 rounded-xl font-black text-xs uppercase tracking-widest shadow-tactic transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                                     >
                                         {isSavingDiligence ? <RefreshCw className="animate-spin" size={18} /> : <PlusCircle size={18} />}
                                         {isSavingDiligence ? 'PROCESSANDO FUSÃO...' : 'REGISTRAR NO PRONTUÁRIO'}
