@@ -118,6 +118,12 @@ const WarrantCard = ({ data, onPrint, isPlanned, onRouteToggle, onFinalize, onDe
                                     {data.location}
                                 </p>
                             )}
+                            {data.status === 'CUMPRIDO' && data.dischargeDate && (
+                                <p className="text-[10px] font-bold text-green-400 flex items-center gap-1.5 mt-0.5">
+                                    <CheckCircle size={10} />
+                                    {formatDate(data.dischargeDate)}
+                                </p>
+                            )}
                         </div>
 
                         {/* Route & Print Actions */}
