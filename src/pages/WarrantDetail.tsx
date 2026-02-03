@@ -1915,7 +1915,7 @@ Equipe de Capturas - DIG / PCSP
 
                                     {/* GENERATE PDF BUTTON */}
                                     <button
-                                        onClick={handleGenerateWarrantPDF} // Assuming standard PDF generation for now, this will include the new intel
+                                        onClick={handleDownloadPDF} // Including standard PDF generation
                                         className="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 border border-white/5"
                                     >
                                         <Printer size={14} /> Dossiê Completo
