@@ -70,7 +70,7 @@ const WarrantDetail = () => {
 
     const [isUploadingFile, setIsUploadingFile] = useState(false);
     const [isAnalyzingDiligence, setIsAnalyzingDiligence] = useState(false);
-    const [aiTimeSuggestion, setAiTimeSuggestion] = useState<any>(null);
+
     const [aiDiligenceResult, setAiDiligenceResult] = useState<any>(null);
     const [aiAnalysisSaved, setAiAnalysisSaved] = useState(false);
     const [isAiReportModalOpen, setIsAiReportModalOpen] = useState(false);
