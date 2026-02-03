@@ -351,6 +351,7 @@ export async function analyzeDocumentStrategy(warrantData: any, docText: string)
     }
 }
 
+
 export async function askAssistantStrategy(warrantData: any, docContext: string, question: string, history: { role: string, content: string }[]) {
     if (!(await isGeminiEnabled())) return "IA indisponível.";
 
@@ -387,3 +388,71 @@ export async function askAssistantStrategy(warrantData: any, docContext: string,
         return "Erro ao processar resposta.";
     }
 }
+
+export async function mergeIntelligence(
+    warrantData: any,
+    currentIntel: any,
+    newAnalysis: any
+) {
+    if (!(await isGeminiEnabled())) return currentIntel;
+
+    const prompt = `
+        VOCÊ É UM GERENTE DE INTELIGÊNCIA POLICIAL. (MINDSET: "HANDLER")
+        SUA MISSÃO: Fundir uma nova análise tática com o dossiê de inteligência existente de um alvo.
+
+        DADOS DO ALVO:
+        ${JSON.stringify({ name: warrantData.name, crime: warrantData.crime }, null, 2)}
+
+        🧠 INTELIGÊNCIA ATUAL (O QUE JÁ SABEMOS):
+        ${JSON.stringify(currentIntel, null, 2)}
+
+        📝 NOVA ANÁLISE (O QUE ACABOU DE CHEGAR):
+        ${JSON.stringify(newAnalysis, null, 2)}
+
+        DIRETRIZES DE FUSÃO (CRÍTICO):
+        1. CONTRADIÇÕES: Se a nova informação desmente a antiga, ATUALIZE e explique na hipótese.
+        2. DEDUPLICAÇÃO: Não repita endereços ou nomes (use match difuso). Se for o mesmo, enriqueça o contexto.
+        3. EVOLUÇÃO: Se uma hipótese antiga foi reforçada, aumente a confiança. Se foi refutada, mude status.
+        4. LIMPEZA: Remova "Próximos Passos" que já foram implicitamente feitos ou ficaram obsoletos.
+        5. PROGRESSO: Estime o quanto avançamos na localização (0-100%).
+
+        SAÍDA OBRIGATÓRIA EM JSON (ESTRUTURA RÍGIDA - TacticalIntelligence):
+        {
+            "summary": "Resumo consolidado em texto corrido (máx 5 linhas).",
+            "timeline": [ // Mantenha os eventos antigos relevantes e adicione o novo evento da análise
+                { "date": "YYYY-MM-DD", "event": "Descrição curta do fato", "source": "Origem (ex: Ifood, Relatório)" }
+            ],
+            "locations": [ // Lista atualizada e mergeada
+                { "address": "Endereço", "context": "Contexto detalhado", "priority": "Alta/Média/Baixa", "status": "Pendente/Verificado/Descartado" }
+            ],
+            "entities": [ // Lista atualizada e mergeada
+                { "name": "Nome", "role": "Mãe/Advogado", "context": "Detalhe do vínculo" }
+            ],
+            "risks": ["Risco 1", "Risco 2"], // Lista atualizada
+            "hypotheses": [ // Hipóteses ativas sobre onde o alvo está
+                { "description": "Hipótese de localização", "confidence": "Alta/Média/Baixa", "status": "Ativa/Refutada" }
+            ],
+            "suggestions": ["Sugestão tática 1", "Sugestão 2"],
+            "checklist": [ // O que fazer AGORA
+                { "task": "Ação concreta", "priority": "Alta/Normal", "status": "Pendente", "checked": false }
+            ],
+            "progressLevel": 50 // Número 0 a 100
+        }
+    `;
+
+    try {
+        const text = await tryGenerateContent(prompt);
+        const jsonStr = text.replace(/```json|```/g, '').trim();
+        return JSON.parse(jsonStr);
+    } catch (error) {
+        console.error("Erro no Merge de Inteligência:", error);
+        // Fallback: Retorna o atual + dados novos de forma bruta se falhar
+        return {
+            ...currentIntel,
+            summary: (currentIntel.summary || '') + '\n[FALHA NA FUSÃO IA] ' + (newAnalysis.summary || ''),
+            locations: [...(currentIntel.locations || []), ...(newAnalysis.locations || [])],
+            lastUpdate: new Date().toISOString()
+        };
+    }
+}
+

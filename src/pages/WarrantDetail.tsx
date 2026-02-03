@@ -8,7 +8,7 @@ import {
     Route as RouteIcon, RotateCcw, CheckCircle, Printer,
     Trash2, Zap, Bell, Eye, History, Send, Copy,
     ShieldAlert, MessageSquare, Plus, PlusCircle, X, ChevronRight, Bot, Cpu, Sparkles, RefreshCw, AlertTriangle, ExternalLink,
-    CheckSquare, Users, AlertOctagon, Search, Siren, Scale
+    CheckSquare, Users, AlertOctagon, Search, Siren, Scale, Target, Lightbulb, TrendingUp, Activity
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '../supabaseClient';
@@ -21,7 +21,7 @@ import { formatDate, getStatusColor, maskDate } from '../utils/helpers';
 import { Warrant } from '../types';
 import { geocodeAddress } from '../services/geocodingService';
 import { generateWarrantPDF, generateIfoodOfficePDF } from '../services/pdfReportService';
-import { analyzeRawDiligence, generateReportBody, analyzeDocumentStrategy, askAssistantStrategy } from '../services/geminiService';
+import { analyzeRawDiligence, generateReportBody, analyzeDocumentStrategy, askAssistantStrategy, mergeIntelligence } from '../services/geminiService';
 import { extractRawTextFromPdf, extractFromText } from '../pdfExtractor';
 import { CRIME_OPTIONS, REGIME_OPTIONS } from '../data/constants';
 import { useWarrants } from '../contexts/WarrantContext';
@@ -576,77 +576,33 @@ const WarrantDetail = () => {
         if (!newDiligence.trim()) return;
         setIsSavingDiligence(true);
 
-        // Append AI Analysis Summary if available to ensure it appears in History and PDF
+        const toastId = toast.loading("Processando Inteligência e Fusão de Dados...");
+
+        // 1. Prepare raw note for history (Audit purpose)
         let finalNotes = newDiligence;
+        if (aiDiligenceResult && typeof aiDiligenceResult !== 'string') {
+            // Keep the raw text plus a small marker that it was AI processed, but main intel goes to tacticalSummary
+            finalNotes = `${newDiligence}\n\n[ANÁLISE IA REALIZADA E ENVIADA AO CENTRO DE INTELIGÊNCIA]`;
+        }
+
+        // 2. INTELLIGENT MERGE LOGIC (THE CORE)
         let updatedTacticalSummary = data?.tacticalSummary || '{}';
 
         if (aiDiligenceResult && typeof aiDiligenceResult !== 'string') {
-            // Translate Risk Level to PT-BR for persistence
-            const riskRaw = aiDiligenceResult.riskLevel?.toUpperCase() || '';
-            let riskPT = riskRaw;
-            if (riskRaw.includes('CRITIC') || riskRaw.includes('CRÍTIC')) riskPT = 'CRÍTICO';
-            else if (riskRaw.includes('HIGH') || riskRaw.includes('ALTO')) riskPT = 'ALTO';
-            else if (riskRaw.includes('MEDIUM') || riskRaw.includes('MÉDIO')) riskPT = 'MÉDIO';
-            else if (riskRaw.includes('LOW') || riskRaw.includes('BAIXO')) riskPT = 'BAIXO';
-
-            const riskInfo = riskPT ? `\n[NÍVEL DE RISCO: ${riskPT}]` : '';
-            const summaryInfo = aiDiligenceResult.summary ? `\n\nANÁLISE ESTRATÉGICA:\n${aiDiligenceResult.summary}` : '';
-            const reasonInfo = aiDiligenceResult.riskReason ? `\n\nMOTIVAÇÃO DO RISCO:\n${aiDiligenceResult.riskReason}` : '';
-
-            let checklistInfo = '';
-            if (aiDiligenceResult.checklist && aiDiligenceResult.checklist.length > 0) {
-                checklistInfo = '\n\nPLANO DE AÇÃO SUGERIDO:\n' + aiDiligenceResult.checklist.map((i: any) => `- [${i.priority ? i.priority.toUpperCase() : 'GERAL'}] ${i.task}`).join('\n');
-            }
-
-            let locationInfo = '';
-            if (aiDiligenceResult.locations && aiDiligenceResult.locations.length > 0) {
-                locationInfo = '\n\nRASTRO GEOGRÁFICO:\n' + aiDiligenceResult.locations.map((l: any) => `- ${l.address} (${l.context})`).join('\n');
-            }
-
-            finalNotes = `${newDiligence}${riskInfo}${summaryInfo}${reasonInfo}${checklistInfo}${locationInfo}`;
-
-            // --- INTELLIGENT MERGE LOGIC ---
-            // Merge the new analysis into the permanent tactical summary
             try {
-                let currentIntel = { entities: [], locations: [], checklist: [], summary: '', risk: 'BAIXO' };
+                // Parse current state
+                let currentIntel = {};
                 try {
                     currentIntel = JSON.parse(updatedTacticalSummary);
-                    if (!currentIntel || typeof currentIntel !== 'object') currentIntel = { entities: [], locations: [], checklist: [], summary: '', risk: 'BAIXO' };
-                } catch (e) { }
+                } catch (e) { currentIntel = {}; }
 
-                // 1. Entities (Vínculos) - Deduplicate by name
-                const newEntities = aiDiligenceResult.entities || [];
-                const currentEntities = Array.isArray(currentIntel.entities) ? currentIntel.entities : [];
-                // Filter out entities that already exist (fuzzy match)
-                const uniqueNewEntities = newEntities.filter((ne: any) => 
-                    !currentEntities.some((ce: any) => ce.name?.toLowerCase().trim() === ne.name?.toLowerCase().trim())
-                );
-                currentIntel.entities = [...currentEntities, ...uniqueNewEntities];
+                // CALL THE AI MERGE SERVICE
+                const mergedIntel = await mergeIntelligence(data, currentIntel, aiDiligenceResult);
 
-                // 2. Locations (Mapeamento) - Deduplicate by address
-                const newLocs = aiDiligenceResult.locations || [];
-                const currentLocs = Array.isArray(currentIntel.locations) ? currentIntel.locations : [];
-                const uniqueNewLocs = newLocs.filter((nl: any) => 
-                    !currentLocs.some((cl: any) => cl.address?.toLowerCase().trim() === nl.address?.toLowerCase().trim())
-                );
-                currentIntel.locations = [...currentLocs, ...uniqueNewLocs];
-
-                // 3. Checklist (Plano de Ação) - Keep all, maybe filter completed later
-                const newCheck = aiDiligenceResult.checklist || [];
-                const currentCheck = Array.isArray(currentIntel.checklist) ? currentIntel.checklist : [];
-                // Add new items, deduplicate by task text
-                const uniqueNewCheck = newCheck.filter((nc: any) => 
-                    !currentCheck.some((cc: any) => cc.task?.toLowerCase().trim() === nc.task?.toLowerCase().trim())
-                );
-                currentIntel.checklist = [...currentCheck, ...uniqueNewCheck];
-
-                // 4. Update Summary & Risk
-                currentIntel.summary = aiDiligenceResult.summary || currentIntel.summary;
-                currentIntel.risk = riskPT || currentIntel.risk;
-
-                updatedTacticalSummary = JSON.stringify(currentIntel);
+                updatedTacticalSummary = JSON.stringify(mergedIntel);
             } catch (mergeError) {
-                console.error("Error merging intelligence:", mergeError);
+                console.error("Error calling AI Merge:", mergeError);
+                toast.error("Falha na fusão inteligente. Salvando dados brutos.");
             }
         }
 
@@ -655,46 +611,37 @@ const WarrantDetail = () => {
             date: new Date().toISOString(),
             investigator: "Policial",
             notes: finalNotes,
-            type: 'intelligence' // Tipo padrão já que os botões foram removidos
+            type: 'intelligence'
         };
 
         const updatedHistory = [...(data.diligentHistory || []), entry];
 
-        // Save both the new diligence AND any pending edits in the dossier forms
+        // 3. Save updates
         const updates: any = {
             diligentHistory: updatedHistory,
-            tacticalSummary: updatedTacticalSummary, // Update the Intelligence Center
-            // Merge form data to ensure persistence
-            observation: localData.observation,
-            location: localData.location,
-            rg: localData.rg,
-            cpf: localData.cpf,
-            birthDate: localData.birthDate,
-            expirationDate: localData.expirationDate,
-            ifoodResult: localData.ifoodResult,
-            ifoodNumber: localData.ifoodNumber,
-            dischargeDate: localData.dischargeDate
+            tacticalSummary: updatedTacticalSummary,
+            observation: localData.observation, // Sync forms just in case
+            location: localData.location
         };
 
         const success = await updateWarrant(data.id, updates);
 
         if (success) {
             setNewDiligence('');
-            // Trigger visual confirmation
             setAiAnalysisSaved(true);
-
-            // Force refresh to ensure UI and subsequent PDFs have latest data
             await refreshWarrants();
 
-            toast.success("Inteligência Processada e Central Atualizada!");
+            toast.success("Informações Transferidas para o Centro de Inteligência!", { id: toastId });
 
-            // Clear visualization after delay
+            // CLEAR THE "RELATÓRIO ESTRATÉGICO" (TIMELINE INPUTS)
+            // This ensures the source is disposable/temporary as requested
             setTimeout(() => {
                 setAiAnalysisSaved(false);
-                setAiDiligenceResult(null); // Clear the 'timeline' view as requested
-            }, 3000);
+                setAiDiligenceResult(null);
+                setAnalyzedDocumentText(''); // Clear doc context too if used
+            }, 1000);
         } else {
-            toast.error("Erro ao salvar no prontuário.");
+            toast.error("Erro ao salvar no prontuário.", { id: toastId });
         }
         setIsSavingDiligence(false);
     };
@@ -1931,161 +1878,244 @@ Equipe de Capturas - DIG / PCSP
                     )}
 
                     {activeDetailTab === 'investigation' && (
-                        <div className="space-y-6">
-                            {/* --- INTELLIGENCE CENTER DASHBOARD --- */}
-                            {(aiTimeSuggestion || (data.tacticalSummary && data.tacticalSummary.length > 5)) && (
-                                <div className="space-y-4 animate-in fade-in slide-in-from-bottom duration-500">
-                                    
-                                    {/* 1. Header & Risk */}
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-3">
-                                            <div className="p-3 bg-indigo-500 rounded-2xl shadow-lg shadow-indigo-500/40">
-                                                <Zap size={24} className="text-white fill-current" />
-                                            </div>
-                                            <div>
-                                                <h4 className="text-lg font-black text-white uppercase tracking-tighter">Centro de Inteligência</h4>
-                                                <p className="text-[10px] text-indigo-300 font-bold uppercase tracking-widest">Análise Tática Unificada</p>
-                                            </div>
-                                        </div>
-                                        {(() => {
-                                            let risk = 'ANÁLISE';
-                                            try {
-                                                const intel = JSON.parse(data.tacticalSummary || '{}');
-                                                if(intel.risk) risk = intel.risk;
-                                            } catch(e) {}
+                        <div className="space-y-6 animate-in fade-in slide-in-from-bottom duration-500 pb-10">
+                            {/* --- INTELLIGENCE CENTER (CENTRAL DE COMANDO) --- */}
+
+                            {/* HEADER DO CENTRO DE INTELIGÊNCIA */}
+                            <div className="flex items-center justify-between pb-4 border-b border-white/10">
+                                <div className="flex items-center gap-3">
+                                    <div className="p-3 bg-indigo-600 rounded-2xl shadow-lg shadow-indigo-600/30 ring-1 ring-inset ring-white/10">
+                                        <Bot size={28} className="text-white" />
+                                    </div>
+                                    <div>
+                                        <h4 className="text-xl font-black text-white uppercase tracking-tighter">Sugestão Tática Inteligente</h4>
+                                        <p className="text-[10px] text-indigo-300 font-bold uppercase tracking-widest flex items-center gap-1">
+                                            <Activity size={10} className="animate-pulse" /> Memória Ativa da Investigação
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center gap-3">
+                                    {/* PROGRESS LEVEL */}
+                                    {(() => {
+                                        try {
+                                            const intel = JSON.parse(data.tacticalSummary || '{}');
+                                            const progress = intel.progressLevel || 0;
                                             return (
-                                                <div className={`px-4 py-2 rounded-xl border flex flex-col items-center ${
-                                                    risk.includes('CRÍTICO') ? 'bg-red-500/20 border-red-500/50 text-red-500' :
-                                                    risk.includes('ALTO') ? 'bg-orange-500/20 border-orange-500/50 text-orange-500' :
-                                                    'bg-green-500/20 border-green-500/50 text-green-500'
-                                                }`}>
-                                                    <span className="text-[9px] font-black uppercase tracking-widest opacity-80">Risco</span>
-                                                    <span className="text-sm font-black tracking-tighter">{risk}</span>
+                                                <div className="hidden md:flex flex-col items-end mr-4">
+                                                    <span className="text-[9px] uppercase font-black text-indigo-300 tracking-widest mb-1">Avanço Global</span>
+                                                    <div className="w-32 h-2 bg-white/10 rounded-full overflow-hidden">
+                                                        <div className="h-full bg-gradient-to-r from-indigo-500 to-cyan-400 transition-all duration-1000" style={{ width: `${progress}%` }}></div>
+                                                    </div>
+                                                    <span className="text-[10px] font-bold text-white mt-1">{progress}% Concluído</span>
                                                 </div>
                                             )
-                                        })()}
-                                    </div>
-
-                                    {/* 2. Tactical Suggestion (Time & Strategy) */}
-                                    {aiTimeSuggestion && (
-                                        <div className="bg-indigo-600/10 border border-indigo-500/30 rounded-2xl p-6 shadow-tactic relative overflow-hidden group">
-                                            <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:rotate-12 transition-transform">
-                                                <Sparkles size={80} />
-                                            </div>
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 relative z-10">
-                                                <div className="bg-white/5 border border-white/5 rounded-xl p-4 hover:bg-white/10 transition-colors">
-                                                    <p className="text-[10px] uppercase font-black text-indigo-400 mb-2 tracking-widest flex items-center gap-2">
-                                                        <Calendar size={12} /> Sugestão Operacional
-                                                    </p>
-                                                    <p className="text-xl font-black text-white">{aiTimeSuggestion.suggestion}</p>
-                                                    <p className="text-xs text-text-secondary-dark mt-2 leading-relaxed opacity-80">{aiTimeSuggestion.reason}</p>
-                                                </div>
-                                                <div className="bg-white/10 border border-white/10 rounded-xl p-4 hover:bg-white/15 transition-colors">
-                                                    <p className="text-[10px] uppercase font-black text-indigo-400 mb-2 tracking-widest flex items-center gap-2">
-                                                        <ShieldAlert size={12} /> Vetor Tático
-                                                    </p>
-                                                    <p className="text-xs font-bold text-white leading-relaxed">{aiTimeSuggestion.strategy}</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {/* 3. Consolidated Intelligence Grid */}
-                                    {(() => {
-                                        let intel = { entities: [], locations: [], checklist: [] };
-                                        try {
-                                            intel = JSON.parse(data.tacticalSummary || '{}');
-                                        } catch (e) { }
-
-                                        // Fallbacks to empty arrays if undefined
-                                        const entities = Array.isArray(intel.entities) ? intel.entities : [];
-                                        const locations = Array.isArray(intel.locations) ? intel.locations : [];
-                                        const checklist = Array.isArray(intel.checklist) ? intel.checklist : [];
-
-                                        return (
-                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                                {/* ENTITIES CARD */}
-                                                <div className="bg-surface-dark/80 backdrop-blur border border-white/10 rounded-2xl p-5 shadow-glass flex flex-col h-full">
-                                                    <p className="text-xs font-black uppercase text-indigo-300 mb-4 flex items-center gap-2 pb-2 border-b border-white/5">
-                                                        <Users size={14} /> Rede de Vínculos
-                                                        <span className="ml-auto bg-indigo-500/20 text-indigo-300 px-1.5 py-0.5 rounded text-[9px]">{entities.length}</span>
-                                                    </p>
-                                                    <div className="space-y-2 flex-1 overflow-y-auto max-h-[300px] scrollbar-thin scrollbar-thumb-white/10 pr-2">
-                                                        {entities.length > 0 ? entities.map((e: any, i: number) => (
-                                                            <div key={i} className="bg-white/5 p-3 rounded-xl flex items-center gap-3 group hover:bg-white/10 transition-all">
-                                                                <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-text-muted group-hover:bg-primary group-hover:text-white transition-colors">
-                                                                    <User size={14} />
-                                                                </div>
-                                                                <div className="flex-1 min-w-0">
-                                                                    <p className="text-xs font-bold text-white truncate">{e.name}</p>
-                                                                    <p className="text-[10px] text-indigo-300">{e.role}</p>
-                                                                </div>
-                                                            </div>
-                                                        )) : (
-                                                            <div className="text-center py-8 opacity-30">
-                                                                <User size={24} className="mx-auto mb-2" />
-                                                                <p className="text-[10px]">Nenhum vínculo</p>
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                </div>
-
-                                                {/* LOCATIONS CARD */}
-                                                <div className="bg-surface-dark/80 backdrop-blur border border-white/10 rounded-2xl p-5 shadow-glass flex flex-col h-full">
-                                                    <p className="text-xs font-black uppercase text-indigo-300 mb-4 flex items-center gap-2 pb-2 border-b border-white/5">
-                                                        <MapPin size={14} /> Mapeamento
-                                                        <span className="ml-auto bg-indigo-500/20 text-indigo-300 px-1.5 py-0.5 rounded text-[9px]">{locations.length}</span>
-                                                    </p>
-                                                    <div className="space-y-2 flex-1 overflow-y-auto max-h-[300px] scrollbar-thin scrollbar-thumb-white/10 pr-2">
-                                                        {locations.length > 0 ? locations.map((l: any, i: number) => (
-                                                            <div key={i} className="bg-white/5 p-3 rounded-xl gap-2 group hover:bg-white/10 transition-all">
-                                                                <div className="flex items-start gap-2 mb-1">
-                                                                     <MapIcon size={12} className="mt-0.5 text-indigo-400" />
-                                                                     <p className="text-xs font-bold text-white leading-tight">{l.address}</p>
-                                                                </div>
-                                                                <p className="text-[10px] text-gray-400 pl-5 mb-2 line-clamp-2">{l.context}</p>
-                                                                <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(l.address)}`} target="_blank" rel="noreferrer" className="ml-5 text-[9px] bg-indigo-500/20 hover:bg-indigo-500 text-indigo-300 hover:text-white px-2 py-1 rounded-md transition-colors inline-flex items-center gap-1">
-                                                                    <ExternalLink size={8} /> Ver no Mapa
-                                                                </a>
-                                                            </div>
-                                                        )) : (
-                                                            <div className="text-center py-8 opacity-30">
-                                                                <MapIcon size={24} className="mx-auto mb-2" />
-                                                                <p className="text-[10px]">Nenhum local</p>
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                </div>
-
-                                                 {/* CHECKLIST CARD */}
-                                                 <div className="bg-surface-dark/80 backdrop-blur border border-white/10 rounded-2xl p-5 shadow-glass flex flex-col h-full">
-                                                    <p className="text-xs font-black uppercase text-indigo-300 mb-4 flex items-center gap-2 pb-2 border-b border-white/5">
-                                                        <CheckSquare size={14} /> Próximos Passos
-                                                        <span className="ml-auto bg-indigo-500/20 text-indigo-300 px-1.5 py-0.5 rounded text-[9px]">{checklist.length}</span>
-                                                    </p>
-                                                    <div className="space-y-2 flex-1 overflow-y-auto max-h-[300px] scrollbar-thin scrollbar-thumb-white/10 pr-2">
-                                                        {checklist.length > 0 ? checklist.map((c: any, i: number) => (
-                                                            <div key={i} className="bg-white/5 p-3 rounded-xl flex items-start gap-2 group hover:bg-white/10 transition-all">
-                                                                <div className="mt-1 w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></div>
-                                                                <div className="flex-1">
-                                                                    <p className="text-xs text-white font-medium leading-relaxed">{c.task}</p>
-                                                                    {c.priority === 'Alta' && <span className="text-[9px] text-red-400 font-black uppercase mt-1 block">Prioridade Alta</span>}
-                                                                </div>
-                                                            </div>
-                                                        )) : (
-                                                            <div className="text-center py-8 opacity-30">
-                                                                <CheckSquare size={24} className="mx-auto mb-2" />
-                                                                <p className="text-[10px]">Sem pendências</p>
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        );
+                                        } catch (e) { return null }
                                     })()}
 
+                                    {/* GENERATE PDF BUTTON */}
+                                    <button
+                                        onClick={handleGenerateWarrantPDF} // Assuming standard PDF generation for now, this will include the new intel
+                                        className="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 border border-white/5"
+                                    >
+                                        <Printer size={14} /> Dossiê Completo
+                                    </button>
                                 </div>
-                            )}
+                            </div>
+
+                            {/* MAIN INTELLIGENCE DASHBOARD GRID */}
+                            {(() => {
+                                let intel: any = {
+                                    summary: 'Aguardando primeira análise...',
+                                    risks: [],
+                                    locations: [],
+                                    entities: [],
+                                    hypotheses: [],
+                                    timeline: [],
+                                    checklist: []
+                                };
+                                try {
+                                    intel = JSON.parse(data.tacticalSummary || '{}');
+                                } catch (e) {
+                                    // Fallback if empty
+                                }
+
+                                const hasData = intel.summary && intel.summary !== 'Aguardando primeira análise...';
+
+                                if (!hasData) {
+                                    return (
+                                        <div className="text-center py-20 opacity-50 border-2 border-dashed border-white/10 rounded-3xl">
+                                            <Bot size={48} className="mx-auto mb-4 text-white/30" />
+                                            <p className="text-white font-bold text-lg">Centro de Inteligência Vazio</p>
+                                            <p className="text-sm text-gray-400 mt-2 max-w-md mx-auto">
+                                                Para ativar, vá na aba <strong>RELATÓRIO ESTRATÉGICO</strong>, realize uma análise e clique em
+                                                <span className="text-indigo-400 font-bold mx-1">REGISTRAR NO PRONTUÁRIO</span>.
+                                            </p>
+                                        </div>
+                                    );
+                                }
+
+                                return (
+                                    <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+
+                                        {/* LEFT COLUMN (STRATEGY & SUMMARY) - SPAN 8 */}
+                                        <div className="md:col-span-8 space-y-6">
+
+                                            {/* 1. STRATEGIC SUMMARY CARD */}
+                                            <div className="bg-surface-dark/90 backdrop-blur border border-white/10 rounded-2xl p-6 shadow-glass relative overflow-hidden group">
+                                                <div className="absolute top-0 right-0 p-6 opacity-5 pointer-events-none">
+                                                    <Lightbulb size={120} />
+                                                </div>
+                                                <h5 className="text-sm font-black text-indigo-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+                                                    <Target size={14} /> Resumo Estratégico Consolidado
+                                                </h5>
+                                                <p className="text-white/90 text-sm leading-relaxed whitespace-pre-wrap font-medium">
+                                                    {intel.summary || "Sem resumo disponível."}
+                                                </p>
+                                            </div>
+
+                                            {/* 2. HYPOTHESES & RISKS ROW */}
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                {/* HYPOTHESES */}
+                                                <div className="bg-surface-dark/80 border border-white/10 rounded-2xl p-5 shadow-sm hover:border-indigo-500/30 transition-colors">
+                                                    <h5 className="text-[10px] font-black text-cyan-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+                                                        <Lightbulb size={12} /> Hipóteses Ativas
+                                                    </h5>
+                                                    <div className="space-y-3">
+                                                        {intel.hypotheses && intel.hypotheses.length > 0 ? (
+                                                            intel.hypotheses.map((h: any, i: number) => (
+                                                                <div key={i} className={`p-3 rounded-xl border border-white/5 ${h.status === 'Confirmada' ? 'bg-green-500/10 border-green-500/20' : 'bg-white/5'}`}>
+                                                                    <div className="flex justify-between items-start mb-1">
+                                                                        <span className={`text-[9px] font-black px-1.5 py-0.5 rounded uppercase ${h.confidence === 'Alta' ? 'bg-indigo-500 text-white' : 'bg-white/10 text-gray-400'
+                                                                            }`}>{h.confidence}</span>
+                                                                        {h.status === 'Confirmada' && <CheckCircle size={12} className="text-green-400" />}
+                                                                    </div>
+                                                                    <p className="text-xs text-white leading-snug">{h.description}</p>
+                                                                </div>
+                                                            ))
+                                                        ) : <p className="text-xs text-gray-500 italic">Nenhuma hipótese formalizada.</p>}
+                                                    </div>
+                                                </div>
+
+                                                {/* RISKS */}
+                                                <div className="bg-surface-dark/80 border border-white/10 rounded-2xl p-5 shadow-sm hover:border-red-500/30 transition-colors">
+                                                    <h5 className="text-[10px] font-black text-red-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+                                                        <ShieldAlert size={12} /> Riscos Operacionais
+                                                    </h5>
+                                                    <div className="flex flex-wrap gap-2">
+                                                        {intel.risks && intel.risks.length > 0 ? (
+                                                            intel.risks.map((r: string, i: number) => (
+                                                                <span key={i} className="px-3 py-1.5 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-bold flex items-center gap-2">
+                                                                    <AlertTriangle size={10} /> {r}
+                                                                </span>
+                                                            ))
+                                                        ) : <p className="text-xs text-gray-500 italic">Nenhum risco crítico identificado.</p>}
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* 3. LOCATIONS & ENTITIES */}
+                                            <div className="bg-surface-dark/80 border border-white/10 rounded-2xl p-5">
+                                                <div className="flex gap-4 mb-4 border-b border-white/10 pb-2">
+                                                    <div className="flex-1">
+                                                        <h5 className="text-[10px] font-black text-emerald-400 uppercase tracking-widest flex items-center gap-2">
+                                                            <MapIcon size={12} /> Endereços mapeados
+                                                        </h5>
+                                                    </div>
+                                                    <div className="flex-1">
+                                                        <h5 className="text-[10px] font-black text-amber-400 uppercase tracking-widest flex items-center gap-2">
+                                                            <Users size={12} /> Vínculos / Rede
+                                                        </h5>
+                                                    </div>
+                                                </div>
+
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                    {/* Locations List */}
+                                                    <div className="space-y-2 max-h-48 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-white/10">
+                                                        {intel.locations && intel.locations.map((l: any, i: number) => (
+                                                            <div key={i} className="flex items-start gap-2 p-2 rounded-lg hover:bg-white/5 transition-colors group">
+                                                                <MapPin size={14} className={`mt-0.5 ${l.priority === 'Alta' ? 'text-red-400' : 'text-gray-400'}`} />
+                                                                <div className="flex-1 min-w-0">
+                                                                    <p className="text-xs font-bold text-white truncate">{l.address}</p>
+                                                                    <p className="text-[10px] text-gray-400 truncate">{l.context}</p>
+                                                                </div>
+                                                                <span className={`text-[9px] px-1.5 rounded ${l.status === 'Verificado' ? 'bg-green-500/20 text-green-400' : 'bg-white/10 text-gray-500'
+                                                                    }`}>{l.status || 'Pendente'}</span>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+
+                                                    {/* Entities List */}
+                                                    <div className="space-y-2 max-h-48 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-white/10">
+                                                        {intel.entities && intel.entities.map((e: any, i: number) => (
+                                                            <div key={i} className="flex items-center gap-2 p-2 rounded-lg hover:bg-white/5 transition-colors">
+                                                                <User size={14} className="text-indigo-400" />
+                                                                <div className="flex-1 min-w-0">
+                                                                    <p className="text-xs font-bold text-white truncate">{e.name}</p>
+                                                                    <p className="text-[10px] text-gray-400">{e.role}</p>
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                        </div>
+
+                                        {/* RIGHT COLUMN (TIMELINE & NEXT STEPS) - SPAN 4 */}
+                                        <div className="md:col-span-4 space-y-6">
+
+                                            {/* NEXT STEPS (ACTIONABLE) */}
+                                            <div className="bg-gradient-to-br from-indigo-900/40 to-surface-dark border border-indigo-500/30 rounded-2xl p-5 shadow-lg">
+                                                <h5 className="text-[10px] font-black text-white uppercase tracking-widest mb-4 flex items-center gap-2">
+                                                    <CheckSquare size={14} className="text-green-400" /> Próximos Passos
+                                                </h5>
+                                                <div className="space-y-3">
+                                                    {intel.checklist && intel.checklist.length > 0 ? (
+                                                        intel.checklist.map((s: any, i: number) => (
+                                                            <label key={i} className="flex items-start gap-3 p-2 rounded-xl bg-black/20 hover:bg-black/40 transition-colors cursor-pointer group">
+                                                                <div className={`mt-1 w-4 h-4 rounded border flex items-center justify-center ${s.status === 'Concluído' || s.checked ? 'bg-green-500 border-green-500' : 'border-gray-500 group-hover:border-white'
+                                                                    }`}>
+                                                                    {(s.status === 'Concluído' || s.checked) && <CheckSquare size={10} className="text-white" />}
+                                                                </div>
+                                                                <div className="flex-1">
+                                                                    <p className={`text-xs font-medium leading-relaxed ${(s.status === 'Concluído' || s.checked) ? 'text-gray-500 line-through' : 'text-white'}`}>
+                                                                        {s.task}
+                                                                    </p>
+                                                                    {s.priority === 'Alta' && <span className="text-[9px] text-red-400 font-bold uppercase mt-1 inline-block">Prioridade Alta</span>}
+                                                                </div>
+                                                            </label>
+                                                        ))
+                                                    ) : <p className="text-xs text-gray-500 text-center">Nenhuma ação pendente.</p>}
+                                                </div>
+                                            </div>
+
+                                            {/* STRATEGIC TIMELINE (NOT THE RAW LOG) */}
+                                            <div className="bg-surface-dark border border-white/5 rounded-2xl p-5">
+                                                <h5 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                                                    <History size={14} /> Evolução da Investigação
+                                                </h5>
+                                                <div className="space-y-4 relative pl-2">
+                                                    {/* Timeline Line */}
+                                                    <div className="absolute left-[11px] top-2 bottom-2 w-px bg-white/10"></div>
+
+                                                    {intel.timeline && intel.timeline.slice(0, 5).map((t: any, i: number) => (
+                                                        <div key={i} className="relative pl-6">
+                                                            <div className="absolute left-[7px] top-1.5 w-2 h-2 rounded-full bg-indigo-500 ring-4 ring-surface-dark"></div>
+                                                            <p className="text-[10px] text-indigo-300 font-bold mb-0.5">{t.date}</p>
+                                                            <p className="text-xs text-white leading-tight">{t.event}</p>
+                                                            <p className="text-[9px] text-gray-500 mt-0.5">{t.source}</p>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+
+                                        </div>
+                                    </div>
+                                )
+                            })()}
+
+
 
                             {/* Investigation: iFood Intelligence (Merged) */}
                             <div className="bg-surface-dark/90 backdrop-blur-xl border border-white/10 rounded-2xl p-5 shadow-glass">
@@ -2629,7 +2659,7 @@ Equipe de Capturas - DIG / PCSP
                     )
                 }
             </div>
-        </div>
+        </div >
     );
 };
 
