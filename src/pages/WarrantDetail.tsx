@@ -1753,9 +1753,20 @@ Equipe de Capturas - DIG / PCSP
 
                             {/* Location View */}
                             <div className="bg-surface-dark/90 backdrop-blur-xl border border-white/10 rounded-2xl p-5 shadow-glass space-y-4">
-                                <div className="flex items-center gap-2 mb-2 pb-2 border-b border-white/5">
-                                    <MapPin className="text-primary" size={16} />
-                                    <span className="text-[11px] font-black uppercase tracking-widest">Localização Operacional</span>
+                                <div className="flex items-center justify-between mb-2 pb-2 border-b border-white/5">
+                                    <div className="flex items-center gap-2">
+                                        <MapPin className="text-primary" size={16} />
+                                        <span className="text-[11px] font-black uppercase tracking-widest text-white">Localização Operacional</span>
+                                    </div>
+                                    {localData.latitude && localData.longitude ? (
+                                        <span className="text-[10px] font-black bg-green-500/10 text-green-400 border border-green-500/20 px-3 py-1 rounded-full flex items-center gap-1.5 shadow-sm animate-pulse">
+                                            <FileCheck size={12} /> MAPEADO
+                                        </span>
+                                    ) : (
+                                        <span className="text-[10px] font-black bg-red-500/10 text-red-500 border border-red-500/20 px-3 py-1 rounded-full flex items-center gap-1.5 shadow-sm">
+                                            <AlertTriangle size={12} /> NÃO MAPEADO
+                                        </span>
+                                    )}
                                 </div>
                                 <textarea
                                     className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-sm text-white outline-none focus:ring-2 focus:ring-primary/20 transition-all resize-none h-[95px]"
