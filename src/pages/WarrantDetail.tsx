@@ -118,7 +118,6 @@ const WarrantDetail = () => {
         aiInstructions: ''
     });
     const [isGeneratingAiReport, setIsGeneratingAiReport] = useState(false);
-    const [isGeneratingAiReport, setIsGeneratingAiReport] = useState(false);
     const [activeReportType, setActiveReportType] = useState<'ifood' | 'uber' | null>(null);
 
     const data = useMemo(() => warrants.find(w => w.id === id), [warrants, id]);
