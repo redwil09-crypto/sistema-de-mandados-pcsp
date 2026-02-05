@@ -141,7 +141,5 @@
 }
 
 ::selection {
-  background-color: rgba(34, 211, 238, 0.15);
-  /* Cyan 400 with lower opacity */
-  color: #ffffff;
+  @apply bg-neon-purple/30 text-white;
 }

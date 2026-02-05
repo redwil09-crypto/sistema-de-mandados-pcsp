@@ -1713,7 +1713,7 @@ Equipe de Capturas - DIG / PCSP
                         <div className="flex-1 space-y-4 text-center sm:text-left">
                             <div>
                                 <div className="flex flex-wrap justify-center sm:justify-start items-center gap-2 mb-1">
-                                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-primary bg-primary/10 px-2 py-0.5 rounded border border-primary/20">
+                                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-secondary bg-secondary/10 px-2 py-0.5 rounded border border-secondary/20">
                                         Identificação Biométrica
                                     </span>
                                     {localData.status === 'EM ABERTO' && (
@@ -1774,7 +1774,7 @@ Equipe de Capturas - DIG / PCSP
 
                             <div className="flex flex-wrap justify-center sm:justify-start gap-2 pt-1">
                                 {data.tags?.map(tag => (
-                                    <span key={tag} className="text-[10px] font-black uppercase bg-primary/20 text-primary border border-primary/30 px-3 py-1 rounded-full flex items-center gap-1.5 shadow-sm">
+                                    <span key={tag} className="text-[10px] font-black uppercase bg-secondary/20 text-secondary border border-secondary/30 px-3 py-1 rounded-full flex items-center gap-1.5 shadow-sm">
                                         <Zap size={10} className="fill-current" /> {tag}
                                     </span>
                                 ))}
@@ -1817,8 +1817,8 @@ Equipe de Capturas - DIG / PCSP
                             {/* Personal Details */}
                             <div className="bg-surface-dark/90 backdrop-blur-xl border border-white/10 rounded-2xl p-5 shadow-glass space-y-4">
                                 <div className="flex items-center gap-2 mb-2 pb-2 border-b border-white/5">
-                                    <User className="text-primary" size={16} />
-                                    <span className="text-[11px] font-black uppercase tracking-widest">Qualificação</span>
+                                    <User className="text-secondary" size={16} />
+                                    <span className="text-[11px] font-black uppercase tracking-widest text-white">Qualificação</span>
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="space-y-1">
@@ -1856,18 +1856,18 @@ Equipe de Capturas - DIG / PCSP
                                         />
                                     </div>
                                     <div className="space-y-1 col-span-2">
-                                        <label className="text-[9px] font-black text-text-secondary-light dark:text-text-muted uppercase tracking-wider flex items-center gap-1"><Scale size={10} className="text-primary" /> Fórum / Vara Expedidora</label>
+                                        <label className="text-[9px] font-black text-text-secondary-light dark:text-text-muted uppercase tracking-wider flex items-center gap-1"><Scale size={10} className="text-secondary" /> Fórum / Vara Expedidora</label>
                                         <input
-                                            className="w-full bg-background-light dark:bg-white/5 border border-border-light dark:border-white/10 rounded-lg p-3 text-sm text-text-light dark:text-white outline-none focus:ring-1 focus:ring-primary focus:border-primary/50 transition-all"
+                                            className="w-full bg-background-light dark:bg-white/5 border border-border-light dark:border-white/10 rounded-lg p-3 text-sm text-text-light dark:text-white outline-none focus:ring-1 focus:ring-secondary focus:border-secondary/50 transition-all"
                                             placeholder="Ex: Vara Criminal de Jacareí"
                                             value={localData.issuingCourt || ''}
                                             onChange={e => handleFieldChange('issuingCourt', e.target.value)}
                                         />
                                     </div>
                                     <div className="space-y-1 col-span-2">
-                                        <label className="text-[9px] font-black text-text-secondary-light dark:text-text-muted uppercase tracking-wider flex items-center gap-1"><CheckCircle size={10} className="text-primary" /> Data do Cumprimento</label>
+                                        <label className="text-[9px] font-black text-text-secondary-light dark:text-text-muted uppercase tracking-wider flex items-center gap-1"><CheckCircle size={10} className="text-secondary" /> Data do Cumprimento</label>
                                         <input
-                                            className="w-full bg-background-light dark:bg-white/5 border border-border-light dark:border-white/10 rounded-lg p-3 text-sm font-mono text-primary outline-none focus:ring-1 focus:ring-primary focus:border-primary/50 transition-all"
+                                            className="w-full bg-background-light dark:bg-white/5 border border-border-light dark:border-white/10 rounded-lg p-3 text-sm font-mono text-secondary outline-none focus:ring-1 focus:ring-secondary focus:border-secondary/50 transition-all"
                                             placeholder="DD/MM/AAAA"
                                             value={localData.dischargeDate || ''}
                                             onChange={e => handleFieldChange('dischargeDate', e.target.value)}
@@ -1880,7 +1880,7 @@ Equipe de Capturas - DIG / PCSP
                             <div className="bg-surface-light dark:bg-surface-dark/90 backdrop-blur-xl border border-border-light dark:border-white/10 rounded-2xl p-5 shadow-glass space-y-4">
                                 <div className="flex items-center justify-between mb-2 pb-2 border-b border-border-light dark:border-white/5">
                                     <div className="flex items-center gap-2">
-                                        <MapPin className="text-primary" size={16} />
+                                        <MapPin className="text-secondary" size={16} />
                                         <span className="text-[11px] font-black uppercase tracking-widest text-text-light dark:text-white">Localização Operacional</span>
                                     </div>
                                     {localData.latitude && localData.longitude ? (
@@ -1910,7 +1910,7 @@ Equipe de Capturas - DIG / PCSP
                                     </a>
                                     <button
                                         onClick={() => toggleRouteWarrant(data.id)}
-                                        className={`flex-1 rounded-xl py-3 text-[10px] font-black uppercase flex items-center justify-center gap-2 transition-all active:scale-95 ${routeWarrants.includes(data.id) ? 'bg-primary text-white shadow-tactic' : 'bg-primary/10 text-primary border border-primary/20'
+                                        className={`flex-1 rounded-xl py-3 text-[10px] font-black uppercase flex items-center justify-center gap-2 transition-all active:scale-95 ${routeWarrants.includes(data.id) ? 'bg-secondary text-primary shadow-neon-blue' : 'bg-secondary/10 text-secondary border border-secondary/20 hover:bg-secondary/20'
                                             }`}
                                     >
                                         <RouteIcon size={14} /> {routeWarrants.includes(data.id) ? 'Em Rota' : 'Marcar Rota'}
@@ -1979,7 +1979,7 @@ Equipe de Capturas - DIG / PCSP
                                                     }
                                                 }}
                                             />
-                                            <label htmlFor="file-upload-dossier" className="w-full bg-primary hover:bg-primary-dark text-white px-3 py-2 rounded-lg text-[10px] font-black uppercase cursor-pointer flex items-center justify-center gap-2 transition-all">
+                                            <label htmlFor="file-upload-dossier" className="w-full bg-secondary hover:bg-secondary/80 text-primary px-3 py-2 rounded-lg text-[10px] font-black uppercase cursor-pointer flex items-center justify-center gap-2 transition-all">
                                                 <Plus size={14} /> Upload
                                             </label>
                                         </div>
@@ -2266,7 +2266,7 @@ Equipe de Capturas - DIG / PCSP
                             <div className="bg-surface-dark/90 backdrop-blur-xl border border-white/10 rounded-2xl p-5 shadow-glass">
                                 <div className="flex items-center justify-between mb-4 border-b border-white/5 pb-4">
                                     <div className="flex items-center gap-2">
-                                        <Bike className="text-primary" size={20} />
+                                        <Bike className="text-secondary" size={20} />
                                         <div>
                                             <h3 className="text-sm font-black uppercase text-white tracking-widest">Inteligência iFood</h3>
                                             <p className="text-[10px] text-text-muted font-bold uppercase">Rastreamento de Pedidos e Endereços</p>
@@ -2364,8 +2364,8 @@ Equipe de Capturas - DIG / PCSP
                             {/* Investigation: Analytic Observations (Merged) */}
                             <div className="bg-surface-dark/90 backdrop-blur-xl border border-white/10 rounded-2xl p-5 shadow-glass space-y-4">
                                 <div className="flex items-center gap-2 mb-2 pb-2 border-b border-white/5">
-                                    <MessageSquare className="text-primary" size={16} />
-                                    <span className="text-[11px] font-black uppercase tracking-widest">Observações Analíticas</span>
+                                    <MessageSquare className="text-secondary" size={16} />
+                                    <span className="text-[11px] font-black uppercase tracking-widest text-white">Observações Analíticas</span>
                                 </div>
                                 <textarea value={localData.observation || ''} onChange={e => handleFieldChange('observation', e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-sm text-white outline-none focus:ring-2 focus:ring-primary/20 transition-all resize-none min-h-[140px]" placeholder="Adicione considerações estratégicas para futuras equipes..." />
                             </div>
@@ -2374,7 +2374,7 @@ Equipe de Capturas - DIG / PCSP
                             <div className="bg-surface-dark/80 backdrop-blur-xl border border-white/10 rounded-2xl p-5 shadow-glass space-y-5">
                                 <div className="flex items-center justify-between border-b border-white/5 pb-4">
                                     <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center text-primary border border-primary/30">
+                                        <div className="w-10 h-10 rounded-xl bg-indigo-500/20 flex items-center justify-center text-indigo-400 border border-indigo-500/30">
                                             <FileCheck size={20} />
                                         </div>
                                         <div>
@@ -2425,7 +2425,7 @@ Equipe de Capturas - DIG / PCSP
                             {/* Investigation Feed Header */}
                             <div className="bg-surface-dark/90 backdrop-blur-xl border border-white/10 rounded-2xl p-6 shadow-tactic">
                                 <div className="flex items-center gap-3 mb-6 border-b border-white/5 pb-4">
-                                    <div className="w-10 h-10 rounded-2xl bg-primary/20 flex items-center justify-center text-primary border border-primary/30">
+                                    <div className="w-10 h-10 rounded-2xl bg-indigo-500/20 flex items-center justify-center text-indigo-400 border border-indigo-500/30">
                                         <History size={20} />
                                     </div>
                                     <div>

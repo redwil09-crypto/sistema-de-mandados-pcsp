@@ -152,7 +152,7 @@ const HomePage = ({ isDark, toggleTheme }: HomePageProps) => {
             <main className="px-4 py-2 space-y-6">
                 <div className="grid grid-cols-2 gap-3">
                     <Link to="/warrant-list" className="group flex flex-col gap-3 rounded-2xl bg-surface-light p-4 shadow-md transition-all active:scale-[0.98] dark:bg-surface-dark border border-transparent hover:border-blue-400 hover:shadow-neon-blue">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-primary dark:bg-primary/10 group-hover:shadow-neon-blue-card transition-shadow">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400 group-hover:shadow-neon-blue-card transition-shadow">
                             <Gavel size={24} />
                         </div>
                         <div>
@@ -248,7 +248,7 @@ const HomePage = ({ isDark, toggleTheme }: HomePageProps) => {
                         <h2 className="font-bold text-text-light dark:text-text-dark flex items-center gap-2">
                             <Activity size={18} className="text-primary" /> Recentes
                         </h2>
-                        <Link to="/recents" className="text-xs font-bold bg-primary/10 text-primary px-3 py-1.5 rounded-full hover:bg-primary/20 transition-colors">
+                        <Link to="/recents" className="text-xs font-bold bg-secondary/10 text-secondary px-3 py-1.5 rounded-full hover:bg-secondary/20 transition-colors">
                             Ver todos
                         </Link>
                     </div>
