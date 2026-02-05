@@ -246,7 +246,7 @@ const HomePage = ({ isDark, toggleTheme }: HomePageProps) => {
                 <div>
                     <div className="flex items-center justify-between mb-3">
                         <h2 className="font-bold text-text-light dark:text-text-dark flex items-center gap-2">
-                            <Activity size={18} className="text-primary" /> Recentes
+                            <Activity size={18} className="text-secondary" /> Recentes
                         </h2>
                         <Link to="/recents" className="text-xs font-bold bg-secondary/10 text-secondary px-3 py-1.5 rounded-full hover:bg-secondary/20 transition-colors">
                             Ver todos

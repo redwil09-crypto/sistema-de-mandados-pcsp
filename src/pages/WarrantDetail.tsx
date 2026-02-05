@@ -637,9 +637,8 @@ const WarrantDetail = () => {
             setAiAnalysisSaved(true);
             setAnalyzedDocumentText('');
 
-            // Critical: Update parent state immediately if handler provided
-            if (onUpdate) await onUpdate();
-            else await refreshWarrants();
+            // Critical: Update parent state immediately
+            await refreshWarrants();
 
             toast.success("Informações Transferidas para o Centro de Inteligência!", { id: toastId });
 
@@ -1724,8 +1723,8 @@ Equipe de Capturas - DIG / PCSP
                             {/* Personal Details */}
                             <div className="bg-surface-dark/90 backdrop-blur-xl border border-white/10 rounded-2xl p-5 shadow-glass space-y-4">
                                 <div className="flex items-center gap-2 mb-2 pb-2 border-b border-white/5">
-                                    <User className="text-primary" size={16} />
-                                    <span className="text-[11px] font-black uppercase tracking-widest">Qualificação</span>
+                                    <User className="text-indigo-400" size={16} />
+                                    <span className="text-[11px] font-black uppercase tracking-widest text-indigo-100">Qualificação</span>
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="space-y-1">
@@ -1745,8 +1744,8 @@ Equipe de Capturas - DIG / PCSP
                                         <input className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-sm font-mono text-risk-high outline-none focus:ring-1 focus:ring-risk-high" value={localData.expirationDate || ''} onChange={e => handleFieldChange('expirationDate', e.target.value)} />
                                     </div>
                                     <div className="space-y-1 col-span-2">
-                                        <label className="text-[9px] font-black text-text-muted uppercase tracking-wider flex items-center gap-1"><CheckCircle size={10} className="text-primary" /> Data do Cumprimento</label>
-                                        <input className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-sm font-mono text-primary outline-none focus:ring-1 focus:ring-primary" placeholder="DD/MM/AAAA" value={localData.dischargeDate || ''} onChange={e => handleFieldChange('dischargeDate', e.target.value)} />
+                                        <label className="text-[9px] font-black text-text-muted uppercase tracking-wider flex items-center gap-1"><CheckCircle size={10} className="text-indigo-400" /> Data do Cumprimento</label>
+                                        <input className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-sm font-mono text-white outline-none focus:ring-1 focus:ring-indigo-500" placeholder="DD/MM/AAAA" value={localData.dischargeDate || ''} onChange={e => handleFieldChange('dischargeDate', e.target.value)} />
                                     </div>
                                 </div>
                             </div>
@@ -1755,8 +1754,8 @@ Equipe de Capturas - DIG / PCSP
                             <div className="bg-surface-dark/90 backdrop-blur-xl border border-white/10 rounded-2xl p-5 shadow-glass space-y-4">
                                 <div className="flex items-center justify-between mb-2 pb-2 border-b border-white/5">
                                     <div className="flex items-center gap-2">
-                                        <MapPin className="text-primary" size={16} />
-                                        <span className="text-[11px] font-black uppercase tracking-widest text-white">Localização Operacional</span>
+                                        <MapPin className="text-indigo-400" size={16} />
+                                        <span className="text-[11px] font-black uppercase tracking-widest text-indigo-100">Localização Operacional</span>
                                     </div>
                                     {localData.latitude && localData.longitude ? (
                                         <span className="text-[10px] font-black bg-green-500/10 text-green-400 border border-green-500/20 px-3 py-1 rounded-full flex items-center gap-1.5 shadow-sm animate-pulse">
@@ -1785,7 +1784,7 @@ Equipe de Capturas - DIG / PCSP
                                     </a>
                                     <button
                                         onClick={() => toggleRouteWarrant(data.id)}
-                                        className={`flex-1 rounded-xl py-3 text-[10px] font-black uppercase flex items-center justify-center gap-2 transition-all active:scale-95 ${routeWarrants.includes(data.id) ? 'bg-primary text-white shadow-tactic' : 'bg-primary/10 text-primary border border-primary/20'
+                                        className={`flex-1 rounded-xl py-3 text-[10px] font-black uppercase flex items-center justify-center gap-2 transition-all active:scale-95 ${routeWarrants.includes(data.id) ? 'bg-indigo-600 text-white shadow-tactic' : 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20'
                                             }`}
                                     >
                                         <RouteIcon size={14} /> {routeWarrants.includes(data.id) ? 'Em Rota' : 'Marcar Rota'}
@@ -1797,8 +1796,8 @@ Equipe de Capturas - DIG / PCSP
                             <div className="md:col-span-2 bg-surface-dark/60 backdrop-blur border border-white/10 rounded-2xl p-5 shadow-glass">
                                 <div className="flex flex-col mb-4 pb-4 border-b border-white/5 gap-3">
                                     <div className="flex items-center gap-2">
-                                        <Paperclip className="text-primary" size={16} />
-                                        <span className="text-[11px] font-black uppercase tracking-widest">Repositório de Documentos</span>
+                                        <Paperclip className="text-indigo-400" size={16} />
+                                        <span className="text-[11px] font-black uppercase tracking-widest text-indigo-100">Repositório de Documentos</span>
                                     </div>
 
                                     {/* New Document Inputs */}
@@ -1854,7 +1853,7 @@ Equipe de Capturas - DIG / PCSP
                                                     }
                                                 }}
                                             />
-                                            <label htmlFor="file-upload-dossier" className="w-full bg-primary hover:bg-primary-dark text-white px-3 py-2 rounded-lg text-[10px] font-black uppercase cursor-pointer flex items-center justify-center gap-2 transition-all">
+                                            <label htmlFor="file-upload-dossier" className="w-full bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-2 rounded-lg text-[10px] font-black uppercase cursor-pointer flex items-center justify-center gap-2 transition-all">
                                                 <Plus size={14} /> Upload
                                             </label>
                                         </div>

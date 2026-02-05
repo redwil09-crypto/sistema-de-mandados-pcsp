@@ -141,5 +141,11 @@
 }
 
 ::selection {
-  @apply bg-indigo-600 text-white;
+  background-color: #4f46e5;
+  /* Indigo 600 Vivid */
+  color: #ffffff;
+}
+
+* {
+  caret-color: #4f46e5;
 }
