@@ -10,26 +10,26 @@ export default {
     theme: {
         extend: {
             colors: {
-                "primary": "#0f172a", // Slate 900 - Professional Deep Blue/Gray
+                "primary": "#0f172a", // Slate 900
                 "primary-dark": "#020617", // Slate 950
                 "primary-light": "#334155", // Slate 700
-                "secondary": "#0ea5e9", // Sky 500
-                "risk-high": "#ef4444",
-                "risk-med": "#f59e0b",
-                "success": "#10b981",
+                "secondary": "#06b6d4", // Cyan 500 - Более яркий (Vivid)
+                "risk-high": "#f43f5e", // Rose 500 - Vivid
+                "risk-med": "#f59e0b", // Amber 500
+                "success": "#10b981", // Emerald 500
                 "background-dark": "#020617",
                 "surface-dark": "#0f172a",
                 "surface-dark-elevated": "#1e293b",
                 "border-dark": "#1e293b",
                 "border-dark-highlight": "#334155",
-                "background-light": "#f8fafc", // Slate 50 - Clean & Crisp
-                "surface-light": "#ffffff",
-                "border-light": "#e2e8f0", // Slate 200 - Subtle & clean
-                "text-light": "#0f172a", // Slate 900
+                "background-light": "#e2e8f0", // Slate 200 - True 50% Mid Tone
+                "surface-light": "#f1f5f9", // Slate 100 - Card Surface
+                "border-light": "#cbd5e1", // Slate 300 - Visible borders
+                "text-light": "#1e293b", // Slate 800 - Better readability on grey
                 "text-dark": "#f8fafc", // Slate 50
-                "text-secondary-light": "#64748b", // Slate 500
+                "text-secondary-light": "#475569", // Slate 600
                 "text-secondary-dark": "#94a3b8", // Slate 400
-                "text-muted": "#94a3b8", // Slate 400
+                "text-muted": "#64748b", // Slate 500
             },
             fontFamily: {
                 "sans": ["Manrope", "sans-serif"],
@@ -38,8 +38,8 @@ export default {
                 "tech": ["JetBrains Mono", "monospace"]
             },
             backgroundImage: {
-                'grid-pattern': "url(\"data:image/svg+xml,%3csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='M0 0h40v40H0V0zm1 1h38v38H1V1z' fill='%236366f1' fill-opacity='0.03' fill-rule='evenodd'/%3e%3c/svg%3e\")",
-                'gradient-radial-tactic': 'radial-gradient(circle at 50% 0%, rgba(99, 102, 241, 0.15) 0%, transparent 60%)',
+                'grid-pattern': "url(\"data:image/svg+xml,%3csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='M0 0h40v40H0V0zm1 1h38v38H1V1z' fill='%2306b6d4' fill-opacity='0.08' fill-rule='evenodd'/%3e%3c/svg%3e\")",
+                'gradient-radial-tactic': 'radial-gradient(circle at 50% 0%, rgba(6, 182, 212, 0.2) 0%, transparent 70%)',
             },
             borderRadius: {
                 "DEFAULT": "0.5rem",
