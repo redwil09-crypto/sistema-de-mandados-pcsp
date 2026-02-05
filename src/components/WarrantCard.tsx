@@ -22,11 +22,11 @@ const WarrantCard = ({ data, onPrint, isPlanned, onRouteToggle, onFinalize, onDe
     return (
         <Link
             to={`/warrant-detail/${data.id}`}
-            className="group block relative overflow-hidden rounded-lg bg-surface-dark/60 backdrop-blur-md border border-white/5 hover:border-primary/50 transition-all duration-300"
+            className="group block relative overflow-hidden rounded-lg bg-surface-light dark:bg-surface-dark/60 backdrop-blur-md border border-border-light dark:border-white/5 hover:border-primary/50 transition-all duration-300 shadow-sm"
             {...props}
         >
             {/* Type Indicator Strip (Left Border) */}
-            <div className={`absolute left-0 top-0 bottom-0 w-1 transition-colors duration-300 ${isSearch ? 'bg-orange-500 shadow-[0_0_15px_rgba(249,115,22,0.8)]' : 'bg-gray-300 shadow-[0_0_10px_rgba(255,255,255,0.6)]'}`}></div>
+            <div className={`absolute left-0 top-0 bottom-0 w-1 transition-colors duration-300 ${isSearch ? 'bg-orange-500 shadow-[2px_0_10px_rgba(249,115,22,0.4)]' : 'bg-primary/40 dark:bg-slate-700 shadow-[2px_0_10px_rgba(15,23,42,0.2)]'}`}></div>
 
             {/* Hover Tech Pattern Overlay */}
             <div className="absolute inset-0 bg-grid-pattern opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
@@ -38,7 +38,7 @@ const WarrantCard = ({ data, onPrint, isPlanned, onRouteToggle, onFinalize, onDe
                     <img
                         src={data.img || `https://ui-avatars.com/api/?name=${encodeURIComponent(data.name)}&background=random&color=fff`}
                         alt={data.name}
-                        className="h-14 w-14 rounded-full object-cover border-2 border-white/10 group-hover:border-primary/50 transition-colors bg-surface-dark-elevated"
+                        className="h-14 w-14 rounded-full object-cover border-2 border-border-light dark:border-white/10 group-hover:border-primary/50 transition-colors bg-background-light dark:bg-surface-dark-elevated"
                     />
                     {isPlanned && (
                         <div className="absolute -bottom-1 -right-1 bg-primary text-white p-1 rounded-full border-2 border-surface-dark shadow-neon-blue">
@@ -50,7 +50,7 @@ const WarrantCard = ({ data, onPrint, isPlanned, onRouteToggle, onFinalize, onDe
                 <div className="flex-1 min-w-0">
                     {/* Header: Name and Status */}
                     <div className="flex justify-between items-start mb-1.5">
-                        <h3 className="font-display font-bold text-text-dark text-base leading-tight whitespace-normal break-words pr-2 group-hover:text-primary transition-colors">
+                        <h3 className="font-display font-bold text-text-light dark:text-text-dark text-base leading-tight whitespace-normal break-words pr-2 group-hover:text-primary transition-colors">
                             {data.name}
                         </h3>
 
@@ -93,27 +93,27 @@ const WarrantCard = ({ data, onPrint, isPlanned, onRouteToggle, onFinalize, onDe
                     {/* Meta Data Grid */}
                     <div className="grid grid-cols-1 gap-1 mb-3">
                         <div className="flex items-center gap-2">
-                            {isSearch ? <Briefcase size={12} className="text-risk-med" /> : <Gavel size={12} className="text-primary" />}
-                            <span className="text-xs font-medium text-text-secondary-dark">{data.type}</span>
+                            {isSearch ? <Briefcase size={12} className="text-orange-500" /> : <Gavel size={12} className="text-primary" />}
+                            <span className="text-xs font-medium text-text-secondary-light dark:text-text-secondary-dark">{data.type}</span>
                         </div>
 
                         {(data.crime || data.regime) && (
                             <div className="flex flex-wrap gap-x-3 gap-y-1">
-                                {data.crime && <span className="text-[10px] text-text-muted">Art: <span className="text-text-secondary-dark">{data.crime}</span></span>}
-                                {data.regime && <span className="text-[10px] text-text-muted">Reg: <span className="text-text-secondary-dark">{data.regime}</span></span>}
+                                {data.crime && <span className="text-[10px] text-text-muted">Art: <span className="text-text-secondary-light dark:text-text-secondary-dark">{data.crime}</span></span>}
+                                {data.regime && <span className="text-[10px] text-text-muted">Reg: <span className="text-text-secondary-light dark:text-text-secondary-dark">{data.regime}</span></span>}
                             </div>
                         )}
                     </div>
 
                     {/* Footer: Tech Data */}
-                    <div className="pt-2 border-t border-white/5 flex items-end justify-between">
+                    <div className="pt-2 border-t border-border-light dark:border-white/5 flex items-end justify-between">
                         <div className="space-y-0.5">
                             <p className="text-[10px] font-mono text-text-muted flex items-center gap-1.5">
-                                <span className="w-1 h-1 rounded-full bg-white/20"></span>
+                                <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-white/20"></span>
                                 {data.number}
                             </p>
                             {data.location && (
-                                <p className="text-[10px] font-medium text-text-secondary-dark flex items-center gap-1.5 truncate max-w-[200px]">
+                                <p className="text-[10px] font-medium text-text-secondary-light dark:text-text-secondary-dark flex items-center gap-1.5 truncate max-w-[200px]">
                                     <MapPin size={10} className="text-primary-light" />
                                     {data.location}
                                 </p>

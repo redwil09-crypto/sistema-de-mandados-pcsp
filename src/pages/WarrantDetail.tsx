@@ -1664,7 +1664,7 @@ Equipe de Capturas - DIG / PCSP
             <div className="relative z-10 p-4 space-y-4 max-w-[1600px] mx-auto">
 
                 {/* 1. Tactical Profile Header */}
-                <div className="bg-surface-dark/60 backdrop-blur-xl border border-white/10 rounded-2xl p-4 shadow-tactic overflow-hidden relative group">
+                <div className="bg-surface-light dark:bg-surface-dark/60 backdrop-blur-xl border border-border-light dark:border-white/10 rounded-2xl p-4 shadow-glass overflow-hidden relative group">
                     {/* Animated Glow Decorator */}
                     <div className="absolute -top-24 -right-24 w-48 h-48 bg-primary/10 rounded-full blur-3xl group-hover:bg-primary/20 transition-all"></div>
 
@@ -1702,21 +1702,21 @@ Equipe de Capturas - DIG / PCSP
                             </div>
 
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                                <div className="bg-white/5 border border-white/5 p-2 rounded-xl text-center">
-                                    <p className="text-[9px] uppercase font-bold text-text-muted mb-0.5 tracking-tighter">Tipo Crime</p>
-                                    <p className="text-xs font-black text-white truncate px-1">{localData.crime || 'N/I'}</p>
+                                <div className="bg-background-light dark:bg-white/5 border border-border-light dark:border-white/5 p-2 rounded-xl text-center">
+                                    <p className="text-[9px] uppercase font-bold text-text-secondary-light dark:text-text-muted mb-0.5 tracking-tighter">Tipo Crime</p>
+                                    <p className="text-xs font-black text-text-light dark:text-white truncate px-1">{localData.crime || 'N/I'}</p>
                                 </div>
-                                <div className="bg-white/5 border border-white/5 p-2 rounded-xl text-center">
-                                    <p className="text-[9px] uppercase font-bold text-text-muted mb-0.5 tracking-tighter">Regime Prisional</p>
-                                    <p className="text-xs font-black text-white">{localData.regime || 'N/I'}</p>
+                                <div className="bg-background-light dark:bg-white/5 border border-border-light dark:border-white/5 p-2 rounded-xl text-center">
+                                    <p className="text-[9px] uppercase font-bold text-text-secondary-light dark:text-text-muted mb-0.5 tracking-tighter">Regime Prisional</p>
+                                    <p className="text-xs font-black text-text-light dark:text-white">{localData.regime || 'N/I'}</p>
                                 </div>
-                                <div className="bg-white/5 border border-white/5 p-2 rounded-xl text-center">
-                                    <p className="text-[9px] uppercase font-bold text-text-muted mb-0.5 tracking-tighter">Idade Captura</p>
-                                    <p className="text-xs font-black text-white">{localData.age || 'N/I'}</p>
+                                <div className="bg-background-light dark:bg-white/5 border border-border-light dark:border-white/5 p-2 rounded-xl text-center">
+                                    <p className="text-[9px] uppercase font-bold text-text-secondary-light dark:text-text-muted mb-0.5 tracking-tighter">Idade Captura</p>
+                                    <p className="text-xs font-black text-text-light dark:text-white">{localData.age || 'N/I'}</p>
                                 </div>
-                                <div className="bg-white/5 border border-white/5 p-2 rounded-xl text-center">
-                                    <p className="text-[9px] uppercase font-bold text-text-muted mb-0.5 tracking-tighter">Expedição</p>
-                                    <p className="text-xs font-black text-white font-mono">{localData.issueDate || 'N/I'}</p>
+                                <div className="bg-background-light dark:bg-white/5 border border-border-light dark:border-white/5 p-2 rounded-xl text-center">
+                                    <p className="text-[9px] uppercase font-bold text-text-secondary-light dark:text-text-muted mb-0.5 tracking-tighter">Expedição</p>
+                                    <p className="text-xs font-black text-text-light dark:text-white font-mono">{localData.issueDate || 'N/I'}</p>
                                 </div>
                             </div>
 
@@ -1737,7 +1737,7 @@ Equipe de Capturas - DIG / PCSP
                 </div>
 
                 {/* 2. Tactical Navigation Tabs */}
-                <div className="flex bg-surface-dark/80 backdrop-blur border border-white/10 rounded-2xl p-1.5 gap-1.5 shadow-glass sticky top-2 z-[30]">
+                <div className="flex bg-surface-light dark:bg-surface-dark/80 backdrop-blur border border-border-light dark:border-white/10 rounded-2xl p-1.5 gap-1.5 shadow-glass sticky top-2 z-[30]">
                     {[
                         { id: 'documents', label: 'Dossiê', icon: FileText, color: 'bg-gradient-to-r from-blue-600 to-cyan-500 shadow-blue-500/25 border-blue-400/20' },
                         { id: 'investigation', label: 'Investigações', icon: Bot, color: 'bg-gradient-to-r from-violet-600 to-fuchsia-500 shadow-violet-500/25 border-violet-400/20' },
@@ -1748,7 +1748,7 @@ Equipe de Capturas - DIG / PCSP
                             onClick={() => setActiveDetailTab(tab.id as any)}
                             className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all duration-300 ${activeDetailTab === tab.id
                                 ? `${tab.color} text-white shadow-lg scale-[1.02] border`
-                                : 'text-text-secondary-dark hover:bg-white/5 hover:text-white border border-transparent'
+                                : 'text-text-secondary-light dark:text-text-secondary-dark hover:bg-black/5 dark:hover:bg-white/5 hover:text-text-light dark:hover:text-white border border-transparent'
                                 }`}
                         >
                             <tab.icon size={16} className={activeDetailTab === tab.id ? 'animate-pulse' : ''} />
@@ -1770,38 +1770,38 @@ Equipe de Capturas - DIG / PCSP
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="space-y-1">
-                                        <label className="text-[9px] font-black text-text-muted uppercase tracking-wider">RG</label>
-                                        <input className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-sm font-mono text-white outline-none focus:ring-1 focus:ring-primary" value={localData.rg || ''} onChange={e => handleFieldChange('rg', e.target.value)} />
+                                        <label className="text-[9px] font-black text-text-secondary-light dark:text-text-muted uppercase tracking-wider">RG</label>
+                                        <input className="w-full bg-background-light dark:bg-white/5 border border-border-light dark:border-white/10 rounded-lg p-3 text-sm font-mono text-text-light dark:text-white outline-none focus:ring-1 focus:ring-primary" value={localData.rg || ''} onChange={e => handleFieldChange('rg', e.target.value)} />
                                     </div>
                                     <div className="space-y-1">
-                                        <label className="text-[9px] font-black text-text-muted uppercase tracking-wider">CPF</label>
-                                        <input className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-sm font-mono text-white outline-none focus:ring-1 focus:ring-primary" value={localData.cpf || ''} onChange={e => handleFieldChange('cpf', e.target.value)} />
+                                        <label className="text-[9px] font-black text-text-secondary-light dark:text-text-muted uppercase tracking-wider">CPF</label>
+                                        <input className="w-full bg-background-light dark:bg-white/5 border border-border-light dark:border-white/10 rounded-lg p-3 text-sm font-mono text-text-light dark:text-white outline-none focus:ring-1 focus:ring-primary" value={localData.cpf || ''} onChange={e => handleFieldChange('cpf', e.target.value)} />
                                     </div>
                                     <div className="space-y-1">
-                                        <label className="text-[9px] font-black text-text-muted uppercase tracking-wider">Nascimento</label>
-                                        <input className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-sm font-mono text-white outline-none focus:ring-1 focus:ring-primary" value={localData.birthDate || ''} onChange={e => handleFieldChange('birthDate', e.target.value)} />
+                                        <label className="text-[9px] font-black text-text-secondary-light dark:text-text-muted uppercase tracking-wider">Nascimento</label>
+                                        <input className="w-full bg-background-light dark:bg-white/5 border border-border-light dark:border-white/10 rounded-lg p-3 text-sm font-mono text-text-light dark:text-white outline-none focus:ring-1 focus:ring-primary" value={localData.birthDate || ''} onChange={e => handleFieldChange('birthDate', e.target.value)} />
                                     </div>
                                     <div className="space-y-1">
-                                        <label className="text-[9px] font-black text-text-muted uppercase tracking-wider">Expiração Mandado</label>
-                                        <input className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-sm font-mono text-risk-high outline-none focus:ring-1 focus:ring-risk-high" value={localData.expirationDate || ''} onChange={e => handleFieldChange('expirationDate', e.target.value)} />
+                                        <label className="text-[9px] font-black text-text-secondary-light dark:text-text-muted uppercase tracking-wider">Expiração Mandado</label>
+                                        <input className="w-full bg-background-light dark:bg-white/5 border border-border-light dark:border-white/10 rounded-lg p-3 text-sm font-mono text-risk-high outline-none focus:ring-1 focus:ring-risk-high" value={localData.expirationDate || ''} onChange={e => handleFieldChange('expirationDate', e.target.value)} />
                                     </div>
                                     <div className="space-y-1 col-span-2">
-                                        <label className="text-[9px] font-black text-text-muted uppercase tracking-wider flex items-center gap-1"><Scale size={10} className="text-primary" /> Fórum / Vara Expedidora</label>
-                                        <input className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-sm text-white outline-none focus:ring-1 focus:ring-primary" placeholder="Ex: Vara Criminal de Jacareí" value={localData.issuingCourt || ''} onChange={e => handleFieldChange('issuingCourt', e.target.value)} />
+                                        <label className="text-[9px] font-black text-text-secondary-light dark:text-text-muted uppercase tracking-wider flex items-center gap-1"><Scale size={10} className="text-primary" /> Fórum / Vara Expedidora</label>
+                                        <input className="w-full bg-background-light dark:bg-white/5 border border-border-light dark:border-white/10 rounded-lg p-3 text-sm text-text-light dark:text-white outline-none focus:ring-1 focus:ring-primary" placeholder="Ex: Vara Criminal de Jacareí" value={localData.issuingCourt || ''} onChange={e => handleFieldChange('issuingCourt', e.target.value)} />
                                     </div>
                                     <div className="space-y-1 col-span-2">
-                                        <label className="text-[9px] font-black text-text-muted uppercase tracking-wider flex items-center gap-1"><CheckCircle size={10} className="text-primary" /> Data do Cumprimento</label>
-                                        <input className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-sm font-mono text-primary outline-none focus:ring-1 focus:ring-primary" placeholder="DD/MM/AAAA" value={localData.dischargeDate || ''} onChange={e => handleFieldChange('dischargeDate', e.target.value)} />
+                                        <label className="text-[9px] font-black text-text-secondary-light dark:text-text-muted uppercase tracking-wider flex items-center gap-1"><CheckCircle size={10} className="text-primary" /> Data do Cumprimento</label>
+                                        <input className="w-full bg-background-light dark:bg-white/5 border border-border-light dark:border-white/10 rounded-lg p-3 text-sm font-mono text-primary outline-none focus:ring-1 focus:ring-primary" placeholder="DD/MM/AAAA" value={localData.dischargeDate || ''} onChange={e => handleFieldChange('dischargeDate', e.target.value)} />
                                     </div>
                                 </div>
                             </div>
 
                             {/* Location View */}
-                            <div className="bg-surface-dark/90 backdrop-blur-xl border border-white/10 rounded-2xl p-5 shadow-glass space-y-4">
-                                <div className="flex items-center justify-between mb-2 pb-2 border-b border-white/5">
+                            <div className="bg-surface-light dark:bg-surface-dark/90 backdrop-blur-xl border border-border-light dark:border-white/10 rounded-2xl p-5 shadow-glass space-y-4">
+                                <div className="flex items-center justify-between mb-2 pb-2 border-b border-border-light dark:border-white/5">
                                     <div className="flex items-center gap-2">
                                         <MapPin className="text-primary" size={16} />
-                                        <span className="text-[11px] font-black uppercase tracking-widest text-white">Localização Operacional</span>
+                                        <span className="text-[11px] font-black uppercase tracking-widest text-text-light dark:text-white">Localização Operacional</span>
                                     </div>
                                     {localData.latitude && localData.longitude ? (
                                         <span className="text-[10px] font-black bg-green-500/10 text-green-400 border border-green-500/20 px-3 py-1 rounded-full flex items-center gap-1.5 shadow-sm animate-pulse">
@@ -1814,7 +1814,7 @@ Equipe de Capturas - DIG / PCSP
                                     )}
                                 </div>
                                 <textarea
-                                    className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-sm text-white outline-none focus:ring-2 focus:ring-primary/20 transition-all resize-none h-[95px]"
+                                    className="w-full bg-background-light dark:bg-white/5 border border-border-light dark:border-white/10 rounded-xl p-4 text-sm text-text-light dark:text-white outline-none focus:ring-2 focus:ring-primary/20 transition-all resize-none h-[95px]"
                                     value={localData.location || ''}
                                     onChange={e => handleFieldChange('location', e.target.value)}
                                     placeholder="Endereço de diligência..."
@@ -1824,7 +1824,7 @@ Equipe de Capturas - DIG / PCSP
                                         href={`https://www.google.com/maps/search/?api=1&query=${localData.latitude},${localData.longitude}`}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="flex-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl py-3 text-[10px] font-black uppercase flex items-center justify-center gap-2 transition-all active:scale-95"
+                                        className="flex-1 bg-background-light dark:bg-white/5 hover:bg-black/5 dark:hover:bg-white/10 border border-border-light dark:border-white/10 rounded-xl py-3 text-[10px] font-black uppercase flex items-center justify-center gap-2 transition-all active:scale-95 text-text-light dark:text-white"
                                     >
                                         <MapIcon size={14} /> Abrir no Mapa
                                     </a>
@@ -1847,11 +1847,11 @@ Equipe de Capturas - DIG / PCSP
                                     </div>
 
                                     {/* New Document Inputs */}
-                                    <div className="bg-white/5 rounded-xl p-3 grid grid-cols-1 md:grid-cols-4 gap-2 items-end">
+                                    <div className="bg-background-light dark:bg-white/5 rounded-xl p-3 grid grid-cols-1 md:grid-cols-4 gap-2 items-end">
                                         <div className="space-y-1">
-                                            <label className="text-[9px] font-black text-text-muted uppercase tracking-wider">Tipo</label>
+                                            <label className="text-[9px] font-black text-text-secondary-light dark:text-text-muted uppercase tracking-wider">Tipo</label>
                                             <select
-                                                className="w-full bg-surface-dark border border-white/10 rounded-lg p-2 text-[10px] text-white outline-none"
+                                                className="w-full bg-surface-light dark:bg-surface-dark border border-border-light dark:border-white/10 rounded-lg p-2 text-[10px] text-text-light dark:text-white outline-none"
                                                 value={newDocType}
                                                 onChange={e => setNewDocType(e.target.value)}
                                             >
@@ -1862,18 +1862,18 @@ Equipe de Capturas - DIG / PCSP
                                             </select>
                                         </div>
                                         <div className="space-y-1">
-                                            <label className="text-[9px] font-black text-text-muted uppercase tracking-wider">Origem/Vara</label>
+                                            <label className="text-[9px] font-black text-text-secondary-light dark:text-text-muted uppercase tracking-wider">Origem/Vara</label>
                                             <input
-                                                className="w-full bg-surface-dark border border-white/10 rounded-lg p-2 text-[10px] text-white outline-none placeholder:text-white/20"
+                                                className="w-full bg-surface-light dark:bg-surface-dark border border-border-light dark:border-white/10 rounded-lg p-2 text-[10px] text-text-light dark:text-white outline-none placeholder:text-text-secondary-light/30 dark:placeholder:text-white/20"
                                                 placeholder="Ex: 1ª Vara Criminal"
                                                 value={newDocSource}
                                                 onChange={e => setNewDocSource(e.target.value)}
                                             />
                                         </div>
                                         <div className="space-y-1">
-                                            <label className="text-[9px] font-black text-text-muted uppercase tracking-wider">Numeração/Edição</label>
+                                            <label className="text-[9px] font-black text-text-secondary-light dark:text-text-muted uppercase tracking-wider">Numeração/Edição</label>
                                             <input
-                                                className="w-full bg-surface-dark border border-white/10 rounded-lg p-2 text-[10px] text-white outline-none placeholder:text-white/20"
+                                                className="w-full bg-surface-light dark:bg-surface-dark border border-border-light dark:border-white/10 rounded-lg p-2 text-[10px] text-text-light dark:text-white outline-none placeholder:text-text-secondary-light/30 dark:placeholder:text-white/20"
                                                 placeholder="Ex: 001/2026"
                                                 value={newDocNumber}
                                                 onChange={e => setNewDocNumber(e.target.value)}
@@ -1909,12 +1909,12 @@ Equipe de Capturas - DIG / PCSP
                                 {data.attachments && data.attachments.length > 0 ? (
                                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                                         {data.attachments.map((file: string, idx: number) => (
-                                            <div key={idx} className="bg-white/5 border border-white/5 rounded-xl p-3 flex items-center justify-between group hover:bg-white/10 transition-all">
+                                            <div key={idx} className="bg-background-light dark:bg-white/5 border border-border-light dark:border-white/5 rounded-xl p-3 flex items-center justify-between group hover:bg-black/5 dark:hover:bg-white/10 transition-all">
                                                 <div className="flex items-center gap-3 min-w-0">
                                                     <div className="p-2 bg-primary/20 rounded-lg text-primary">
                                                         <FileText size={16} />
                                                     </div>
-                                                    <span className="text-[11px] font-bold text-white truncate max-w-[120px]">
+                                                    <span className="text-[11px] font-bold text-text-light dark:text-white truncate max-w-[120px]">
                                                         {(() => {
                                                             const parts = file.split('/').pop()?.split('_') || [];
                                                             if (parts.length >= 4 && (parts[0] === 'Mandado' || parts[0] === 'IFFO' || parts[0] === 'Oficio')) {
@@ -1953,8 +1953,8 @@ Equipe de Capturas - DIG / PCSP
                                         <Bot size={28} className="text-white" />
                                     </div>
                                     <div>
-                                        <h4 className="text-xl font-black text-white uppercase tracking-tighter">Sugestão Tática Inteligente</h4>
-                                        <p className="text-[10px] text-indigo-300 font-bold uppercase tracking-widest flex items-center gap-1">
+                                        <h4 className="text-xl font-black text-text-light dark:text-white uppercase tracking-tighter">Sugestão Tática Inteligente</h4>
+                                        <p className="text-[10px] text-indigo-600 dark:text-indigo-300 font-bold uppercase tracking-widest flex items-center gap-1">
                                             <Activity size={10} className="animate-pulse" /> Memória Ativa da Investigação
                                         </p>
                                     </div>
@@ -2664,19 +2664,19 @@ Equipe de Capturas - DIG / PCSP
                 {
                     isCapturasModalOpen && (
                         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-300">
-                            <div className="bg-surface-dark border border-white/10 rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col shadow-tactic">
-                                <div className="p-5 border-b border-white/10 flex justify-between items-center bg-white/5">
-                                    <div className="flex items-center gap-3"><Sparkles className="text-primary animate-pulse" size={20} /><h3 className="text-lg font-black uppercase tracking-tighter text-white">Centro de Redação Inteligente</h3></div>
-                                    <button onClick={() => setIsCapturasModalOpen(false)} className="p-2 text-text-muted hover:text-white"><X size={24} /></button>
+                            <div className="bg-surface-light dark:bg-surface-dark border border-border-light dark:border-white/10 rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col shadow-tactic">
+                                <div className="p-5 border-b border-border-light dark:border-white/10 flex justify-between items-center bg-black/5 dark:bg-white/5">
+                                    <div className="flex items-center gap-3"><Sparkles className="text-primary animate-pulse" size={20} /><h3 className="text-lg font-black uppercase tracking-tighter text-text-light dark:text-white">Centro de Redação Inteligente</h3></div>
+                                    <button onClick={() => setIsCapturasModalOpen(false)} className="p-2 text-text-secondary-light dark:text-text-muted hover:text-text-light dark:hover:text-white"><X size={24} /></button>
                                 </div>
                                 <div className="flex-1 overflow-y-auto p-6 space-y-6 scrollbar-none">
                                     <div className="grid grid-cols-2 gap-4">
-                                        <div className="space-y-1"><label className="text-[10px] font-black text-primary uppercase tracking-widest">Identificador Relatório</label><input className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm text-white" value={capturasData.reportNumber} onChange={e => setCapturasData({ ...capturasData, reportNumber: e.target.value })} /></div>
-                                        <div className="space-y-1"><label className="text-[10px] font-black text-primary uppercase tracking-widest">Comarca Judiciária</label><input className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm text-white" value={capturasData.court} onChange={e => setCapturasData({ ...capturasData, court: e.target.value })} /></div>
+                                        <div className="space-y-1"><label className="text-[10px] font-black text-primary uppercase tracking-widest">Identificador Relatório</label><input className="w-full bg-background-light dark:bg-white/5 border border-border-light dark:border-white/10 rounded-xl p-3 text-sm text-text-light dark:text-white" value={capturasData.reportNumber} onChange={e => setCapturasData({ ...capturasData, reportNumber: e.target.value })} /></div>
+                                        <div className="space-y-1"><label className="text-[10px] font-black text-primary uppercase tracking-widest">Comarca Judiciária</label><input className="w-full bg-background-light dark:bg-white/5 border border-border-light dark:border-white/10 rounded-xl p-3 text-sm text-text-light dark:text-white" value={capturasData.court} onChange={e => setCapturasData({ ...capturasData, court: e.target.value })} /></div>
                                     </div>
                                     <div className="bg-indigo-500/5 border border-indigo-500/20 rounded-2xl p-5 space-y-4">
                                         <div className="flex items-center gap-2"><Cpu size={16} className="text-indigo-400" /><span className="text-[10px] font-black uppercase tracking-widest text-indigo-400">Prompt de Refinamento IA</span></div>
-                                        <input className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-xs text-white placeholder:text-indigo-300/30" placeholder="Ex: 'Seja mais formal', 'Mencione a equipe de campo'..." value={capturasData.aiInstructions} onChange={e => setCapturasData({ ...capturasData, aiInstructions: e.target.value })} />
+                                        <input className="w-full bg-background-light dark:bg-white/5 border border-border-light dark:border-white/10 rounded-xl p-3 text-xs text-text-light dark:text-white placeholder:text-indigo-300/30" placeholder="Ex: 'Seja mais formal', 'Mencione a equipe de campo'..." value={capturasData.aiInstructions} onChange={e => setCapturasData({ ...capturasData, aiInstructions: e.target.value })} />
                                         <button onClick={handleRefreshAiReport} disabled={isGeneratingAiReport} className="w-full py-3 bg-indigo-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/20">{isGeneratingAiReport ? <RefreshCw size={14} className="animate-spin" /> : <Bot size={14} />} {isGeneratingAiReport ? 'ANTIGRAVITY PROCESSANDO...' : 'EXECUTAR ANÁLISE E REDAÇÃO IA'}</button>
                                     </div>
                                     <textarea className="w-full bg-white/5 border border-white/10 rounded-2xl p-5 text-sm leading-relaxed text-white min-h-[300px] font-serif" value={capturasData.body} onChange={e => setCapturasData({ ...capturasData, body: e.target.value })} />

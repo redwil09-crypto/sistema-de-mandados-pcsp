@@ -10,26 +10,26 @@ export default {
     theme: {
         extend: {
             colors: {
-                "primary": "#404040", // Neutral 700 - Solid Asphalt
-                "primary-dark": "#262626", // Neutral 800
-                "primary-light": "#737373", // Neutral 500
-                "secondary": "#38bdf8", // Sky 400 - Clean high-vis contrast
-                "risk-high": "#ef4444", // Red 500
-                "risk-med": "#f59e0b", // Amber 500
-                "success": "#10b981", // Emerald 500
-                "background-dark": "#171717", // Neutral 900 - True Black/Gray
-                "surface-dark": "#262626", // Neutral 800 - Deep Concrete
-                "surface-dark-elevated": "#404040", // Neutral 700
-                "border-dark": "#404040", // Neutral 700
-                "border-dark-highlight": "#525252", // Neutral 600
-                "background-light": "#f5f5f5", // Neutral 100 - Light Concrete
+                "primary": "#0f172a", // Slate 900 - Professional Deep Blue/Gray
+                "primary-dark": "#020617", // Slate 950
+                "primary-light": "#334155", // Slate 700
+                "secondary": "#0ea5e9", // Sky 500
+                "risk-high": "#ef4444",
+                "risk-med": "#f59e0b",
+                "success": "#10b981",
+                "background-dark": "#020617",
+                "surface-dark": "#0f172a",
+                "surface-dark-elevated": "#1e293b",
+                "border-dark": "#1e293b",
+                "border-dark-highlight": "#334155",
+                "background-light": "#f8fafc", // Slate 50 - Clean & Crisp
                 "surface-light": "#ffffff",
-                "border-light": "#d4d4d4", // Neutral 300
-                "text-light": "#0a0a0a", // Neutral 950
-                "text-dark": "#fafafa", // Neutral 50
-                "text-secondary-light": "#525252", // Neutral 600
-                "text-secondary-dark": "#a3a3a3", // Neutral 400
-                "text-muted": "#737373", // Neutral 500
+                "border-light": "#e2e8f0", // Slate 200 - Subtle & clean
+                "text-light": "#0f172a", // Slate 900
+                "text-dark": "#f8fafc", // Slate 50
+                "text-secondary-light": "#64748b", // Slate 500
+                "text-secondary-dark": "#94a3b8", // Slate 400
+                "text-muted": "#94a3b8", // Slate 400
             },
             fontFamily: {
                 "sans": ["Manrope", "sans-serif"],

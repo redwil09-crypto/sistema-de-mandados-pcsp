@@ -139,12 +139,12 @@ const HomePage = ({ isDark, toggleTheme }: HomePageProps) => {
                 </div>
 
                 <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary-light" size={20} />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary-light/60 dark:text-text-secondary-dark/60" size={20} />
                     <input
                         type="text"
                         placeholder="Nome, RG, endereço, crime, nº mandado..."
                         onKeyDown={handleSearch}
-                        className="w-full rounded-xl border-none bg-surface-light py-3.5 pl-10 pr-4 text-sm shadow-md placeholder:text-gray-400 focus:ring-2 focus:ring-primary dark:bg-surface-dark dark:text-white dark:placeholder:text-gray-500"
+                        className="w-full rounded-xl border border-border-light dark:border-white/5 bg-surface-light dark:bg-surface-dark py-3.5 pl-10 pr-4 text-sm shadow-sm placeholder:text-text-secondary-light/40 dark:placeholder:text-gray-500 focus:ring-2 focus:ring-primary/20 transition-all"
                     />
                 </div>
             </header>
@@ -224,7 +224,7 @@ const HomePage = ({ isDark, toggleTheme }: HomePageProps) => {
                     <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-red-500/10 blur-xl"></div>
                     <div className="relative z-10 flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-400">
+                            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-red-500/10 text-red-600 dark:bg-red-900/20 dark:text-red-400 border border-red-500/20">
                                 <Siren size={24} />
                             </div>
                             <div>
