@@ -1669,13 +1669,42 @@ Equipe de Capturas - DIG / PCSP
                     <div className="absolute -top-24 -right-24 w-48 h-48 bg-primary/10 rounded-full blur-3xl group-hover:bg-primary/20 transition-all"></div>
 
                     <div className="flex flex-col sm:flex-row gap-6 relative">
-                        <div className="relative shrink-0 mx-auto sm:mx-0">
-                            <img
-                                src={data.img || `https://ui-avatars.com/api/?name=${encodeURIComponent(data.name)}&background=random&color=fff`}
-                                alt={data.name}
-                                onClick={() => setIsPhotoModalOpen(true)}
-                                className="h-44 w-44 rounded-2xl object-cover border-2 border-white/10 shadow-glass cursor-zoom-in hover:scale-[1.02] transition-transform"
+                        <div className="relative shrink-0 mx-auto sm:mx-0 group/photo">
+                            <input
+                                type="file"
+                                id="photo-upload-input"
+                                className="hidden"
+                                accept="image/*"
+                                onChange={async (e) => {
+                                    const file = e.target.files?.[0];
+                                    if (!file || !data) return;
+                                    const tid = toast.loading("Subindo nova foto...");
+                                    try {
+                                        const path = `photos/${data.id}/${Date.now()}_${file.name}`;
+                                        const uploadedPath = await uploadFile(file, path);
+                                        if (uploadedPath) {
+                                            const url = getPublicUrl(uploadedPath);
+                                            setLocalData(prev => ({ ...prev, img: url }));
+                                            toast.success("Foto atualizada localmente! Salve para confirmar.", { id: tid });
+                                        }
+                                    } catch (err) {
+                                        toast.error("Erro no upload da foto.", { id: tid });
+                                    }
+                                }}
                             />
+                            <label htmlFor="photo-upload-input" className="cursor-pointer block relative">
+                                <img
+                                    src={localData.img || data.img || `https://ui-avatars.com/api/?name=${encodeURIComponent(data.name)}&background=random&color=fff`}
+                                    alt={data.name}
+                                    className="h-44 w-44 rounded-2xl object-cover border-2 border-white/10 shadow-glass hover:scale-[1.02] transition-transform"
+                                />
+                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/photo:opacity-100 flex items-center justify-center transition-opacity rounded-2xl">
+                                    <div className="bg-white/10 backdrop-blur-md border border-white/20 px-3 py-1.5 rounded-lg flex items-center gap-2">
+                                        <RefreshCw size={14} className="text-white" />
+                                        <span className="text-[10px] font-bold text-white uppercase uppercase">Trocar Foto</span>
+                                    </div>
+                                </div>
+                            </label>
                             <div className="absolute -bottom-2 -right-2 bg-primary p-2 rounded-xl shadow-lg border border-white/20">
                                 <ShieldAlert size={18} className="text-white animate-pulse" />
                             </div>
@@ -1693,22 +1722,45 @@ Equipe de Capturas - DIG / PCSP
                                         </span>
                                     )}
                                 </div>
-                                <h1 className="text-2xl font-black text-white leading-tight uppercase group-hover:text-primary transition-colors">
-                                    {localData.name}
-                                </h1>
-                                <p className="text-sm text-text-secondary-dark font-medium font-mono mt-1 opacity-70">
-                                    PROC. Nº {localData.number}
-                                </p>
+                                <input
+                                    className="text-2xl font-black text-white leading-tight uppercase bg-transparent border-none outline-none focus:ring-1 focus:ring-primary/40 rounded-lg px-2 -ml-2 w-full transition-all group-hover:text-primary"
+                                    value={localData.name}
+                                    onChange={e => handleFieldChange('name', e.target.value)}
+                                    placeholder="NOME DO ALVO"
+                                />
+                                <div className="flex items-center gap-2 mt-1 opacity-70">
+                                    <span className="text-sm text-text-secondary-dark font-medium font-mono">PROC. Nº</span>
+                                    <input
+                                        className="text-sm text-text-secondary-dark font-medium font-mono bg-transparent border-none outline-none focus:ring-1 focus:ring-primary/40 rounded px-1 transition-all"
+                                        value={localData.number}
+                                        onChange={e => handleFieldChange('number', e.target.value)}
+                                        placeholder="0000000-00.0000.0.00.0000"
+                                    />
+                                </div>
                             </div>
 
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                                <div className="bg-background-light dark:bg-white/5 border border-border-light dark:border-white/5 p-2 rounded-xl text-center">
+                                <div className="bg-background-light dark:bg-white/5 border border-border-light dark:border-white/5 p-2 rounded-xl text-center flex flex-col items-center group/field">
                                     <p className="text-[9px] uppercase font-bold text-text-secondary-light dark:text-text-muted mb-0.5 tracking-tighter">Tipo Crime</p>
-                                    <p className="text-xs font-black text-text-light dark:text-white truncate px-1">{localData.crime || 'N/I'}</p>
+                                    <select
+                                        className="w-full bg-transparent border-none text-xs font-black text-text-light dark:text-white outline-none text-center cursor-pointer appearance-none hover:text-primary transition-colors"
+                                        value={localData.crime || ''}
+                                        onChange={e => handleFieldChange('crime', e.target.value)}
+                                    >
+                                        <option value="" className="bg-surface-dark">Selecione...</option>
+                                        {CRIME_OPTIONS.map(opt => <option key={opt} value={opt} className="bg-surface-dark">{opt}</option>)}
+                                    </select>
                                 </div>
-                                <div className="bg-background-light dark:bg-white/5 border border-border-light dark:border-white/5 p-2 rounded-xl text-center">
+                                <div className="bg-background-light dark:bg-white/5 border border-border-light dark:border-white/5 p-2 rounded-xl text-center flex flex-col items-center group/field">
                                     <p className="text-[9px] uppercase font-bold text-text-secondary-light dark:text-text-muted mb-0.5 tracking-tighter">Regime Prisional</p>
-                                    <p className="text-xs font-black text-text-light dark:text-white">{localData.regime || 'N/I'}</p>
+                                    <select
+                                        className="w-full bg-transparent border-none text-xs font-black text-text-light dark:text-white outline-none text-center cursor-pointer appearance-none hover:text-primary transition-colors"
+                                        value={localData.regime || ''}
+                                        onChange={e => handleFieldChange('regime', e.target.value)}
+                                    >
+                                        <option value="" className="bg-surface-dark">Selecione...</option>
+                                        {REGIME_OPTIONS.map(opt => <option key={opt} value={opt} className="bg-surface-dark">{opt}</option>)}
+                                    </select>
                                 </div>
                                 <div className="bg-background-light dark:bg-white/5 border border-border-light dark:border-white/5 p-2 rounded-xl text-center">
                                     <p className="text-[9px] uppercase font-bold text-text-secondary-light dark:text-text-muted mb-0.5 tracking-tighter">Idade Captura</p>
@@ -1771,27 +1823,55 @@ Equipe de Capturas - DIG / PCSP
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="space-y-1">
                                         <label className="text-[9px] font-black text-text-secondary-light dark:text-text-muted uppercase tracking-wider">RG</label>
-                                        <input className="w-full bg-background-light dark:bg-white/5 border border-border-light dark:border-white/10 rounded-lg p-3 text-sm font-mono text-text-light dark:text-white outline-none focus:ring-1 focus:ring-primary" value={localData.rg || ''} onChange={e => handleFieldChange('rg', e.target.value)} />
+                                        <input
+                                            className="w-full bg-background-light dark:bg-white/5 border border-border-light dark:border-white/10 rounded-lg p-3 text-sm font-mono text-text-light dark:text-white outline-none focus:ring-1 focus:ring-primary focus:border-primary/50 transition-all"
+                                            value={localData.rg || ''}
+                                            onChange={e => handleFieldChange('rg', e.target.value)}
+                                        />
                                     </div>
                                     <div className="space-y-1">
                                         <label className="text-[9px] font-black text-text-secondary-light dark:text-text-muted uppercase tracking-wider">CPF</label>
-                                        <input className="w-full bg-background-light dark:bg-white/5 border border-border-light dark:border-white/10 rounded-lg p-3 text-sm font-mono text-text-light dark:text-white outline-none focus:ring-1 focus:ring-primary" value={localData.cpf || ''} onChange={e => handleFieldChange('cpf', e.target.value)} />
+                                        <input
+                                            className="w-full bg-background-light dark:bg-white/5 border border-border-light dark:border-white/10 rounded-lg p-3 text-sm font-mono text-text-light dark:text-white outline-none focus:ring-1 focus:ring-primary focus:border-primary/50 transition-all"
+                                            value={localData.cpf || ''}
+                                            onChange={e => handleFieldChange('cpf', e.target.value)}
+                                        />
                                     </div>
                                     <div className="space-y-1">
                                         <label className="text-[9px] font-black text-text-secondary-light dark:text-text-muted uppercase tracking-wider">Nascimento</label>
-                                        <input className="w-full bg-background-light dark:bg-white/5 border border-border-light dark:border-white/10 rounded-lg p-3 text-sm font-mono text-text-light dark:text-white outline-none focus:ring-1 focus:ring-primary" value={localData.birthDate || ''} onChange={e => handleFieldChange('birthDate', e.target.value)} />
+                                        <input
+                                            className="w-full bg-background-light dark:bg-white/5 border border-border-light dark:border-white/10 rounded-lg p-3 text-sm font-mono text-text-light dark:text-white outline-none focus:ring-1 focus:ring-primary focus:border-primary/50 transition-all"
+                                            value={localData.birthDate || ''}
+                                            onChange={e => handleFieldChange('birthDate', e.target.value)}
+                                            placeholder="DD/MM/AAAA"
+                                        />
                                     </div>
                                     <div className="space-y-1">
                                         <label className="text-[9px] font-black text-text-secondary-light dark:text-text-muted uppercase tracking-wider">Expiração Mandado</label>
-                                        <input className="w-full bg-background-light dark:bg-white/5 border border-border-light dark:border-white/10 rounded-lg p-3 text-sm font-mono text-risk-high outline-none focus:ring-1 focus:ring-risk-high" value={localData.expirationDate || ''} onChange={e => handleFieldChange('expirationDate', e.target.value)} />
+                                        <input
+                                            className="w-full bg-background-light dark:bg-white/5 border border-border-light dark:border-white/10 rounded-lg p-3 text-sm font-mono text-risk-high outline-none focus:ring-1 focus:ring-risk-high transition-all"
+                                            value={localData.expirationDate || ''}
+                                            onChange={e => handleFieldChange('expirationDate', e.target.value)}
+                                            placeholder="DD/MM/AAAA"
+                                        />
                                     </div>
                                     <div className="space-y-1 col-span-2">
                                         <label className="text-[9px] font-black text-text-secondary-light dark:text-text-muted uppercase tracking-wider flex items-center gap-1"><Scale size={10} className="text-primary" /> Fórum / Vara Expedidora</label>
-                                        <input className="w-full bg-background-light dark:bg-white/5 border border-border-light dark:border-white/10 rounded-lg p-3 text-sm text-text-light dark:text-white outline-none focus:ring-1 focus:ring-primary" placeholder="Ex: Vara Criminal de Jacareí" value={localData.issuingCourt || ''} onChange={e => handleFieldChange('issuingCourt', e.target.value)} />
+                                        <input
+                                            className="w-full bg-background-light dark:bg-white/5 border border-border-light dark:border-white/10 rounded-lg p-3 text-sm text-text-light dark:text-white outline-none focus:ring-1 focus:ring-primary focus:border-primary/50 transition-all"
+                                            placeholder="Ex: Vara Criminal de Jacareí"
+                                            value={localData.issuingCourt || ''}
+                                            onChange={e => handleFieldChange('issuingCourt', e.target.value)}
+                                        />
                                     </div>
                                     <div className="space-y-1 col-span-2">
                                         <label className="text-[9px] font-black text-text-secondary-light dark:text-text-muted uppercase tracking-wider flex items-center gap-1"><CheckCircle size={10} className="text-primary" /> Data do Cumprimento</label>
-                                        <input className="w-full bg-background-light dark:bg-white/5 border border-border-light dark:border-white/10 rounded-lg p-3 text-sm font-mono text-primary outline-none focus:ring-1 focus:ring-primary" placeholder="DD/MM/AAAA" value={localData.dischargeDate || ''} onChange={e => handleFieldChange('dischargeDate', e.target.value)} />
+                                        <input
+                                            className="w-full bg-background-light dark:bg-white/5 border border-border-light dark:border-white/10 rounded-lg p-3 text-sm font-mono text-primary outline-none focus:ring-1 focus:ring-primary focus:border-primary/50 transition-all"
+                                            placeholder="DD/MM/AAAA"
+                                            value={localData.dischargeDate || ''}
+                                            onChange={e => handleFieldChange('dischargeDate', e.target.value)}
+                                        />
                                     </div>
                                 </div>
                             </div>
@@ -2645,11 +2725,19 @@ Equipe de Capturas - DIG / PCSP
 
                     {/* Sticky Tactical Confirmation Bar */}
                     {hasChanges && createPortal(
-                        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 w-full max-w-sm px-4 p-4 bg-primary/95 backdrop-blur-xl border border-white/20 rounded-2xl z-[1001] flex gap-3 animate-in slide-in-from-bottom duration-500 shadow-tactic">
-                            <button onClick={handleCancelEdits} className="flex-1 py-4 px-4 rounded-xl font-black text-[10px] uppercase tracking-widest bg-white/10 text-white hover:bg-white/20 transition-colors">Abortar Alterações</button>
-                            <button onClick={() => setIsConfirmSaveOpen(true)} className="flex-1 py-4 px-4 rounded-xl font-black text-[10px] uppercase tracking-widest bg-white text-primary shadow-lg hover:shadow-white/20 transition-all flex items-center justify-center gap-2 active:scale-95">
-                                <CheckCircle size={18} /> SINCRONIZAR DADOS
-                            </button>
+                        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 w-full max-w-md px-4 z-[1001] animate-in slide-in-from-bottom duration-500">
+                            <div className="bg-amber-500/95 backdrop-blur-xl border border-white/20 rounded-2xl p-4 shadow-tactic flex flex-col gap-3">
+                                <div className="flex items-center gap-2 mb-1">
+                                    <AlertTriangle size={16} className="text-white animate-pulse" />
+                                    <span className="text-[10px] font-black text-white uppercase tracking-widest">Aviso: Alterações táticas pendentes de sincronização</span>
+                                </div>
+                                <div className="flex gap-3">
+                                    <button onClick={handleCancelEdits} className="flex-1 py-3 px-4 rounded-xl font-black text-[10px] uppercase tracking-widest bg-black/20 text-white hover:bg-black/30 transition-colors">Descartar</button>
+                                    <button onClick={() => setIsConfirmSaveOpen(true)} className="flex-[2] py-3 px-4 rounded-xl font-black text-[10px] uppercase tracking-widest bg-white text-slate-900 shadow-lg hover:bg-slate-100 transition-all flex items-center justify-center gap-2 active:scale-95">
+                                        <RefreshCw size={14} className="animate-spin-slow" /> SINCRONIZAR AGORA
+                                    </button>
+                                </div>
+                            </div>
                         </div>,
                         document.body
                     )}
