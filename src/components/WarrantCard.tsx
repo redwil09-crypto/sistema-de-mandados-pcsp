@@ -22,7 +22,7 @@ const WarrantCard = ({ data, onPrint, isPlanned, onRouteToggle, onFinalize, onDe
     return (
         <Link
             to={`/warrant-detail/${data.id}`}
-            className="group block relative overflow-hidden rounded-lg bg-surface-light dark:bg-surface-dark/60 backdrop-blur-md border border-border-light dark:border-white/5 hover:border-primary/50 transition-all duration-300 shadow-sm"
+            className="group block relative overflow-hidden rounded-lg bg-surface-light dark:bg-surface-dark/60 backdrop-blur-md border border-neon-purple/20 dark:border-neon-purple/10 hover:border-neon-purple dark:hover:border-neon-purple hover:shadow-neon-purple transition-all duration-300 shadow-sm"
             {...props}
         >
             {/* Type Indicator Strip (Left Border) */}

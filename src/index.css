@@ -60,16 +60,24 @@
 
 /* Components - using standard CSS to avoid parser issues */
 .neon-card {
-  @apply bg-surface-light dark:bg-slate-900 border border-border-light dark:border-white/5 shadow-soft transition-all duration-300;
+  @apply bg-surface-light dark:bg-slate-900 border border-neon-purple/30 dark:border-neon-purple/20 shadow-soft transition-all duration-300;
   border-radius: 0.75rem;
 }
 
 .neon-card:hover {
-  @apply border-tactic-indigo dark:border-white/10 shadow-sun transform -translate-y-1;
+  @apply border-neon-purple dark:border-neon-purple/50 shadow-neon-purple transform -translate-y-1;
 }
 
 .glass-morphism {
-  @apply bg-slate-400/30 dark:bg-slate-900/80 backdrop-blur-xl border border-white/10 dark:border-white/5 shadow-glass;
+  @apply bg-slate-400/30 dark:bg-slate-900/80 backdrop-blur-xl border border-neon-purple/30 dark:border-neon-purple/20 shadow-glass;
+}
+
+.border-neon-purple-tactic {
+  @apply border border-neon-purple/50 shadow-[0_0_10px_rgba(168, 85, 247, 0.4)] backdrop-blur-md;
+}
+
+.border-neon-purple-active {
+  @apply border border-neon-purple shadow-neon-purple;
 }
 
 /* Cyber Button Style - Futuristic */

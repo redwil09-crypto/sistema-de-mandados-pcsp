@@ -183,7 +183,7 @@ const HomePage = ({ isDark, toggleTheme }: HomePageProps) => {
 
 
 
-                    <Link to="/stats" className="group flex flex-col gap-3 rounded-2xl bg-surface-light p-4 shadow-md transition-all active:scale-[0.98] dark:bg-surface-dark border border-transparent hover:border-purple-500/20">
+                    <Link to="/stats" className="group flex flex-col gap-3 rounded-2xl bg-surface-light p-4 shadow-md transition-all active:scale-[0.98] dark:bg-surface-dark border border-neon-purple/20 hover:border-neon-purple hover:shadow-neon-purple">
                         <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-50 text-purple-600 dark:bg-purple-500/10 dark:text-purple-500">
                             <BarChart2 size={24} />
                         </div>
@@ -208,8 +208,8 @@ const HomePage = ({ isDark, toggleTheme }: HomePageProps) => {
                         </div>
                     </Link>
 
-                    <Link to="/ai-assistant" className="group flex flex-col gap-3 rounded-2xl bg-gradient-to-br from-primary/5 to-primary/10 p-4 shadow-sm transition-all active:scale-[0.98] dark:from-primary/10 dark:to-primary/20 border border-primary/20 hover:border-primary/40">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-white shadow-md">
+                    <Link to="/ai-assistant" className="group flex flex-col gap-3 rounded-2xl bg-gradient-to-br from-neon-purple/5 to-neon-purple/10 p-4 shadow-sm transition-all active:scale-[0.98] dark:from-neon-purple/10 dark:to-neon-purple/20 border border-neon-purple/30 hover:border-neon-purple hover:shadow-neon-purple">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-neon-purple text-white shadow-lg shadow-neon-purple/20">
                             <Bot size={24} />
                         </div>
                         <div>

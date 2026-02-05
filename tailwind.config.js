@@ -14,7 +14,8 @@ export default {
                 "primary-dark": "#020617", // Slate 950
                 "primary-light": "#334155", // Slate 700
                 "secondary": "#22d3ee", // Cyan 400
-                "tactic-indigo": "#6366f1", // Indigo 500 - AUTHORITATIVE
+                "tactic-indigo": "#6366f1", // Indigo 500
+                "neon-purple": "#a855f7", // Purple 500 - NEON VIBE
                 "risk-high": "#fb7185", // Rose 400
                 "risk-med": "#fbbf24", // Amber 400
                 "success": "#34d399", // Emerald 400
@@ -50,7 +51,8 @@ export default {
                 "full": "9999px"
             },
             boxShadow: {
-                'neon-blue': '0 0 10px rgba(99, 102, 241, 0.5), 0 0 20px rgba(99, 102, 241, 0.3)',
+                'neon-blue': '0 0 10px rgba(34, 211, 238, 0.5), 0 0 20px rgba(34, 211, 238, 0.3)',
+                'neon-purple': '0 0 10px rgba(168, 85, 247, 0.5), 0 0 20px rgba(168, 85, 247, 0.3)',
                 'neon-red': '0 0 10px rgba(244, 63, 94, 0.5), 0 0 20px rgba(244, 63, 94, 0.3)',
                 'glass': '0 8px 32px 0 rgba(0, 0, 0, 0.37)',
                 'tactic': '0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -1px rgba(0, 0, 0, 0.3)',
