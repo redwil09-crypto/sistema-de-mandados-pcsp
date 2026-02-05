@@ -83,7 +83,7 @@ export const generateWarrantPDF = async (
                 "SECRETARIA DA SEGURANÇA PÚBLICA",
                 "POLÍCIA CIVIL DO ESTADO DE SÃO PAULO",
                 "DEINTER 1 - SÃO JOSÉ DOS CAMPOS",
-                "SECCIONAL DE JACAREÍ - DIG (DELEGACIA DE INVESTIGAÇÕES GERAIS)"
+                "SECCIONAL DE JACAREÍ - DIG"
             ];
 
             headerLines.forEach((line, index) => {
@@ -149,11 +149,16 @@ export const generateWarrantPDF = async (
         // Status Badge
         const statusColor = data.status === 'CUMPRIDO' ? COLORS.RISK.LOW : COLORS.RISK.HIGH;
         doc.setFillColor(...statusColor);
-        doc.roundedRect(badgeX, infoY, 35, 6, 1, 1, 'F');
+
+        // Dynamic width for regime text
+        const regimeText = (data.regime || 'N/A').toUpperCase();
+        const regimeWidth = Math.max(35, doc.getTextWidth(regimeText) + 10);
+
+        doc.roundedRect(badgeX, infoY, regimeWidth, 6, 1, 1, 'F');
         doc.setTextColor(...COLORS.WHITE);
         doc.setFontSize(8);
-        doc.text(data.status || 'EM ABERTO', badgeX + 17.5, infoY + 4.2, { align: 'center' });
-        badgeX += 40;
+        doc.text(regimeText, badgeX + (regimeWidth / 2), infoY + 4.2, { align: 'center' });
+        badgeX += regimeWidth + 5;
 
         // Tactical Intelligence Parsing for Risk
         let riskLevel = 'NORMAL';
