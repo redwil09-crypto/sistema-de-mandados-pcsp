@@ -2278,18 +2278,24 @@ Equipe de Capturas - DIG / PCSP
                                             <p className="text-[10px] text-text-muted font-bold uppercase">Rastreamento de Pedidos e Corridas</p>
                                         </div>
                                     </div>
-                                    <div className="flex gap-3">
+                                    <button
+                                        onClick={handleGenerateIfoodOffice}
+                                        className="bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-tactic flex items-center gap-2 transition-all active:scale-95"
+                                    >
+                                        <FileText size={14} /> Gerar Ofício Padrão (Modelo Antigo)
+                                    </button>
+                                    <div className="flex gap-2">
                                         <button
                                             onClick={() => setActiveReportType('ifood')}
-                                            className="bg-primary hover:bg-primary-dark text-white px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-tactic flex items-center gap-2 transition-all active:scale-95 border border-white/5"
+                                            className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-red-900/20 flex items-center gap-2 transition-all active:scale-95 border border-red-500/30"
                                         >
-                                            <Bike size={14} className="text-red-500" /> GERAR OFÍCIO IFOOD
+                                            <Bike size={14} /> GERAR OFÍCIO IFOOD
                                         </button>
                                         <button
                                             onClick={() => setActiveReportType('uber')}
-                                            className="bg-primary hover:bg-primary-dark text-white px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-tactic flex items-center gap-2 transition-all active:scale-95 border border-white/5"
+                                            className="bg-cyan-600 hover:bg-cyan-700 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-cyan-900/20 flex items-center gap-2 transition-all active:scale-95 border border-cyan-500/30"
                                         >
-                                            <Car size={14} className="text-cyan-400" /> GERAR OFÍCIO UBER
+                                            <Car size={14} /> GERAR OFÍCIO UBER
                                         </button>
                                     </div>
 
