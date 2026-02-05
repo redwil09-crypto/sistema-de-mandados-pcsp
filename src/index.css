@@ -8,10 +8,10 @@
     background-color: #475569;
     /* Slate 600 - Deep Mid Tone */
     background-image:
-      radial-gradient(circle at 50% 0%, rgba(34, 211, 238, 0.2) 0%, transparent 85%),
-      linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-    background-size: 100% 100%, 30px 30px, 30px 30px;
+      radial-gradient(circle at 50% 0%, rgba(99, 102, 241, 0.25) 0%, rgba(34, 211, 238, 0.1) 50%, transparent 90%),
+      linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+    background-size: 100% 100%, 40px 40px, 40px 40px;
     background-attachment: fixed;
   }
 
@@ -65,7 +65,7 @@
 }
 
 .neon-card:hover {
-  @apply border-secondary/50 dark:border-white/10 shadow-sun transform -translate-y-1;
+  @apply border-tactic-indigo dark:border-white/10 shadow-sun transform -translate-y-1;
 }
 
 .glass-morphism {
