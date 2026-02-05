@@ -83,23 +83,26 @@ export const generateWarrantPDF = async (
                 "SECRETARIA DA SEGURANÇA PÚBLICA",
                 "POLÍCIA CIVIL DO ESTADO DE SÃO PAULO",
                 "DEINTER 1 - SÃO JOSÉ DOS CAMPOS",
-                "DIG (INVESTIGAÇÕES GERAIS)"
+                "SECCIONAL DE JACAREÍ - DIG (INVESTIGAÇÕES GERAIS)"
             ];
 
             headerLines.forEach((line, index) => {
                 doc.text(line, textX, y + 3 + (index * 4));
             });
 
+            // --- TITLE ON THE RIGHT (AS REQUESTED TO REVERT) ---
+            doc.setFontSize(16);
+            doc.setTextColor(...COLORS.PRIMARY);
+            doc.text("DOSSIÊ OPERACIONAL TÁTICO", pageWidth - margin, y + 10, { align: 'right' });
+
+            doc.setFontSize(9);
+            doc.setTextColor(...COLORS.SECONDARY);
+            doc.text(`REF: ${data.number}`, pageWidth - margin, y + 15, { align: 'right' });
+
             doc.setDrawColor(...COLORS.BORDER);
             doc.setLineWidth(0.1);
             doc.line(margin, y + badgeH + 5, pageWidth - margin, y + badgeH + 5);
             y += badgeH + 12;
-
-            doc.setFontSize(14);
-            doc.setTextColor(...COLORS.PRIMARY);
-            doc.text("DOSSIÊ OPERACIONAL TÁTICO", pageWidth / 2, y, { align: 'center' });
-
-            y += 5;
 
         } catch (e) {
             console.error("Header error", e);
