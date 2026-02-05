@@ -23,21 +23,21 @@ const Header = ({ title, back = false, onBack, action, showHome = false }: Heade
     };
 
     return (
-        <header className="sticky top-0 z-40 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md border-b border-border-light dark:border-white/5 shadow-glass">
+        <header className="sticky top-0 z-40 bg-background-dark/80 backdrop-blur-md border-b border-white/5 shadow-glass">
             <div className="flex items-center justify-between px-4 py-3 max-w-7xl mx-auto">
                 <div className="flex items-center gap-3 overflow-hidden">
                     {back && (
                         <button
                             onClick={handleBack}
                             type="button"
-                            className="flex items-center justify-center p-2 rounded-lg text-text-secondary-light dark:text-text-secondary-dark hover:text-text-light dark:hover:text-text-dark hover:bg-black/5 dark:hover:bg-white/5 transition-colors active:scale-95"
+                            className="flex items-center justify-center p-2 rounded-lg text-text-secondary-dark hover:text-text-dark hover:bg-white/5 transition-colors active:scale-95"
                         >
                             <ChevronLeft size={20} />
                         </button>
                     )}
 
                     <div className="flex flex-col">
-                        <h1 className="font-display font-bold text-lg leading-none text-text-light dark:text-text-dark uppercase tracking-tight">
+                        <h1 className="font-display font-bold text-lg leading-none text-text-dark uppercase tracking-tight">
                             {title}
                         </h1>
                         {/* Optional Subtitle or decorative line could go here */}
@@ -49,7 +49,7 @@ const Header = ({ title, back = false, onBack, action, showHome = false }: Heade
                     {showHome && (
                         <Link
                             to="/"
-                            className="p-2 rounded-lg text-text-secondary-light dark:text-text-secondary-dark hover:text-primary hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+                            className="p-2 rounded-lg text-text-secondary-dark hover:text-primary hover:bg-white/5 transition-colors"
                         >
                             <Home size={18} />
                         </Link>

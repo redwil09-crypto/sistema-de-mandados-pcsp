@@ -20,13 +20,12 @@ interface ExtractedData {
     status: string;
     attachments: string[];
     observations?: string;
-    tacticalSummary?: string;   // New: Periculosidade/Modus Operandi (JSON string)
+    tacticalSummary?: string[]; // New: Periculosidade/Modus Operandi
     autoPriority?: string[];    // New: Sugestão de tags
     searchChecklist?: string[];  // New: Itens para busca
     isDuplicate?: boolean;      // New: Verificação de duplicidade
     birthDate?: string;         // New: Data de Nascimento
     age?: string;               // New: Idade calculada
-    issuingCourt?: string;      // New: Fórum/Vara Expedidora
 }
 
 // Helper functions for parsing
@@ -143,29 +142,6 @@ const extractBirthDate = (text: string): string => {
                 if (months[monthKey]) {
                     return `${match[3]}-${months[monthKey]}-${match[1].padStart(2, '0')}`;
                 }
-            }
-        }
-    }
-    return '';
-};
-
-const extractIssuingCourt = (text: string): string => {
-    const patterns = [
-        /(?:Tribunal de Justiça do Estado de São Paulo|TJSP).*?(?:FORO DE|COMARCA DE|VARA)\s+([a-zA-ZÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑ\s\-]{3,})/i,
-        /(?:FÓRUM|FORO|COMARCA)[:\s]+([a-zA-ZÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑ\s\-]{3,})/i,
-        /([0-9]ª\s+Vara\s+(?:Criminal|Cível|da\s+Família|das\s+Sucessões|do\s+Júri|de\s+Execuções\s+Criminais).*?Jacareí)/i,
-        /(Vara\s+.*?(?:Criminal|Cível|da\s+Família|das\s+Sucessões|do\s+Júri|de\s+Execuções\s+Criminais).*?Jacareí)/i,
-        /Expedido\s+em\s+autos\s+da\s+([0-9]ª\s+Vara\s+.*?Jacareí)/i
-    ];
-
-    for (const pattern of patterns) {
-        const match = text.match(pattern);
-        if (match && match[1]) {
-            let court = match[1].trim();
-            // Limpeza básica
-            court = court.split(/\n|\s{2,}/)[0].trim().toUpperCase();
-            if (court.length > 5 && !court.includes('ESTADO DE')) {
-                return court;
             }
         }
     }
@@ -602,14 +578,13 @@ export const extractPdfData = async (file: File): Promise<ExtractedData> => {
         const { type, category } = determineMandadoType(fullText);
         const crime = extractCrime(fullText);
         const regime = extractRegime(fullText, category, crime);
-        const issuingCourt = extractIssuingCourt(fullText);
-        const tacticalSummaryArray = extractTacticalSummary(fullText);
-        const tacticalSummary = JSON.stringify({ risk: 'NORMAL', markers: tacticalSummaryArray });
+
+        const tacticalSummary = extractTacticalSummary(fullText);
         const observations = extractObservations(fullText);
 
         // Append tactical summary to observations
-        const fullObservations = tacticalSummaryArray.length > 0
-            ? `${observations} | Atenção: ${tacticalSummaryArray.join(', ')}`
+        const fullObservations = tacticalSummary.length > 0
+            ? `${observations} | Atenção: ${tacticalSummary.join(', ')}`
             : observations;
 
         return {
@@ -633,8 +608,7 @@ export const extractPdfData = async (file: File): Promise<ExtractedData> => {
             searchChecklist: extractSearchChecklist(fullText, category),
             autoPriority: determineAutoPriority(fullText, crime),
             birthDate,
-            age: calculateAge(birthDate),
-            issuingCourt
+            age: calculateAge(birthDate)
         };
     } catch (error: any) {
         console.error('Erro detalhado ao extrair PDF:', error);
@@ -675,14 +649,12 @@ export const extractFromText = (text: string, sourceName: string): ExtractedData
     const { type, category } = determineMandadoType(text);
     const crime = extractCrime(text);
     const regime = extractRegime(text, category, crime);
-    const issuingCourt = extractIssuingCourt(text);
-    const tacticalSummaryArray = extractTacticalSummary(text);
-    const tacticalSummary = JSON.stringify({ risk: 'NORMAL', markers: tacticalSummaryArray });
+    const tacticalSummary = extractTacticalSummary(text);
     const observations = extractObservations(text);
 
     // Append tactical summary to observations
-    const fullObservations = tacticalSummaryArray.length > 0
-        ? `${observations} | Atenção: ${tacticalSummaryArray.join(', ')}`
+    const fullObservations = tacticalSummary.length > 0
+        ? `${observations} | Atenção: ${tacticalSummary.join(', ')}`
         : observations;
 
     return {
@@ -706,7 +678,6 @@ export const extractFromText = (text: string, sourceName: string): ExtractedData
         searchChecklist: extractSearchChecklist(text, category),
         autoPriority: determineAutoPriority(text, crime),
         birthDate,
-        age: calculateAge(birthDate),
-        issuingCourt
+        age: calculateAge(birthDate)
     };
 };

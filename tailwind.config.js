@@ -10,28 +10,26 @@ export default {
     theme: {
         extend: {
             colors: {
-                "primary": "#0f172a", // Slate 900
-                "primary-dark": "#020617", // Slate 950
-                "primary-light": "#334155", // Slate 700
-                "secondary": "#22d3ee", // Cyan 400
-                "tactic-indigo": "#6366f1", // Indigo 500
-                "neon-purple": "#a855f7", // Purple 500 - NEON VIBE
-                "risk-high": "#fb7185", // Rose 400
-                "risk-med": "#fbbf24", // Amber 400
-                "success": "#34d399", // Emerald 400
-                "background-dark": "#020617",
-                "surface-dark": "#0f172a",
-                "surface-dark-elevated": "#1e293b",
-                "border-dark": "#1e293b",
-                "border-dark-highlight": "#334155",
-                "background-light": "#475569", // Slate 600
-                "surface-light": "#64748b", // Slate 500
-                "border-light": "#94a3b8", // Slate 400
-                "text-light": "#f8fafc", // Slate 50
-                "text-dark": "#f8fafc", // Slate 50
-                "text-secondary-light": "#cbd5e1", // Slate 300
-                "text-secondary-dark": "#94a3b8", // Slate 400
-                "text-muted": "#94a3b8", // Slate 400
+                "primary": "#404040", // Neutral 700 - Solid Asphalt
+                "primary-dark": "#262626", // Neutral 800
+                "primary-light": "#737373", // Neutral 500
+                "secondary": "#38bdf8", // Sky 400 - Clean high-vis contrast
+                "risk-high": "#ef4444", // Red 500
+                "risk-med": "#f59e0b", // Amber 500
+                "success": "#10b981", // Emerald 500
+                "background-dark": "#171717", // Neutral 900 - True Black/Gray
+                "surface-dark": "#262626", // Neutral 800 - Deep Concrete
+                "surface-dark-elevated": "#404040", // Neutral 700
+                "border-dark": "#404040", // Neutral 700
+                "border-dark-highlight": "#525252", // Neutral 600
+                "background-light": "#f5f5f5", // Neutral 100 - Light Concrete
+                "surface-light": "#ffffff",
+                "border-light": "#d4d4d4", // Neutral 300
+                "text-light": "#0a0a0a", // Neutral 950
+                "text-dark": "#fafafa", // Neutral 50
+                "text-secondary-light": "#525252", // Neutral 600
+                "text-secondary-dark": "#a3a3a3", // Neutral 400
+                "text-muted": "#737373", // Neutral 500
             },
             fontFamily: {
                 "sans": ["Manrope", "sans-serif"],
@@ -40,8 +38,8 @@ export default {
                 "tech": ["JetBrains Mono", "monospace"]
             },
             backgroundImage: {
-                'grid-pattern': "url(\"data:image/svg+xml,%3csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='M0 0h40v40H0V0zm1 1h38v38H1V1z' fill='%236366f1' fill-opacity='0.08' fill-rule='evenodd'/%3e%3c/svg%3e\")",
-                'gradient-radial-tactic': 'radial-gradient(circle at 50% 0%, rgba(99, 102, 241, 0.25) 0%, rgba(34, 211, 238, 0.1) 40%, transparent 80%)',
+                'grid-pattern': "url(\"data:image/svg+xml,%3csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='M0 0h40v40H0V0zm1 1h38v38H1V1z' fill='%236366f1' fill-opacity='0.03' fill-rule='evenodd'/%3e%3c/svg%3e\")",
+                'gradient-radial-tactic': 'radial-gradient(circle at 50% 0%, rgba(99, 102, 241, 0.15) 0%, transparent 60%)',
             },
             borderRadius: {
                 "DEFAULT": "0.5rem",
@@ -51,16 +49,7 @@ export default {
                 "full": "9999px"
             },
             boxShadow: {
-                'neon-blue': '0 0 10px rgba(34, 211, 238, 0.5), 0 0 20px rgba(34, 211, 238, 0.3)',
-                'neon-blue-card': '0 0 15px rgba(30, 64, 175, 0.3)',
-                'neon-purple': '0 0 10px rgba(168, 85, 247, 0.5), 0 0 20px rgba(168, 85, 247, 0.3)',
-                'neon-purple-tactic': '0 0 10px rgba(168, 85, 247, 0.4)',
-                'neon-orange': '0 0 10px rgba(249, 115, 22, 0.5), 0 0 20px rgba(249, 115, 22, 0.3)',
-                'neon-orange-card': '0 0 15px rgba(249, 115, 22, 0.3)',
-                'neon-green': '0 0 10px rgba(16, 185, 129, 0.5), 0 0 20px rgba(16, 185, 129, 0.3)',
-                'neon-green-card': '0 0 15px rgba(16, 185, 129, 0.3)',
-                'neon-indigo': '0 0 10px rgba(99, 102, 241, 0.5), 0 0 20px rgba(99, 102, 241, 0.3)',
-                'neon-indigo-card': '0 0 15px rgba(99, 102, 241, 0.3)',
+                'neon-blue': '0 0 10px rgba(99, 102, 241, 0.5), 0 0 20px rgba(99, 102, 241, 0.3)',
                 'neon-red': '0 0 10px rgba(244, 63, 94, 0.5), 0 0 20px rgba(244, 63, 94, 0.3)',
                 'glass': '0 8px 32px 0 rgba(0, 0, 0, 0.37)',
                 'tactic': '0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -1px rgba(0, 0, 0, 0.3)',
