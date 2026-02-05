@@ -541,8 +541,8 @@ const AIAssistantPage = () => {
 
                                     <div className="border-2 border-dashed border-border-light dark:border-border-dark rounded-xl p-6 flex flex-col items-center justify-center text-center bg-surface-light dark:bg-surface-dark hover:border-primary transition-colors cursor-pointer relative group">
                                         <FileUp size={32} className="text-text-secondary-light dark:text-text-secondary-dark mb-2 group-hover:text-primary transition-colors" />
-                                        <p className="font-bold text-text-light dark:text-text-dark text-[11px]">Enviar PDF</p>
-                                        <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" accept=".pdf,.jpg,.png,.jpeg" multiple onChange={handleFileUpload} />
+                                        <p className="font-bold text-text-light dark:text-text-dark text-[11px]">Enviar PDF/DOCX</p>
+                                        <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" accept=".pdf,.docx,.jpg,.png,.jpeg" multiple onChange={handleFileUpload} />
                                     </div>
 
                                     <div className="border-2 border-dashed border-border-light dark:border-border-dark rounded-xl p-6 flex flex-col items-center justify-center text-center bg-surface-light dark:bg-surface-dark hover:border-primary transition-colors cursor-pointer relative group">

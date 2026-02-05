@@ -1,11 +1,12 @@
 import * as pdfjsLib from 'pdfjs-dist';
 // @ts-ignore
 import pdfWorker from 'pdfjs-dist/build/pdf.worker.mjs?url';
+import * as mammoth from 'mammoth';
 
 // Configure worker using local file for better reliability in Vite
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker;
 
-interface ExtractedData {
+export interface ExtractedData {
     id: string;
     name: string;
     rg: string;
@@ -155,9 +156,9 @@ const extractIssuingCourt = (text: string): string => {
     const patterns = [
         /(?:Tribunal de Justiça do Estado de São Paulo|TJSP).*?(?:FORO DE|COMARCA DE|VARA)\s+([a-zA-ZÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑ\s\-]{3,})/i,
         /(?:FÓRUM|FORO|COMARCA)[:\s]+([a-zA-ZÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑ\s\-]{3,})/i,
-        /([0-9]ª\s+Vara\s+(?:Criminal|Cível|da\s+Família|das\s+Sucessões|do\s+Júri|de\s+Execuções\s+Criminais).*?Jacareí)/i,
-        /(Vara\s+.*?(?:Criminal|Cível|da\s+Família|das\s+Sucessões|do\s+Júri|de\s+Execuções\s+Criminais).*?Jacareí)/i,
-        /Expedido\s+em\s+autos\s+da\s+([0-9]ª\s+Vara\s+.*?Jacareí)/i
+        /([0-9]ª\s+Vara\s+(?:Criminal|Cível|da\s+Família|das\s+Sucessões|do\s+Júri|de\s+Execuções\s+Criminais).*?)/i,
+        /(Vara\s+.*?(?:Criminal|Cível|da\s+Família|das\s+Sucessões|do\s+Júri|de\s+Execuções\s+Criminais).*?)/i,
+        /Expedido\s+em\s+autos\s+da\s+([0-9]ª\s+Vara\s+.*?)/i
     ];
 
     for (const pattern of patterns) {
@@ -578,19 +579,29 @@ const determineAutoPriority = (text: string, crime: string): string[] => {
 // Main extraction function
 export const extractPdfData = async (file: File): Promise<ExtractedData> => {
     try {
-        const arrayBuffer = await file.arrayBuffer();
-        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-
         let fullText = '';
+        const fileName = file.name.toLowerCase();
 
-        // Extract text from all pages
-        for (let i = 1; i <= pdf.numPages; i++) {
-            const page = await pdf.getPage(i);
-            const textContent = await page.getTextContent();
-            const pageText = textContent.items
-                .map((item: any) => item.str)
-                .join(' ');
-            fullText += pageText + '\n';
+        if (fileName.endsWith('.pdf')) {
+            const arrayBuffer = await file.arrayBuffer();
+            const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+
+            // Extract text from all pages
+            for (let i = 1; i <= pdf.numPages; i++) {
+                const page = await pdf.getPage(i);
+                const textContent = await page.getTextContent();
+                const pageText = textContent.items
+                    .map((item: any) => item.str)
+                    .join(' ');
+                fullText += pageText + '\n';
+            }
+        } else if (fileName.endsWith('.docx')) {
+            const arrayBuffer = await file.arrayBuffer();
+            const result = await mammoth.extractRawText({ arrayBuffer });
+            fullText = result.value;
+        } else {
+            // Fallback for text files or unknown
+            fullText = await file.text();
         }
 
         // Parse extracted text
@@ -647,21 +658,30 @@ export const extractPdfData = async (file: File): Promise<ExtractedData> => {
 // Function to extract text only for analysis
 export const extractRawTextFromPdf = async (file: File): Promise<string> => {
     try {
-        const arrayBuffer = await file.arrayBuffer();
-        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-        let fullText = '';
-        for (let i = 1; i <= pdf.numPages; i++) {
-            const page = await pdf.getPage(i);
-            const textContent = await page.getTextContent();
-            const pageText = textContent.items
-                .map((item: any) => item.str)
-                .join(' ');
-            fullText += pageText + '\n';
+        const fileName = file.name.toLowerCase();
+        if (fileName.endsWith('.pdf')) {
+            const arrayBuffer = await file.arrayBuffer();
+            const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+            let fullText = '';
+            for (let i = 1; i <= pdf.numPages; i++) {
+                const page = await pdf.getPage(i);
+                const textContent = await page.getTextContent();
+                const pageText = textContent.items
+                    .map((item: any) => item.str)
+                    .join(' ');
+                fullText += pageText + '\n';
+            }
+            return fullText;
+        } else if (fileName.endsWith('.docx')) {
+            const arrayBuffer = await file.arrayBuffer();
+            const result = await mammoth.extractRawText({ arrayBuffer });
+            return result.value;
+        } else {
+            return await file.text();
         }
-        return fullText;
     } catch (error: any) {
-        console.error('Erro ao extrair texto bruto do PDF:', error);
-        throw new Error("Falha ao ler o arquivo PDF.");
+        console.error('Erro ao extrair texto bruto do documento:', error);
+        throw new Error("Falha ao ler o arquivo.");
     }
 };
 
