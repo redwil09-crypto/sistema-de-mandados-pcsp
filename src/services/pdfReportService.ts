@@ -90,14 +90,14 @@ export const generateWarrantPDF = async (
                 doc.text(line, textX, y + 3 + (index * 4));
             });
 
-            // --- TITLE ON THE RIGHT (AS REQUESTED TO REVERT) ---
-            doc.setFontSize(16);
+            // --- TITLE ON THE RIGHT (REDUCED SIZE) ---
+            doc.setFontSize(12);
             doc.setTextColor(...COLORS.PRIMARY);
-            doc.text("DOSSIÊ OPERACIONAL TÁTICO", pageWidth - margin, y + 10, { align: 'right' });
+            doc.text("DOSSIÊ OPERACIONAL TÁTICO", pageWidth - margin, y + 8, { align: 'right' });
 
-            doc.setFontSize(9);
+            doc.setFontSize(7);
             doc.setTextColor(...COLORS.SECONDARY);
-            doc.text(`REF: ${data.number}`, pageWidth - margin, y + 15, { align: 'right' });
+            doc.text(`REF: ${data.number}`, pageWidth - margin, y + 12, { align: 'right' });
 
             doc.setDrawColor(...COLORS.BORDER);
             doc.setLineWidth(0.1);
