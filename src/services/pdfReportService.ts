@@ -83,25 +83,27 @@ export const generateWarrantPDF = async (
                 "SECRETARIA DA SEGURANÇA PÚBLICA",
                 "POLÍCIA CIVIL DO ESTADO DE SÃO PAULO",
                 "DEINTER 1 - SÃO JOSÉ DOS CAMPOS",
-                "SECCIONAL DE JACAREÍ - DIG (INVESTIGAÇÕES GERAIS)"
+                "DELEGACIA DE INVESTIGAÇÕES GERAIS DE JACAREÍ"
             ];
 
             headerLines.forEach((line, index) => {
                 doc.text(line, textX, y + 3 + (index * 4));
             });
 
-            doc.setFontSize(14);
-            doc.setTextColor(...COLORS.PRIMARY);
-            doc.text("DOSSIÊ OPERACIONAL TÁTICO", pageWidth - margin, y + 10, { align: 'right' });
-
-            doc.setFontSize(7);
-            doc.setTextColor(100, 100, 100);
-            doc.text(`REF: ${data.number || 'N/A'}`, pageWidth - margin, y + 15, { align: 'right' });
-
             doc.setDrawColor(...COLORS.BORDER);
             doc.setLineWidth(0.1);
             doc.line(margin, y + badgeH + 5, pageWidth - margin, y + badgeH + 5);
             y += badgeH + 12;
+
+            doc.setFontSize(14);
+            doc.setTextColor(...COLORS.PRIMARY);
+            doc.text("DOSSIÊ OPERACIONAL TÁTICO", pageWidth / 2, y, { align: 'center' });
+
+            doc.setFontSize(7);
+            doc.setTextColor(100, 100, 100);
+            doc.text(`REFERÊNCIA: ${data.number || 'N/A'}`, pageWidth / 2, y + 4, { align: 'center' });
+
+            y += 10;
 
         } catch (e) {
             console.error("Header error", e);
@@ -335,12 +337,6 @@ export const generateWarrantPDF = async (
             const now = new Date().toLocaleString('pt-BR');
             doc.text(`GERADO EM: ${now} | SISTEMA DE INTELIGÊNCIA DIG/PCSP | DOCUMENTO RESTRITO`, margin, pageHeight - 10);
             doc.text(`PÁGINA ${i} DE ${totalPages}`, pageWidth - margin, pageHeight - 10, { align: 'right' });
-
-            // Watermark (Subtle)
-            doc.setTextColor(240, 240, 240);
-            doc.setFontSize(40);
-            doc.setFont('helvetica', 'bold');
-            doc.text("INTERNA / RESTRITA", pageWidth / 2, pageHeight / 2, { align: 'center', angle: 45 });
         }
 
         toast.success(`Dossiê Tático de ${data.name} gerado com sucesso!`);
