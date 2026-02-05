@@ -152,7 +152,7 @@ const HomePage = ({ isDark, toggleTheme }: HomePageProps) => {
             <main className="px-4 py-2 space-y-6">
                 <div className="grid grid-cols-2 gap-3">
                     <Link to="/warrant-list" className="group flex flex-col gap-3 rounded-2xl bg-surface-light p-4 shadow-md transition-all active:scale-[0.98] dark:bg-surface-dark border border-transparent hover:border-blue-400 hover:shadow-neon-blue">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-primary dark:bg-primary/10 group-hover:shadow-[0_0_15px_rgba(30,64,175,0.3)] transition-shadow">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-primary dark:bg-primary/10 group-hover:shadow-neon-blue-card transition-shadow">
                             <Gavel size={24} />
                         </div>
                         <div>
@@ -162,7 +162,7 @@ const HomePage = ({ isDark, toggleTheme }: HomePageProps) => {
                     </Link>
 
                     <Link to="/minor-search" className="group flex flex-col gap-3 rounded-2xl bg-surface-light p-4 shadow-md transition-all active:scale-[0.98] dark:bg-surface-dark border border-transparent hover:border-orange-500 hover:shadow-neon-orange">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-50 text-orange-600 dark:bg-orange-500/10 dark:text-orange-500 group-hover:shadow-[0_0_15px_rgba(249,115,22,0.3)] transition-shadow">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-50 text-orange-600 dark:bg-orange-500/10 dark:text-orange-500 group-hover:shadow-neon-orange-card transition-shadow">
                             <Baby size={24} />
                         </div>
                         <div>
@@ -172,7 +172,7 @@ const HomePage = ({ isDark, toggleTheme }: HomePageProps) => {
                     </Link>
 
                     <Link to="/new-warrant" className="group flex flex-col gap-3 rounded-2xl bg-surface-light p-4 shadow-md transition-all active:scale-[0.98] dark:bg-surface-dark border border-transparent hover:border-green-500 hover:shadow-neon-green">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-green-50 text-green-600 dark:bg-green-500/10 dark:text-green-500 group-hover:shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-shadow">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-green-50 text-green-600 dark:bg-green-500/10 dark:text-green-500 group-hover:shadow-neon-green-card transition-shadow">
                             <FilePlus size={24} />
                         </div>
                         <div>
@@ -199,7 +199,7 @@ const HomePage = ({ isDark, toggleTheme }: HomePageProps) => {
                                 {routeWarrants.length}
                             </span>
                         )}
-                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400 group-hover:shadow-[0_0_15px_rgba(99,102,241,0.3)] transition-shadow">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400 group-hover:shadow-neon-indigo-card transition-shadow">
                             <RouteIcon size={24} />
                         </div>
                         <div>
