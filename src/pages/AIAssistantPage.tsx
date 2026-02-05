@@ -355,7 +355,8 @@ const AIAssistantPage = () => {
                 tacticalSummary: extractedData.tacticalSummary || [],
                 location: extractedData.addresses && extractedData.addresses.length > 0 ? extractedData.addresses.join(' | ') : '',
                 birthDate: extractedData.birthDate,
-                age: extractedData.age
+                age: extractedData.age,
+                issuingCourt: extractedData.issuingCourt
             };
 
             const result = await onAdd(newWarrant);
@@ -767,6 +768,15 @@ const AIAssistantPage = () => {
                                                         type="text"
                                                         value={extractedData.regime}
                                                         onChange={(e) => handleExtractedDataChange('regime', e.target.value)}
+                                                        className="w-full bg-transparent border-b border-border-light dark:border-border-dark py-1 text-sm outline-none"
+                                                    />
+                                                </div>
+                                                <div className="col-span-2">
+                                                    <label className="text-[10px] uppercase font-black text-amber-600 dark:text-amber-400/90">Fórum Expedidor</label>
+                                                    <input
+                                                        type="text"
+                                                        value={extractedData.issuingCourt || ''}
+                                                        onChange={(e) => handleExtractedDataChange('issuingCourt', e.target.value)}
                                                         className="w-full bg-transparent border-b border-border-light dark:border-border-dark py-1 text-sm outline-none"
                                                     />
                                                 </div>

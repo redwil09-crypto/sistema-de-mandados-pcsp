@@ -61,7 +61,8 @@ const NewWarrant = () => {
         longitude: undefined as number | undefined,
         tacticalSummary: '',
         birthDate: '',
-        age: ''
+        age: '',
+        issuingCourt: ''
     });
 
     const [hasAi, setHasAi] = useState(false);
@@ -113,9 +114,10 @@ const NewWarrant = () => {
                     tags: existing.tags || [],
                     latitude: existing.latitude,
                     longitude: existing.longitude,
-                    tacticalSummary: existing.tacticalSummary ? existing.tacticalSummary.join('\n') : '',
+                    tacticalSummary: existing.tacticalSummary || '',
                     birthDate: formatDate(existing.birthDate),
-                    age: existing.age || ''
+                    age: existing.age || '',
+                    issuingCourt: existing.issuingCourt || ''
                 });
 
                 if (existing.img) {
@@ -337,9 +339,10 @@ const NewWarrant = () => {
                 attachments: [...(formData.attachments || []), ...newAttachmentsUrls],
                 latitude: formData.latitude,
                 longitude: formData.longitude,
-                tacticalSummary: formData.tacticalSummary ? formData.tacticalSummary.split('\n').filter(line => line.trim() !== '') : [],
+                tacticalSummary: formData.tacticalSummary || '',
                 birthDate: formData.birthDate,
-                age: formData.age
+                age: formData.age,
+                issuingCourt: formData.issuingCourt
             };
 
             if (editId) {
@@ -466,6 +469,10 @@ const NewWarrant = () => {
                     <div>
                         <label className="block text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark mb-1">Nº do Processo</label>
                         <input name="number" required value={formData.number} onChange={handleChange} type="text" className="w-full rounded-lg border border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark p-2.5 text-sm text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none" placeholder="0000000-00.0000.0.00.0000" />
+                    </div>
+                    <div>
+                        <label className="block text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark mb-1">Fórum Expedidor</label>
+                        <input name="issuingCourt" value={formData.issuingCourt} onChange={handleChange} type="text" className="w-full rounded-lg border border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark p-2.5 text-sm text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none" placeholder="Ex: Vara Criminal de Jacareí" />
                     </div>
                     <div>
                         <label className="block text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark mb-1">Crime / Infração</label>

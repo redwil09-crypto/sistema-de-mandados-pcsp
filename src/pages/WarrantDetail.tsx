@@ -154,7 +154,7 @@ const WarrantDetail = () => {
         if (!data) return false;
         const fields: (keyof Warrant)[] = [
             'name', 'type', 'rg', 'cpf', 'number', 'crime', 'regime', 'location',
-            'ifoodNumber', 'ifoodResult', 'digOffice', 'observation', 'age'
+            'ifoodNumber', 'ifoodResult', 'digOffice', 'observation', 'age', 'issuingCourt'
         ];
 
         const basicChanges = fields.some(key => localData[key] !== data[key]);
@@ -332,7 +332,7 @@ const WarrantDetail = () => {
             'location', 'ifoodNumber', 'ifoodResult', 'digOffice',
             'issueDate', 'entryDate', 'expirationDate', 'dischargeDate', 'observation',
             'status', 'fulfillmentResult', 'fulfillmentReport', 'latitude', 'longitude',
-            'tacticalSummary', 'tags', 'birthDate', 'age'
+            'tacticalSummary', 'tags', 'birthDate', 'age', 'issuingCourt'
         ];
 
         fields.forEach(key => {
@@ -638,8 +638,7 @@ const WarrantDetail = () => {
             setAnalyzedDocumentText('');
 
             // Critical: Update parent state immediately if handler provided
-            if (onUpdate) await onUpdate();
-            else await refreshWarrants();
+            await refreshWarrants();
 
             toast.success("Informações Transferidas para o Centro de Inteligência!", { id: toastId });
 
@@ -1743,6 +1742,10 @@ Equipe de Capturas - DIG / PCSP
                                     <div className="space-y-1">
                                         <label className="text-[9px] font-black text-text-muted uppercase tracking-wider">Expiração Mandado</label>
                                         <input className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-sm font-mono text-risk-high outline-none focus:ring-1 focus:ring-risk-high" value={localData.expirationDate || ''} onChange={e => handleFieldChange('expirationDate', e.target.value)} />
+                                    </div>
+                                    <div className="space-y-1 col-span-2">
+                                        <label className="text-[9px] font-black text-text-muted uppercase tracking-wider flex items-center gap-1"><Scale size={10} className="text-primary" /> Fórum / Vara Expedidora</label>
+                                        <input className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-sm text-white outline-none focus:ring-1 focus:ring-primary" placeholder="Ex: Vara Criminal de Jacareí" value={localData.issuingCourt || ''} onChange={e => handleFieldChange('issuingCourt', e.target.value)} />
                                     </div>
                                     <div className="space-y-1 col-span-2">
                                         <label className="text-[9px] font-black text-text-muted uppercase tracking-wider flex items-center gap-1"><CheckCircle size={10} className="text-primary" /> Data do Cumprimento</label>

@@ -41,7 +41,8 @@ export interface Warrant {
     diligentHistory?: DiligentEntry[]; // Linha do tempo de investigação
     latitude?: number;
     longitude?: number;
-    tacticalSummary?: string; // Sumário Tático extraído (IA - JSON String)
+    tacticalSummary?: string; // Sumário Tático extraído
+    issuingCourt?: string;       // Fórum/Vara Expedidora
     ifoodDocs?: string[];    // Documentos anexos do iFood
 }
 

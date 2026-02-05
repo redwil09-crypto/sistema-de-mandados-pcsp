@@ -83,7 +83,7 @@ export const generateWarrantPDF = async (
                 "SECRETARIA DA SEGURANÇA PÚBLICA",
                 "POLÍCIA CIVIL DO ESTADO DE SÃO PAULO",
                 "DEINTER 1 - SÃO JOSÉ DOS CAMPOS",
-                "DELEGACIA DE INVESTIGAÇÕES GERAIS DE JACAREÍ"
+                "DIG (INVESTIGAÇÕES GERAIS)"
             ];
 
             headerLines.forEach((line, index) => {
@@ -99,11 +99,7 @@ export const generateWarrantPDF = async (
             doc.setTextColor(...COLORS.PRIMARY);
             doc.text("DOSSIÊ OPERACIONAL TÁTICO", pageWidth / 2, y, { align: 'center' });
 
-            doc.setFontSize(7);
-            doc.setTextColor(100, 100, 100);
-            doc.text(`REFERÊNCIA: ${data.number || 'N/A'}`, pageWidth / 2, y + 4, { align: 'center' });
-
-            y += 10;
+            y += 5;
 
         } catch (e) {
             console.error("Header error", e);
@@ -161,7 +157,7 @@ export const generateWarrantPDF = async (
         let riskColor = COLORS.RISK.NORMAL;
         try {
             if (data.tacticalSummary) {
-                const intel = JSON.parse(data.tacticalSummary);
+                const intel = JSON.parse(data.tacticalSummary || '{}');
                 riskLevel = (intel.risk || 'NORMAL').toUpperCase();
                 if (riskLevel.includes('ALTO')) riskColor = COLORS.RISK.HIGH;
                 else if (riskLevel.includes('MÉDIO') || riskLevel.includes('MEDIO')) riskColor = COLORS.RISK.MEDIUM;
@@ -196,7 +192,7 @@ export const generateWarrantPDF = async (
             infoY += 6;
         });
 
-        y += photoH + 15;
+        y += photoH + 5;
 
         // --- DATA SECTIONS ---
         const drawFields = (fields: [string, string][]) => {
@@ -235,7 +231,7 @@ export const generateWarrantPDF = async (
             ["Regime Prisional", data.regime || "N/A"],
             ["Data de Expedição", formatDate(data.issueDate)],
             ["Data de Validade", formatDate(data.expirationDate)],
-            ["Órgão Expedidor", data.location || "-"]
+            ["Órgão Expedidor", data.issuingCourt || "-"]
         ]);
         y += 5;
 
@@ -254,7 +250,7 @@ export const generateWarrantPDF = async (
         // Tactical Summary Expansion
         try {
             if (data.tacticalSummary) {
-                const intel = JSON.parse(data.tacticalSummary);
+                const intel = JSON.parse(data.tacticalSummary || '{}');
                 if (intel.entities?.length) {
                     intelRows.push(["Alvos Relacionados", intel.entities.map((e: any) => `${e.name} (${e.role})`).join('; ')]);
                 }
@@ -270,7 +266,7 @@ export const generateWarrantPDF = async (
         // --- ACTION PLAN (Distinct Styling) ---
         try {
             if (data.tacticalSummary) {
-                const intel = JSON.parse(data.tacticalSummary);
+                const intel = JSON.parse(data.tacticalSummary || '{}');
                 if (intel.checklist?.length) {
                     drawSectionHeader("Plano de Ação e Diretrizes Operacionais");
                     intel.checklist.forEach((item: any) => {
