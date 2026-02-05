@@ -1723,7 +1723,7 @@ Equipe de Capturas - DIG / PCSP
                                     )}
                                 </div>
                                 <input
-                                    className="text-2xl font-black text-white leading-tight uppercase bg-transparent border-none outline-none focus:ring-1 focus:ring-primary/40 rounded-lg px-2 -ml-2 w-full transition-all group-hover:text-primary placeholder:text-white/20"
+                                    className="text-2xl font-black text-white leading-tight uppercase bg-transparent border-none outline-none focus:ring-1 focus:ring-primary/40 rounded-lg px-2 -ml-2 w-full transition-all hover:text-secondary placeholder:text-white/20"
                                     value={localData.name}
                                     onChange={e => handleFieldChange('name', e.target.value)}
                                     placeholder="NOME DO ALVO"
@@ -1763,12 +1763,12 @@ Equipe de Capturas - DIG / PCSP
                                     </select>
                                 </div>
                                 <div className="bg-background-light dark:bg-white/5 border border-border-light dark:border-white/5 p-2 rounded-xl text-center">
-                                    <p className="text-[9px] uppercase font-bold text-text-secondary-light dark:text-text-muted mb-0.5 tracking-tighter">Idade Captura</p>
-                                    <p className="text-xs font-black text-text-light dark:text-white">{localData.age || 'N/I'}</p>
+                                    <p className="text-[9px] uppercase font-bold text-text-secondary-light dark:text-gray-400 mb-0.5 tracking-tighter">Idade Captura</p>
+                                    <p className="text-xs font-black text-white">{localData.age || 'N/I'}</p>
                                 </div>
                                 <div className="bg-background-light dark:bg-white/5 border border-border-light dark:border-white/5 p-2 rounded-xl text-center">
-                                    <p className="text-[9px] uppercase font-bold text-text-secondary-light dark:text-text-muted mb-0.5 tracking-tighter">Expedição</p>
-                                    <p className="text-xs font-black text-text-light dark:text-white font-mono">{localData.issueDate || 'N/I'}</p>
+                                    <p className="text-[9px] uppercase font-bold text-text-secondary-light dark:text-gray-400 mb-0.5 tracking-tighter">Expedição</p>
+                                    <p className="text-xs font-black text-white font-mono">{localData.issueDate || 'N/I'}</p>
                                 </div>
                             </div>
 
@@ -1904,9 +1904,9 @@ Equipe de Capturas - DIG / PCSP
                                         href={`https://www.google.com/maps/search/?api=1&query=${localData.latitude},${localData.longitude}`}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="flex-1 bg-background-light dark:bg-white/5 hover:bg-black/5 dark:hover:bg-white/10 border border-border-light dark:border-white/10 rounded-xl py-3 text-[10px] font-black uppercase flex items-center justify-center gap-2 transition-all active:scale-95 text-text-light dark:text-white"
+                                        className="flex-1 bg-white/5 hover:bg-white/15 border border-white/10 rounded-xl py-3 text-[10px] font-black uppercase flex items-center justify-center gap-2 transition-all active:scale-95 text-white shadow-sm"
                                     >
-                                        <MapIcon size={14} /> Abrir no Mapa
+                                        <MapIcon size={14} className="text-secondary" /> <span>Abrir no Mapa</span>
                                     </a>
                                     <button
                                         onClick={() => toggleRouteWarrant(data.id)}
