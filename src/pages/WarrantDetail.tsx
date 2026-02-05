@@ -118,7 +118,8 @@ const WarrantDetail = () => {
         aiInstructions: ''
     });
     const [isGeneratingAiReport, setIsGeneratingAiReport] = useState(false);
-    const [isIfoodReportModalOpen, setIsIfoodReportModalOpen] = useState(false);
+    const [isGeneratingAiReport, setIsGeneratingAiReport] = useState(false);
+    const [activeReportType, setActiveReportType] = useState<'ifood' | 'uber' | null>(null);
 
     const data = useMemo(() => warrants.find(w => w.id === id), [warrants, id]);
 
@@ -2284,12 +2285,20 @@ Equipe de Capturas - DIG / PCSP
                                     >
                                         <FileText size={14} /> Gerar Ofício Padrão
                                     </button>
-                                    <button
-                                        onClick={() => setIsIfoodReportModalOpen(true)}
-                                        className="bg-red-600 hover:bg-red-700 text-white px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest shadow-lg shadow-red-900/20 flex items-center gap-2 transition-all active:scale-95 border border-red-500/30"
-                                    >
-                                        <Bot size={16} /> Agente iFood & Uber
-                                    </button>
+                                    <div className="flex gap-2">
+                                        <button
+                                            onClick={() => setActiveReportType('ifood')}
+                                            className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-red-900/20 flex items-center gap-2 transition-all active:scale-95 border border-red-500/30"
+                                        >
+                                            <Bike size={14} /> Ofício iFood
+                                        </button>
+                                        <button
+                                            onClick={() => setActiveReportType('uber')}
+                                            className="bg-cyan-600 hover:bg-cyan-700 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-cyan-900/20 flex items-center gap-2 transition-all active:scale-95 border border-cyan-500/30"
+                                        >
+                                            <Car size={14} /> Ofício Uber
+                                        </button>
+                                    </div>
 
                                 </div>
 
@@ -2817,11 +2826,12 @@ Equipe de Capturas - DIG / PCSP
                     )
                 }
             </div>
-            {isIfoodReportModalOpen && data && (
+            {activeReportType && data && (
                 <IfoodReportModal
-                    isOpen={isIfoodReportModalOpen}
-                    onClose={() => setIsIfoodReportModalOpen(false)}
+                    isOpen={!!activeReportType}
+                    onClose={() => setActiveReportType(null)}
                     warrant={data}
+                    type={activeReportType}
                 />
             )}
         </div >
