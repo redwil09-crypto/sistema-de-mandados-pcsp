@@ -5,14 +5,18 @@
 @layer base {
   body {
     @apply bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark antialiased;
-    background-color: #d4d4d8;
-    background-image: repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(0, 0, 0, 0.03) 10px, rgba(0, 0, 0, 0.03) 20px);
+    background-color: #475569;
+    /* Slate 600 - Deep Mid Tone */
+    background-image:
+      radial-gradient(circle at 50% 0%, rgba(99, 102, 241, 0.25) 0%, rgba(34, 211, 238, 0.1) 50%, transparent 90%),
+      linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+    background-size: 100% 100%, 40px 40px, 40px 40px;
     background-attachment: fixed;
   }
 
   .dark body {
-    background-color: #000000;
-    /* Pure Black as requested fallback */
+    background-color: #020617;
     background-image: none;
   }
 }
@@ -56,23 +60,24 @@
 
 /* Components - using standard CSS to avoid parser issues */
 .neon-card {
-  background-color: #262626;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  @apply bg-surface-light dark:bg-slate-900 border border-neon-purple/30 dark:border-neon-purple/20 shadow-soft transition-all duration-300;
   border-radius: 0.75rem;
-  transition: all 0.2s;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
 }
 
 .neon-card:hover {
-  border-color: rgba(64, 64, 64, 0.4);
-  background-color: #404040;
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
+  @apply border-neon-purple dark:border-neon-purple/50 shadow-neon-purple transform -translate-y-1;
 }
 
 .glass-morphism {
-  background-color: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  @apply bg-slate-400/30 dark:bg-slate-900/80 backdrop-blur-xl border border-neon-purple/30 dark:border-neon-purple/20 shadow-glass;
+}
+
+.border-neon-purple-tactic {
+  @apply border border-neon-purple/50 shadow-neon-purple-tactic backdrop-blur-md;
+}
+
+.border-neon-purple-active {
+  @apply border border-neon-purple shadow-neon-purple;
 }
 
 /* Cyber Button Style - Futuristic */
@@ -136,7 +141,5 @@
 }
 
 ::selection {
-  background-color: rgba(34, 211, 238, 0.15);
-  /* Cyan 400 with lower opacity */
-  color: #ffffff;
+  @apply bg-indigo-600 text-white;
 }
