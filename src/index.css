@@ -141,5 +141,5 @@
 }
 
 ::selection {
-  @apply bg-neon-purple/30 text-white;
+  @apply bg-indigo-600 text-white;
 }

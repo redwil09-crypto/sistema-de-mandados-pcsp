@@ -194,10 +194,15 @@ export const generateWarrantPDF = async (
             doc.setFont('helvetica', 'bold');
             doc.setTextColor(...COLORS.SECONDARY);
             doc.text(`${label}:`, infoX, infoY);
+
             doc.setFont('helvetica', 'bold');
             doc.setTextColor(...COLORS.PRIMARY);
-            doc.text(String(value).toUpperCase(), infoX + 30, infoY);
-            infoY += 6;
+
+            const maxValWidth = pageWidth - margin - (infoX + 30);
+            const splitVal = doc.splitTextToSize(String(value).toUpperCase(), maxValWidth);
+            doc.text(splitVal, infoX + 30, infoY);
+
+            infoY += (splitVal.length * 5);
         });
 
         y += photoH + 5;
