@@ -5,13 +5,13 @@
 @layer base {
   body {
     @apply bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark antialiased;
-    background-color: #e2e8f0;
-    /* Slate 200 - 50% Mid Tone */
+    background-color: #475569;
+    /* Slate 600 - Deep Mid Tone */
     background-image:
-      radial-gradient(circle at 50% 0%, rgba(6, 182, 212, 0.15) 0%, transparent 75%),
-      linear-gradient(rgba(30, 41, 59, 0.02) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(30, 41, 59, 0.02) 1px, transparent 1px);
-    background-size: 100% 100%, 40px 40px, 40px 40px;
+      radial-gradient(circle at 50% 0%, rgba(34, 211, 238, 0.2) 0%, transparent 85%),
+      linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+    background-size: 100% 100%, 30px 30px, 30px 30px;
     background-attachment: fixed;
   }
 
@@ -69,7 +69,7 @@
 }
 
 .glass-morphism {
-  @apply bg-white/40 dark:bg-slate-900/80 backdrop-blur-xl border border-white/30 dark:border-white/5 shadow-glass;
+  @apply bg-slate-400/30 dark:bg-slate-900/80 backdrop-blur-xl border border-white/10 dark:border-white/5 shadow-glass;
 }
 
 /* Cyber Button Style - Futuristic */
