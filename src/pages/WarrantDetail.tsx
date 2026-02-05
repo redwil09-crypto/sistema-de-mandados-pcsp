@@ -1,5 +1,6 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useParams, useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { jsPDF } from 'jspdf';
 import {
@@ -1619,42 +1620,45 @@ Equipe de Capturas - DIG / PCSP
             <Header title="Dossiê Tático" back onBack={handleBack} showHome />
 
             {/* Tactical Action Dock (Floating - Matching Home Styles - Compact) */}
-            <div className="fixed bottom-4 left-4 right-4 max-w-xl mx-auto z-50 rounded-2xl border border-white/5 bg-surface-dark/80 backdrop-blur-lg shadow-glass pb-safe">
-                <div className="flex h-14 w-full items-center justify-center gap-8 px-2">
-                    <Link to="/" className="relative flex flex-col items-center justify-center gap-1 w-12 h-12 rounded-xl transition-all text-text-secondary-dark hover:text-text-dark hover:bg-white/5">
-                        <Home size={18} strokeWidth={2} className="relative z-10" />
-                        <span className="text-[8px] font-bold relative z-10 font-display">Início</span>
-                    </Link>
+            {createPortal(
+                <div className="fixed bottom-4 left-4 right-4 max-w-xl mx-auto z-[1000] rounded-2xl border border-white/5 bg-surface-dark/80 backdrop-blur-lg shadow-glass pb-safe">
+                    <div className="flex h-14 w-full items-center justify-center gap-8 px-2">
+                        <Link to="/" className="relative flex flex-col items-center justify-center gap-1 w-12 h-12 rounded-xl transition-all text-text-secondary-dark hover:text-text-dark hover:bg-white/5">
+                            <Home size={18} strokeWidth={2} className="relative z-10" />
+                            <span className="text-[8px] font-bold relative z-10 font-display">Início</span>
+                        </Link>
 
-                    <Link to={`/new-warrant?edit=${data.id}`} className="relative flex flex-col items-center justify-center gap-1 w-12 h-12 rounded-xl transition-all bg-blue-500/10 text-blue-400 border border-blue-500/20 hover:bg-blue-500/20 active:scale-95 shadow-[0_0_15px_rgba(59,130,246,0.15)]">
-                        <Edit size={18} strokeWidth={2} className="relative z-10" />
-                        <span className="text-[8px] font-bold relative z-10 font-display">Ajustar</span>
-                    </Link>
+                        <Link to={`/new-warrant?edit=${data.id}`} className="relative flex flex-col items-center justify-center gap-1 w-12 h-12 rounded-xl transition-all bg-blue-500/10 text-blue-400 border border-blue-500/20 hover:bg-blue-500/20 active:scale-95 shadow-[0_0_15px_rgba(59,130,246,0.15)]">
+                            <Edit size={18} strokeWidth={2} className="relative z-10" />
+                            <span className="text-[8px] font-bold relative z-10 font-display">Ajustar</span>
+                        </Link>
 
-                    <button
-                        onClick={data.status === 'CUMPRIDO' ? handleReopen : handleFinalize}
-                        className={`relative flex flex-col items-center justify-center gap-1 w-12 h-12 rounded-xl transition-all border active:scale-95 ${data.status === 'CUMPRIDO'
-                            ? 'bg-amber-500/10 text-amber-500 border-amber-500/20 hover:bg-amber-500/20 shadow-[0_0_15px_rgba(245,158,11,0.15)]'
-                            : 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20 hover:bg-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.15)]'
-                            }`}
-                    >
-                        {data.status === 'CUMPRIDO' ? <RotateCcw size={18} strokeWidth={2} /> : <CheckCircle size={18} strokeWidth={2} />}
-                        <span className="text-[8px] font-bold relative z-10 font-display">{data.status === 'CUMPRIDO' ? 'Reabrir' : 'Fechar'}</span>
-                    </button>
-
-                    <button onClick={handleDownloadPDF} className="relative flex flex-col items-center justify-center gap-1 w-12 h-12 rounded-xl transition-all bg-white text-slate-900 shadow-xl hover:bg-slate-100 active:scale-95">
-                        <Printer size={18} strokeWidth={2.5} className="relative z-10" />
-                        <span className="text-[8px] font-bold relative z-10 font-display">Dossiê</span>
-                    </button>
-
-                    {isAdmin && (
-                        <button onClick={handleDelete} className="relative flex flex-col items-center justify-center gap-1 w-12 h-12 rounded-xl transition-all bg-rose-500/10 text-rose-500 border border-rose-500/20 hover:bg-rose-500/20 active:scale-95 shadow-[0_0_15px_rgba(244,63,94,0.15)]">
-                            <Trash2 size={18} strokeWidth={2} className="relative z-10" />
-                            <span className="text-[8px] font-bold relative z-10 font-display">Deletar</span>
+                        <button
+                            onClick={data.status === 'CUMPRIDO' ? handleReopen : handleFinalize}
+                            className={`relative flex flex-col items-center justify-center gap-1 w-12 h-12 rounded-xl transition-all border active:scale-95 ${data.status === 'CUMPRIDO'
+                                ? 'bg-amber-500/10 text-amber-500 border-amber-500/20 hover:bg-amber-500/20 shadow-[0_0_15px_rgba(245,158,11,0.15)]'
+                                : 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20 hover:bg-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.15)]'
+                                }`}
+                        >
+                            {data.status === 'CUMPRIDO' ? <RotateCcw size={18} strokeWidth={2} /> : <CheckCircle size={18} strokeWidth={2} />}
+                            <span className="text-[8px] font-bold relative z-10 font-display">{data.status === 'CUMPRIDO' ? 'Reabrir' : 'Fechar'}</span>
                         </button>
-                    )}
-                </div>
-            </div>
+
+                        <button onClick={handleDownloadPDF} className="relative flex flex-col items-center justify-center gap-1 w-12 h-12 rounded-xl transition-all bg-white text-slate-900 shadow-xl hover:bg-slate-100 active:scale-95">
+                            <Printer size={18} strokeWidth={2.5} className="relative z-10" />
+                            <span className="text-[8px] font-bold relative z-10 font-display">Dossiê</span>
+                        </button>
+
+                        {isAdmin && (
+                            <button onClick={handleDelete} className="relative flex flex-col items-center justify-center gap-1 w-12 h-12 rounded-xl transition-all bg-rose-500/10 text-rose-500 border border-rose-500/20 hover:bg-rose-500/20 active:scale-95 shadow-[0_0_15px_rgba(244,63,94,0.15)]">
+                                <Trash2 size={18} strokeWidth={2} className="relative z-10" />
+                                <span className="text-[8px] font-bold relative z-10 font-display">Deletar</span>
+                            </button>
+                        )}
+                    </div>
+                </div>,
+                document.body
+            )}
 
             {/* Main Content Layout */}
             <div className="relative z-10 p-4 space-y-4 max-w-[1600px] mx-auto">
@@ -2640,13 +2644,14 @@ Equipe de Capturas - DIG / PCSP
                     )}
 
                     {/* Sticky Tactical Confirmation Bar */}
-                    {hasChanges && (
-                        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 w-full max-w-sm px-4 p-4 bg-primary/95 backdrop-blur-xl border border-white/20 rounded-2xl z-[60] flex gap-3 animate-in slide-in-from-bottom duration-500 shadow-tactic">
+                    {hasChanges && createPortal(
+                        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 w-full max-w-sm px-4 p-4 bg-primary/95 backdrop-blur-xl border border-white/20 rounded-2xl z-[1001] flex gap-3 animate-in slide-in-from-bottom duration-500 shadow-tactic">
                             <button onClick={handleCancelEdits} className="flex-1 py-4 px-4 rounded-xl font-black text-[10px] uppercase tracking-widest bg-white/10 text-white hover:bg-white/20 transition-colors">Abortar Alterações</button>
                             <button onClick={() => setIsConfirmSaveOpen(true)} className="flex-1 py-4 px-4 rounded-xl font-black text-[10px] uppercase tracking-widest bg-white text-primary shadow-lg hover:shadow-white/20 transition-all flex items-center justify-center gap-2 active:scale-95">
                                 <CheckCircle size={18} /> SINCRONIZAR DADOS
                             </button>
-                        </div>
+                        </div>,
+                        document.body
                     )}
                 </div>
 
