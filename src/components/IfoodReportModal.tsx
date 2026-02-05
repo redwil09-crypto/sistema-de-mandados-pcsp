@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Check, Copy, Download, Loader2, Bot, Bike, Car } from 'lucide-react';
+import { X, Check, Copy, Download, Loader2, Bot, Bike, Car, Hash, FileText } from 'lucide-react';
 import { toast } from 'sonner';
 import { jsPDF } from 'jspdf';
 import { adaptDocumentToTarget } from '../services/geminiService';
@@ -15,7 +15,7 @@ interface IfoodReportModalProps {
 }
 
 const UBER_TEMPLATE = `OFÍCIO
-Ofício: nº.26/CAPT/2025
+Ofício: nº.{{OFFICE_NUMBER}}/CAPT/2025
 Referência: PROC. Nº 0006701-81.2017.8.26.0292
 Natureza: Solicitação de Dados.
 Jacareí, 4 de JUNHO de 2025.
@@ -28,7 +28,7 @@ Ao Ilustríssimo Senhor Responsável
 Empresa UBER.`;
 
 const IFOOD_TEMPLATE = `OFÍCIO
-Ofício: nº.138/CAPT/2025 Referência: PROC. Nº 0000637-73.2022.8.26.0100
+Ofício: nº.{{OFFICE_NUMBER}}/CAPT/2025 Referência: PROC. Nº 0000637-73.2022.8.26.0100
 Natureza: Solicitação de Dados.
 Jacareí, 28 de novembro de 2025.
 ILMO. SENHOR RESPONSÁVEL,
@@ -48,24 +48,37 @@ Empresa iFood.`;
 const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, warrant, type }) => {
     const [generatedText, setGeneratedText] = useState('');
     const [isProcessing, setIsProcessing] = useState(false);
+    const [officeNumber, setOfficeNumber] = useState('');
+    const [step, setStep] = useState<'input' | 'processing' | 'result'>('input');
 
     useEffect(() => {
-        if (isOpen && type) {
-            handleGenerate();
+        if (!isOpen) {
+            setStep('input');
+            setGeneratedText('');
+            setOfficeNumber('');
         }
-    }, [isOpen, type]);
+    }, [isOpen]);
 
     const handleGenerate = async () => {
-        const baseTemplate = type === 'ifood' ? IFOOD_TEMPLATE : UBER_TEMPLATE;
+        if (!officeNumber.trim()) {
+            toast.error("Por favor, informe o número do ofício.");
+            return;
+        }
+
+        const baseTemplate = (type === 'ifood' ? IFOOD_TEMPLATE : UBER_TEMPLATE)
+            .replace('{{OFFICE_NUMBER}}', officeNumber);
+
+        setStep('processing');
         setIsProcessing(true);
-        setGeneratedText('');
 
         try {
             const result = await adaptDocumentToTarget(warrant, baseTemplate);
             setGeneratedText(result || "Erro ao gerar documento.");
+            setStep('result');
         } catch (error) {
             console.error(error);
             toast.error("Erro ao processar com IA.");
+            setStep('input');
         } finally {
             setIsProcessing(false);
         }
@@ -83,7 +96,7 @@ const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, wa
         doc.setFont('times', 'normal');
         doc.setFontSize(12);
         doc.text(splitText, 15, 20);
-        doc.save(`Oficio_${type.toUpperCase()}_${warrant.name.replace(/\s+/g, '_')}.pdf`);
+        doc.save(`Oficio_${type.toUpperCase()}_${officeNumber}_${warrant.name.replace(/\s+/g, '_')}.pdf`);
         toast.success("PDF baixado.");
     };
 
@@ -101,7 +114,7 @@ const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, wa
                         </div>
                         <div>
                             <h2 className="text-lg font-bold text-slate-100 uppercase">Ofício {type.toUpperCase()}</h2>
-                            <p className="text-xs text-slate-400">Escrivão Digital Inteligente</p>
+                            <p className="text-xs text-slate-400">Geração de Documento Oficial</p>
                         </div>
                     </div>
                     <button onClick={onClose} className="p-2 hover:bg-slate-700 rounded-full transition-colors">
@@ -111,21 +124,53 @@ const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, wa
 
                 {/* Content */}
                 <div className="flex-1 overflow-hidden relative flex flex-col p-6 gap-4">
-                    {isProcessing ? (
+
+                    {step === 'input' && (
+                        <div className="flex-1 flex flex-col items-center justify-center gap-6 animate-in fade-in slide-in-from-bottom-4">
+                            <div className="w-20 h-20 bg-indigo-500/10 rounded-full flex items-center justify-center text-indigo-400 border border-indigo-500/20">
+                                <Hash size={40} />
+                            </div>
+                            <div className="text-center">
+                                <h3 className="text-xl font-bold text-white mb-2">Número do Ofício</h3>
+                                <p className="text-slate-400 text-sm">Informe o número sequencial para o documento.</p>
+                            </div>
+                            <div className="w-full max-w-xs scale-110">
+                                <input
+                                    type="text"
+                                    autoFocus
+                                    className="w-full bg-slate-800 border-2 border-slate-700 rounded-xl px-4 py-3 text-center text-2xl font-black text-white outline-none focus:border-indigo-500 transition-all placeholder:text-slate-600"
+                                    placeholder="Ex: 026"
+                                    value={officeNumber}
+                                    onChange={(e) => setOfficeNumber(e.target.value)}
+                                    onKeyDown={(e) => e.key === 'Enter' && handleGenerate()}
+                                />
+                            </div>
+                            <button
+                                onClick={handleGenerate}
+                                className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 rounded-xl font-black uppercase tracking-widest shadow-lg shadow-indigo-900/40 transition-all active:scale-95 flex items-center gap-2"
+                            >
+                                <FileText size={18} /> Iniciar Redação IA
+                            </button>
+                        </div>
+                    )}
+
+                    {step === 'processing' && (
                         <div className="flex-1 flex flex-col items-center justify-center text-center animate-pulse">
                             <Loader2 className="w-12 h-12 text-indigo-500 animate-spin mb-4" />
-                            <h3 className="text-xl font-bold text-white uppercase tracking-tighter">Gerando Ofício Judicial...</h3>
+                            <h3 className="text-xl font-bold text-white uppercase tracking-tighter">Redigindo Ofício Judicial...</h3>
                             <p className="text-slate-400 mt-2 max-w-sm text-sm">
-                                Substituindo dados de {warrant.name} no modelo oficial da {type === 'uber' ? 'Uber' : 'iFood'}.
+                                Substituindo dados de {warrant.name} no modelo {type.toUpperCase()} nº {officeNumber}.
                             </p>
                         </div>
-                    ) : (
+                    )}
+
+                    {step === 'result' && (
                         <>
-                            <div className="flex-1 bg-white text-slate-900 p-8 rounded-lg shadow-inner overflow-y-auto font-serif whitespace-pre-wrap leading-relaxed border-4 border-slate-200 text-sm md:text-base selection:bg-indigo-100">
+                            <div className="flex-1 bg-white text-slate-900 p-8 rounded-lg shadow-inner overflow-y-auto font-serif whitespace-pre-wrap leading-relaxed border-4 border-slate-200 text-sm md:text-base selection:bg-indigo-100 animate-in fade-in zoom-in-95">
                                 {generatedText}
                             </div>
                             <div className="flex justify-between items-center bg-slate-800/80 p-4 rounded-xl border border-slate-700 backdrop-blur">
-                                <p className="text-xs text-slate-400 font-medium italic">Confira os dados antes de proceder.</p>
+                                <p className="text-xs text-slate-400 font-medium italic">Confira os dados antes de assinar.</p>
                                 <div className="flex gap-3">
                                     <button
                                         onClick={handleCopy}
