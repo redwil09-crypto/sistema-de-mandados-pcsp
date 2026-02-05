@@ -1723,7 +1723,7 @@ Equipe de Capturas - DIG / PCSP
                                     )}
                                 </div>
                                 <input
-                                    className="text-2xl font-black text-white leading-tight uppercase bg-transparent border-none outline-none focus:ring-1 focus:ring-primary/40 rounded-lg px-2 -ml-2 w-full transition-all group-hover:text-primary"
+                                    className="text-2xl font-black text-white leading-tight uppercase bg-transparent border-none outline-none focus:ring-1 focus:ring-primary/40 rounded-lg px-2 -ml-2 w-full transition-all group-hover:text-primary placeholder:text-white/20"
                                     value={localData.name}
                                     onChange={e => handleFieldChange('name', e.target.value)}
                                     placeholder="NOME DO ALVO"
@@ -1731,7 +1731,7 @@ Equipe de Capturas - DIG / PCSP
                                 <div className="flex items-center gap-2 mt-1 opacity-70">
                                     <span className="text-sm text-text-secondary-dark font-medium font-mono">PROC. Nº</span>
                                     <input
-                                        className="text-sm text-text-secondary-dark font-medium font-mono bg-transparent border-none outline-none focus:ring-1 focus:ring-primary/40 rounded px-1 transition-all"
+                                        className="text-sm text-white font-medium font-mono bg-transparent border-none outline-none focus:ring-1 focus:ring-primary/40 rounded px-1 transition-all placeholder:text-white/20"
                                         value={localData.number}
                                         onChange={e => handleFieldChange('number', e.target.value)}
                                         placeholder="0000000-00.0000.0.00.0000"
@@ -1743,23 +1743,23 @@ Equipe de Capturas - DIG / PCSP
                                 <div className="bg-background-light dark:bg-white/5 border border-border-light dark:border-white/5 p-2 rounded-xl text-center flex flex-col items-center group/field">
                                     <p className="text-[9px] uppercase font-bold text-text-secondary-light dark:text-text-muted mb-0.5 tracking-tighter">Tipo Crime</p>
                                     <select
-                                        className="w-full bg-transparent border-none text-xs font-black text-text-light dark:text-white outline-none text-center cursor-pointer appearance-none hover:text-primary transition-colors"
+                                        className="w-full bg-transparent border-none text-xs font-black text-white outline-none text-center cursor-pointer appearance-none hover:text-primary transition-colors"
                                         value={localData.crime || ''}
                                         onChange={e => handleFieldChange('crime', e.target.value)}
                                     >
-                                        <option value="" className="bg-surface-dark">Selecione...</option>
-                                        {CRIME_OPTIONS.map(opt => <option key={opt} value={opt} className="bg-surface-dark">{opt}</option>)}
+                                        <option value="" className="bg-surface-dark text-white">Selecione...</option>
+                                        {CRIME_OPTIONS.map(opt => <option key={opt} value={opt} className="bg-surface-dark text-white">{opt}</option>)}
                                     </select>
                                 </div>
                                 <div className="bg-background-light dark:bg-white/5 border border-border-light dark:border-white/5 p-2 rounded-xl text-center flex flex-col items-center group/field">
                                     <p className="text-[9px] uppercase font-bold text-text-secondary-light dark:text-text-muted mb-0.5 tracking-tighter">Regime Prisional</p>
                                     <select
-                                        className="w-full bg-transparent border-none text-xs font-black text-text-light dark:text-white outline-none text-center cursor-pointer appearance-none hover:text-primary transition-colors"
+                                        className="w-full bg-transparent border-none text-xs font-black text-white outline-none text-center cursor-pointer appearance-none hover:text-primary transition-colors"
                                         value={localData.regime || ''}
                                         onChange={e => handleFieldChange('regime', e.target.value)}
                                     >
-                                        <option value="" className="bg-surface-dark">Selecione...</option>
-                                        {REGIME_OPTIONS.map(opt => <option key={opt} value={opt} className="bg-surface-dark">{opt}</option>)}
+                                        <option value="" className="bg-surface-dark text-white">Selecione...</option>
+                                        {REGIME_OPTIONS.map(opt => <option key={opt} value={opt} className="bg-surface-dark text-white">{opt}</option>)}
                                     </select>
                                 </div>
                                 <div className="bg-background-light dark:bg-white/5 border border-border-light dark:border-white/5 p-2 rounded-xl text-center">
