@@ -22,6 +22,7 @@ import { formatDate, getStatusColor, maskDate } from '../utils/helpers';
 import { Warrant } from '../types';
 import { geocodeAddress } from '../services/geocodingService';
 import { generateWarrantPDF, generateIfoodOfficePDF } from '../services/pdfReportService';
+import IfoodReportModal from '../components/IfoodReportModal';
 import { analyzeRawDiligence, generateReportBody, analyzeDocumentStrategy, askAssistantStrategy, mergeIntelligence } from '../services/geminiService';
 import { extractRawTextFromPdf, extractFromText } from '../pdfExtractor';
 import { CRIME_OPTIONS, REGIME_OPTIONS } from '../data/constants';
@@ -117,6 +118,7 @@ const WarrantDetail = () => {
         aiInstructions: ''
     });
     const [isGeneratingAiReport, setIsGeneratingAiReport] = useState(false);
+    const [isIfoodReportModalOpen, setIsIfoodReportModalOpen] = useState(false);
 
     const data = useMemo(() => warrants.find(w => w.id === id), [warrants, id]);
 
@@ -2276,8 +2278,15 @@ Equipe de Capturas - DIG / PCSP
                                         onClick={handleGenerateIfoodOffice}
                                         className="bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-tactic flex items-center gap-2 transition-all active:scale-95"
                                     >
-                                        <FileText size={14} /> Gerar Ofício
+                                        <FileText size={14} /> Gerar Ofício Padrão
                                     </button>
+                                    <button
+                                        onClick={() => setIsIfoodReportModalOpen(true)}
+                                        className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-tactic flex items-center gap-2 transition-all active:scale-95 ml-2"
+                                    >
+                                        <Bot size={14} /> Agente Especialista iFood
+                                    </button>
+
                                 </div>
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -2803,7 +2812,14 @@ Equipe de Capturas - DIG / PCSP
                         </div>
                     )
                 }
-            </div >
+            </div>
+            {isIfoodReportModalOpen && data && (
+                <IfoodReportModal
+                    isOpen={isIfoodReportModalOpen}
+                    onClose={() => setIsIfoodReportModalOpen(false)}
+                    warrant={data}
+                />
+            )}
         </div >
     );
 };

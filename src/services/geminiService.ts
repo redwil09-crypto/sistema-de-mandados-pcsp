@@ -456,3 +456,42 @@ export async function mergeIntelligence(
     }
 }
 
+
+export async function adaptDocumentToTarget(warrantData: any, templateText: string) {
+    if (!(await isGeminiEnabled())) return "Erro: IA não habilitada ou sem chave.";
+
+    const prompt = `
+        VOCÊ É UM ESCRIVÃO DE POLÍCIA DE ELITE (AGENTE ESPECIALISTA IFOOD).
+        
+        SUA MISSÃO:
+        1. Ler o "MODELO/TEXTO BASE" abaixo (que pode conter dados de OUTRA pessoa ou lugares genéricos).
+        2. REESCREVER o documento INTEIRO, substituindo TODAS as informações variáveis pelos DADOS DO NOVO ALVO informado abaixo.
+        3. Preservar estritamente o tom formal, jurídico e institucional.
+        4. Onde não houver dado no sistema para preencher um campo do modelo (ex: nome da mãe, telefone), OMITE O CAMPO ou use "NÃO INFORMADO" de forma discreta, MAS NÃO INVENTE DADOS.
+
+        DADOS DO NOVO ALVO (USAR ESTES):
+         Nome: ${warrantData.name}
+         RG: ${warrantData.rg || 'Não informado'}
+         CPF: ${warrantData.cpf || 'Não informado'}
+         Endereço: ${warrantData.location || 'Não informado'}
+         Crime: ${warrantData.crime || 'Não informado'}
+         Processo: ${warrantData.number || 'Não informado'}
+         Vara/Fórum: ${warrantData.issuingCourt || 'Não informado'}
+         Filiação: ${warrantData.motherName || 'Não informado'}
+
+        MODELO/TEXTO BASE (IGNORAR OS DADOS PESSOAIS DAQUI, USAR APENAS A ESTRUTURA):
+        """
+        ${templateText}
+        """
+
+        RESPOSTA (APENAS O TEXTO DO DOCUMENTO REVISADO, SEM COMENTÁRIOS):
+    `;
+
+    try {
+        const text = await tryGenerateContent(prompt);
+        return text.trim();
+    } catch (error: any) {
+        console.error("Erro na Adaptação de Documento:", error);
+        return `Erro ao processar documento: ${error.message}`;
+    }
+}
