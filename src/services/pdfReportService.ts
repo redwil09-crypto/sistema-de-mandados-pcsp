@@ -83,7 +83,7 @@ export const generateWarrantPDF = async (
                 "SECRETARIA DA SEGURANÇA PÚBLICA",
                 "POLÍCIA CIVIL DO ESTADO DE SÃO PAULO",
                 "DEINTER 1 - SÃO JOSÉ DOS CAMPOS",
-                "SECCIONAL DE JACAREÍ - DIG (INVESTIGAÇÕES GERAIS)"
+                "SECCIONAL DE JACAREÍ - DIG (DELEGACIA DE INVESTIGAÇÕES GERAIS)"
             ];
 
             headerLines.forEach((line, index) => {
