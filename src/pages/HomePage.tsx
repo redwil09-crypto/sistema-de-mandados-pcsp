@@ -151,8 +151,8 @@ const HomePage = ({ isDark, toggleTheme }: HomePageProps) => {
 
             <main className="px-4 py-2 space-y-6">
                 <div className="grid grid-cols-2 gap-3">
-                    <Link to="/warrant-list" className="group flex flex-col gap-3 rounded-2xl bg-surface-light p-4 shadow-md transition-all active:scale-[0.98] dark:bg-surface-dark border border-transparent hover:border-primary/20">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-primary dark:bg-primary/10">
+                    <Link to="/warrant-list" className="group flex flex-col gap-3 rounded-2xl bg-surface-light p-4 shadow-md transition-all active:scale-[0.98] dark:bg-surface-dark border border-transparent hover:border-blue-400 hover:shadow-neon-blue">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-primary dark:bg-primary/10 group-hover:shadow-[0_0_15px_rgba(30,64,175,0.3)] transition-shadow">
                             <Gavel size={24} />
                         </div>
                         <div>
@@ -161,8 +161,8 @@ const HomePage = ({ isDark, toggleTheme }: HomePageProps) => {
                         </div>
                     </Link>
 
-                    <Link to="/minor-search" className="group flex flex-col gap-3 rounded-2xl bg-surface-light p-4 shadow-md transition-all active:scale-[0.98] dark:bg-surface-dark border border-transparent hover:border-orange-500/20">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-50 text-orange-600 dark:bg-orange-500/10 dark:text-orange-500">
+                    <Link to="/minor-search" className="group flex flex-col gap-3 rounded-2xl bg-surface-light p-4 shadow-md transition-all active:scale-[0.98] dark:bg-surface-dark border border-transparent hover:border-orange-500 hover:shadow-neon-orange">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-50 text-orange-600 dark:bg-orange-500/10 dark:text-orange-500 group-hover:shadow-[0_0_15px_rgba(249,115,22,0.3)] transition-shadow">
                             <Baby size={24} />
                         </div>
                         <div>
@@ -171,8 +171,8 @@ const HomePage = ({ isDark, toggleTheme }: HomePageProps) => {
                         </div>
                     </Link>
 
-                    <Link to="/new-warrant" className="group flex flex-col gap-3 rounded-2xl bg-surface-light p-4 shadow-md transition-all active:scale-[0.98] dark:bg-surface-dark border border-transparent hover:border-green-500/20">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-green-50 text-green-600 dark:bg-green-500/10 dark:text-green-500">
+                    <Link to="/new-warrant" className="group flex flex-col gap-3 rounded-2xl bg-surface-light p-4 shadow-md transition-all active:scale-[0.98] dark:bg-surface-dark border border-transparent hover:border-green-500 hover:shadow-neon-green">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-green-50 text-green-600 dark:bg-green-500/10 dark:text-green-500 group-hover:shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-shadow">
                             <FilePlus size={24} />
                         </div>
                         <div>
@@ -193,13 +193,13 @@ const HomePage = ({ isDark, toggleTheme }: HomePageProps) => {
                         </div>
                     </Link>
 
-                    <Link to="/route-planner" className="group flex flex-col gap-3 rounded-2xl bg-surface-light p-4 shadow-md transition-all active:scale-[0.98] dark:bg-surface-dark border border-transparent hover:border-indigo-500/20 relative">
+                    <Link to="/route-planner" className="group flex flex-col gap-3 rounded-2xl bg-surface-light p-4 shadow-md transition-all active:scale-[0.98] dark:bg-surface-dark border border-transparent hover:border-indigo-500 hover:shadow-neon-indigo relative">
                         {routeWarrants.length > 0 && (
                             <span className="absolute top-3 right-3 flex h-5 w-5 items-center justify-center rounded-full bg-indigo-600 text-[10px] font-bold text-white shadow-lg animate-bounce">
                                 {routeWarrants.length}
                             </span>
                         )}
-                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400 group-hover:shadow-[0_0_15px_rgba(99,102,241,0.3)] transition-shadow">
                             <RouteIcon size={24} />
                         </div>
                         <div>
