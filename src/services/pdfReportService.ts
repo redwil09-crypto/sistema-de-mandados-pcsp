@@ -83,21 +83,21 @@ export const generateWarrantPDF = async (
                 "SECRETARIA DA SEGURANÇA PÚBLICA",
                 "POLÍCIA CIVIL DO ESTADO DE SÃO PAULO",
                 "DEINTER 1 - SÃO JOSÉ DOS CAMPOS",
-                "SECCIONAL DE JACAREÍ - DIG"
+                "SECCIONAL DE JACAREÍ - DIG (INVESTIGAÇÕES GERAIS)"
             ];
 
             headerLines.forEach((line, index) => {
                 doc.text(line, textX, y + 3 + (index * 4));
             });
 
-            // --- TITLE ON THE RIGHT (REDUCED SIZE) ---
-            doc.setFontSize(12);
+            // --- TITLE ON THE RIGHT (AS REQUESTED TO REVERT) ---
+            doc.setFontSize(16);
             doc.setTextColor(...COLORS.PRIMARY);
-            doc.text("DOSSIÊ OPERACIONAL TÁTICO", pageWidth - margin, y + 8, { align: 'right' });
+            doc.text("DOSSIÊ OPERACIONAL TÁTICO", pageWidth - margin, y + 10, { align: 'right' });
 
-            doc.setFontSize(7);
+            doc.setFontSize(9);
             doc.setTextColor(...COLORS.SECONDARY);
-            doc.text(`REF: ${data.number}`, pageWidth - margin, y + 12, { align: 'right' });
+            doc.text(`REF: ${data.number}`, pageWidth - margin, y + 15, { align: 'right' });
 
             doc.setDrawColor(...COLORS.BORDER);
             doc.setLineWidth(0.1);
@@ -149,16 +149,11 @@ export const generateWarrantPDF = async (
         // Status Badge
         const statusColor = data.status === 'CUMPRIDO' ? COLORS.RISK.LOW : COLORS.RISK.HIGH;
         doc.setFillColor(...statusColor);
-
-        // Dynamic width for regime text
-        const regimeText = (data.regime || 'N/A').toUpperCase();
-        const regimeWidth = Math.max(35, doc.getTextWidth(regimeText) + 10);
-
-        doc.roundedRect(badgeX, infoY, regimeWidth, 6, 1, 1, 'F');
+        doc.roundedRect(badgeX, infoY, 35, 6, 1, 1, 'F');
         doc.setTextColor(...COLORS.WHITE);
         doc.setFontSize(8);
-        doc.text(regimeText, badgeX + (regimeWidth / 2), infoY + 4.2, { align: 'center' });
-        badgeX += regimeWidth + 5;
+        doc.text(data.status || 'EM ABERTO', badgeX + 17.5, infoY + 4.2, { align: 'center' });
+        badgeX += 40;
 
         // Tactical Intelligence Parsing for Risk
         let riskLevel = 'NORMAL';
