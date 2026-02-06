@@ -14,7 +14,7 @@ import {
 import { toast } from 'sonner';
 import { supabase } from '../supabaseClient';
 import { uploadFile, getPublicUrl } from '../supabaseStorage';
-import Header from '../components/Header';
+// Header removed (replaced by FloatingDock)
 import ConfirmModal from '../components/ConfirmModal';
 import VoiceInput from '../components/VoiceInput';
 import WarrantAuditLog from '../components/WarrantAuditLog';
