@@ -51,10 +51,10 @@ const BottomNav = ({ routeCount = 0 }: BottomNavProps) => {
     return (
         <nav className="fixed bottom-4 left-4 right-4 z-50 rounded-2xl border border-border-light dark:border-white/5 bg-surface-light dark:bg-surface-dark/80 backdrop-blur-lg shadow-glass pb-safe">
             <div className="flex h-16 w-full items-center justify-center gap-8 px-2">
-                <Link to="/" className={`relative flex flex-col items-center justify-center gap-1 w-14 h-14 rounded-xl transition-all ${isActive('/') ? 'text-primary' : 'text-text-secondary-light dark:text-text-secondary-dark hover:text-text-light dark:hover:text-text-dark hover:bg-black/5 dark:hover:bg-white/5'}`}>
-                    {isActive('/') && <span className="absolute inset-0 bg-primary/10 rounded-xl shadow-[0_0_15px_rgba(15,23,42,0.1)] dark:shadow-[0_0_15px_rgba(99,102,241,0.3)]"></span>}
-                    <Home size={20} strokeWidth={isActive('/') ? 2.5 : 2} className="relative z-10" />
+                <Link to="/" className={`relative flex flex-col items-center justify-center gap-1 w-14 h-14 rounded-xl transition-all ${isActive('/') ? 'text-white bg-indigo-500/20 shadow-[0_0_20px_rgba(99,102,241,0.3)] border border-indigo-500/30' : 'text-indigo-400 hover:text-white hover:bg-white/5'}`}>
+                    <Home size={22} strokeWidth={isActive('/') ? 2.5 : 2} className="relative z-10" />
                     <span className="text-[9px] font-bold relative z-10 font-display">Início</span>
+                    {isActive('/') && <div className="absolute inset-0 rounded-xl bg-indigo-500/10 blur-sm"></div>}
                 </Link>
 
                 <Link to="/advanced-search" className={`relative flex flex-col items-center justify-center gap-1 w-14 h-14 rounded-xl transition-all ${isActive('/advanced-search') ? 'text-primary' : 'text-text-secondary-light dark:text-text-secondary-dark hover:text-text-light dark:hover:text-text-dark hover:bg-black/5 dark:hover:bg-white/5'}`}>
