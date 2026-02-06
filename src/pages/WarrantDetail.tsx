@@ -2638,29 +2638,7 @@ Equipe de Capturas - DIG / PCSP
                     )}
                 </div>
 
-                {/* Tactical Action Dock */}
-                <div className="fixed bottom-0 left-0 right-0 p-4 pb-8 md:pb-8 bg-surface-dark/90 backdrop-blur-2xl border-t border-white/10 z-50 shadow-glass">
-                    <div className="max-w-xl mx-auto flex items-stretch gap-2">
-                        <Link to="/" className="flex-1 flex flex-col items-center justify-center gap-1 py-3 rounded-2xl bg-white/5 text-text-muted hover:bg-white/10 transition-all active:scale-95 border border-white/5">
-                            <Home size={18} /><span className="text-[8px] font-black uppercase tracking-widest">Pátio</span>
-                        </Link>
-                        <Link to={`/new-warrant?edit=${data.id}`} className="flex-1 flex flex-col items-center justify-center gap-1 py-3 rounded-2xl bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition-all active:scale-95 shadow-inner">
-                            <Edit size={18} /><span className="text-[8px] font-black uppercase tracking-widest">Ajustar</span>
-                        </Link>
-                        <button onClick={data.status === 'CUMPRIDO' ? handleReopen : handleFinalize} className={`flex-1 flex flex-col items-center justify-center gap-1 py-3 rounded-2xl border transition-all active:scale-95 shadow-glass ${data.status === 'CUMPRIDO' ? 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20 hover:bg-indigo-500/20' : 'bg-green-500/10 text-green-400 border-green-500/20 hover:bg-green-500/20'}`}>
-                            {data.status === 'CUMPRIDO' ? <RotateCcw size={18} /> : <CheckCircle size={18} />}
-                            <span className="text-[8px] font-black uppercase tracking-widest">{data.status === 'CUMPRIDO' ? 'REABRIR' : 'FECHAR'}</span>
-                        </button>
-                        <button onClick={handleDownloadPDF} className="flex-1 flex flex-col items-center justify-center gap-1 py-3 rounded-2xl bg-white text-primary shadow-tactic hover:shadow-white/20 transition-all active:scale-95">
-                            <Printer size={18} /><span className="text-[8px] font-black uppercase tracking-widest text-primary">Dossiê PDF</span>
-                        </button>
-                        {isAdmin && (
-                            <button onClick={handleDelete} className="flex-1 flex flex-col items-center justify-center gap-1 py-3 rounded-2xl bg-risk-high/10 text-risk-high border border-risk-high/20 hover:bg-risk-high/20 transition-all active:scale-95">
-                                <Trash2 size={18} /><span className="text-[8px] font-black uppercase tracking-widest">Deletar</span>
-                            </button>
-                        )}
-                    </div>
-                </div>
+                {/* Tactical Action Dock (REMOVED - Use FloatingDock instead) */}
 
                 {/* Modals & Overlays */}
                 <ConfirmModal isOpen={isConfirmSaveOpen} onCancel={() => setIsConfirmSaveOpen(false)} onConfirm={handleSaveChanges} title="Sincronizar Protocolo" message="Deseja registrar as alterações no prontuário oficial deste alvo?" confirmText="Sincronizar" cancelText="Abortar" variant="primary" />
