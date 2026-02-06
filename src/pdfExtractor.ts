@@ -1,5 +1,9 @@
 // @ts-ignore
-import pdfWorker from 'pdfjs-dist/build/pdf.worker.mjs?url';
+import * as pdfjsLib from 'pdfjs-dist';
+
+// Configuração robusta do Worker via CDN para evitar erros de build/runtime do Vite
+// Isso previne a "Tela Branca" causada por falha no carregamento do worker local
+pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`;
 
 export interface ExtractedData {
     id: string;
