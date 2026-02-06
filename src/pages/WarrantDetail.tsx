@@ -2,6 +2,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useParams, useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { jsPDF } from 'jspdf';
+import FloatingDock from '../components/FloatingDock'; // REINTEGRADO
 import {
     AlertCircle, User, Gavel, Calendar, MapPin, Map as MapIcon, Home,
     Bike, FileCheck, FileText, Paperclip, Edit,
@@ -22,7 +23,7 @@ import { Warrant } from '../types';
 import { geocodeAddress } from '../services/geocodingService';
 import { generateWarrantPDF, generateIfoodOfficePDF } from '../services/pdfReportService';
 import { analyzeRawDiligence, generateReportBody, analyzeDocumentStrategy, askAssistantStrategy, mergeIntelligence } from '../services/geminiService';
-import { extractRawTextFromPdf, extractFromText } from '../pdfExtractor';
+import { extractPdfData } from '../services/pdfExtractionService'; // RESTORED
 import { CRIME_OPTIONS, REGIME_OPTIONS } from '../data/constants';
 import { useWarrants } from '../contexts/WarrantContext';
 
@@ -808,6 +809,28 @@ Equipe de Capturas - DIG / PCSP
 
                 if (success) {
                     toast.success("Arquivo anexado com sucesso!", { id: toastId });
+
+                    // AUTOMATIC EXTRACTION TRIGGER (RESTORED)
+                    if (file.type === 'application/pdf') {
+                        toast.loading("Extraindo conteúdo para Inteligência...", { id: "extract-load" });
+                        try {
+                            const text = await extractPdfData(file);
+                            if (text && text.length > 50) {
+                                setAnalyzedDocumentText(text);
+                                // Auto-trigger deep analysis
+                                const analysis = await analyzeDocumentStrategy(data, text);
+                                if (analysis) {
+                                    // Save analysis as valid intelligence
+                                    setAiDiligenceResult(analysis);
+                                    toast.success("Documento analisado pela IA! Veja 'Diligência Inteligente'.", { id: "extract-load" });
+                                }
+                            }
+                        } catch (extractErr) {
+                            console.error("Auto-extraction failed", extractErr);
+                            toast.error("Falha na leitura automática do PDF.", { id: "extract-load" });
+                        }
+                    }
+
                 } else {
                     console.error("WarrantDetail: Failed to update database with new attachment");
                     toast.error("Erro ao atualizar dados no banco.", { id: toastId });
@@ -836,7 +859,7 @@ Equipe de Capturas - DIG / PCSP
         try {
             let text = '';
             if (file.type === 'application/pdf') {
-                text = await extractRawTextFromPdf(file);
+                text = await extractPdfData(file);
             } else {
                 text = await file.text();
             }
@@ -1616,7 +1639,14 @@ Equipe de Capturas - DIG / PCSP
                 <div className="absolute inset-0 tactical-glow"></div>
             </div>
 
-            <Header title="Dossiê Tático" back onBack={handleBack} showHome />
+            {/* FLOATING ACTION DOCK (Restaurado) */}
+            <FloatingDock
+                onBack={handleBack} // Botão INÍCIO
+                onPrint={handleDownloadPDF} // Botão IMPRIMIR
+                onFinalize={handleFinalize} // Botão FECHAR
+                onDelete={isAdmin ? () => setIsDeleteConfirmOpen(true) : undefined}
+                onSettings={() => toast.info("Configurações Restauradas")}
+            />
 
             {/* Main Content Layout */}
             <div className="relative z-10 p-4 space-y-4 max-w-[1600px] mx-auto">
