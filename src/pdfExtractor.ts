@@ -1,7 +1,5 @@
 // Imports seguros usando Named Imports para compatibilidade total com Vite/PDF.js v4
 import { getDocument, GlobalWorkerOptions, version } from 'pdfjs-dist';
-// Import estático do Mammoth para evitar erros de resolução dinâmica no Vite build
-import * as mammoth from 'mammoth';
 
 // Configuração do Worker via CDN (estratégia à prova de falhas locais)
 // Usamos o version importado diretamente para garantir match exato
@@ -582,6 +580,7 @@ export const extractPdfData = async (file: File): Promise<ExtractedData> => {
                 throw new Error("Erro interno ao decodificar PDF. O arquivo pode estar corrompido ou ter senha.");
             }
         } else if (fileName.endsWith('.docx')) {
+            const mammoth = await import('mammoth');
             const arrayBuffer = await file.arrayBuffer();
             // @ts-ignore
             const result = await mammoth.extractRawText({ arrayBuffer });
@@ -661,6 +660,7 @@ export const extractRawTextFromPdf = async (file: File): Promise<string> => {
             }
             return fullText;
         } else if (fileName.endsWith('.docx')) {
+            const mammoth = await import('mammoth');
             const arrayBuffer = await file.arrayBuffer();
             // @ts-ignore
             const result = await mammoth.extractRawText({ arrayBuffer });
