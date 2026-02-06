@@ -12,8 +12,10 @@ import { Warrant } from '../types';
 import { CRIME_OPTIONS, REGIME_OPTIONS } from '../data/constants';
 import { uploadFile, getPublicUrl } from '../supabaseStorage';
 import VoiceInput from '../components/VoiceInput';
-import { geocodeAddress } from '../services/geocodingService';
-import { analyzeWarrantData, isGeminiEnabled } from '../services/geminiService';
+
+import { geocodeAddress, fetchAddressSuggestions, GeocodingResult } from '../services/geocodingService';
+import { fetchAddressByCep } from '../services/cepService';
+import { isGeminiEnabled } from '../services/geminiService';
 import { formatDate, maskDate } from '../utils/helpers';
 import { useWarrants } from '../contexts/WarrantContext';
 
@@ -24,6 +26,9 @@ const NewWarrant = () => {
     const editId = searchParams.get('edit');
     const [type, setType] = useState<'prison' | 'search'>('prison');
     const [isUploading, setIsUploading] = useState(false);
+    const [isSearchingCep, setIsSearchingCep] = useState(false);
+    const [suggestions, setSuggestions] = useState<GeocodingResult[]>([]);
+    const [showSuggestions, setShowSuggestions] = useState(false);
 
     // File States
     const [photoFile, setPhotoFile] = useState<File | null>(null);
@@ -56,7 +61,8 @@ const NewWarrant = () => {
         longitude: undefined as number | undefined,
         tacticalSummary: '',
         birthDate: '',
-        age: ''
+        age: '',
+        issuingCourt: ''
     });
 
     const [hasAi, setHasAi] = useState(false);
@@ -65,31 +71,26 @@ const NewWarrant = () => {
         isGeminiEnabled().then(setHasAi);
     }, []);
 
+    // Effect for Address Autocomplete
+    useEffect(() => {
+        const timer = setTimeout(async () => {
+            if (formData.location.length > 3 && showSuggestions) {
+                const results = await fetchAddressSuggestions(formData.location);
+                setSuggestions(results);
+            } else {
+                setSuggestions([]);
+            }
+        }, 500);
+
+        return () => clearTimeout(timer);
+    }, [formData.location, showSuggestions]);
+
     useEffect(() => {
         if (editId && warrants) {
             const existing = warrants.find(w => w.id === editId);
             if (existing) {
-                // Determine type
                 const isSearch = existing.type.toLowerCase().includes('busca');
                 setType(isSearch ? 'search' : 'prison');
-
-                // Helper to format DD/MM/YYYY to YYYY-MM-DD for input[type="date"]
-                const parseDate = (d: string | undefined): string => {
-                    if (!d || d === '-' || d.trim() === '') return '';
-                    // If it's already YYYY-MM-DD
-                    if (d.match(/^\d{4}-\d{2}-\d{2}$/)) return d;
-                    // If it's DD/MM/YYYY
-                    if (d.includes('/')) {
-                        const parts = d.split('/');
-                        if (parts.length === 3) {
-                            const [day, month, year] = parts;
-                            return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
-                        }
-                    }
-                    // Handle ISO strings with time
-                    if (d.includes('T')) return d.split('T')[0];
-                    return d;
-                };
 
                 setFormData({
                     name: existing.name || '',
@@ -113,9 +114,10 @@ const NewWarrant = () => {
                     tags: existing.tags || [],
                     latitude: existing.latitude,
                     longitude: existing.longitude,
-                    tacticalSummary: existing.tacticalSummary ? existing.tacticalSummary.join('\n') : '',
+                    tacticalSummary: existing.tacticalSummary || '',
                     birthDate: formatDate(existing.birthDate),
-                    age: existing.age || ''
+                    age: existing.age || '',
+                    issuingCourt: existing.issuingCourt || ''
                 });
 
                 if (existing.img) {
@@ -144,7 +146,6 @@ const NewWarrant = () => {
         } else {
             setAttachmentsFiles(prev => [...prev, ...files]);
         }
-        // Reset the input value so the same file can be selected again
         e.target.value = '';
     };
 
@@ -174,7 +175,6 @@ const NewWarrant = () => {
         const { name, value } = e.target;
         let finalValue = value;
 
-        // Apply masks for dates
         if (['issueDate', 'entryDate', 'expirationDate', 'dischargeDate', 'birthDate'].includes(name)) {
             finalValue = maskDate(value);
         }
@@ -182,7 +182,17 @@ const NewWarrant = () => {
         setFormData(prev => {
             const newState = { ...prev, [name]: finalValue };
 
-            // Auto-calculate age if birthDate changes
+            if (name === 'location') {
+                const cepMatch = finalValue.match(/\d{5}-?\d{3}/);
+                if (cepMatch) {
+                    const cep = cepMatch[0];
+                    if (cep.replace('-', '').length === 8) {
+                        handleCepLookup(cep);
+                    }
+                }
+                setShowSuggestions(true);
+            }
+
             if (name === 'birthDate') {
                 const birthStr = finalValue;
                 let birth: Date | null = null;
@@ -206,6 +216,46 @@ const NewWarrant = () => {
         });
     };
 
+    const handleCepLookup = async (cep: string) => {
+        setIsSearchingCep(true);
+        try {
+            const addressData = await fetchAddressByCep(cep);
+            if (addressData) {
+                setFormData(prev => ({
+                    ...prev,
+                    location: addressData.fullAddress
+                }));
+                toast.success("Endereço preenchido via CEP");
+                setShowSuggestions(false);
+
+                const geo = await geocodeAddress(addressData.fullAddress);
+                if (geo) {
+                    setFormData(prev => ({
+                        ...prev,
+                        latitude: geo.lat,
+                        longitude: geo.lng
+                    }));
+                }
+            }
+        } catch (err) {
+            console.error("Erro CEP:", err);
+        } finally {
+            setIsSearchingCep(false);
+        }
+    };
+
+    const handleSelectSuggestion = (suggestion: GeocodingResult) => {
+        setFormData(prev => ({
+            ...prev,
+            location: suggestion.displayName,
+            latitude: suggestion.lat,
+            longitude: suggestion.lng
+        }));
+        setSuggestions([]);
+        setShowSuggestions(false);
+        toast.success("Localização selecionada e mapeada!");
+    };
+
     const handleTagToggle = (tag: string) => {
         setFormData(prev => {
             const currentTags = Array.isArray(prev.tags) ? prev.tags : [];
@@ -215,7 +265,6 @@ const NewWarrant = () => {
             return { ...prev, tags: newTags };
         });
     };
-
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -232,7 +281,6 @@ const NewWarrant = () => {
             const warrantId = editId || Date.now().toString();
             let photoUrl = formData.img;
 
-            // 1. Upload Photo if exists
             if (photoFile) {
                 const ext = photoFile.name.split('.').pop();
                 const path = `photos/${warrantId}_${Date.now()}.${ext}`;
@@ -242,57 +290,29 @@ const NewWarrant = () => {
                 }
             }
 
-            // 2. Upload Reports
             const newReportsUrls: string[] = [];
             if (reportsFiles.length > 0) {
                 toast.info(`Enviando ${reportsFiles.length} relatórios...`);
                 for (const file of reportsFiles) {
                     const cleanName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
                     const path = `reports/${warrantId}/${Date.now()}_${cleanName}`;
-                    console.log(`NewWarrant: Uploading report: ${file.name} to ${path}`);
                     const uploadedPath = await uploadFile(file, path);
                     if (uploadedPath) {
                         newReportsUrls.push(getPublicUrl(uploadedPath));
-                        console.log(`NewWarrant: Report uploaded, url: ${getPublicUrl(uploadedPath)}`);
-                    } else {
-                        console.error(`NewWarrant: Failed to upload report: ${file.name}`);
-                        toast.error(`Falha ao subir relatório: ${file.name}`);
                     }
                 }
             }
 
-            // 3. Upload Attachments
             const newAttachmentsUrls: string[] = [];
             if (attachmentsFiles.length > 0) {
                 toast.info(`Enviando ${attachmentsFiles.length} anexos...`);
                 for (const file of attachmentsFiles) {
                     const cleanName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
                     const path = `attachments/${warrantId}/${Date.now()}_${cleanName}`;
-                    console.log(`NewWarrant: Uploading attachment: ${file.name} to ${path}`);
                     const uploadedPath = await uploadFile(file, path);
                     if (uploadedPath) {
                         newAttachmentsUrls.push(getPublicUrl(uploadedPath));
-                        console.log(`NewWarrant: Attachment uploaded, url: ${getPublicUrl(uploadedPath)}`);
-                    } else {
-                        console.error(`NewWarrant: Failed to upload attachment: ${file.name}`);
-                        toast.error(`Falha ao subir anexo: ${file.name}`);
                     }
-                }
-            }
-
-            // 4. Automatic Geocoding
-            let lat: number | undefined = undefined;
-            let lng: number | undefined = undefined;
-            if (formData.location && formData.location.trim().length > 5) {
-                try {
-                    const geoResult = await geocodeAddress(formData.location);
-                    if (geoResult) {
-                        lat = geoResult.lat;
-                        lng = geoResult.lng;
-                        toast.success(`Coordenadas obtidas: ${geoResult.displayName}`, { duration: 3000 });
-                    }
-                } catch (err) {
-                    console.error("Erro geocodificação:", err);
                 }
             }
 
@@ -317,11 +337,12 @@ const NewWarrant = () => {
                 img: photoUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(formData.name)}&background=random&color=fff`,
                 reports: [...(formData.reports || []), ...newReportsUrls],
                 attachments: [...(formData.attachments || []), ...newAttachmentsUrls],
-                latitude: lat || formData.latitude,
-                longitude: lng || formData.longitude,
-                tacticalSummary: formData.tacticalSummary ? formData.tacticalSummary.split('\n').filter(line => line.trim() !== '') : [],
+                latitude: formData.latitude,
+                longitude: formData.longitude,
+                tacticalSummary: formData.tacticalSummary || '',
                 birthDate: formData.birthDate,
-                age: formData.age
+                age: formData.age,
+                issuingCourt: formData.issuingCourt
             };
 
             if (editId) {
@@ -330,7 +351,7 @@ const NewWarrant = () => {
                     toast.success("Mandado atualizado com sucesso!");
                     navigate('/');
                 } else {
-                    toast.error("Falha ao atualizar no servidor. Verifique sua conexão.");
+                    toast.error("Falha ao atualizar no servidor.");
                 }
             } else {
                 const newWarrant: Warrant = {
@@ -343,12 +364,12 @@ const NewWarrant = () => {
                     toast.success("Mandado salvo com sucesso!");
                     navigate('/');
                 } else {
-                    toast.error("Falha ao salvar no servidor. Verifique sua conexão.");
+                    toast.error("Falha ao salvar no servidor.");
                 }
             }
         } catch (error) {
-            console.error("Erro crítico no handleSubmit:", error);
-            toast.error("Ocorreu um erro inesperado ao salvar. Verifique o console.");
+            console.error("Erro no handleSubmit:", error);
+            toast.error("Ocorreu um erro inesperado ao salvar.");
         } finally {
             setIsUploading(false);
         }
@@ -361,12 +382,14 @@ const NewWarrant = () => {
             <div className="p-4 pb-0">
                 <div className="flex bg-surface-light dark:bg-surface-dark p-1 rounded-xl border border-border-light dark:border-border-dark">
                     <button
+                        type="button"
                         onClick={() => setType('prison')}
                         className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${type === 'prison' ? 'bg-primary text-white shadow-sm' : 'text-text-secondary-light dark:text-text-secondary-dark'}`}
                     >
                         Mandado
                     </button>
                     <button
+                        type="button"
                         onClick={() => setType('search')}
                         className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${type === 'search' ? 'bg-primary text-white shadow-sm' : 'text-text-secondary-light dark:text-text-secondary-dark'}`}
                     >
@@ -448,6 +471,10 @@ const NewWarrant = () => {
                         <input name="number" required value={formData.number} onChange={handleChange} type="text" className="w-full rounded-lg border border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark p-2.5 text-sm text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none" placeholder="0000000-00.0000.0.00.0000" />
                     </div>
                     <div>
+                        <label className="block text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark mb-1">Fórum Expedidor</label>
+                        <input name="issuingCourt" value={formData.issuingCourt} onChange={handleChange} type="text" className="w-full rounded-lg border border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark p-2.5 text-sm text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none" placeholder="Ex: Vara Criminal de Jacareí" />
+                    </div>
+                    <div>
                         <label className="block text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark mb-1">Crime / Infração</label>
                         <select
                             name="crime"
@@ -520,20 +547,22 @@ const NewWarrant = () => {
                     </div>
 
                     <div className="p-5 space-y-6">
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-black text-text-secondary-light dark:text-text-dark/50 uppercase tracking-widest px-1">Endereço de Diligência</label>
+                        <div className="space-y-2 relative">
+                            <label className="text-[10px] font-black text-text-secondary-light dark:text-text-secondary-dark/50 uppercase tracking-widest px-1">Endereço de Diligência</label>
                             <div className="flex gap-3 items-center">
                                 <div className="relative flex-1 group">
                                     <input
                                         name="location"
                                         value={formData.location}
                                         onChange={handleChange}
+                                        onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+                                        onFocus={() => formData.location.length > 3 && setShowSuggestions(true)}
                                         type="text"
                                         className="w-full rounded-xl border border-border-light dark:border-border-dark bg-white dark:bg-black/20 p-3.5 text-sm text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none transition-all shadow-sm"
-                                        placeholder="Rua, Número, Bairro, Cidade"
+                                        placeholder="Rua, Número, Bairro, Cidade ou CEP"
                                     />
                                     <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none opacity-20 group-focus-within:opacity-50 transition-opacity">
-                                        <Search size={16} />
+                                        {isSearchingCep ? <RefreshCw size={16} className="animate-spin" /> : <Search size={16} />}
                                     </div>
                                 </div>
                                 <button
@@ -555,6 +584,26 @@ const NewWarrant = () => {
                                     <RefreshCw size={20} />
                                 </button>
                             </div>
+
+                            {showSuggestions && suggestions.length > 0 && (
+                                <div className="absolute z-50 left-0 right-14 mt-1 bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-xl shadow-xl max-h-60 overflow-y-auto animate-in fade-in slide-in-from-top-2">
+                                    {suggestions.map((s, i) => (
+                                        <button
+                                            key={i}
+                                            type="button"
+                                            onClick={() => handleSelectSuggestion(s)}
+                                            className="w-full text-left p-3 hover:bg-primary/5 dark:hover:bg-primary/10 border-b border-border-light/50 dark:border-border-dark/50 last:border-0 flex flex-col gap-0.5"
+                                        >
+                                            <span className="text-sm font-bold text-text-light dark:text-text-dark truncate">
+                                                {s.displayName.split(',')[0]}
+                                            </span>
+                                            <span className="text-[10px] text-text-secondary-light dark:text-text-secondary-dark truncate">
+                                                {s.displayName}
+                                            </span>
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
                         </div>
 
                         <div className="pt-4 border-t border-dashed border-border-light dark:border-border-dark">
@@ -616,7 +665,6 @@ const NewWarrant = () => {
                     </div>
                 </div>
 
-                {/* Investigation (iFood / DIG) */}
                 <div className="bg-surface-light dark:bg-surface-dark p-4 rounded-xl shadow-sm border border-border-light dark:border-border-dark space-y-3">
                     <h3 className="font-bold text-text-light dark:text-text-dark text-sm flex items-center gap-2">
                         <Bike size={16} className="text-primary" /> Investigação
@@ -633,9 +681,7 @@ const NewWarrant = () => {
                     </div>
                 </div>
 
-                {/* Files Section */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Mandado/Ofício/OS Section */}
                     <div className="bg-surface-light dark:bg-surface-dark p-4 rounded-xl shadow-sm border border-border-light dark:border-border-dark space-y-4">
                         <h3 className="font-bold text-text-light dark:text-text-dark text-sm flex items-center gap-2">
                             <Paperclip size={16} className="text-primary" /> Mandado / Ofício / OS
@@ -645,22 +691,8 @@ const NewWarrant = () => {
                                 <div key={`old-att-${idx}`} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-white/5 rounded-xl text-xs border border-border-light dark:border-border-dark group">
                                     <span className="truncate flex-1 font-bold">Documento {idx + 1}</span>
                                     <div className="flex items-center gap-3">
-                                        <a
-                                            href={getPublicUrl(url)}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="text-primary font-black hover:underline p-2 text-xs"
-                                        >
-                                            Ver
-                                        </a>
-                                        <button
-                                            type="button"
-                                            onClick={() => handleRemoveOldFile(idx, 'attachments')}
-                                            className="text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 p-1.5 rounded-lg transition-all"
-                                            title="Excluir"
-                                        >
-                                            <X size={16} />
-                                        </button>
+                                        <a href={getPublicUrl(url)} target="_blank" rel="noopener noreferrer" className="text-primary font-black hover:underline p-2 text-xs">Ver</a>
+                                        <button type="button" onClick={() => handleRemoveOldFile(idx, 'attachments')} className="text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 p-1.5 rounded-lg transition-all" title="Excluir"><X size={16} /></button>
                                     </div>
                                 </div>
                             ))}
@@ -677,7 +709,6 @@ const NewWarrant = () => {
                         </div>
                     </div>
 
-                    {/* Reports Section */}
                     <div className="bg-surface-light dark:bg-surface-dark p-4 rounded-xl shadow-sm border border-border-light dark:border-border-dark space-y-4">
                         <h3 className="font-bold text-text-light dark:text-text-dark text-sm flex items-center gap-2">
                             <FileCheck size={16} className="text-primary" /> Relatórios
@@ -687,22 +718,8 @@ const NewWarrant = () => {
                                 <div key={`old-${idx}`} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-white/5 rounded-xl text-xs border border-border-light dark:border-border-dark group">
                                     <span className="truncate flex-1 font-bold">Relatório {idx + 1}</span>
                                     <div className="flex items-center gap-3">
-                                        <a
-                                            href={getPublicUrl(url)}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="text-primary font-black hover:underline p-2 text-xs"
-                                        >
-                                            Ver
-                                        </a>
-                                        <button
-                                            type="button"
-                                            onClick={() => handleRemoveOldFile(idx, 'reports')}
-                                            className="text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 p-1.5 rounded-lg transition-all"
-                                            title="Excluir"
-                                        >
-                                            <X size={16} />
-                                        </button>
+                                        <a href={getPublicUrl(url)} target="_blank" rel="noopener noreferrer" className="text-primary font-black hover:underline p-2 text-xs">Ver</a>
+                                        <button type="button" onClick={() => handleRemoveOldFile(idx, 'reports')} className="text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 p-1.5 rounded-lg transition-all" title="Excluir"><X size={16} /></button>
                                     </div>
                                 </div>
                             ))}
@@ -720,8 +737,6 @@ const NewWarrant = () => {
                     </div>
                 </div>
 
-
-                {/* Observations */}
                 <div className="bg-surface-light dark:bg-surface-dark p-4 rounded-xl shadow-sm border border-border-light dark:border-border-dark space-y-3">
                     <h3 className="font-bold text-text-light dark:text-text-dark text-sm flex items-center gap-2">
                         <Eye size={16} className="text-primary" /> Observações
@@ -734,44 +749,24 @@ const NewWarrant = () => {
                     </div>
                 </div>
 
-                {/* Priority Selection */}
                 <div className="bg-surface-light dark:bg-surface-dark p-4 rounded-xl shadow-sm border border-border-light dark:border-border-dark space-y-3">
                     <h3 className="font-bold text-text-light dark:text-text-dark text-sm flex items-center gap-2">
                         <AlertTriangle size={16} className="text-primary" /> Prioridade
                     </h3>
                     <div className="flex gap-2">
-                        <button
-                            type="button"
-                            onClick={() => handleTagToggle('Urgente')}
-                            className={`flex-1 py-3 px-2 rounded-xl border-2 font-bold text-xs transition-all flex items-center justify-center gap-1.5 ${formData.tags?.includes('Urgente')
-                                ? 'bg-red-500 border-red-500 text-white shadow-md shadow-red-500/20'
-                                : 'bg-surface-light dark:bg-surface-dark border-border-light dark:border-border-dark text-text-secondary-light dark:text-text-secondary-dark'
-                                }`}
-                        >
+                        <button type="button" onClick={() => handleTagToggle('Urgente')} className={`flex-1 py-3 px-2 rounded-xl border-2 font-bold text-xs transition-all flex items-center justify-center gap-1.5 ${formData.tags?.includes('Urgente') ? 'bg-red-500 border-red-500 text-white shadow-md shadow-red-500/20' : 'bg-surface-light dark:bg-surface-dark border-border-light dark:border-border-dark text-text-secondary-light dark:text-text-secondary-dark'}`}>
                             <Zap size={14} className={formData.tags?.includes('Urgente') ? 'fill-white' : ''} />
                             URGENTE
                         </button>
-                        <button
-                            type="button"
-                            onClick={() => handleTagToggle('Ofício de Cobrança')}
-                            className={`flex-1 py-3 px-2 rounded-xl border-2 font-bold text-xs transition-all flex items-center justify-center gap-1.5 ${formData.tags?.includes('Ofício de Cobrança')
-                                ? 'bg-amber-500 border-amber-500 text-white shadow-md shadow-amber-500/20'
-                                : 'bg-surface-light dark:bg-surface-dark border-border-light dark:border-border-dark text-text-secondary-light dark:text-text-secondary-dark'
-                                }`}
-                        >
+                        <button type="button" onClick={() => handleTagToggle('Ofício de Cobrança')} className={`flex-1 py-3 px-2 rounded-xl border-2 font-bold text-xs transition-all flex items-center justify-center gap-1.5 ${formData.tags?.includes('Ofício de Cobrança') ? 'bg-amber-500 border-amber-500 text-white shadow-md shadow-amber-500/20' : 'bg-surface-light dark:bg-surface-dark border-border-light dark:border-border-dark text-text-secondary-light dark:text-text-secondary-dark'}`}>
                             <Bell size={14} className={formData.tags?.includes('Ofício de Cobrança') ? 'fill-white' : ''} />
                             COBRANÇA
                         </button>
                     </div>
                 </div>
 
-                {/* Submit Button */}
                 <div className="pt-4">
-                    <button
-                        type="submit"
-                        disabled={isUploading}
-                        className={`w-full bg-primary text-white font-bold py-3.5 rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 ${isUploading ? 'opacity-70 cursor-not-allowed' : 'hover:bg-primary-dark active:scale-[0.98]'}`}
-                    >
+                    <button type="submit" disabled={isUploading} className={`w-full bg-primary text-white font-bold py-3.5 rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 ${isUploading ? 'opacity-70 cursor-not-allowed' : 'hover:bg-primary-dark active:scale-[0.98]'}`}>
                         {isUploading ? (
                             <>
                                 <RefreshCw size={20} className="animate-spin" />
@@ -782,7 +777,6 @@ const NewWarrant = () => {
                         )}
                     </button>
                 </div>
-
             </form>
         </div>
     );

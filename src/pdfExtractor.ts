@@ -1,9 +1,7 @@
-import * as pdfjsLib from 'pdfjs-dist';
+// @ts-ignore
+import pdfWorker from 'pdfjs-dist/build/pdf.worker.mjs?url';
 
-// Configure worker using CDN to avoid Vite/Bundler build issues
-pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
-
-interface ExtractedData {
+export interface ExtractedData {
     id: string;
     name: string;
     rg: string;
@@ -20,12 +18,13 @@ interface ExtractedData {
     status: string;
     attachments: string[];
     observations?: string;
-    tacticalSummary?: string[]; // New: Periculosidade/Modus Operandi
+    tacticalSummary?: string;   // New: Periculosidade/Modus Operandi (JSON string)
     autoPriority?: string[];    // New: Sugestão de tags
     searchChecklist?: string[];  // New: Itens para busca
     isDuplicate?: boolean;      // New: Verificação de duplicidade
     birthDate?: string;         // New: Data de Nascimento
     age?: string;               // New: Idade calculada
+    issuingCourt?: string;      // New: Fórum/Vara Expedidora
 }
 
 // Helper functions for parsing
@@ -43,7 +42,8 @@ const extractName = (text: string): string => {
     const patterns = [
         /Nome\s+da\s+Pessoa[:\s]+([a-zA-ZÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑáàâãéèêíïóôõöúçñ\s\-']{5,})/i,
         /MANDADO\s+DE\s+PRISÃO\s+CONTRA[:\s]+([a-zA-ZÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑáàâãéèêíïóôõöúçñ\s\-']{5,})/i,
-        /(?:RÉU\(A\)|RÉU|INVESTIGADO|INDICIADO|QUALIFICADO|AUTOR|REQUERIDO|SENTENCIADO)[:\s]+([a-zA-ZÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑáàâãéèêíïóôõöúçñ\s\-']{5,})/i,
+        /(?:RÉU\(A\)|RÉU|INVESTIGADO|INDICIADO|QUALIFICADO|AUTOR|REQUERIDO|SENTENCIADO|EXECUTADO|ALVO)[:\s]+([a-zA-ZÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑáàâãéèêíïóôõöúçñ\s\-']{5,})/i,
+        /(?:PESSOA A SER PRESA)[:\s]+([a-zA-ZÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑáàâãéèêíïóôõöúçñ\s\-']{5,})/i,
         /NOME[:\s]+([a-zA-ZÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑáàâãéèêíïóôõöúçñ\s\-']{5,})/i,
     ];
 
@@ -148,6 +148,29 @@ const extractBirthDate = (text: string): string => {
     return '';
 };
 
+const extractIssuingCourt = (text: string): string => {
+    const patterns = [
+        /(?:Tribunal de Justiça do Estado de São Paulo|TJSP).*?(?:FORO DE|COMARCA DE|VARA)\s+([a-zA-ZÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑ\s\-]{3,})/i,
+        /(?:FÓRUM|FORO|COMARCA)[:\s]+([a-zA-ZÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑ\s\-]{3,})/i,
+        /([0-9]ª\s+Vara\s+(?:Criminal|Cível|da\s+Família|das\s+Sucessões|do\s+Júri|de\s+Execuções\s+Criminais)[^\n,]*)/i,
+        /(Vara\s+.*?(?:Criminal|Cível|da\s+Família|das\s+Sucessões|do\s+Júri|de\s+Execuções\s+Criminais)[^\n,]*)/i,
+        /Expedido\s+em\s+autos\s+da\s+([0-9]ª\s+Vara\s+[^\n,]*)/i
+    ];
+
+    for (const pattern of patterns) {
+        const match = text.match(pattern);
+        if (match && match[1]) {
+            let court = match[1].trim();
+            // Limpeza básica
+            court = court.split(/\n|\s{2,}/)[0].trim().toUpperCase();
+            if (court.length > 5 && !court.includes('ESTADO DE')) {
+                return court;
+            }
+        }
+    }
+    return '';
+};
+
 const extractDates = (text: string): { issueDate: string; expirationDate: string } => {
     // 1. Tenta extrair Data de Expedição
     const issuePatterns = [
@@ -246,7 +269,7 @@ const extractAddresses = (text: string): string[] => {
     const addresses: string[] = [];
     // Regex ajustada para capturar múltiplas linhas permitindo quebras de linha até encontrar um padrão de parada (ex: duplo enter ou palavras chave)
     // ([^;\n]+(?:[\r\n]+(?![A-ZÀ-Ú][a-zà-ú]+:)[^;\n]+)*) -> Tenta pegar linhas subsequentes que não pareçam ser um novo rótulo "Label:"
-    const pattern = /(?:ENDERE[ÇC]O(?:S)? DO PROCURADO|Endere[çc]o(?:s)? de Dilig[êe]ncia|Resid[êe]ncia|Endere[çc]o(?:s)?(?:\s+do\s+Réu)?|Logradouro)[:\s]+((?:(?![A-ZÀ-Ú][A-ZÀ-Ú\s]+:).)+)/gim;
+    const pattern = /(?:ENDERE[ÇC]O(?:S)? DO PROCURADO|Endere[çc]o(?:s)? de Dilig[êe]ncia|Endere[çc]o(?:\s+Residencial)?|Resid[êe]ncia|Endere[çc]o(?:s)?(?:\s+do\s+Réu)?|Logradouro|Local(?:\s+para)?\s+cumprimento)[:\s]+((?:(?![A-ZÀ-Ú][A-ZÀ-Ú\s]+:).)+)/gim;
 
     const matches = text.matchAll(pattern);
     for (const match of matches) {
@@ -552,19 +575,35 @@ const determineAutoPriority = (text: string, crime: string): string[] => {
 // Main extraction function
 export const extractPdfData = async (file: File): Promise<ExtractedData> => {
     try {
-        const arrayBuffer = await file.arrayBuffer();
-        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-
         let fullText = '';
+        const fileName = file.name.toLowerCase();
 
-        // Extract text from all pages
-        for (let i = 1; i <= pdf.numPages; i++) {
-            const page = await pdf.getPage(i);
-            const textContent = await page.getTextContent();
-            const pageText = textContent.items
-                .map((item: any) => item.str)
-                .join(' ');
-            fullText += pageText + '\n';
+        if (fileName.endsWith('.pdf')) {
+            const pdfjsLib = await import('pdfjs-dist');
+            pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker;
+
+            const arrayBuffer = await file.arrayBuffer();
+            // @ts-ignore
+            const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+
+            // Extract text from all pages
+            for (let i = 1; i <= pdf.numPages; i++) {
+                const page = await pdf.getPage(i);
+                const textContent = await page.getTextContent();
+                const pageText = textContent.items
+                    .map((item: any) => item.str)
+                    .join(' ');
+                fullText += pageText + '\n';
+            }
+        } else if (fileName.endsWith('.docx')) {
+            const mammoth = await import('mammoth');
+            const arrayBuffer = await file.arrayBuffer();
+            // @ts-ignore
+            const result = await mammoth.extractRawText({ arrayBuffer });
+            fullText = result.value;
+        } else {
+            // Fallback for text files or unknown
+            fullText = await file.text();
         }
 
         // Parse extracted text
@@ -578,13 +617,14 @@ export const extractPdfData = async (file: File): Promise<ExtractedData> => {
         const { type, category } = determineMandadoType(fullText);
         const crime = extractCrime(fullText);
         const regime = extractRegime(fullText, category, crime);
-
-        const tacticalSummary = extractTacticalSummary(fullText);
+        const issuingCourt = extractIssuingCourt(fullText);
+        const tacticalSummaryArray = extractTacticalSummary(fullText);
+        const tacticalSummary = JSON.stringify({ risk: 'NORMAL', markers: tacticalSummaryArray });
         const observations = extractObservations(fullText);
 
         // Append tactical summary to observations
-        const fullObservations = tacticalSummary.length > 0
-            ? `${observations} | Atenção: ${tacticalSummary.join(', ')}`
+        const fullObservations = tacticalSummaryArray.length > 0
+            ? `${observations} | Atenção: ${tacticalSummaryArray.join(', ')}`
             : observations;
 
         return {
@@ -608,7 +648,8 @@ export const extractPdfData = async (file: File): Promise<ExtractedData> => {
             searchChecklist: extractSearchChecklist(fullText, category),
             autoPriority: determineAutoPriority(fullText, crime),
             birthDate,
-            age: calculateAge(birthDate)
+            age: calculateAge(birthDate),
+            issuingCourt
         };
     } catch (error: any) {
         console.error('Erro detalhado ao extrair PDF:', error);
@@ -619,21 +660,36 @@ export const extractPdfData = async (file: File): Promise<ExtractedData> => {
 // Function to extract text only for analysis
 export const extractRawTextFromPdf = async (file: File): Promise<string> => {
     try {
-        const arrayBuffer = await file.arrayBuffer();
-        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-        let fullText = '';
-        for (let i = 1; i <= pdf.numPages; i++) {
-            const page = await pdf.getPage(i);
-            const textContent = await page.getTextContent();
-            const pageText = textContent.items
-                .map((item: any) => item.str)
-                .join(' ');
-            fullText += pageText + '\n';
+        const fileName = file.name.toLowerCase();
+        if (fileName.endsWith('.pdf')) {
+            const pdfjsLib = await import('pdfjs-dist');
+            pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker;
+
+            const arrayBuffer = await file.arrayBuffer();
+            // @ts-ignore
+            const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+            let fullText = '';
+            for (let i = 1; i <= pdf.numPages; i++) {
+                const page = await pdf.getPage(i);
+                const textContent = await page.getTextContent();
+                const pageText = textContent.items
+                    .map((item: any) => item.str)
+                    .join(' ');
+                fullText += pageText + '\n';
+            }
+            return fullText;
+        } else if (fileName.endsWith('.docx')) {
+            const mammoth = await import('mammoth');
+            const arrayBuffer = await file.arrayBuffer();
+            // @ts-ignore
+            const result = await mammoth.extractRawText({ arrayBuffer });
+            return result.value;
+        } else {
+            return await file.text();
         }
-        return fullText;
     } catch (error: any) {
-        console.error('Erro ao extrair texto bruto do PDF:', error);
-        throw new Error("Falha ao ler o arquivo PDF.");
+        console.error('Erro ao extrair texto bruto do documento:', error);
+        throw new Error("Falha ao ler o arquivo.");
     }
 };
 
@@ -649,12 +705,14 @@ export const extractFromText = (text: string, sourceName: string): ExtractedData
     const { type, category } = determineMandadoType(text);
     const crime = extractCrime(text);
     const regime = extractRegime(text, category, crime);
-    const tacticalSummary = extractTacticalSummary(text);
+    const issuingCourt = extractIssuingCourt(text);
+    const tacticalSummaryArray = extractTacticalSummary(text);
+    const tacticalSummary = JSON.stringify({ risk: 'NORMAL', markers: tacticalSummaryArray });
     const observations = extractObservations(text);
 
     // Append tactical summary to observations
-    const fullObservations = tacticalSummary.length > 0
-        ? `${observations} | Atenção: ${tacticalSummary.join(', ')}`
+    const fullObservations = tacticalSummaryArray.length > 0
+        ? `${observations} | Atenção: ${tacticalSummaryArray.join(', ')}`
         : observations;
 
     return {
@@ -678,6 +736,7 @@ export const extractFromText = (text: string, sourceName: string): ExtractedData
         searchChecklist: extractSearchChecklist(text, category),
         autoPriority: determineAutoPriority(text, crime),
         birthDate,
-        age: calculateAge(birthDate)
+        age: calculateAge(birthDate),
+        issuingCourt
     };
 };

@@ -355,7 +355,8 @@ const AIAssistantPage = () => {
                 tacticalSummary: extractedData.tacticalSummary || [],
                 location: extractedData.addresses && extractedData.addresses.length > 0 ? extractedData.addresses.join(' | ') : '',
                 birthDate: extractedData.birthDate,
-                age: extractedData.age
+                age: extractedData.age,
+                issuingCourt: extractedData.issuingCourt
             };
 
             const result = await onAdd(newWarrant);
@@ -540,8 +541,8 @@ const AIAssistantPage = () => {
 
                                     <div className="border-2 border-dashed border-border-light dark:border-border-dark rounded-xl p-6 flex flex-col items-center justify-center text-center bg-surface-light dark:bg-surface-dark hover:border-primary transition-colors cursor-pointer relative group">
                                         <FileUp size={32} className="text-text-secondary-light dark:text-text-secondary-dark mb-2 group-hover:text-primary transition-colors" />
-                                        <p className="font-bold text-text-light dark:text-text-dark text-[11px]">Enviar PDF</p>
-                                        <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" accept=".pdf,.jpg,.png,.jpeg" multiple onChange={handleFileUpload} />
+                                        <p className="font-bold text-text-light dark:text-text-dark text-[11px]">Enviar PDF/DOCX</p>
+                                        <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" accept=".pdf,.docx,.jpg,.png,.jpeg" multiple onChange={handleFileUpload} />
                                     </div>
 
                                     <div className="border-2 border-dashed border-border-light dark:border-border-dark rounded-xl p-6 flex flex-col items-center justify-center text-center bg-surface-light dark:bg-surface-dark hover:border-primary transition-colors cursor-pointer relative group">
@@ -767,6 +768,15 @@ const AIAssistantPage = () => {
                                                         type="text"
                                                         value={extractedData.regime}
                                                         onChange={(e) => handleExtractedDataChange('regime', e.target.value)}
+                                                        className="w-full bg-transparent border-b border-border-light dark:border-border-dark py-1 text-sm outline-none"
+                                                    />
+                                                </div>
+                                                <div className="col-span-2">
+                                                    <label className="text-[10px] uppercase font-black text-amber-600 dark:text-amber-400/90">Fórum Expedidor</label>
+                                                    <input
+                                                        type="text"
+                                                        value={extractedData.issuingCourt || ''}
+                                                        onChange={(e) => handleExtractedDataChange('issuingCourt', e.target.value)}
                                                         className="w-full bg-transparent border-b border-border-light dark:border-border-dark py-1 text-sm outline-none"
                                                     />
                                                 </div>

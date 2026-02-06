@@ -9,21 +9,23 @@ export interface GeocodingResult {
     displayName: string;
 }
 
-export async function geocodeAddress(address: string): Promise<GeocodingResult | null> {
-    if (!address || address.trim().length < 5) return null;
-
-    // Clean address of common noise found in warrants
-    let cleanAddress = address
+function cleanAddress(address: string): string {
+    return address
         .replace(/\b(MANDADO DE PRISÃO|BUSCA E APREENSÃO|PROC\.|VARA|FORUM|COMARCA)\b/gi, '')
         .replace(/ - \d+.*$/, '') // Remove everything after a dash that looks like a description
         .replace(/\s+/g, ' ')
         .trim();
+}
+
+export async function geocodeAddress(address: string): Promise<GeocodingResult | null> {
+    if (!address || address.trim().length < 5) return null;
+
+    const query = cleanAddress(address);
 
     try {
-        // Nominatim usage policy requires a User-Agent and a limit of 1 request per second
         const response = await fetch(
             `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
-                cleanAddress
+                query
             )}&limit=1`,
             {
                 headers: {
@@ -51,5 +53,36 @@ export async function geocodeAddress(address: string): Promise<GeocodingResult |
     } catch (error) {
         console.error('Geocoding error:', error);
         return null;
+    }
+}
+
+export async function fetchAddressSuggestions(query: string): Promise<GeocodingResult[]> {
+    if (!query || query.trim().length < 3) return [];
+
+    try {
+        const response = await fetch(
+            `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
+                query
+            )}&limit=5&countrycodes=br`,
+            {
+                headers: {
+                    'Accept-Language': 'pt-BR',
+                    'User-Agent': 'SistemaMandadosPCSP/1.0'
+                }
+            }
+        );
+
+        if (!response.ok) return [];
+
+        const data = await response.json();
+
+        return data.map((item: any) => ({
+            lat: parseFloat(item.lat),
+            lng: parseFloat(item.lon),
+            displayName: item.display_name
+        }));
+    } catch (error) {
+        console.error('Fetch suggestions error:', error);
+        return [];
     }
 }

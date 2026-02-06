@@ -1,11 +1,11 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useParams, useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { jsPDF } from 'jspdf';
-import FloatingDock from '../components/FloatingDock'; // REINTEGRADO
 import {
     AlertCircle, User, Gavel, Calendar, MapPin, Map as MapIcon, Home,
-    Bike, FileCheck, FileText, Paperclip, Edit,
+    Bike, Car, FileCheck, FileText, Paperclip, Edit,
     Route as RouteIcon, RotateCcw, CheckCircle, Printer,
     Trash2, Zap, Bell, Eye, History, Send, Copy,
     ShieldAlert, MessageSquare, Plus, PlusCircle, X, ChevronRight, Bot, Cpu, Sparkles, RefreshCw, AlertTriangle, ExternalLink,
@@ -14,7 +14,7 @@ import {
 import { toast } from 'sonner';
 import { supabase } from '../supabaseClient';
 import { uploadFile, getPublicUrl } from '../supabaseStorage';
-// Header removed (replaced by FloatingDock)
+import Header from '../components/Header';
 import ConfirmModal from '../components/ConfirmModal';
 import VoiceInput from '../components/VoiceInput';
 import WarrantAuditLog from '../components/WarrantAuditLog';
@@ -22,8 +22,9 @@ import { formatDate, getStatusColor, maskDate } from '../utils/helpers';
 import { Warrant } from '../types';
 import { geocodeAddress } from '../services/geocodingService';
 import { generateWarrantPDF, generateIfoodOfficePDF } from '../services/pdfReportService';
+import IfoodReportModal from '../components/IfoodReportModal';
 import { analyzeRawDiligence, generateReportBody, analyzeDocumentStrategy, askAssistantStrategy, mergeIntelligence } from '../services/geminiService';
-import { extractPdfData } from '../services/pdfExtractionService'; // RESTORED
+import { extractRawTextFromPdf, extractFromText } from '../pdfExtractor';
 import { CRIME_OPTIONS, REGIME_OPTIONS } from '../data/constants';
 import { useWarrants } from '../contexts/WarrantContext';
 
@@ -117,6 +118,7 @@ const WarrantDetail = () => {
         aiInstructions: ''
     });
     const [isGeneratingAiReport, setIsGeneratingAiReport] = useState(false);
+    const [activeReportType, setActiveReportType] = useState<'ifood' | 'uber' | null>(null);
 
     const data = useMemo(() => warrants.find(w => w.id === id), [warrants, id]);
 
@@ -155,7 +157,7 @@ const WarrantDetail = () => {
         if (!data) return false;
         const fields: (keyof Warrant)[] = [
             'name', 'type', 'rg', 'cpf', 'number', 'crime', 'regime', 'location',
-            'ifoodNumber', 'ifoodResult', 'digOffice', 'observation', 'age'
+            'ifoodNumber', 'ifoodResult', 'digOffice', 'observation', 'age', 'issuingCourt'
         ];
 
         const basicChanges = fields.some(key => localData[key] !== data[key]);
@@ -333,7 +335,7 @@ const WarrantDetail = () => {
             'location', 'ifoodNumber', 'ifoodResult', 'digOffice',
             'issueDate', 'entryDate', 'expirationDate', 'dischargeDate', 'observation',
             'status', 'fulfillmentResult', 'fulfillmentReport', 'latitude', 'longitude',
-            'tacticalSummary', 'tags', 'birthDate', 'age'
+            'tacticalSummary', 'tags', 'birthDate', 'age', 'issuingCourt'
         ];
 
         fields.forEach(key => {
@@ -638,7 +640,7 @@ const WarrantDetail = () => {
             setAiAnalysisSaved(true);
             setAnalyzedDocumentText('');
 
-            // Critical: Update parent state immediately
+            // Critical: Update parent state immediately if handler provided
             await refreshWarrants();
 
             toast.success("Informações Transferidas para o Centro de Inteligência!", { id: toastId });
@@ -809,28 +811,6 @@ Equipe de Capturas - DIG / PCSP
 
                 if (success) {
                     toast.success("Arquivo anexado com sucesso!", { id: toastId });
-
-                    // AUTOMATIC EXTRACTION TRIGGER (RESTORED)
-                    if (file.type === 'application/pdf') {
-                        toast.loading("Extraindo conteúdo para Inteligência...", { id: "extract-load" });
-                        try {
-                            const text = await extractPdfData(file);
-                            if (text && text.length > 50) {
-                                setAnalyzedDocumentText(text);
-                                // Auto-trigger deep analysis
-                                const analysis = await analyzeDocumentStrategy(data, text);
-                                if (analysis) {
-                                    // Save analysis as valid intelligence
-                                    setAiDiligenceResult(analysis);
-                                    toast.success("Documento analisado pela IA! Veja 'Diligência Inteligente'.", { id: "extract-load" });
-                                }
-                            }
-                        } catch (extractErr) {
-                            console.error("Auto-extraction failed", extractErr);
-                            toast.error("Falha na leitura automática do PDF.", { id: "extract-load" });
-                        }
-                    }
-
                 } else {
                     console.error("WarrantDetail: Failed to update database with new attachment");
                     toast.error("Erro ao atualizar dados no banco.", { id: toastId });
@@ -859,7 +839,7 @@ Equipe de Capturas - DIG / PCSP
         try {
             let text = '';
             if (file.type === 'application/pdf') {
-                text = await extractPdfData(file);
+                text = await extractRawTextFromPdf(file);
             } else {
                 text = await file.text();
             }
@@ -1314,15 +1294,6 @@ Equipe de Capturas - DIG / PCSP
 
 
     const handleGenerateCapturasPDF = async () => {
-        if (!data) return;
-        const { generateCapturasReportPDF } = await import('../services/pdfReportService');
-        const success = await generateCapturasReportPDF(data, capturasData, updateWarrant);
-        if (success) setIsCapturasModalOpen(false);
-    };
-
-    // @ts-ignore
-    const _deprecated_generatePDF = async () => {
-        if (!data) return;
         try {
             const doc = new jsPDF();
             const pageWidth = doc.internal.pageSize.getWidth();
@@ -1648,31 +1619,94 @@ Equipe de Capturas - DIG / PCSP
                 <div className="absolute inset-0 tactical-glow"></div>
             </div>
 
-            {/* FLOATING ACTION DOCK (Restaurado) */}
-            <FloatingDock
-                onBack={handleBack} // Botão INÍCIO
-                onPrint={handleDownloadPDF} // Botão IMPRIMIR
-                onFinalize={handleFinalize} // Botão FECHAR
-                onDelete={isAdmin ? () => setIsDeleteConfirmOpen(true) : undefined}
-                onSettings={() => toast.info("Configurações Restauradas")}
-            />
+            <Header title="Dossiê Tático" back onBack={handleBack} showHome />
+
+            {/* Tactical Action Dock (Floating - Matching Home Styles - Compact) */}
+            {createPortal(
+                <div className="fixed bottom-4 left-4 right-4 max-w-xl mx-auto z-[1000] rounded-2xl border border-white/5 bg-surface-dark/80 backdrop-blur-lg shadow-glass pb-safe">
+                    <div className="flex h-14 w-full items-center justify-center gap-8 px-2">
+                        <Link to="/" className="relative flex flex-col items-center justify-center gap-1 w-12 h-12 rounded-xl transition-all text-text-secondary-dark hover:text-text-dark hover:bg-white/5">
+                            <Home size={18} strokeWidth={2} className="relative z-10" />
+                            <span className="text-[8px] font-bold relative z-10 font-display">Início</span>
+                        </Link>
+
+                        <Link to={`/new-warrant?edit=${data.id}`} className="relative flex flex-col items-center justify-center gap-1 w-12 h-12 rounded-xl transition-all bg-blue-500/10 text-blue-400 border border-blue-500/20 hover:bg-blue-500/20 active:scale-95 shadow-[0_0_15px_rgba(59,130,246,0.15)]">
+                            <Edit size={18} strokeWidth={2} className="relative z-10" />
+                            <span className="text-[8px] font-bold relative z-10 font-display">Ajustar</span>
+                        </Link>
+
+                        <button
+                            onClick={data.status === 'CUMPRIDO' ? handleReopen : handleFinalize}
+                            className={`relative flex flex-col items-center justify-center gap-1 w-12 h-12 rounded-xl transition-all border active:scale-95 ${data.status === 'CUMPRIDO'
+                                ? 'bg-amber-500/10 text-amber-500 border-amber-500/20 hover:bg-amber-500/20 shadow-[0_0_15px_rgba(245,158,11,0.15)]'
+                                : 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20 hover:bg-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.15)]'
+                                }`}
+                        >
+                            {data.status === 'CUMPRIDO' ? <RotateCcw size={18} strokeWidth={2} /> : <CheckCircle size={18} strokeWidth={2} />}
+                            <span className="text-[8px] font-bold relative z-10 font-display">{data.status === 'CUMPRIDO' ? 'Reabrir' : 'Fechar'}</span>
+                        </button>
+
+                        <button onClick={handleDownloadPDF} className="relative flex flex-col items-center justify-center gap-1 w-12 h-12 rounded-xl transition-all bg-white text-slate-900 shadow-xl hover:bg-slate-100 active:scale-95">
+                            <Printer size={18} strokeWidth={2.5} className="relative z-10" />
+                            <span className="text-[8px] font-bold relative z-10 font-display">Dossiê</span>
+                        </button>
+
+                        {isAdmin && (
+                            <button onClick={handleDelete} className="relative flex flex-col items-center justify-center gap-1 w-12 h-12 rounded-xl transition-all bg-rose-500/10 text-rose-500 border border-rose-500/20 hover:bg-rose-500/20 active:scale-95 shadow-[0_0_15px_rgba(244,63,94,0.15)]">
+                                <Trash2 size={18} strokeWidth={2} className="relative z-10" />
+                                <span className="text-[8px] font-bold relative z-10 font-display">Deletar</span>
+                            </button>
+                        )}
+                    </div>
+                </div>,
+                document.body
+            )}
 
             {/* Main Content Layout */}
             <div className="relative z-10 p-4 space-y-4 max-w-[1600px] mx-auto">
 
                 {/* 1. Tactical Profile Header */}
-                <div className="bg-surface-dark/60 backdrop-blur-xl border border-white/10 rounded-2xl p-4 shadow-tactic overflow-hidden relative group">
+                <div className="bg-surface-light dark:bg-surface-dark/60 backdrop-blur-xl border border-border-light dark:border-white/10 rounded-2xl p-4 shadow-glass overflow-hidden relative group">
                     {/* Animated Glow Decorator */}
                     <div className="absolute -top-24 -right-24 w-48 h-48 bg-primary/10 rounded-full blur-3xl group-hover:bg-primary/20 transition-all"></div>
 
                     <div className="flex flex-col sm:flex-row gap-6 relative">
-                        <div className="relative shrink-0 mx-auto sm:mx-0">
-                            <img
-                                src={data.img || `https://ui-avatars.com/api/?name=${encodeURIComponent(data.name)}&background=random&color=fff`}
-                                alt={data.name}
-                                onClick={() => setIsPhotoModalOpen(true)}
-                                className="h-44 w-44 rounded-2xl object-cover border-2 border-white/10 shadow-glass cursor-zoom-in hover:scale-[1.02] transition-transform"
+                        <div className="relative shrink-0 mx-auto sm:mx-0 group/photo">
+                            <input
+                                type="file"
+                                id="photo-upload-input"
+                                className="hidden"
+                                accept="image/*"
+                                onChange={async (e) => {
+                                    const file = e.target.files?.[0];
+                                    if (!file || !data) return;
+                                    const tid = toast.loading("Subindo nova foto...");
+                                    try {
+                                        const path = `photos/${data.id}/${Date.now()}_${file.name}`;
+                                        const uploadedPath = await uploadFile(file, path);
+                                        if (uploadedPath) {
+                                            const url = getPublicUrl(uploadedPath);
+                                            setLocalData(prev => ({ ...prev, img: url }));
+                                            toast.success("Foto atualizada localmente! Salve para confirmar.", { id: tid });
+                                        }
+                                    } catch (err) {
+                                        toast.error("Erro no upload da foto.", { id: tid });
+                                    }
+                                }}
                             />
+                            <label htmlFor="photo-upload-input" className="cursor-pointer block relative">
+                                <img
+                                    src={localData.img || data.img || `https://ui-avatars.com/api/?name=${encodeURIComponent(data.name)}&background=random&color=fff`}
+                                    alt={data.name}
+                                    className="h-44 w-44 rounded-2xl object-cover border-2 border-white/10 shadow-glass hover:scale-[1.02] transition-transform"
+                                />
+                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/photo:opacity-100 flex items-center justify-center transition-opacity rounded-2xl">
+                                    <div className="bg-white/10 backdrop-blur-md border border-white/20 px-3 py-1.5 rounded-lg flex items-center gap-2">
+                                        <RefreshCw size={14} className="text-white" />
+                                        <span className="text-[10px] font-bold text-white uppercase uppercase">Trocar Foto</span>
+                                    </div>
+                                </div>
+                            </label>
                             <div className="absolute -bottom-2 -right-2 bg-primary p-2 rounded-xl shadow-lg border border-white/20">
                                 <ShieldAlert size={18} className="text-white animate-pulse" />
                             </div>
@@ -1681,7 +1715,7 @@ Equipe de Capturas - DIG / PCSP
                         <div className="flex-1 space-y-4 text-center sm:text-left">
                             <div>
                                 <div className="flex flex-wrap justify-center sm:justify-start items-center gap-2 mb-1">
-                                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-primary bg-primary/10 px-2 py-0.5 rounded border border-primary/20">
+                                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-secondary bg-secondary/10 px-2 py-0.5 rounded border border-secondary/20">
                                         Identificação Biométrica
                                     </span>
                                     {localData.status === 'EM ABERTO' && (
@@ -1690,36 +1724,59 @@ Equipe de Capturas - DIG / PCSP
                                         </span>
                                     )}
                                 </div>
-                                <h1 className="text-2xl font-black text-white leading-tight uppercase group-hover:text-primary transition-colors">
-                                    {localData.name}
-                                </h1>
-                                <p className="text-sm text-text-secondary-dark font-medium font-mono mt-1 opacity-70">
-                                    PROC. Nº {localData.number}
-                                </p>
+                                <input
+                                    className="text-2xl font-black text-white leading-tight uppercase bg-transparent border-none outline-none focus:ring-1 focus:ring-primary/40 rounded-lg px-2 -ml-2 w-full transition-all hover:text-secondary placeholder:text-white/20"
+                                    value={localData.name}
+                                    onChange={e => handleFieldChange('name', e.target.value)}
+                                    placeholder="NOME DO ALVO"
+                                />
+                                <div className="flex items-center gap-2 mt-1 opacity-70">
+                                    <span className="text-sm text-text-secondary-dark font-medium font-mono">PROC. Nº</span>
+                                    <input
+                                        className="text-sm text-white font-medium font-mono bg-transparent border-none outline-none focus:ring-1 focus:ring-primary/40 rounded px-1 transition-all placeholder:text-white/20"
+                                        value={localData.number}
+                                        onChange={e => handleFieldChange('number', e.target.value)}
+                                        placeholder="0000000-00.0000.0.00.0000"
+                                    />
+                                </div>
                             </div>
 
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                                <div className="bg-white/5 border border-white/5 p-2 rounded-xl text-center">
-                                    <p className="text-[9px] uppercase font-bold text-text-muted mb-0.5 tracking-tighter">Tipo Crime</p>
-                                    <p className="text-xs font-black text-white truncate px-1">{localData.crime || 'N/I'}</p>
+                                <div className="bg-background-light dark:bg-white/5 border border-border-light dark:border-white/5 p-2 rounded-xl text-center flex flex-col items-center group/field">
+                                    <p className="text-[9px] uppercase font-bold text-text-secondary-light dark:text-text-muted mb-0.5 tracking-tighter">Tipo Crime</p>
+                                    <select
+                                        className="w-full bg-transparent border-none text-xs font-black text-white outline-none text-center cursor-pointer appearance-none hover:text-primary transition-colors"
+                                        value={localData.crime || ''}
+                                        onChange={e => handleFieldChange('crime', e.target.value)}
+                                    >
+                                        <option value="" className="bg-surface-dark text-white">Selecione...</option>
+                                        {CRIME_OPTIONS.map(opt => <option key={opt} value={opt} className="bg-surface-dark text-white">{opt}</option>)}
+                                    </select>
                                 </div>
-                                <div className="bg-white/5 border border-white/5 p-2 rounded-xl text-center">
-                                    <p className="text-[9px] uppercase font-bold text-text-muted mb-0.5 tracking-tighter">Regime Prisional</p>
-                                    <p className="text-xs font-black text-white">{localData.regime || 'N/I'}</p>
+                                <div className="bg-background-light dark:bg-white/5 border border-border-light dark:border-white/5 p-2 rounded-xl text-center flex flex-col items-center group/field">
+                                    <p className="text-[9px] uppercase font-bold text-text-secondary-light dark:text-text-muted mb-0.5 tracking-tighter">Regime Prisional</p>
+                                    <select
+                                        className="w-full bg-transparent border-none text-xs font-black text-white outline-none text-center cursor-pointer appearance-none hover:text-primary transition-colors"
+                                        value={localData.regime || ''}
+                                        onChange={e => handleFieldChange('regime', e.target.value)}
+                                    >
+                                        <option value="" className="bg-surface-dark text-white">Selecione...</option>
+                                        {REGIME_OPTIONS.map(opt => <option key={opt} value={opt} className="bg-surface-dark text-white">{opt}</option>)}
+                                    </select>
                                 </div>
-                                <div className="bg-white/5 border border-white/5 p-2 rounded-xl text-center">
-                                    <p className="text-[9px] uppercase font-bold text-text-muted mb-0.5 tracking-tighter">Idade Captura</p>
+                                <div className="bg-background-light dark:bg-white/5 border border-border-light dark:border-white/5 p-2 rounded-xl text-center">
+                                    <p className="text-[9px] uppercase font-bold text-text-secondary-light dark:text-gray-400 mb-0.5 tracking-tighter">Idade Captura</p>
                                     <p className="text-xs font-black text-white">{localData.age || 'N/I'}</p>
                                 </div>
-                                <div className="bg-white/5 border border-white/5 p-2 rounded-xl text-center">
-                                    <p className="text-[9px] uppercase font-bold text-text-muted mb-0.5 tracking-tighter">Expedição</p>
+                                <div className="bg-background-light dark:bg-white/5 border border-border-light dark:border-white/5 p-2 rounded-xl text-center">
+                                    <p className="text-[9px] uppercase font-bold text-text-secondary-light dark:text-gray-400 mb-0.5 tracking-tighter">Expedição</p>
                                     <p className="text-xs font-black text-white font-mono">{localData.issueDate || 'N/I'}</p>
                                 </div>
                             </div>
 
                             <div className="flex flex-wrap justify-center sm:justify-start gap-2 pt-1">
                                 {data.tags?.map(tag => (
-                                    <span key={tag} className="text-[10px] font-black uppercase bg-primary/20 text-primary border border-primary/30 px-3 py-1 rounded-full flex items-center gap-1.5 shadow-sm">
+                                    <span key={tag} className="text-[10px] font-black uppercase bg-secondary/20 text-secondary border border-secondary/30 px-3 py-1 rounded-full flex items-center gap-1.5 shadow-sm">
                                         <Zap size={10} className="fill-current" /> {tag}
                                     </span>
                                 ))}
@@ -1734,7 +1791,7 @@ Equipe de Capturas - DIG / PCSP
                 </div>
 
                 {/* 2. Tactical Navigation Tabs */}
-                <div className="flex bg-surface-dark/80 backdrop-blur border border-white/10 rounded-2xl p-1.5 gap-1.5 shadow-glass sticky top-2 z-[30]">
+                <div className="flex bg-surface-light dark:bg-surface-dark/80 backdrop-blur border border-border-light dark:border-white/10 rounded-2xl p-1.5 gap-1.5 shadow-glass sticky top-2 z-[30]">
                     {[
                         { id: 'documents', label: 'Dossiê', icon: FileText, color: 'bg-gradient-to-r from-blue-600 to-cyan-500 shadow-blue-500/25 border-blue-400/20' },
                         { id: 'investigation', label: 'Investigações', icon: Bot, color: 'bg-gradient-to-r from-violet-600 to-fuchsia-500 shadow-violet-500/25 border-violet-400/20' },
@@ -1745,7 +1802,7 @@ Equipe de Capturas - DIG / PCSP
                             onClick={() => setActiveDetailTab(tab.id as any)}
                             className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all duration-300 ${activeDetailTab === tab.id
                                 ? `${tab.color} text-white shadow-lg scale-[1.02] border`
-                                : 'text-text-secondary-dark hover:bg-white/5 hover:text-white border border-transparent'
+                                : 'text-text-secondary-light dark:text-text-secondary-dark hover:bg-black/5 dark:hover:bg-white/5 hover:text-text-light dark:hover:text-white border border-transparent'
                                 }`}
                         >
                             <tab.icon size={16} className={activeDetailTab === tab.id ? 'animate-pulse' : ''} />
@@ -1762,39 +1819,71 @@ Equipe de Capturas - DIG / PCSP
                             {/* Personal Details */}
                             <div className="bg-surface-dark/90 backdrop-blur-xl border border-white/10 rounded-2xl p-5 shadow-glass space-y-4">
                                 <div className="flex items-center gap-2 mb-2 pb-2 border-b border-white/5">
-                                    <User className="text-indigo-400" size={16} />
-                                    <span className="text-[11px] font-black uppercase tracking-widest text-indigo-100">Qualificação</span>
+                                    <User className="text-secondary" size={16} />
+                                    <span className="text-[11px] font-black uppercase tracking-widest text-white">Qualificação</span>
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="space-y-1">
-                                        <label className="text-[9px] font-black text-text-muted uppercase tracking-wider">RG</label>
-                                        <input className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-sm font-mono text-white outline-none focus:ring-1 focus:ring-primary" value={localData.rg || ''} onChange={e => handleFieldChange('rg', e.target.value)} />
+                                        <label className="text-[9px] font-black text-text-secondary-light dark:text-text-muted uppercase tracking-wider">RG</label>
+                                        <input
+                                            className="w-full bg-background-light dark:bg-white/5 border border-border-light dark:border-white/10 rounded-lg p-3 text-sm font-mono text-text-light dark:text-white outline-none focus:ring-1 focus:ring-primary focus:border-primary/50 transition-all"
+                                            value={localData.rg || ''}
+                                            onChange={e => handleFieldChange('rg', e.target.value)}
+                                        />
                                     </div>
                                     <div className="space-y-1">
-                                        <label className="text-[9px] font-black text-text-muted uppercase tracking-wider">CPF</label>
-                                        <input className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-sm font-mono text-white outline-none focus:ring-1 focus:ring-primary" value={localData.cpf || ''} onChange={e => handleFieldChange('cpf', e.target.value)} />
+                                        <label className="text-[9px] font-black text-text-secondary-light dark:text-text-muted uppercase tracking-wider">CPF</label>
+                                        <input
+                                            className="w-full bg-background-light dark:bg-white/5 border border-border-light dark:border-white/10 rounded-lg p-3 text-sm font-mono text-text-light dark:text-white outline-none focus:ring-1 focus:ring-primary focus:border-primary/50 transition-all"
+                                            value={localData.cpf || ''}
+                                            onChange={e => handleFieldChange('cpf', e.target.value)}
+                                        />
                                     </div>
                                     <div className="space-y-1">
-                                        <label className="text-[9px] font-black text-text-muted uppercase tracking-wider">Nascimento</label>
-                                        <input className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-sm font-mono text-white outline-none focus:ring-1 focus:ring-primary" value={localData.birthDate || ''} onChange={e => handleFieldChange('birthDate', e.target.value)} />
+                                        <label className="text-[9px] font-black text-text-secondary-light dark:text-text-muted uppercase tracking-wider">Nascimento</label>
+                                        <input
+                                            className="w-full bg-background-light dark:bg-white/5 border border-border-light dark:border-white/10 rounded-lg p-3 text-sm font-mono text-text-light dark:text-white outline-none focus:ring-1 focus:ring-primary focus:border-primary/50 transition-all"
+                                            value={localData.birthDate || ''}
+                                            onChange={e => handleFieldChange('birthDate', e.target.value)}
+                                            placeholder="DD/MM/AAAA"
+                                        />
                                     </div>
                                     <div className="space-y-1">
-                                        <label className="text-[9px] font-black text-text-muted uppercase tracking-wider">Expiração Mandado</label>
-                                        <input className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-sm font-mono text-risk-high outline-none focus:ring-1 focus:ring-risk-high" value={localData.expirationDate || ''} onChange={e => handleFieldChange('expirationDate', e.target.value)} />
+                                        <label className="text-[9px] font-black text-text-secondary-light dark:text-text-muted uppercase tracking-wider">Expiração Mandado</label>
+                                        <input
+                                            className="w-full bg-background-light dark:bg-white/5 border border-border-light dark:border-white/10 rounded-lg p-3 text-sm font-mono text-risk-high outline-none focus:ring-1 focus:ring-risk-high transition-all"
+                                            value={localData.expirationDate || ''}
+                                            onChange={e => handleFieldChange('expirationDate', e.target.value)}
+                                            placeholder="DD/MM/AAAA"
+                                        />
                                     </div>
                                     <div className="space-y-1 col-span-2">
-                                        <label className="text-[9px] font-black text-text-muted uppercase tracking-wider flex items-center gap-1"><CheckCircle size={10} className="text-indigo-400" /> Data do Cumprimento</label>
-                                        <input className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-sm font-mono text-white outline-none focus:ring-1 focus:ring-indigo-500" placeholder="DD/MM/AAAA" value={localData.dischargeDate || ''} onChange={e => handleFieldChange('dischargeDate', e.target.value)} />
+                                        <label className="text-[9px] font-black text-text-secondary-light dark:text-text-muted uppercase tracking-wider flex items-center gap-1"><Scale size={10} className="text-secondary" /> Fórum / Vara Expedidora</label>
+                                        <input
+                                            className="w-full bg-background-light dark:bg-white/5 border border-border-light dark:border-white/10 rounded-lg p-3 text-sm text-text-light dark:text-white outline-none focus:ring-1 focus:ring-secondary focus:border-secondary/50 transition-all"
+                                            placeholder="Ex: Vara Criminal de Jacareí"
+                                            value={localData.issuingCourt || ''}
+                                            onChange={e => handleFieldChange('issuingCourt', e.target.value)}
+                                        />
+                                    </div>
+                                    <div className="space-y-1 col-span-2">
+                                        <label className="text-[9px] font-black text-text-secondary-light dark:text-text-muted uppercase tracking-wider flex items-center gap-1"><CheckCircle size={10} className="text-secondary" /> Data do Cumprimento</label>
+                                        <input
+                                            className="w-full bg-background-light dark:bg-white/5 border border-border-light dark:border-white/10 rounded-lg p-3 text-sm font-mono text-secondary outline-none focus:ring-1 focus:ring-secondary focus:border-secondary/50 transition-all"
+                                            placeholder="DD/MM/AAAA"
+                                            value={localData.dischargeDate || ''}
+                                            onChange={e => handleFieldChange('dischargeDate', e.target.value)}
+                                        />
                                     </div>
                                 </div>
                             </div>
 
                             {/* Location View */}
-                            <div className="bg-surface-dark/90 backdrop-blur-xl border border-white/10 rounded-2xl p-5 shadow-glass space-y-4">
-                                <div className="flex items-center justify-between mb-2 pb-2 border-b border-white/5">
+                            <div className="bg-surface-light dark:bg-surface-dark/90 backdrop-blur-xl border border-border-light dark:border-white/10 rounded-2xl p-5 shadow-glass space-y-4">
+                                <div className="flex items-center justify-between mb-2 pb-2 border-b border-border-light dark:border-white/5">
                                     <div className="flex items-center gap-2">
-                                        <MapPin className="text-indigo-400" size={16} />
-                                        <span className="text-[11px] font-black uppercase tracking-widest text-indigo-100">Localização Operacional</span>
+                                        <MapPin className="text-secondary" size={16} />
+                                        <span className="text-[11px] font-black uppercase tracking-widest text-text-light dark:text-white">Localização Operacional</span>
                                     </div>
                                     {localData.latitude && localData.longitude ? (
                                         <span className="text-[10px] font-black bg-green-500/10 text-green-400 border border-green-500/20 px-3 py-1 rounded-full flex items-center gap-1.5 shadow-sm animate-pulse">
@@ -1807,7 +1896,7 @@ Equipe de Capturas - DIG / PCSP
                                     )}
                                 </div>
                                 <textarea
-                                    className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-sm text-white outline-none focus:ring-2 focus:ring-primary/20 transition-all resize-none h-[95px]"
+                                    className="w-full bg-background-light dark:bg-white/5 border border-border-light dark:border-white/10 rounded-xl p-4 text-sm text-text-light dark:text-white outline-none focus:ring-2 focus:ring-primary/20 transition-all resize-none h-[95px]"
                                     value={localData.location || ''}
                                     onChange={e => handleFieldChange('location', e.target.value)}
                                     placeholder="Endereço de diligência..."
@@ -1817,13 +1906,13 @@ Equipe de Capturas - DIG / PCSP
                                         href={`https://www.google.com/maps/search/?api=1&query=${localData.latitude},${localData.longitude}`}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="flex-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl py-3 text-[10px] font-black uppercase flex items-center justify-center gap-2 transition-all active:scale-95"
+                                        className="flex-1 bg-white/5 hover:bg-white/15 border border-white/10 rounded-xl py-3 text-[10px] font-black uppercase flex items-center justify-center gap-2 transition-all active:scale-95 text-white shadow-sm"
                                     >
-                                        <MapIcon size={14} /> Abrir no Mapa
+                                        <MapIcon size={14} className="text-secondary" /> <span>Abrir no Mapa</span>
                                     </a>
                                     <button
                                         onClick={() => toggleRouteWarrant(data.id)}
-                                        className={`flex-1 rounded-xl py-3 text-[10px] font-black uppercase flex items-center justify-center gap-2 transition-all active:scale-95 ${routeWarrants.includes(data.id) ? 'bg-indigo-600 text-white shadow-tactic' : 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20'
+                                        className={`flex-1 rounded-xl py-3 text-[10px] font-black uppercase flex items-center justify-center gap-2 transition-all active:scale-95 ${routeWarrants.includes(data.id) ? 'bg-secondary text-primary shadow-neon-blue' : 'bg-secondary/10 text-secondary border border-secondary/20 hover:bg-secondary/20'
                                             }`}
                                     >
                                         <RouteIcon size={14} /> {routeWarrants.includes(data.id) ? 'Em Rota' : 'Marcar Rota'}
@@ -1835,16 +1924,16 @@ Equipe de Capturas - DIG / PCSP
                             <div className="md:col-span-2 bg-surface-dark/60 backdrop-blur border border-white/10 rounded-2xl p-5 shadow-glass">
                                 <div className="flex flex-col mb-4 pb-4 border-b border-white/5 gap-3">
                                     <div className="flex items-center gap-2">
-                                        <Paperclip className="text-indigo-400" size={16} />
-                                        <span className="text-[11px] font-black uppercase tracking-widest text-indigo-100">Repositório de Documentos</span>
+                                        <Paperclip className="text-primary" size={16} />
+                                        <span className="text-[11px] font-black uppercase tracking-widest">Repositório de Documentos</span>
                                     </div>
 
                                     {/* New Document Inputs */}
-                                    <div className="bg-white/5 rounded-xl p-3 grid grid-cols-1 md:grid-cols-4 gap-2 items-end">
+                                    <div className="bg-background-light dark:bg-white/5 rounded-xl p-3 grid grid-cols-1 md:grid-cols-4 gap-2 items-end">
                                         <div className="space-y-1">
-                                            <label className="text-[9px] font-black text-text-muted uppercase tracking-wider">Tipo</label>
+                                            <label className="text-[9px] font-black text-text-secondary-light dark:text-text-muted uppercase tracking-wider">Tipo</label>
                                             <select
-                                                className="w-full bg-surface-dark border border-white/10 rounded-lg p-2 text-[10px] text-white outline-none"
+                                                className="w-full bg-surface-light dark:bg-surface-dark border border-border-light dark:border-white/10 rounded-lg p-2 text-[10px] text-text-light dark:text-white outline-none"
                                                 value={newDocType}
                                                 onChange={e => setNewDocType(e.target.value)}
                                             >
@@ -1855,18 +1944,18 @@ Equipe de Capturas - DIG / PCSP
                                             </select>
                                         </div>
                                         <div className="space-y-1">
-                                            <label className="text-[9px] font-black text-text-muted uppercase tracking-wider">Origem/Vara</label>
+                                            <label className="text-[9px] font-black text-text-secondary-light dark:text-text-muted uppercase tracking-wider">Origem/Vara</label>
                                             <input
-                                                className="w-full bg-surface-dark border border-white/10 rounded-lg p-2 text-[10px] text-white outline-none placeholder:text-white/20"
+                                                className="w-full bg-surface-light dark:bg-surface-dark border border-border-light dark:border-white/10 rounded-lg p-2 text-[10px] text-text-light dark:text-white outline-none placeholder:text-text-secondary-light/30 dark:placeholder:text-white/20"
                                                 placeholder="Ex: 1ª Vara Criminal"
                                                 value={newDocSource}
                                                 onChange={e => setNewDocSource(e.target.value)}
                                             />
                                         </div>
                                         <div className="space-y-1">
-                                            <label className="text-[9px] font-black text-text-muted uppercase tracking-wider">Numeração/Edição</label>
+                                            <label className="text-[9px] font-black text-text-secondary-light dark:text-text-muted uppercase tracking-wider">Numeração/Edição</label>
                                             <input
-                                                className="w-full bg-surface-dark border border-white/10 rounded-lg p-2 text-[10px] text-white outline-none placeholder:text-white/20"
+                                                className="w-full bg-surface-light dark:bg-surface-dark border border-border-light dark:border-white/10 rounded-lg p-2 text-[10px] text-text-light dark:text-white outline-none placeholder:text-text-secondary-light/30 dark:placeholder:text-white/20"
                                                 placeholder="Ex: 001/2026"
                                                 value={newDocNumber}
                                                 onChange={e => setNewDocNumber(e.target.value)}
@@ -1892,7 +1981,7 @@ Equipe de Capturas - DIG / PCSP
                                                     }
                                                 }}
                                             />
-                                            <label htmlFor="file-upload-dossier" className="w-full bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-2 rounded-lg text-[10px] font-black uppercase cursor-pointer flex items-center justify-center gap-2 transition-all">
+                                            <label htmlFor="file-upload-dossier" className="w-full bg-secondary hover:bg-secondary/80 text-primary px-3 py-2 rounded-lg text-[10px] font-black uppercase cursor-pointer flex items-center justify-center gap-2 transition-all">
                                                 <Plus size={14} /> Upload
                                             </label>
                                         </div>
@@ -1902,12 +1991,12 @@ Equipe de Capturas - DIG / PCSP
                                 {data.attachments && data.attachments.length > 0 ? (
                                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                                         {data.attachments.map((file: string, idx: number) => (
-                                            <div key={idx} className="bg-white/5 border border-white/5 rounded-xl p-3 flex items-center justify-between group hover:bg-white/10 transition-all">
+                                            <div key={idx} className="bg-background-light dark:bg-white/5 border border-border-light dark:border-white/5 rounded-xl p-3 flex items-center justify-between group hover:bg-black/5 dark:hover:bg-white/10 transition-all">
                                                 <div className="flex items-center gap-3 min-w-0">
                                                     <div className="p-2 bg-primary/20 rounded-lg text-primary">
                                                         <FileText size={16} />
                                                     </div>
-                                                    <span className="text-[11px] font-bold text-white truncate max-w-[120px]">
+                                                    <span className="text-[11px] font-bold text-text-light dark:text-white truncate max-w-[120px]">
                                                         {(() => {
                                                             const parts = file.split('/').pop()?.split('_') || [];
                                                             if (parts.length >= 4 && (parts[0] === 'Mandado' || parts[0] === 'IFFO' || parts[0] === 'Oficio')) {
@@ -1946,8 +2035,8 @@ Equipe de Capturas - DIG / PCSP
                                         <Bot size={28} className="text-white" />
                                     </div>
                                     <div>
-                                        <h4 className="text-xl font-black text-white uppercase tracking-tighter">Sugestão Tática Inteligente</h4>
-                                        <p className="text-[10px] text-indigo-300 font-bold uppercase tracking-widest flex items-center gap-1">
+                                        <h4 className="text-xl font-black text-text-light dark:text-white uppercase tracking-tighter">Sugestão Tática Inteligente</h4>
+                                        <p className="text-[10px] text-indigo-600 dark:text-indigo-300 font-bold uppercase tracking-widest flex items-center gap-1">
                                             <Activity size={10} className="animate-pulse" /> Memória Ativa da Investigação
                                         </p>
                                     </div>
@@ -2179,18 +2268,37 @@ Equipe de Capturas - DIG / PCSP
                             <div className="bg-surface-dark/90 backdrop-blur-xl border border-white/10 rounded-2xl p-5 shadow-glass">
                                 <div className="flex items-center justify-between mb-4 border-b border-white/5 pb-4">
                                     <div className="flex items-center gap-2">
-                                        <Bike className="text-primary" size={20} />
+                                        <div className="flex items-center">
+                                            <Bike className="text-red-500" size={20} />
+                                            <div className="w-px h-4 bg-white/20 mx-2"></div>
+                                            <Car className="text-cyan-400" size={20} />
+                                        </div>
                                         <div>
-                                            <h3 className="text-sm font-black uppercase text-white tracking-widest">Inteligência iFood</h3>
-                                            <p className="text-[10px] text-text-muted font-bold uppercase">Rastreamento de Pedidos e Endereços</p>
+                                            <h3 className="text-sm font-black uppercase text-white tracking-widest">Inteligência iFood & Uber</h3>
+                                            <p className="text-[10px] text-text-muted font-bold uppercase">Rastreamento de Pedidos e Corridas</p>
                                         </div>
                                     </div>
                                     <button
                                         onClick={handleGenerateIfoodOffice}
                                         className="bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-tactic flex items-center gap-2 transition-all active:scale-95"
                                     >
-                                        <FileText size={14} /> Gerar Ofício
+                                        <FileText size={14} /> Gerar Ofício Padrão (Modelo Antigo)
                                     </button>
+                                    <div className="flex gap-2">
+                                        <button
+                                            onClick={() => setActiveReportType('ifood')}
+                                            className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-red-900/20 flex items-center gap-2 transition-all active:scale-95 border border-red-500/30"
+                                        >
+                                            <Bike size={14} /> GERAR OFÍCIO IFOOD
+                                        </button>
+                                        <button
+                                            onClick={() => setActiveReportType('uber')}
+                                            className="bg-cyan-600 hover:bg-cyan-700 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-cyan-900/20 flex items-center gap-2 transition-all active:scale-95 border border-cyan-500/30"
+                                        >
+                                            <Car size={14} /> GERAR OFÍCIO UBER
+                                        </button>
+                                    </div>
+
                                 </div>
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -2217,7 +2325,7 @@ Equipe de Capturas - DIG / PCSP
 
                                     <div className="space-y-4">
                                         <div className="flex items-center justify-between">
-                                            <label className="text-[9px] font-black text-text-muted uppercase tracking-wider">Documentos Resposta</label>
+                                            <label className="text-[9px] font-black text-text-muted uppercase tracking-wider">Documentos Resposta (iFood/Uber)</label>
                                             <div className="flex gap-2">
                                                 <input
                                                     type="file"
@@ -2252,7 +2360,7 @@ Equipe de Capturas - DIG / PCSP
                                                             </a>
                                                             <button
                                                                 onClick={async () => {
-                                                                    if (window.confirm("Excluir este documento do iFood?")) {
+                                                                    if (window.confirm("Excluir este documento do iFood/Uber?")) {
                                                                         const updatedDocs = data.ifoodDocs?.filter((d: string) => d !== doc);
                                                                         await updateWarrant(data.id, { ifoodDocs: updatedDocs });
                                                                     }
@@ -2277,8 +2385,8 @@ Equipe de Capturas - DIG / PCSP
                             {/* Investigation: Analytic Observations (Merged) */}
                             <div className="bg-surface-dark/90 backdrop-blur-xl border border-white/10 rounded-2xl p-5 shadow-glass space-y-4">
                                 <div className="flex items-center gap-2 mb-2 pb-2 border-b border-white/5">
-                                    <MessageSquare className="text-primary" size={16} />
-                                    <span className="text-[11px] font-black uppercase tracking-widest">Observações Analíticas</span>
+                                    <MessageSquare className="text-secondary" size={16} />
+                                    <span className="text-[11px] font-black uppercase tracking-widest text-white">Observações Analíticas</span>
                                 </div>
                                 <textarea value={localData.observation || ''} onChange={e => handleFieldChange('observation', e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-sm text-white outline-none focus:ring-2 focus:ring-primary/20 transition-all resize-none min-h-[140px]" placeholder="Adicione considerações estratégicas para futuras equipes..." />
                             </div>
@@ -2287,7 +2395,7 @@ Equipe de Capturas - DIG / PCSP
                             <div className="bg-surface-dark/80 backdrop-blur-xl border border-white/10 rounded-2xl p-5 shadow-glass space-y-5">
                                 <div className="flex items-center justify-between border-b border-white/5 pb-4">
                                     <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center text-primary border border-primary/30">
+                                        <div className="w-10 h-10 rounded-xl bg-indigo-500/20 flex items-center justify-center text-indigo-400 border border-indigo-500/30">
                                             <FileCheck size={20} />
                                         </div>
                                         <div>
@@ -2338,7 +2446,7 @@ Equipe de Capturas - DIG / PCSP
                             {/* Investigation Feed Header */}
                             <div className="bg-surface-dark/90 backdrop-blur-xl border border-white/10 rounded-2xl p-6 shadow-tactic">
                                 <div className="flex items-center gap-3 mb-6 border-b border-white/5 pb-4">
-                                    <div className="w-10 h-10 rounded-2xl bg-primary/20 flex items-center justify-center text-primary border border-primary/30">
+                                    <div className="w-10 h-10 rounded-2xl bg-indigo-500/20 flex items-center justify-center text-indigo-400 border border-indigo-500/30">
                                         <History size={20} />
                                     </div>
                                     <div>
@@ -2637,17 +2745,25 @@ Equipe de Capturas - DIG / PCSP
                     )}
 
                     {/* Sticky Tactical Confirmation Bar */}
-                    {hasChanges && (
-                        <div className="fixed bottom-[110px] left-4 right-4 p-4 bg-primary/90 backdrop-blur-xl border border-white/20 rounded-2xl z-[60] flex gap-3 animate-in slide-in-from-bottom duration-500 shadow-tactic">
-                            <button onClick={handleCancelEdits} className="flex-1 py-4 px-4 rounded-xl font-black text-[10px] uppercase tracking-widest bg-white/10 text-white hover:bg-white/20 transition-colors">Abortar Alterações</button>
-                            <button onClick={() => setIsConfirmSaveOpen(true)} className="flex-1 py-4 px-4 rounded-xl font-black text-[10px] uppercase tracking-widest bg-white text-primary shadow-lg hover:shadow-white/20 transition-all flex items-center justify-center gap-2 active:scale-95">
-                                <CheckCircle size={18} /> SINCRONIZAR DADOS
-                            </button>
-                        </div>
+                    {hasChanges && createPortal(
+                        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 w-full max-w-md px-4 z-[1001] animate-in slide-in-from-bottom duration-500">
+                            <div className="bg-amber-500/95 backdrop-blur-xl border border-white/20 rounded-2xl p-4 shadow-tactic flex flex-col gap-3">
+                                <div className="flex items-center gap-2 mb-1">
+                                    <AlertTriangle size={16} className="text-white animate-pulse" />
+                                    <span className="text-[10px] font-black text-white uppercase tracking-widest">Aviso: Alterações táticas pendentes de sincronização</span>
+                                </div>
+                                <div className="flex gap-3">
+                                    <button onClick={handleCancelEdits} className="flex-1 py-3 px-4 rounded-xl font-black text-[10px] uppercase tracking-widest bg-black/20 text-white hover:bg-black/30 transition-colors">Descartar</button>
+                                    <button onClick={() => setIsConfirmSaveOpen(true)} className="flex-[2] py-3 px-4 rounded-xl font-black text-[10px] uppercase tracking-widest bg-white text-slate-900 shadow-lg hover:bg-slate-100 transition-all flex items-center justify-center gap-2 active:scale-95">
+                                        <RefreshCw size={14} className="animate-spin-slow" /> SINCRONIZAR AGORA
+                                    </button>
+                                </div>
+                            </div>
+                        </div>,
+                        document.body
                     )}
                 </div>
 
-                {/* Tactical Action Dock (REMOVED - Use FloatingDock instead) */}
 
                 {/* Modals & Overlays */}
                 <ConfirmModal isOpen={isConfirmSaveOpen} onCancel={() => setIsConfirmSaveOpen(false)} onConfirm={handleSaveChanges} title="Sincronizar Protocolo" message="Deseja registrar as alterações no prontuário oficial deste alvo?" confirmText="Sincronizar" cancelText="Abortar" variant="primary" />
@@ -2657,19 +2773,19 @@ Equipe de Capturas - DIG / PCSP
                 {
                     isCapturasModalOpen && (
                         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-300">
-                            <div className="bg-surface-dark border border-white/10 rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col shadow-tactic">
-                                <div className="p-5 border-b border-white/10 flex justify-between items-center bg-white/5">
-                                    <div className="flex items-center gap-3"><Sparkles className="text-primary animate-pulse" size={20} /><h3 className="text-lg font-black uppercase tracking-tighter text-white">Centro de Redação Inteligente</h3></div>
-                                    <button onClick={() => setIsCapturasModalOpen(false)} className="p-2 text-text-muted hover:text-white"><X size={24} /></button>
+                            <div className="bg-surface-light dark:bg-surface-dark border border-border-light dark:border-white/10 rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col shadow-tactic">
+                                <div className="p-5 border-b border-border-light dark:border-white/10 flex justify-between items-center bg-black/5 dark:bg-white/5">
+                                    <div className="flex items-center gap-3"><Sparkles className="text-primary animate-pulse" size={20} /><h3 className="text-lg font-black uppercase tracking-tighter text-text-light dark:text-white">Centro de Redação Inteligente</h3></div>
+                                    <button onClick={() => setIsCapturasModalOpen(false)} className="p-2 text-text-secondary-light dark:text-text-muted hover:text-text-light dark:hover:text-white"><X size={24} /></button>
                                 </div>
                                 <div className="flex-1 overflow-y-auto p-6 space-y-6 scrollbar-none">
                                     <div className="grid grid-cols-2 gap-4">
-                                        <div className="space-y-1"><label className="text-[10px] font-black text-primary uppercase tracking-widest">Identificador Relatório</label><input className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm text-white" value={capturasData.reportNumber} onChange={e => setCapturasData({ ...capturasData, reportNumber: e.target.value })} /></div>
-                                        <div className="space-y-1"><label className="text-[10px] font-black text-primary uppercase tracking-widest">Comarca Judiciária</label><input className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm text-white" value={capturasData.court} onChange={e => setCapturasData({ ...capturasData, court: e.target.value })} /></div>
+                                        <div className="space-y-1"><label className="text-[10px] font-black text-primary uppercase tracking-widest">Identificador Relatório</label><input className="w-full bg-background-light dark:bg-white/5 border border-border-light dark:border-white/10 rounded-xl p-3 text-sm text-text-light dark:text-white" value={capturasData.reportNumber} onChange={e => setCapturasData({ ...capturasData, reportNumber: e.target.value })} /></div>
+                                        <div className="space-y-1"><label className="text-[10px] font-black text-primary uppercase tracking-widest">Comarca Judiciária</label><input className="w-full bg-background-light dark:bg-white/5 border border-border-light dark:border-white/10 rounded-xl p-3 text-sm text-text-light dark:text-white" value={capturasData.court} onChange={e => setCapturasData({ ...capturasData, court: e.target.value })} /></div>
                                     </div>
                                     <div className="bg-indigo-500/5 border border-indigo-500/20 rounded-2xl p-5 space-y-4">
                                         <div className="flex items-center gap-2"><Cpu size={16} className="text-indigo-400" /><span className="text-[10px] font-black uppercase tracking-widest text-indigo-400">Prompt de Refinamento IA</span></div>
-                                        <input className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-xs text-white placeholder:text-indigo-300/30" placeholder="Ex: 'Seja mais formal', 'Mencione a equipe de campo'..." value={capturasData.aiInstructions} onChange={e => setCapturasData({ ...capturasData, aiInstructions: e.target.value })} />
+                                        <input className="w-full bg-background-light dark:bg-white/5 border border-border-light dark:border-white/10 rounded-xl p-3 text-xs text-text-light dark:text-white placeholder:text-indigo-300/30" placeholder="Ex: 'Seja mais formal', 'Mencione a equipe de campo'..." value={capturasData.aiInstructions} onChange={e => setCapturasData({ ...capturasData, aiInstructions: e.target.value })} />
                                         <button onClick={handleRefreshAiReport} disabled={isGeneratingAiReport} className="w-full py-3 bg-indigo-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/20">{isGeneratingAiReport ? <RefreshCw size={14} className="animate-spin" /> : <Bot size={14} />} {isGeneratingAiReport ? 'ANTIGRAVITY PROCESSANDO...' : 'EXECUTAR ANÁLISE E REDAÇÃO IA'}</button>
                                     </div>
                                     <textarea className="w-full bg-white/5 border border-white/10 rounded-2xl p-5 text-sm leading-relaxed text-white min-h-[300px] font-serif" value={capturasData.body} onChange={e => setCapturasData({ ...capturasData, body: e.target.value })} />
@@ -2709,6 +2825,14 @@ Equipe de Capturas - DIG / PCSP
                     )
                 }
             </div>
+            {activeReportType && data && (
+                <IfoodReportModal
+                    isOpen={!!activeReportType}
+                    onClose={() => setActiveReportType(null)}
+                    warrant={data}
+                    type={activeReportType}
+                />
+            )}
         </div >
     );
 };
