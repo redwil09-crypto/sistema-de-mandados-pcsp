@@ -1314,6 +1314,15 @@ Equipe de Capturas - DIG / PCSP
 
 
     const handleGenerateCapturasPDF = async () => {
+        if (!data) return;
+        const { generateCapturasReportPDF } = await import('../services/pdfReportService');
+        const success = await generateCapturasReportPDF(data, capturasData, updateWarrant);
+        if (success) setIsCapturasModalOpen(false);
+    };
+
+    // @ts-ignore
+    const _deprecated_generatePDF = async () => {
+        if (!data) return;
         try {
             const doc = new jsPDF();
             const pageWidth = doc.internal.pageSize.getWidth();
@@ -1639,14 +1648,7 @@ Equipe de Capturas - DIG / PCSP
                 <div className="absolute inset-0 tactical-glow"></div>
             </div>
 
-            {/* FLOATING ACTION DOCK (Restaurado) */}
-            <FloatingDock
-                onBack={handleBack} // Botão INÍCIO
-                onPrint={handleDownloadPDF} // Botão IMPRIMIR
-                onFinalize={handleFinalize} // Botão FECHAR
-                onDelete={isAdmin ? () => setIsDeleteConfirmOpen(true) : undefined}
-                onSettings={() => toast.info("Configurações Restauradas")}
-            />
+
 
             {/* Main Content Layout */}
             <div className="relative z-10 p-4 space-y-4 max-w-[1600px] mx-auto">
@@ -2638,7 +2640,17 @@ Equipe de Capturas - DIG / PCSP
                     )}
                 </div>
 
-                {/* Tactical Action Dock (REMOVED - Use FloatingDock instead) */}
+                {/* Floating Dock (Static at bottom) */}
+                <div className="flex justify-center pb-12 mt-8">
+                    <FloatingDock
+                        className="relative mx-auto w-fit"
+                        onBack={handleBack}
+                        onPrint={handleDownloadPDF}
+                        onFinalize={handleFinalize}
+                        onDelete={isAdmin ? () => setIsDeleteConfirmOpen(true) : undefined}
+                        onSettings={() => toast.info("Configurações Restauradas")}
+                    />
+                </div>
 
                 {/* Modals & Overlays */}
                 <ConfirmModal isOpen={isConfirmSaveOpen} onCancel={() => setIsConfirmSaveOpen(false)} onConfirm={handleSaveChanges} title="Sincronizar Protocolo" message="Deseja registrar as alterações no prontuário oficial deste alvo?" confirmText="Sincronizar" cancelText="Abortar" variant="primary" />

@@ -1,5 +1,9 @@
-// @ts-ignore
-import pdfWorker from 'pdfjs-dist/build/pdf.worker.mjs?url';
+// Imports seguros usando Named Imports para compatibilidade total com Vite/PDF.js v4
+import { getDocument, GlobalWorkerOptions, version } from 'pdfjs-dist';
+
+// Configuração do Worker via CDN (estratégia à prova de falhas locais)
+// Usamos o version importado diretamente para garantir match exato
+GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${version}/build/pdf.worker.min.mjs`;
 
 export interface ExtractedData {
     id: string;
@@ -267,8 +271,6 @@ const extractDates = (text: string): { issueDate: string; expirationDate: string
 
 const extractAddresses = (text: string): string[] => {
     const addresses: string[] = [];
-    // Regex ajustada para capturar múltiplas linhas permitindo quebras de linha até encontrar um padrão de parada (ex: duplo enter ou palavras chave)
-    // ([^;\n]+(?:[\r\n]+(?![A-ZÀ-Ú][a-zà-ú]+:)[^;\n]+)*) -> Tenta pegar linhas subsequentes que não pareçam ser um novo rótulo "Label:"
     const pattern = /(?:ENDERE[ÇC]O(?:S)? DO PROCURADO|Endere[çc]o(?:s)? de Dilig[êe]ncia|Endere[çc]o(?:\s+Residencial)?|Resid[êe]ncia|Endere[çc]o(?:s)?(?:\s+do\s+Réu)?|Logradouro|Local(?:\s+para)?\s+cumprimento)[:\s]+((?:(?![A-ZÀ-Ú][A-ZÀ-Ú\s]+:).)+)/gim;
 
     const matches = text.matchAll(pattern);
@@ -276,11 +278,8 @@ const extractAddresses = (text: string): string[] => {
         if (match[1]) {
             let addr = match[1].trim();
 
-            // Pega apenas a primeira linha relevante ou até o padrão de Cidade-UF se existir e ser finalizador
-            // Mas cuidado para não cortar cedo demais. Vamos tentar limpar quebras de linha excessivas.
             addr = addr.replace(/\r\n/g, ' ').replace(/\n/g, ' ').replace(/\s{2,}/g, ' ');
 
-            // Corta se encontrar palavras chave que indicam fim do campo de endereço no formulário
             const stopWords = [
                 'VARA', 'COMARCA', 'FORO', 'TRIBUNAL', 'JUIZ', 'ESCRIVÃO', 'DELEGADO',
                 'RELATOR', 'PROCESSO', 'CLASSE', 'ASSUNTO', 'NASCIMENTO', 'CPF', 'RG',
@@ -293,7 +292,6 @@ const extractAddresses = (text: string): string[] => {
                 addr = splitMatch[0];
             }
 
-            // Limpeza final
             addr = addr.replace(/[.;,]+$/, '').trim();
 
             const upperAddr = addr.toUpperCase();
@@ -305,10 +303,8 @@ const extractAddresses = (text: string): string[] => {
         }
     }
 
-    // Se não houver nada ou se os endereços capturados forem inválidos
     if (addresses.length === 0) return ['Não informado'];
 
-    // Remove duplicatas e retira placeholders se houver endereços reais
     const uniqueAddresses = Array.from(new Set(addresses));
     if (uniqueAddresses.length > 1) {
         const filtered = uniqueAddresses.filter(a => a !== 'Não informado');
@@ -321,7 +317,6 @@ const extractAddresses = (text: string): string[] => {
 const determineMandadoType = (text: string): { type: string; category: 'prison' | 'search' } => {
     const lowerText = text.toLowerCase();
 
-    // Verificação de menor de idade (Data de Nascimento ou palavras-chave)
     const birthPatterns = [
         /(?:nascimento|nascido em|data de nascimento)[:\s]*([0-9]{1,2}[\/\-][0-9]{1,2}[\/\-][0-9]{4})/i,
         /(?:nascimento|nascido em|data de nascimento)[:\s]*([0-9]{1,2})\s+de\s+([a-zç]+)\s+de\s+([0-9]{4})/i
@@ -374,8 +369,6 @@ const determineMandadoType = (text: string): { type: string; category: 'prison' 
 const extractCrime = (text: string): string => {
     const lowerText = text.toLowerCase();
 
-    // 1. Procurar por campos explícitos e artigos da legislação
-    // Capitulação, Assunto ou Artigo
     const lawArticlePattern = /(?:Assunto|Natureza|Capitula[çc][ãa]o|Incorreu\s+no(?:s)?\s+Artigo(?:s)?|Tipifica[çc][ãa]o|Artigo\(s\))[:\s\d]*([0-9]{2,4})/i;
     const articleMatch = text.match(lawArticlePattern);
 
@@ -394,7 +387,6 @@ const extractCrime = (text: string): string => {
         if (art === '302' || art === '303') return "Crimes de Trânsito";
     }
 
-    // 2. Busca por palavras-chave específicas com fronteiras de palavra (\b)
     const specificRules = [
         { crime: "Pensão alimenticia", keywords: [/\bpens[ãa]o\b/i, /\baliment[íi]cia\b/i, /\bd[ée]bito\s+alimentar\b/i, /\bd[íi]vida\s+de\s+alimentos\b/i, /\bpris[ãa]o\s+civil\b/i] },
         { crime: "Homicídio", keywords: [/\bhomic[íi]dio\b/i, /\bmatar\b/i, /\bassassinato\b/i] },
@@ -413,12 +405,8 @@ const extractCrime = (text: string): string => {
 
     for (const rule of specificRules) {
         if (rule.keywords.some(kw => kw.test(text))) {
-            // Se encontrou "pensão" ou "alimentos", verifica se não é apenas o nome da vara
             if (rule.crime === "Pensão alimenticia") {
-                // Se só tem "alimentos" mas tem "roubo" ou "tráfico" em algum lugar, ignora alimentos
                 if (/\broubo\b|\btr[áa]fico\b|\bhomic[íi]dio\b/i.test(text)) continue;
-
-                // Se a palavra aparecer apenas no começo (primeiros 500 chars - cabeçalho da Vara) e não houver palavras de execução
                 const first500 = text.substring(0, 500).toLowerCase();
                 const totalOccurrences = (text.toLowerCase().match(/alimentos/g) || []).length;
                 if (totalOccurrences === 1 && first500.includes('alimentos') && !/\bexecu[çc][ãa]o\b|\bd[ée]bito\b|\bd[íi]vida\b|\bpris[ãa]o\s+civil\b/i.test(text)) {
@@ -433,14 +421,12 @@ const extractCrime = (text: string): string => {
 };
 
 const extractRegime = (text: string, category: 'prison' | 'search', crime: string): string => {
-    // Limpar o texto de termos que geram falsos positivos de regime
     let cleanTextForRegime = text.replace(/Pol[íi]cia\s+Civil/gi, '---')
         .replace(/Justi[çc]a\s+Civil/gi, '---')
         .replace(/C[íi]vel/gi, '---');
 
     const lowerText = cleanTextForRegime.toLowerCase();
 
-    // Regra para Busca e Apreensão: permite Audiência de Justificativa ou padrão Localização
     if (category === 'search') {
         if (/\baudi[êe]ncia\s+de\s+justificativa\b/i.test(text)) {
             return "Audiência de Justificativa";
@@ -448,7 +434,6 @@ const extractRegime = (text: string, category: 'prison' | 'search', crime: strin
         return 'Localização';
     }
 
-    // Regra especial: se for Pensão Alimenticia, o regime é Civil
     if (crime === "Pensão alimenticia") return "Civil";
 
     const regimeRules = [
@@ -464,7 +449,6 @@ const extractRegime = (text: string, category: 'prison' | 'search', crime: strin
         if (rule.pattern.test(lowerText)) return rule.label;
     }
 
-    // Se mencionar Civil isolado (e não for Polícia Civil)
     if (/\bcivil\b/i.test(lowerText)) return "Civil";
 
     return 'Outro';
@@ -518,13 +502,11 @@ const extractTacticalSummary = (text: string): string[] => {
         if (m.regex.test(text)) summary.push(m.label);
     });
 
-    // Nova regra: Se houver três ou mais ocorrências de pessoas dentro da "SÍNTESE DA DECISÃO" ou "TEOR DO DOCUMENTO"
     const decisionSectionPattern = /(?:S[ÍI]NTESE\s+DA\s+DECIS[ÃA]O|TEOR\s+DO\s+DOCUMENTO)[:\s]+([\s\S]+?)(?:\n\s*\n|MANDADO|NOME:|$)/i;
     const decisionMatch = text.match(decisionSectionPattern);
 
     if (decisionMatch && decisionMatch[1]) {
         const decisionText = decisionMatch[1];
-        // Conta quantas vezes aparecem palavras que indicam novos réus na lista da decisão
         const personInDecisionMarkers = /(?:R[ÉE]U\(A\)|R[ÉE]U|INVESTIGADO|INDICIADO|QUALIFICADO)[:\s]+/gi;
         const matchesInDecision = decisionText.match(personInDecisionMarkers);
 
@@ -564,7 +546,6 @@ const determineAutoPriority = (text: string, crime: string): string[] => {
     if (highPriorityCrimes.includes(crime)) tags.push('Urgente');
     if (text.toLowerCase().includes('prazo determinado') || text.toLowerCase().includes('imediato')) tags.push('Prioridade');
 
-    // Ofício de Cobrança: apenas se houver menção explícita a cobrança/ofício no contexto de alimentos
     if (crime === 'Pensão alimenticia' && (text.toLowerCase().includes('cobrança') || text.toLowerCase().includes('ofício'))) {
         tags.push('Ofício de Cobrança');
     }
@@ -579,21 +560,24 @@ export const extractPdfData = async (file: File): Promise<ExtractedData> => {
         const fileName = file.name.toLowerCase();
 
         if (fileName.endsWith('.pdf')) {
-            const pdfjsLib = await import('pdfjs-dist');
-            pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker;
+            try {
+                const arrayBuffer = await file.arrayBuffer();
+                // Uso direto do getDocument importado
+                const loadingTask = getDocument({ data: arrayBuffer });
+                const pdf = await loadingTask.promise;
 
-            const arrayBuffer = await file.arrayBuffer();
-            // @ts-ignore
-            const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-
-            // Extract text from all pages
-            for (let i = 1; i <= pdf.numPages; i++) {
-                const page = await pdf.getPage(i);
-                const textContent = await page.getTextContent();
-                const pageText = textContent.items
-                    .map((item: any) => item.str)
-                    .join(' ');
-                fullText += pageText + '\n';
+                // Extract text from all pages
+                for (let i = 1; i <= pdf.numPages; i++) {
+                    const page = await pdf.getPage(i);
+                    const textContent = await page.getTextContent();
+                    const pageText = textContent.items
+                        .map((item: any) => item.str)
+                        .join(' ');
+                    fullText += pageText + '\n';
+                }
+            } catch (pdfError: any) {
+                console.error("PDF.js Core Error:", pdfError);
+                throw new Error("Erro interno ao decodificar PDF. O arquivo pode estar corrompido ou ter senha.");
             }
         } else if (fileName.endsWith('.docx')) {
             const mammoth = await import('mammoth');
@@ -662,12 +646,9 @@ export const extractRawTextFromPdf = async (file: File): Promise<string> => {
     try {
         const fileName = file.name.toLowerCase();
         if (fileName.endsWith('.pdf')) {
-            const pdfjsLib = await import('pdfjs-dist');
-            pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker;
-
             const arrayBuffer = await file.arrayBuffer();
-            // @ts-ignore
-            const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+            const loadingTask = getDocument({ data: arrayBuffer });
+            const pdf = await loadingTask.promise;
             let fullText = '';
             for (let i = 1; i <= pdf.numPages; i++) {
                 const page = await pdf.getPage(i);
