@@ -15,7 +15,7 @@ const FloatingDock = ({ onBack, onPrint, onFinalize, onDelete, onSettings }: Flo
     const navigate = useNavigate();
 
     return (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 p-2 bg-surface-dark/90 backdrop-blur-xl border border-white/10 rounded-full shadow-2xl animate-in slide-in-from-bottom-10 fade-in duration-500">
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 p-2 bg-surface-dark/90 backdrop-blur-xl border border-neon-purple/40 shadow-neon-purple-tactic rounded-full animate-in slide-in-from-bottom-10 fade-in duration-500">
             {/* Home / Back Button */}
             <button
                 onClick={onBack}
@@ -31,7 +31,7 @@ const FloatingDock = ({ onBack, onPrint, onFinalize, onDelete, onSettings }: Flo
             {/* Action Buttons */}
             <button
                 onClick={onFinalize}
-                className="group flex flex-col items-center justify-center w-14 h-14 rounded-full bg-green-500/10 hover:bg-green-500/20 text-green-400 border border-green-500/20 transition-all active:scale-95"
+                className="group flex flex-col items-center justify-center w-14 h-14 rounded-full bg-green-500/10 hover:bg-green-500/20 text-green-400 border border-green-500/20 hover:border-green-500/50 hover:shadow-neon-green transition-all active:scale-95"
                 title="Finalizar"
             >
                 <CheckCircle size={20} className="group-hover:-translate-y-0.5 transition-transform" />
@@ -40,7 +40,7 @@ const FloatingDock = ({ onBack, onPrint, onFinalize, onDelete, onSettings }: Flo
 
             <button
                 onClick={onPrint}
-                className="group flex flex-col items-center justify-center w-20 h-14 rounded-full bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-600/30 transition-all active:scale-95 border border-indigo-400/30"
+                className="group flex flex-col items-center justify-center w-20 h-14 rounded-full bg-indigo-600 hover:bg-indigo-500 text-white shadow-neon-indigo transition-all active:scale-95 border border-indigo-400/30"
                 title="Gerar Dossiê"
             >
                 <Printer size={20} className="group-hover:-translate-y-0.5 transition-transform" />
@@ -61,7 +61,7 @@ const FloatingDock = ({ onBack, onPrint, onFinalize, onDelete, onSettings }: Flo
             {onDelete && (
                 <button
                     onClick={onDelete}
-                    className="group flex flex-col items-center justify-center w-14 h-14 rounded-full bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/20 transition-all active:scale-95 ml-1"
+                    className="group flex flex-col items-center justify-center w-14 h-14 rounded-full bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/20 hover:border-red-500/50 hover:shadow-neon-red transition-all active:scale-95 ml-1"
                     title="Excluir"
                 >
                     <Trash2 size={20} className="group-hover:-translate-y-0.5 transition-transform" />
