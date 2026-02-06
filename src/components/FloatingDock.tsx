@@ -7,11 +7,14 @@ interface FloatingDockProps {
     onFinalize: () => void;
     onDelete?: () => void;
     onSettings?: () => void;
+    className?: string;
 }
 
-const FloatingDock = ({ onBack, onPrint, onFinalize, onDelete, onSettings }: FloatingDockProps) => {
+const FloatingDock = ({ onBack, onPrint, onFinalize, onDelete, onSettings, className }: FloatingDockProps) => {
+    const positionClasses = className || "fixed bottom-6 left-1/2 -translate-x-1/2";
+
     return (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] animate-in slide-in-from-bottom-4 fade-in duration-500">
+        <div className={`${positionClasses} z-[100] animate-in slide-in-from-bottom-4 fade-in duration-500`}>
             {/* Dock Container */}
             <div className="flex items-center gap-2 p-2 bg-[#0f172a]/90 backdrop-blur-2xl border border-white/10 rounded-full shadow-[0_0_50px_rgba(0,0,0,0.6)] ring-1 ring-white/10 hover:ring-white/20 transition-all hover:scale-[1.02]">
 
