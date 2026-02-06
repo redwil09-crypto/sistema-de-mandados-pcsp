@@ -170,6 +170,17 @@ async function tryGenerateContent(prompt: string, options: any = {}): Promise<st
     throw new Error("Falha ao gerar resposta.");
 }
 
+const parseGeminiJSON = (text: string, fallback: any = null) => {
+    try {
+        if (!text) return fallback;
+        const cleaned = text.replace(/```json/g, '').replace(/```/g, '').trim();
+        return JSON.parse(cleaned);
+    } catch (e) {
+        console.warn("Gemini JSON Parse Error:", e);
+        return fallback;
+    }
+};
+
 export async function analyzeRawDiligence(warrantData: any, rawInfo: string) {
     if (!(await isGeminiEnabled())) return null;
 
@@ -295,8 +306,7 @@ export async function analyzeWarrantData(text: string) {
 
     try {
         const resultText = await tryGenerateContent(prompt);
-        const jsonStr = resultText.replace(/```json|```/g, '').trim();
-        return JSON.parse(jsonStr);
+        return parseGeminiJSON(resultText, null);
     } catch (error) {
         console.error("Erro na análise da IA:", error);
         return null;
@@ -342,9 +352,7 @@ export async function analyzeDocumentStrategy(warrantData: any, docText: string)
 
     try {
         const text = await tryGenerateContent(prompt);
-        // Clean markdown code blocks if present
-        const jsonStr = text.replace(/```json|```/g, '').trim();
-        return JSON.parse(jsonStr);
+        return parseGeminiJSON(text, null);
     } catch (error) {
         console.error("Erro na Análise Profunda:", error);
         return null;
@@ -442,8 +450,7 @@ export async function mergeIntelligence(
 
     try {
         const text = await tryGenerateContent(prompt);
-        const jsonStr = text.replace(/```json|```/g, '').trim();
-        return JSON.parse(jsonStr);
+        return parseGeminiJSON(text, currentIntel);
     } catch (error) {
         console.error("Erro no Merge de Inteligência:", error);
         // Fallback: Retorna o atual + dados novos de forma bruta se falhar

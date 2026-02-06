@@ -1292,6 +1292,15 @@ Equipe de Capturas - DIG / PCSP
 
 
     const handleGenerateCapturasPDF = async () => {
+        if (!data) return;
+        const { generateCapturasReportPDF } = await import('../services/pdfReportService');
+        const success = await generateCapturasReportPDF(data, capturasData, updateWarrant);
+        if (success) setIsCapturasModalOpen(false);
+    };
+
+    // @ts-ignore
+    const _deprecated_generatePDF = async () => {
+        if (!data) return;
         try {
             const doc = new jsPDF();
             const pageWidth = doc.internal.pageSize.getWidth();
