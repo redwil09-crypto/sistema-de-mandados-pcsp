@@ -1,10 +1,5 @@
-import * as pdfjsLib from 'pdfjs-dist';
 // @ts-ignore
 import pdfWorker from 'pdfjs-dist/build/pdf.worker.mjs?url';
-import * as mammoth from 'mammoth';
-
-// Configure worker using local file for better reliability in Vite
-pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker;
 
 export interface ExtractedData {
     id: string;
@@ -47,7 +42,8 @@ const extractName = (text: string): string => {
     const patterns = [
         /Nome\s+da\s+Pessoa[:\s]+([a-zA-ZÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑáàâãéèêíïóôõöúçñ\s\-']{5,})/i,
         /MANDADO\s+DE\s+PRISÃO\s+CONTRA[:\s]+([a-zA-ZÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑáàâãéèêíïóôõöúçñ\s\-']{5,})/i,
-        /(?:RÉU\(A\)|RÉU|INVESTIGADO|INDICIADO|QUALIFICADO|AUTOR|REQUERIDO|SENTENCIADO)[:\s]+([a-zA-ZÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑáàâãéèêíïóôõöúçñ\s\-']{5,})/i,
+        /(?:RÉU\(A\)|RÉU|INVESTIGADO|INDICIADO|QUALIFICADO|AUTOR|REQUERIDO|SENTENCIADO|EXECUTADO|ALVO)[:\s]+([a-zA-ZÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑáàâãéèêíïóôõöúçñ\s\-']{5,})/i,
+        /(?:PESSOA A SER PRESA)[:\s]+([a-zA-ZÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑáàâãéèêíïóôõöúçñ\s\-']{5,})/i,
         /NOME[:\s]+([a-zA-ZÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑáàâãéèêíïóôõöúçñ\s\-']{5,})/i,
     ];
 
@@ -156,9 +152,9 @@ const extractIssuingCourt = (text: string): string => {
     const patterns = [
         /(?:Tribunal de Justiça do Estado de São Paulo|TJSP).*?(?:FORO DE|COMARCA DE|VARA)\s+([a-zA-ZÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑ\s\-]{3,})/i,
         /(?:FÓRUM|FORO|COMARCA)[:\s]+([a-zA-ZÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑ\s\-]{3,})/i,
-        /([0-9]ª\s+Vara\s+(?:Criminal|Cível|da\s+Família|das\s+Sucessões|do\s+Júri|de\s+Execuções\s+Criminais).*?)/i,
-        /(Vara\s+.*?(?:Criminal|Cível|da\s+Família|das\s+Sucessões|do\s+Júri|de\s+Execuções\s+Criminais).*?)/i,
-        /Expedido\s+em\s+autos\s+da\s+([0-9]ª\s+Vara\s+.*?)/i
+        /([0-9]ª\s+Vara\s+(?:Criminal|Cível|da\s+Família|das\s+Sucessões|do\s+Júri|de\s+Execuções\s+Criminais)[^\n,]*)/i,
+        /(Vara\s+.*?(?:Criminal|Cível|da\s+Família|das\s+Sucessões|do\s+Júri|de\s+Execuções\s+Criminais)[^\n,]*)/i,
+        /Expedido\s+em\s+autos\s+da\s+([0-9]ª\s+Vara\s+[^\n,]*)/i
     ];
 
     for (const pattern of patterns) {
@@ -273,7 +269,7 @@ const extractAddresses = (text: string): string[] => {
     const addresses: string[] = [];
     // Regex ajustada para capturar múltiplas linhas permitindo quebras de linha até encontrar um padrão de parada (ex: duplo enter ou palavras chave)
     // ([^;\n]+(?:[\r\n]+(?![A-ZÀ-Ú][a-zà-ú]+:)[^;\n]+)*) -> Tenta pegar linhas subsequentes que não pareçam ser um novo rótulo "Label:"
-    const pattern = /(?:ENDERE[ÇC]O(?:S)? DO PROCURADO|Endere[çc]o(?:s)? de Dilig[êe]ncia|Resid[êe]ncia|Endere[çc]o(?:s)?(?:\s+do\s+Réu)?|Logradouro)[:\s]+((?:(?![A-ZÀ-Ú][A-ZÀ-Ú\s]+:).)+)/gim;
+    const pattern = /(?:ENDERE[ÇC]O(?:S)? DO PROCURADO|Endere[çc]o(?:s)? de Dilig[êe]ncia|Endere[çc]o(?:\s+Residencial)?|Resid[êe]ncia|Endere[çc]o(?:s)?(?:\s+do\s+Réu)?|Logradouro|Local(?:\s+para)?\s+cumprimento)[:\s]+((?:(?![A-ZÀ-Ú][A-ZÀ-Ú\s]+:).)+)/gim;
 
     const matches = text.matchAll(pattern);
     for (const match of matches) {
@@ -583,7 +579,11 @@ export const extractPdfData = async (file: File): Promise<ExtractedData> => {
         const fileName = file.name.toLowerCase();
 
         if (fileName.endsWith('.pdf')) {
+            const pdfjsLib = await import('pdfjs-dist');
+            pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker;
+
             const arrayBuffer = await file.arrayBuffer();
+            // @ts-ignore
             const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
 
             // Extract text from all pages
@@ -596,7 +596,9 @@ export const extractPdfData = async (file: File): Promise<ExtractedData> => {
                 fullText += pageText + '\n';
             }
         } else if (fileName.endsWith('.docx')) {
+            const mammoth = await import('mammoth');
             const arrayBuffer = await file.arrayBuffer();
+            // @ts-ignore
             const result = await mammoth.extractRawText({ arrayBuffer });
             fullText = result.value;
         } else {
@@ -660,7 +662,11 @@ export const extractRawTextFromPdf = async (file: File): Promise<string> => {
     try {
         const fileName = file.name.toLowerCase();
         if (fileName.endsWith('.pdf')) {
+            const pdfjsLib = await import('pdfjs-dist');
+            pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker;
+
             const arrayBuffer = await file.arrayBuffer();
+            // @ts-ignore
             const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
             let fullText = '';
             for (let i = 1; i <= pdf.numPages; i++) {
@@ -673,7 +679,9 @@ export const extractRawTextFromPdf = async (file: File): Promise<string> => {
             }
             return fullText;
         } else if (fileName.endsWith('.docx')) {
+            const mammoth = await import('mammoth');
             const arrayBuffer = await file.arrayBuffer();
+            // @ts-ignore
             const result = await mammoth.extractRawText({ arrayBuffer });
             return result.value;
         } else {
