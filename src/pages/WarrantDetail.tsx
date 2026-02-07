@@ -1653,10 +1653,10 @@ Equipe de Capturas - DIG / PCSP
             {/* Main Content Layout */}
             <div className="relative z-10 p-4 space-y-4 max-w-[1600px] mx-auto">
 
-                {/* Floating Dock (Moved to Top) */}
+                {/* Floating Dock (Overlay Command Bar) */}
                 <FloatingDock
                     onBack={() => navigate('/')}
-                    onSave={handleSaveChanges}
+                    onSave={() => navigate(`/new-warrant?edit=${id}`)}
                     onPrint={handleDownloadPDF}
                     onFinalize={handleFinalize}
                     onDelete={isAdmin ? () => setIsDeleteConfirmOpen(true) : undefined}

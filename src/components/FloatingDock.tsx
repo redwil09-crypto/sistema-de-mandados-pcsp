@@ -13,7 +13,10 @@ interface FloatingDockProps {
 const FloatingDock = ({ onBack, onSave, onPrint, onFinalize, onDelete, className }: FloatingDockProps) => {
     // Changed to sticky top-4 to satisfy "appear immediately" and "follow scroll"
     // and "not fixed footer". It acts as a top command bar.
-    const containerClasses = className || "sticky top-4 mx-auto w-full max-w-2xl z-[200] rounded-2xl border border-white/10 bg-[#0f172a]/70 backdrop-blur-xl shadow-glass transition-all duration-300";
+    // Changed to FIXED overlay to satisfy "ELEMENTO FLUTUANTE SOBREPOSTO"
+    // "Não ocupar espaço no fluxo" -> fixed.
+    // "Centralizada horizontalmente" -> left-1/2 -translate-x-1/2.
+    const containerClasses = className || "fixed top-6 left-1/2 -translate-x-1/2 w-[95%] max-w-2xl z-[200] rounded-2xl border border-white/10 bg-[#0f172a]/90 backdrop-blur-xl shadow-2xl shadow-black/50 transition-all duration-300";
 
     return (
         <div className={`${containerClasses} animate-in slide-in-from-top-4 fade-in duration-500`}>
