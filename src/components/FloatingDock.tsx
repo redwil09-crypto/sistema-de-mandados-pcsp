@@ -21,10 +21,10 @@ const FloatingDock = ({ onBack, onSave, onPrint, onFinalize, onDelete, className
         return () => setMounted(false);
     }, []);
 
-    // "Parte inferior da tela", "Centralizada", "Fixo ao Viewport".
-    // Uses bottom-6 to provide the small margin requested.
-    // Enhanced z-index to max to ensure it's above everything.
-    const containerClasses = className || "fixed bottom-6 left-1/2 -translate-x-1/2 w-[95%] max-w-2xl z-[9999] rounded-2xl border border-white/10 bg-[#0f172a]/80 backdrop-blur-xl shadow-2xl shadow-black/50 transition-all duration-300 pointer-events-auto";
+    // "Barra transparente" -> bg-transparent or very low opacity dark.
+    // "Tons neon sutis" -> Text shadows and button glows.
+    // Updated container to be minimal/transparent.
+    const containerClasses = className || "fixed bottom-6 left-1/2 -translate-x-1/2 w-auto max-w-2xl z-[9999] rounded-2xl border border-white/5 bg-black/20 backdrop-blur-md transition-all duration-300 pointer-events-auto px-6 shadow-2xl shadow-black/20";
 
     const content = (
         <div className={`${containerClasses} animate-in slide-in-from-bottom-6 fade-in duration-500`}>
@@ -35,36 +35,36 @@ const FloatingDock = ({ onBack, onSave, onPrint, onFinalize, onDelete, className
                 <DockItem
                     onClick={onBack}
                     icon={<Home size={22} />}
-                    color="text-sky-400 group-hover:text-white"
-                    bg="hover:bg-sky-500/20"
+                    color="text-sky-400 group-hover:text-white drop-shadow-[0_0_5px_rgba(56,189,248,0.5)]"
+                    bg="hover:bg-sky-500/10"
                     label="Início"
                 />
 
-                {/* Botão ATUALIZAR (Antigo Salvar) */}
+                {/* Botão ATUALIZAR (Antigo Salvar) - Neon Amber */}
                 {onSave && (
                     <DockItem
                         onClick={onSave}
                         icon={<RefreshCw size={22} />}
-                        color="text-amber-400 group-hover:text-white"
-                        bg="hover:bg-amber-500/20"
+                        color="text-amber-400 group-hover:text-white drop-shadow-[0_0_5px_rgba(251,191,36,0.5)]"
+                        bg="hover:bg-amber-500/10"
                         label="Atualizar"
                     />
                 )}
 
-                {/* Ações Principais */}
+                {/* Ações Principais - Neon Indigo & Emerald */}
                 <DockItem
                     onClick={onPrint}
                     icon={<Printer size={22} />}
-                    color="text-indigo-400 group-hover:text-white"
-                    bg="hover:bg-indigo-500/20"
+                    color="text-indigo-400 group-hover:text-white drop-shadow-[0_0_5px_rgba(129,140,248,0.5)]"
+                    bg="hover:bg-indigo-500/10"
                     label="PDF"
                 />
 
                 <DockItem
                     onClick={onFinalize}
                     icon={<CheckCircle size={22} />}
-                    color="text-emerald-400 group-hover:text-white"
-                    bg="hover:bg-emerald-500/20"
+                    color="text-emerald-400 group-hover:text-white drop-shadow-[0_0_5px_rgba(52,211,153,0.5)]"
+                    bg="hover:bg-emerald-500/10"
                     label="Concluir"
                 />
 
@@ -72,8 +72,8 @@ const FloatingDock = ({ onBack, onSave, onPrint, onFinalize, onDelete, className
                     <DockItem
                         onClick={onDelete}
                         icon={<Trash2 size={22} />}
-                        color="text-rose-400 group-hover:text-white"
-                        bg="hover:bg-rose-500/20"
+                        color="text-rose-400 group-hover:text-white drop-shadow-[0_0_5px_rgba(251,113,133,0.5)]"
+                        bg="hover:bg-rose-500/10"
                         label="Excluir"
                     />
                 )}
