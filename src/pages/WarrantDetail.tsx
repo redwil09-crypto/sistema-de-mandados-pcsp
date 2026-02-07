@@ -2643,6 +2643,7 @@ Equipe de Capturas - DIG / PCSP
                 {/* Floating Dock (Static at bottom) */}
                 <FloatingDock
                     onBack={() => navigate(-1)}
+                    onSave={handleSaveChanges}
                     onPrint={handleDownloadReportPDF}
                     onFinalize={handleFinalize}
                     onDelete={isAdmin ? () => setIsDeleteConfirmOpen(true) : undefined}

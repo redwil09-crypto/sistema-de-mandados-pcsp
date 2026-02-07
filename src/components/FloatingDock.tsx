@@ -1,23 +1,25 @@
 import React from 'react';
-import { Home, Printer, CheckCircle, Trash2 } from 'lucide-react';
+import { Home, Printer, CheckCircle, Trash2, Save } from 'lucide-react';
 
 interface FloatingDockProps {
     onBack: () => void;
+    onSave?: () => void;
     onPrint: () => void;
     onFinalize: () => void;
     onDelete?: () => void;
     className?: string;
 }
 
-const FloatingDock = ({ onBack, onPrint, onFinalize, onDelete, className }: FloatingDockProps) => {
+const FloatingDock = ({ onBack, onSave, onPrint, onFinalize, onDelete, className }: FloatingDockProps) => {
     // "Igual a barra da tela inicial" -> BottomNav styles
-    // Fixed bottom-4 left-4 right-4, rounded-2xl, background surface-dark/80
-    const containerClasses = className || "fixed bottom-4 left-4 right-4 z-50 rounded-2xl border border-white/10 bg-[#0f172a]/95 backdrop-blur-xl shadow-glass pb-safe";
+    // Fixed bottom-4 left-4 right-4, rounded-2xl, background surface-dark/60 (more transparent)
+    // z-[200] to ensure it stays on top of everything
+    const containerClasses = className || "fixed bottom-4 left-4 right-4 z-[200] rounded-2xl border border-white/10 bg-[#0f172a]/70 backdrop-blur-xl shadow-glass pb-safe transition-all duration-300";
 
     return (
         <div className={`${containerClasses} animate-in slide-in-from-bottom-4 fade-in duration-500`}>
             {/* Inner Flex Container - Justified to fill space without too much gap */}
-            <div className="flex h-16 w-full items-center justify-center gap-8 px-2">
+            <div className="flex h-16 w-full items-center justify-center gap-6 sm:gap-8 px-2">
 
                 {/* Botão VOLTAR/INÍCIO */}
                 <DockItem
@@ -28,13 +30,24 @@ const FloatingDock = ({ onBack, onPrint, onFinalize, onDelete, className }: Floa
                     label="Início"
                 />
 
+                {/* Botão SALVAR/MODIFICAR (Novo) */}
+                {onSave && (
+                    <DockItem
+                        onClick={onSave}
+                        icon={<Save size={22} />}
+                        color="text-amber-400 group-hover:text-white"
+                        bg="hover:bg-amber-500/20"
+                        label="Salvar"
+                    />
+                )}
+
                 {/* Ações Principais */}
                 <DockItem
                     onClick={onPrint}
                     icon={<Printer size={22} />}
                     color="text-indigo-400 group-hover:text-white"
                     bg="hover:bg-indigo-500/20"
-                    label="Gerar PDF"
+                    label="PDF"
                 />
 
                 <DockItem
