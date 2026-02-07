@@ -19,7 +19,7 @@ export interface ExtractedData {
     status: string;
     attachments: string[];
     observations?: string;
-    tacticalSummary?: string;   // New: Periculosidade/Modus Operandi (JSON string)
+    tacticalSummary?: string[];   // FIX: Changed to string[] to match UI expectations
     autoPriority?: string[];    // New: Sugestão de tags
     searchChecklist?: string[];  // New: Itens para busca
     isDuplicate?: boolean;      // New: Verificação de duplicidade
@@ -631,7 +631,7 @@ export const extractPdfData = async (file: File): Promise<ExtractedData> => {
             status: 'EM ABERTO',
             attachments: [file.name],
             observations: fullObservations,
-            tacticalSummary,
+            tacticalSummary: tacticalSummaryArray, // FIX: Return array directly
             searchChecklist: extractSearchChecklist(fullText, category),
             autoPriority: determineAutoPriority(fullText, crime),
             birthDate,
@@ -719,7 +719,7 @@ export const extractFromText = (text: string, sourceName: string): ExtractedData
         status: 'EM ABERTO',
         attachments: [],
         observations: fullObservations,
-        tacticalSummary,
+        tacticalSummary: tacticalSummaryArray, // FIX: Return array directly
         searchChecklist: extractSearchChecklist(text, category),
         autoPriority: determineAutoPriority(text, crime),
         birthDate,
