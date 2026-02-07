@@ -26,10 +26,10 @@ const FloatingDock = ({ onBack, onSave, onPrint, onFinalize, onDelete, className
     // "No celular passa da borda" -> max-w-[92vw], overflow-hidden protection.
     // "Justifique ela" -> justify-between on mobile if needed, or just center with smaller gaps.
     // "Mesma formatação da barra inicial" -> bg-surface-light, dark:bg-surface-dark/80, shadow-glass, border-border-light
-    const containerClasses = className || "fixed bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 w-max max-w-[95vw] sm:max-w-2xl z-[9999] rounded-2xl border border-border-light dark:border-white/5 bg-surface-light/90 dark:bg-surface-dark/80 backdrop-blur-lg shadow-glass transition-all duration-300 pointer-events-auto px-2 sm:px-6";
+    const containerClasses = className || "fixed bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 w-max max-w-[95vw] sm:max-w-2xl z-[9999] rounded-2xl border border-border-light dark:border-white/5 bg-surface-light/95 dark:bg-surface-dark/90 backdrop-blur-lg shadow-glass transition-all duration-300 pointer-events-auto px-2 sm:px-6";
 
     const content = (
-        <div className={`${containerClasses} animate-in slide-in-from-bottom-6 fade-in duration-500`}>
+        <div className={`${containerClasses} animate-in fade-in slide-in-from-bottom-2 duration-300`}>
             {/* Inner Flex Container - Reduced gap for mobile */}
             <div className="flex h-14 sm:h-16 w-full items-center justify-center gap-1.5 sm:gap-8">
 
@@ -37,8 +37,8 @@ const FloatingDock = ({ onBack, onSave, onPrint, onFinalize, onDelete, className
                 <DockItem
                     onClick={onBack}
                     icon={<Home size={22} />}
-                    color="text-sky-600 dark:text-sky-400"
-                    bg="hover:bg-sky-50 dark:hover:bg-sky-500/10"
+                    color="text-text-secondary-light dark:text-text-secondary-dark hover:text-sky-600 dark:hover:text-sky-400"
+                    bg="hover:bg-black/5 dark:hover:bg-white/5"
                     label="Início"
                 />
 
@@ -47,8 +47,8 @@ const FloatingDock = ({ onBack, onSave, onPrint, onFinalize, onDelete, className
                     <DockItem
                         onClick={onSave}
                         icon={<RefreshCw size={22} />}
-                        color="text-amber-600 dark:text-amber-400"
-                        bg="hover:bg-amber-50 dark:hover:bg-amber-500/10"
+                        color="text-text-secondary-light dark:text-text-secondary-dark hover:text-amber-600 dark:hover:text-amber-400"
+                        bg="hover:bg-black/5 dark:hover:bg-white/5"
                         label="Atualizar"
                     />
                 )}
@@ -57,16 +57,16 @@ const FloatingDock = ({ onBack, onSave, onPrint, onFinalize, onDelete, className
                 <DockItem
                     onClick={onPrint}
                     icon={<Printer size={22} />}
-                    color="text-indigo-600 dark:text-indigo-400"
-                    bg="hover:bg-indigo-50 dark:hover:bg-indigo-500/10"
+                    color="text-text-secondary-light dark:text-text-secondary-dark hover:text-indigo-600 dark:hover:text-indigo-400"
+                    bg="hover:bg-black/5 dark:hover:bg-white/5"
                     label="PDF"
                 />
 
                 <DockItem
                     onClick={onFinalize}
                     icon={<CheckCircle size={22} />}
-                    color="text-emerald-600 dark:text-emerald-400"
-                    bg="hover:bg-emerald-50 dark:hover:bg-emerald-500/10"
+                    color="text-text-secondary-light dark:text-text-secondary-dark hover:text-emerald-600 dark:hover:text-emerald-400"
+                    bg="hover:bg-black/5 dark:hover:bg-white/5"
                     label="Concluir"
                 />
 
@@ -74,8 +74,8 @@ const FloatingDock = ({ onBack, onSave, onPrint, onFinalize, onDelete, className
                     <DockItem
                         onClick={onDelete}
                         icon={<Trash2 size={22} />}
-                        color="text-rose-600 dark:text-rose-400"
-                        bg="hover:bg-rose-50 dark:hover:bg-rose-500/10"
+                        color="text-text-secondary-light dark:text-text-secondary-dark hover:text-rose-600 dark:hover:text-rose-400"
+                        bg="hover:bg-black/5 dark:hover:bg-white/5"
                         label="Excluir"
                     />
                 )}
