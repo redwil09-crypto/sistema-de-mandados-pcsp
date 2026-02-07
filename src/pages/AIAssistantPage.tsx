@@ -1147,44 +1147,6 @@ const AIAssistantPage = () => {
                         <span className="text-[9px] font-bold uppercase truncate w-full text-center">Início</span>
                     </Link>
 
-                    {activeTab === 'extraction' && step === 'review' && (
-                        <>
-                            <button
-                                onClick={backToInput}
-                                className="flex-1 min-w-0 flex flex-col items-center justify-center gap-1 p-2 rounded-xl bg-amber-500/10 text-amber-600 transition-all active:scale-95 touch-manipulation hover:bg-amber-500/20"
-                            >
-                                <RefreshCw size={20} />
-                                <span className="text-[9px] font-bold uppercase truncate w-full text-center">Pular</span>
-                            </button>
-                            <button
-                                onClick={handleSave}
-                                disabled={isSaving}
-                                className="flex-[2] min-w-0 flex flex-col items-center justify-center gap-1 p-2 rounded-xl bg-primary text-white shadow-lg shadow-indigo-500/20 transition-all active:scale-95 touch-manipulation hover:bg-primary/90"
-                            >
-                                {isSaving ? <RefreshCw className="animate-spin" size={20} /> : <Save size={20} />}
-                                <span className="text-[9px] font-bold uppercase truncate w-full text-center">{currentIndex < batchResults.length - 1 ? 'Salvar e Próximo' : 'Finalizar Lote'}</span>
-                            </button>
-                        </>
-                    )}
-
-                    {activeTab === 'extraction' && step === 'saved' && (
-                        <>
-                            <button
-                                onClick={reset}
-                                className="flex-1 min-w-0 flex flex-col items-center justify-center gap-1 p-2 rounded-xl bg-primary/10 text-primary transition-all active:scale-95 touch-manipulation hover:bg-primary/20"
-                            >
-                                <Cpu size={20} />
-                                <span className="text-[9px] font-bold uppercase truncate w-full text-center">Novo</span>
-                            </button>
-                            <button
-                                onClick={() => navigate('/warrant-list')}
-                                className="flex-[2] min-w-0 flex flex-col items-center justify-center gap-1 p-2 rounded-xl bg-indigo-600 text-white shadow-lg shadow-indigo-500/20 transition-all active:scale-95 touch-manipulation hover:bg-indigo-700"
-                            >
-                                <Database size={20} />
-                                <span className="text-[9px] font-bold uppercase truncate w-full text-center">Ver Banco</span>
-                            </button>
-                        </>
-                    )}
 
                     {activeTab === 'database' && (
                         <>
