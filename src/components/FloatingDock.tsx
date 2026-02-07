@@ -11,14 +11,12 @@ interface FloatingDockProps {
 }
 
 const FloatingDock = ({ onBack, onSave, onPrint, onFinalize, onDelete, className }: FloatingDockProps) => {
-    // "Não fique fixa" -> Sticky or Relative. "Sempre apareça" -> Sticky bottom.
-    // Updated to sticky bottom-4 to sit at the bottom of the viewport but respect layout flow?
-    // Actually, sticky bottom-4 works if the parent allows. If simplified, standard fixed bottom bar is usually preferred, but user explicitly asked "não fique fixa".
-    // Let's use 'sticky bottom-4' which behaves like fixed within the parent container context.
-    const containerClasses = className || "sticky bottom-4 mx-auto w-full max-w-2xl z-[200] rounded-2xl border border-white/10 bg-[#0f172a]/70 backdrop-blur-xl shadow-glass pb-safe transition-all duration-300";
+    // Changed to sticky top-4 to satisfy "appear immediately" and "follow scroll"
+    // and "not fixed footer". It acts as a top command bar.
+    const containerClasses = className || "sticky top-4 mx-auto w-full max-w-2xl z-[200] rounded-2xl border border-white/10 bg-[#0f172a]/70 backdrop-blur-xl shadow-glass transition-all duration-300";
 
     return (
-        <div className={`${containerClasses} animate-in slide-in-from-bottom-4 fade-in duration-500`}>
+        <div className={`${containerClasses} animate-in slide-in-from-top-4 fade-in duration-500`}>
             {/* Inner Flex Container */}
             <div className="flex h-16 w-full items-center justify-center gap-6 sm:gap-8 px-2">
 

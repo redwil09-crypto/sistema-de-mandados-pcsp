@@ -1653,6 +1653,15 @@ Equipe de Capturas - DIG / PCSP
             {/* Main Content Layout */}
             <div className="relative z-10 p-4 space-y-4 max-w-[1600px] mx-auto">
 
+                {/* Floating Dock (Moved to Top) */}
+                <FloatingDock
+                    onBack={() => navigate('/')}
+                    onSave={handleSaveChanges}
+                    onPrint={handleDownloadPDF}
+                    onFinalize={handleFinalize}
+                    onDelete={isAdmin ? () => setIsDeleteConfirmOpen(true) : undefined}
+                />
+
                 {/* 1. Tactical Profile Header */}
                 <div className="bg-surface-dark/60 backdrop-blur-xl border border-white/10 rounded-2xl p-4 shadow-tactic overflow-hidden relative group">
                     {/* Animated Glow Decorator */}
@@ -2640,14 +2649,6 @@ Equipe de Capturas - DIG / PCSP
                     )}
                 </div>
 
-                {/* Floating Dock (Static at bottom) */}
-                <FloatingDock
-                    onBack={() => navigate(-1)}
-                    onSave={handleSaveChanges}
-                    onPrint={handleDownloadReportPDF}
-                    onFinalize={handleFinalize}
-                    onDelete={isAdmin ? () => setIsDeleteConfirmOpen(true) : undefined}
-                />
 
                 {/* Modals & Overlays */}
                 <ConfirmModal isOpen={isConfirmSaveOpen} onCancel={() => setIsConfirmSaveOpen(false)} onConfirm={handleSaveChanges} title="Sincronizar Protocolo" message="Deseja registrar as alterações no prontuário oficial deste alvo?" confirmText="Sincronizar" cancelText="Abortar" variant="primary" />
