@@ -1,9 +1,6 @@
 // Imports seguros usando Named Imports para compatibilidade total com Vite/PDF.js v4
-import { getDocument, GlobalWorkerOptions, version } from 'pdfjs-dist';
+// NOTE: pdfjs-dist is now dynamically imported to avoid top-level crashes
 
-// Configuração do Worker via CDN (estratégia à prova de falhas locais)
-// Usamos o version importado diretamente para garantir match exato
-GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${version}/build/pdf.worker.min.mjs`;
 
 export interface ExtractedData {
     id: string;
@@ -561,9 +558,15 @@ export const extractPdfData = async (file: File): Promise<ExtractedData> => {
 
         if (fileName.endsWith('.pdf')) {
             try {
+                // Dynamically import pdfjs-dist
+                const pdfjsLib = await import('pdfjs-dist');
+
+                // Configure worker
+                pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`;
+
                 const arrayBuffer = await file.arrayBuffer();
-                // Uso direto do getDocument importado
-                const loadingTask = getDocument({ data: arrayBuffer });
+                // Uso direto do getDocument importado via dynamic import
+                const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
                 const pdf = await loadingTask.promise;
 
                 // Extract text from all pages
@@ -646,8 +649,11 @@ export const extractRawTextFromPdf = async (file: File): Promise<string> => {
     try {
         const fileName = file.name.toLowerCase();
         if (fileName.endsWith('.pdf')) {
+            const pdfjsLib = await import('pdfjs-dist');
+            pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`;
+
             const arrayBuffer = await file.arrayBuffer();
-            const loadingTask = getDocument({ data: arrayBuffer });
+            const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
             const pdf = await loadingTask.promise;
             let fullText = '';
             for (let i = 1; i <= pdf.numPages; i++) {
