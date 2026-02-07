@@ -1,4 +1,4 @@
-
+﻿
 import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { jsPDF } from 'jspdf';
@@ -172,7 +172,7 @@ const AIAssistantPage = () => {
 
     const handleVoiceAssistant = () => {
         if (!('webkitSpeechRecognition' in window)) {
-            toast.error("Reconhecimento de voz não suportado.");
+            toast.error("Reconhecimento de voz n├úo suportado.");
             return;
         }
 
@@ -180,7 +180,7 @@ const AIAssistantPage = () => {
         recognition.lang = 'pt-BR';
         recognition.onstart = () => {
             setIsRecording(true);
-            toast.info("Descreva o mandado (ex: Prisão de João da Silva por roubo...)");
+            toast.info("Descreva o mandado (ex: Pris├úo de Jo├úo da Silva por roubo...)");
         };
         recognition.onend = () => setIsRecording(false);
         recognition.onresult = async (event: any) => {
@@ -194,7 +194,7 @@ const AIAssistantPage = () => {
                 setStep('review');
                 toast.success("Mandado gerado via Comando de Voz!");
             } catch (err) {
-                toast.error("Não entendi o comando. Tente falar mais pausadamente.");
+                toast.error("N├úo entendi o comando. Tente falar mais pausadamente.");
                 setStep('input');
             }
         };
@@ -203,7 +203,7 @@ const AIAssistantPage = () => {
 
     const startRecording = () => {
         if (!('webkitSpeechRecognition' in window)) {
-            toast.error("Reconhecimento de voz não suportado neste navegador.");
+            toast.error("Reconhecimento de voz n├úo suportado neste navegador.");
             return;
         }
 
@@ -267,7 +267,7 @@ const AIAssistantPage = () => {
         if (!inputText.trim()) return;
         setStep('processing');
         try {
-            const data = extractFromText(inputText, "Texto via Transferência");
+            const data = extractFromText(inputText, "Texto via Transfer├¬ncia");
             const isDuplicate = warrants.some(w => w.number === data.processNumber);
             const formattedData = {
                 ...data,
@@ -294,7 +294,7 @@ const AIAssistantPage = () => {
 
     const handleConfirmSave = async () => {
         if (!extractedData.name || !extractedData.processNumber) {
-            toast.error("Nome e Número do Processo são campos obrigatórios.");
+            toast.error("Nome e N├║mero do Processo s├úo campos obrigat├│rios.");
             setIsSaveConfirmOpen(false);
             return;
         }
@@ -343,8 +343,8 @@ const AIAssistantPage = () => {
                 number: extractedData.processNumber,
                 rg: extractedData.rg || '',
                 cpf: extractedData.cpf || '',
-                crime: extractedData.crime || 'Não informado',
-                regime: extractedData.regime || 'Não informado',
+                crime: extractedData.crime || 'N├úo informado',
+                regime: extractedData.regime || 'N├úo informado',
                 observation: extractedData.observations || '',
                 issueDate: extractedData.issueDate,
                 entryDate: new Date().toLocaleDateString('pt-BR'),
@@ -355,8 +355,7 @@ const AIAssistantPage = () => {
                 tacticalSummary: extractedData.tacticalSummary || [],
                 location: extractedData.addresses && extractedData.addresses.length > 0 ? extractedData.addresses.join(' | ') : '',
                 birthDate: extractedData.birthDate,
-                age: extractedData.age,
-                issuingCourt: extractedData.issuingCourt
+                age: extractedData.age
             };
 
             const result = await onAdd(newWarrant);
@@ -371,7 +370,7 @@ const AIAssistantPage = () => {
                     setStep('saved');
                 }
             } else {
-                toast.error("Erro ao salvar no banco de dados. Verifique a conexão.");
+                toast.error("Erro ao salvar no banco de dados. Verifique a conex├úo.");
             }
         } catch (error) {
             console.error("Erro ao salvar via Assistente IA:", error);
@@ -386,19 +385,19 @@ const AIAssistantPage = () => {
         try {
             const doc = new jsPDF();
             doc.setFontSize(22);
-            doc.text("FICHA DE INTELIGÊNCIA - DIG", 105, 20, { align: 'center' });
+            doc.text("FICHA DE INTELIG├èNCIA - DIG", 105, 20, { align: 'center' });
 
             doc.setFontSize(14);
             doc.text(`Nome: ${record.name}`, 20, 40);
             doc.text(`Tipo do Mandado: ${record.type}`, 20, 50);
             doc.text(`RG: ${record.rg || '-'}`, 20, 60);
             doc.text(`CPF: ${record.cpf || '-'}`, 20, 70);
-            doc.text(`Nº Processo: ${record.processNumber || record.number}`, 20, 80);
-            doc.text(`Data de Expedição: ${record.issueDate}`, 20, 90);
+            doc.text(`N┬║ Processo: ${record.processNumber || record.number}`, 20, 80);
+            doc.text(`Data de Expedi├º├úo: ${record.issueDate}`, 20, 90);
             doc.text(`Data de Vencimento: ${record.expirationDate}`, 20, 100);
 
             doc.setFontSize(11);
-            doc.text("Endereço:", 20, 120);
+            doc.text("Endere├ºo:", 20, 120);
 
             const addresses = record.addresses || (record.location ? [record.location] : []);
             if (addresses.length > 0) {
@@ -406,7 +405,7 @@ const AIAssistantPage = () => {
                     doc.text(`- ${addr}`, 25, 130 + (idx * 7));
                 });
             } else {
-                doc.text("- Endereço não informado", 25, 130);
+                doc.text("- Endere├ºo n├úo informado", 25, 130);
             }
 
             doc.setFontSize(10);
@@ -447,10 +446,10 @@ const AIAssistantPage = () => {
     const handlePrintDatabaseSplit = () => {
         try {
             const doc = new jsPDF();
-            // Prisão
+            // Pris├úo
             doc.setFontSize(20);
             doc.setTextColor(220, 38, 38);
-            doc.text("MANDADOS DE PRISÃO", 105, 20, { align: 'center' });
+            doc.text("MANDADOS DE PRIS├âO", 105, 20, { align: 'center' });
             doc.setTextColor(0, 0, 0);
             doc.setFontSize(10);
             let y = 40;
@@ -469,7 +468,7 @@ const AIAssistantPage = () => {
             doc.addPage();
             doc.setFontSize(20);
             doc.setTextColor(249, 115, 22);
-            doc.text("BUSCA E APREENSÃO", 105, 20, { align: 'center' });
+            doc.text("BUSCA E APREENS├âO", 105, 20, { align: 'center' });
             doc.setTextColor(0, 0, 0);
             doc.setFontSize(10);
             y = 40;
@@ -513,7 +512,7 @@ const AIAssistantPage = () => {
                         onClick={() => setActiveTab('extraction')}
                         className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${activeTab === 'extraction' ? 'bg-primary text-white shadow-sm' : 'text-text-secondary-light dark:text-text-secondary-dark'}`}
                     >
-                        Nova Extração
+                        Nova Extra├º├úo
                     </button>
                     <button
                         onClick={() => setActiveTab('database')}
@@ -541,8 +540,8 @@ const AIAssistantPage = () => {
 
                                     <div className="border-2 border-dashed border-border-light dark:border-border-dark rounded-xl p-6 flex flex-col items-center justify-center text-center bg-surface-light dark:bg-surface-dark hover:border-primary transition-colors cursor-pointer relative group">
                                         <FileUp size={32} className="text-text-secondary-light dark:text-text-secondary-dark mb-2 group-hover:text-primary transition-colors" />
-                                        <p className="font-bold text-text-light dark:text-text-dark text-[11px]">Enviar PDF/DOCX</p>
-                                        <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" accept=".pdf,.docx,.jpg,.png,.jpeg" multiple onChange={handleFileUpload} />
+                                        <p className="font-bold text-text-light dark:text-text-dark text-[11px]">Enviar PDF</p>
+                                        <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" accept=".pdf,.jpg,.png,.jpeg" multiple onChange={handleFileUpload} />
                                     </div>
 
                                     <div className="border-2 border-dashed border-border-light dark:border-border-dark rounded-xl p-6 flex flex-col items-center justify-center text-center bg-surface-light dark:bg-surface-dark hover:border-primary transition-colors cursor-pointer relative group">
@@ -560,7 +559,7 @@ const AIAssistantPage = () => {
                                 <div>
                                     <textarea
                                         className="w-full h-32 rounded-xl border border-border-light dark:border-border-dark bg-surface-light dark:bg-surface-dark p-3 text-sm focus:ring-2 focus:ring-primary outline-none"
-                                        placeholder="Cole o conteúdo do mandado ou número do processo aqui..."
+                                        placeholder="Cole o conte├║do do mandado ou n├║mero do processo aqui..."
                                         value={inputText}
                                         onChange={(e) => setInputText(e.target.value)}
                                     ></textarea>
@@ -585,406 +584,405 @@ const AIAssistantPage = () => {
                         )}
 
                         {/* STEP 3: REVIEW */}
-                        {step === 'review' && (
-                            !extractedData ? (
-                                <div className="flex flex-col items-center justify-center py-12 animate-in fade-in">
-                                    <AlertTriangle size={48} className="text-amber-500 mb-4" />
-                                    <h3 className="text-lg font-bold text-text-light dark:text-text-dark mb-2">Dados não encontrados</h3>
-                                    <p className="text-sm text-text-secondary-light dark:text-text-secondary-dark mb-6 text-center max-w-xs">
-                                        Nenhum dado selecionado para revisão.
-                                    </p>
+                        {step === 'review' && extractedData && (
+                            <div className="animate-in slide-in-from-right-8 duration-300 space-y-4">
+                                <div className="flex gap-2">
                                     <button
-                                        onClick={reset}
-                                        className="px-6 py-2 bg-primary text-white rounded-xl font-bold text-sm shadow-lg hover:bg-primary/90 transition-all"
+                                        onClick={() => {
+                                            handleExtractedDataChange('category', 'prison');
+                                            handleExtractedDataChange('type', 'Mandado de Pris├úo');
+                                        }}
+                                        className={`flex-1 py-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 border-2 ${extractedData.category === 'prison'
+                                            ? 'bg-red-600 border-red-600 text-white shadow-lg shadow-red-500/20'
+                                            : 'bg-surface-light dark:bg-surface-dark border-border-light dark:border-border-dark text-text-secondary-light'
+                                            }`}
                                     >
-                                        Voltar ao Início
+                                        <Gavel size={18} />
+                                        PRIS├âO
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            handleExtractedDataChange('category', 'search');
+                                            handleExtractedDataChange('type', 'BUSCA E APREENS├âO');
+                                        }}
+                                        className={`flex-1 py-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 border-2 ${extractedData.category === 'search'
+                                            ? 'bg-orange-600 border-orange-600 text-white shadow-lg shadow-orange-500/20'
+                                            : 'bg-surface-light dark:bg-surface-dark border-border-light dark:border-border-dark text-text-secondary-light'
+                                            }`}
+                                    >
+                                        <Briefcase size={18} />
+                                        BUSCA E APREENS├âO
                                     </button>
                                 </div>
-                            ) : (
-                                <div className="animate-in slide-in-from-right-8 duration-300 space-y-4">
-                                    <div className="flex gap-2">
-                                        <button
-                                            onClick={() => {
-                                                handleExtractedDataChange('category', 'prison');
-                                                handleExtractedDataChange('type', 'Mandado de Prisão');
-                                            }}
-                                            className={`flex-1 py-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 border-2 ${extractedData.category === 'prison'
-                                                ? 'bg-red-600 border-red-600 text-white shadow-lg shadow-red-500/20'
-                                                : 'bg-surface-light dark:bg-surface-dark border-border-light dark:border-border-dark text-text-secondary-light'
-                                                }`}
-                                        >
-                                            <Gavel size={18} />
-                                            PRISÃO
-                                        </button>
-                                        <button
-                                            onClick={() => {
-                                                handleExtractedDataChange('category', 'search');
-                                                handleExtractedDataChange('type', 'BUSCA E APREENSÃO');
-                                            }}
-                                            className={`flex-1 py-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 border-2 ${extractedData.category === 'search'
-                                                ? 'bg-orange-600 border-orange-600 text-white shadow-lg shadow-orange-500/20'
-                                                : 'bg-surface-light dark:bg-surface-dark border-border-light dark:border-border-dark text-text-secondary-light'
-                                                }`}
-                                        >
-                                            <Briefcase size={18} />
-                                            BUSCA E APREENSÃO
-                                        </button>
-                                    </div>
 
-                                    <div className={`p-3 rounded-xl border flex items-center justify-between gap-3 ${extractedData.category === 'prison'
-                                        ? 'bg-red-50 border-red-100 dark:bg-red-900/20 dark:border-red-900/30 text-red-800 dark:text-red-300'
-                                        : 'bg-orange-50 border-orange-100 dark:bg-orange-900/20 dark:border-orange-900/30 text-orange-800 dark:text-orange-300'
-                                        }`}>
-                                        <div className="flex items-center gap-3">
-                                            {extractedData.category === 'prison' ? <Gavel size={20} /> : <Briefcase size={20} />}
-                                            <div className="flex flex-col">
-                                                <h3 className="font-bold text-sm tracking-tight">{extractedData.type.toUpperCase()}</h3>
-                                                <span className="text-[10px] opacity-70">Arquivo {currentIndex + 1} de {batchResults.length}</span>
-                                            </div>
-                                        </div>
-                                        <div className="relative w-12 h-12 rounded-full border-2 border-dashed border-primary/30 overflow-hidden group cursor-pointer bg-surface-light dark:bg-black/20">
-                                            {photoPreview ? (
-                                                <img src={photoPreview} alt="Alvo" className="w-full h-full object-cover" />
-                                            ) : (
-                                                <div className="w-full h-full flex items-center justify-center">
-                                                    <Camera size={16} className="text-primary/50" />
-                                                </div>
-                                            )}
-                                            <input type="file" onChange={handlePhotoChange} className="absolute inset-0 opacity-0 cursor-pointer z-10" accept="image/*" />
+                                <div className={`p-3 rounded-xl border flex items-center justify-between gap-3 ${extractedData.category === 'prison'
+                                    ? 'bg-red-50 border-red-100 dark:bg-red-900/20 dark:border-red-900/30 text-red-800 dark:text-red-300'
+                                    : 'bg-orange-50 border-orange-100 dark:bg-orange-900/20 dark:border-orange-900/30 text-orange-800 dark:text-orange-300'
+                                    }`}>
+                                    <div className="flex items-center gap-3">
+                                        {extractedData.category === 'prison' ? <Gavel size={20} /> : <Briefcase size={20} />}
+                                        <div className="flex flex-col">
+                                            <h3 className="font-bold text-sm tracking-tight">{extractedData.type.toUpperCase()}</h3>
+                                            <span className="text-[10px] opacity-70">Arquivo {currentIndex + 1} de {batchResults.length}</span>
                                         </div>
                                     </div>
-
-                                    {extractedData.isDuplicate && (
-                                        <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl flex items-center gap-3 animate-pulse">
-                                            <ShieldAlert className="text-red-500" size={20} />
-                                            <div>
-                                                <p className="text-xs font-bold text-red-600 dark:text-red-400">AVISO DE DUPLICIDADE</p>
-                                                <p className="text-[10px] text-red-500/80">Este número de processo já existe no banco de dados.</p>
+                                    <div className="relative w-12 h-12 rounded-full border-2 border-dashed border-primary/30 overflow-hidden group cursor-pointer bg-surface-light dark:bg-black/20">
+                                        {photoPreview ? (
+                                            <img src={photoPreview} alt="Alvo" className="w-full h-full object-cover" />
+                                        ) : (
+                                            <div className="w-full h-full flex items-center justify-center">
+                                                <Camera size={16} className="text-primary/50" />
                                             </div>
-                                        </div>
-                                    )}
-
-                                    <div className="bg-surface-light dark:bg-surface-dark rounded-xl border border-border-light dark:border-border-dark overflow-hidden">
-                                        <div className="p-3 border-b border-border-light dark:border-border-dark bg-background-light dark:bg-white/5 flex items-center justify-between">
-                                            <h3 className="font-bold text-xs uppercase">Conferência de Dados</h3>
-                                            {hasAi && (
-                                                <button
-                                                    onClick={async () => {
-                                                        toast.info("Aprimorando extração com Gemini Pro...");
-                                                        const fullText = `Mandado: ${extractedData.processNumber}. Nome: ${extractedData.name}. Crime: ${extractedData.crime}. Texto: ${extractedData.observations}`;
-                                                        const analysis = await analyzeWarrantData(fullText);
-                                                        if (analysis) {
-                                                            const results = [...batchResults];
-                                                            results[currentIndex] = {
-                                                                ...results[currentIndex],
-                                                                tacticalSummary: [analysis.summary],
-                                                                observations: `[ANÁLISE IA]: ${analysis.summary}\n\n${results[currentIndex].observations || ''}`,
-                                                                tags: [...new Set([...(results[currentIndex].tags || []), ...analysis.warnings])]
-                                                            };
-                                                            setBatchResults(results);
-                                                            toast.success("Dados aprimorados com sucesso!");
-                                                        }
-                                                    }}
-                                                    className="text-[10px] font-black uppercase text-blue-600 flex items-center gap-1 bg-blue-50 dark:bg-blue-950 px-2 py-1 rounded-lg border border-blue-200"
-                                                >
-                                                    <Sparkles size={12} /> IA Pro
-                                                </button>
-                                            )}
-                                        </div>
-
-
-
-                                        <div className="p-4 space-y-8">
-                                            {/* Pessoais */}
-                                            <div className="animate-in fade-in duration-200">
-                                                <div className="flex items-center gap-2 mb-3 border-b border-border-light dark:border-border-dark pb-1">
-                                                    <User size={16} className="text-primary" />
-                                                    <h4 className="text-[10px] font-bold uppercase text-text-light dark:text-text-dark">Dados Pessoais</h4>
-                                                </div>
-                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                                    <div className="col-span-2">
-                                                        <label className="text-[10px] uppercase font-black text-amber-600 dark:text-amber-400/90">Nome Completo</label>
-                                                        <input
-                                                            type="text"
-                                                            value={extractedData.name}
-                                                            onChange={(e) => handleExtractedDataChange('name', e.target.value)}
-                                                            className="w-full bg-transparent border-b border-border-light dark:border-border-dark py-1 text-sm font-bold outline-none"
-                                                        />
-                                                    </div>
-                                                    <div>
-                                                        <label className="text-[10px] uppercase font-black text-amber-600 dark:text-amber-400/90">RG</label>
-                                                        <input
-                                                            type="text"
-                                                            value={extractedData.rg}
-                                                            onChange={(e) => handleExtractedDataChange('rg', e.target.value)}
-                                                            className="w-full bg-transparent border-b border-border-light dark:border-border-dark py-1 text-sm outline-none"
-                                                        />
-                                                    </div>
-                                                    <div>
-                                                        <label className="text-[10px] uppercase font-black text-amber-600 dark:text-amber-400/90">CPF</label>
-                                                        <input
-                                                            type="text"
-                                                            value={extractedData.cpf}
-                                                            onChange={(e) => handleExtractedDataChange('cpf', e.target.value)}
-                                                            className="w-full bg-transparent border-b border-border-light dark:border-border-dark py-1 text-sm outline-none"
-                                                        />
-                                                    </div>
-                                                    <div>
-                                                        <label className="text-[10px] uppercase font-black text-amber-600 dark:text-amber-400/90">Nascimento</label>
-                                                        <input
-                                                            type="text"
-                                                            value={extractedData.birthDate || ''}
-                                                            onChange={(e) => handleExtractedDataChange('birthDate', e.target.value)}
-                                                            placeholder="DD/MM/YYYY"
-                                                            className="w-full bg-transparent border-b border-border-light dark:border-border-dark py-1 text-sm outline-none"
-                                                        />
-                                                    </div>
-                                                    <div>
-                                                        <label className="text-[10px] uppercase font-black text-amber-600 dark:text-amber-400/90">Idade Atual</label>
-                                                        <input
-                                                            type="text"
-                                                            value={extractedData.age || ''}
-                                                            onChange={(e) => handleExtractedDataChange('age', e.target.value)}
-                                                            placeholder="Ex: 25 anos"
-                                                            className="w-full bg-transparent border-b border-border-light dark:border-border-dark py-1 text-sm outline-none font-bold"
-                                                        />
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            {/* Processual */}
-                                            <div className="animate-in fade-in duration-200">
-                                                <div className="flex items-center gap-2 mb-3 border-b border-border-light dark:border-border-dark pb-1">
-                                                    <Gavel size={16} className="text-primary" />
-                                                    <h4 className="text-[10px] font-bold uppercase text-text-light dark:text-text-dark">Dados Processuais</h4>
-                                                </div>
-                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                                    <div className="col-span-2">
-                                                        <label className="text-[10px] uppercase font-black text-amber-600 dark:text-amber-400/90">Nº do Processo</label>
-                                                        <input
-                                                            type="text"
-                                                            value={extractedData.processNumber}
-                                                            onChange={(e) => handleExtractedDataChange('processNumber', e.target.value)}
-                                                            className="w-full bg-transparent border-b border-border-light dark:border-border-dark py-1 text-sm font-mono font-bold outline-none"
-                                                        />
-                                                    </div>
-                                                    <div className="col-span-2">
-                                                        <label className="text-[10px] uppercase font-black text-amber-600 dark:text-amber-400/90">Natureza Criminal</label>
-                                                        <input
-                                                            type="text"
-                                                            value={extractedData.crime}
-                                                            onChange={(e) => handleExtractedDataChange('crime', e.target.value)}
-                                                            className="w-full bg-transparent border-b border-border-light dark:border-border-dark py-1 text-sm outline-none"
-                                                        />
-                                                    </div>
-                                                    <div className="col-span-2">
-                                                        <label className="text-[10px] uppercase font-black text-amber-600 dark:text-amber-400/90">Regime Prisional</label>
-                                                        <input
-                                                            type="text"
-                                                            value={extractedData.regime}
-                                                            onChange={(e) => handleExtractedDataChange('regime', e.target.value)}
-                                                            className="w-full bg-transparent border-b border-border-light dark:border-border-dark py-1 text-sm outline-none"
-                                                        />
-                                                    </div>
-                                                    <div className="col-span-2">
-                                                        <label className="text-[10px] uppercase font-black text-amber-600 dark:text-amber-400/90">Fórum Expedidor</label>
-                                                        <input
-                                                            type="text"
-                                                            value={extractedData.issuingCourt || ''}
-                                                            onChange={(e) => handleExtractedDataChange('issuingCourt', e.target.value)}
-                                                            className="w-full bg-transparent border-b border-border-light dark:border-border-dark py-1 text-sm outline-none"
-                                                        />
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            {/* Datas */}
-                                            <div className="animate-in fade-in duration-200">
-                                                <div className="flex items-center gap-2 mb-3 border-b border-border-light dark:border-border-dark pb-1">
-                                                    <Calendar size={16} className="text-primary" />
-                                                    <h4 className="text-[10px] font-bold uppercase text-text-light dark:text-text-dark">Prazos e Datas</h4>
-                                                </div>
-                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                                    <div>
-                                                        <label className="text-[10px] uppercase font-black text-amber-600 dark:text-amber-400/90">Expedição</label>
-                                                        <input
-                                                            type="text"
-                                                            value={extractedData.issueDate || ''}
-                                                            onChange={(e) => handleExtractedDataChange('issueDate', e.target.value)}
-                                                            placeholder="DD/MM/YYYY"
-                                                            className="w-full bg-transparent border-b border-border-light dark:border-border-dark py-1 text-sm outline-none"
-                                                        />
-                                                    </div>
-                                                    <div>
-                                                        <label className="text-[10px] uppercase font-black text-amber-600 dark:text-amber-400/90">Vencimento</label>
-                                                        <input
-                                                            type="text"
-                                                            value={extractedData.expirationDate || ''}
-                                                            onChange={(e) => handleExtractedDataChange('expirationDate', e.target.value)}
-                                                            placeholder="DD/MM/YYYY"
-                                                            className="w-full bg-transparent border-b border-red-200 dark:border-red-900 py-1 text-sm font-bold text-red-500 outline-none"
-                                                        />
-                                                    </div>
-                                                    <div className="col-span-2 p-3 bg-red-500/5 rounded-lg border border-red-500/10 mt-2">
-                                                        <p className="text-[9px] text-red-600 dark:text-red-400 leading-tight">
-                                                            <AlertTriangle size={10} className="inline mr-1 mb-0.5" />
-                                                            <b>Nota:</b> O sistema calcula automaticamente o vencimento para Busca e Apreensão (+180 dias) se não for identificado no arquivo.
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            {/* Localização */}
-                                            <div className="animate-in fade-in duration-200">
-                                                <div className="flex items-center gap-2 mb-3 border-b border-border-light dark:border-border-dark pb-1">
-                                                    <MapPin size={16} className="text-primary" />
-                                                    <h4 className="text-[10px] font-bold uppercase text-text-light dark:text-text-dark">Endereços</h4>
-                                                </div>
-                                                <div className="space-y-3">
-                                                    {extractedData.addresses.length > 0 ? extractedData.addresses.map((addr: string, i: number) => (
-                                                        <div key={i} className="flex gap-2 items-center">
-                                                            <MapPin size={12} className="text-primary" />
-                                                            <input
-                                                                type="text"
-                                                                value={addr}
-                                                                onChange={(e) => handleAddressChange(i, e.target.value)}
-                                                                className="flex-1 bg-transparent border-b border-border-light dark:border-border-dark py-1 text-sm outline-none"
-                                                            />
-                                                        </div>
-                                                    )) : (
-                                                        <p className="text-xs text-text-secondary-light italic">Nenhum endereço identificado automaticamente.</p>
-                                                    )}
-                                                    <button
-                                                        onClick={() => {
-                                                            const results = [...batchResults];
-                                                            results[currentIndex] = { ...results[currentIndex], addresses: [...(results[currentIndex].addresses || []), ''] };
-                                                            setBatchResults(results);
-                                                        }}
-                                                        className="text-[10px] text-primary font-bold hover:underline"
-                                                    >
-                                                        + ADICIONAR ENDEREÇO
-                                                    </button>
-                                                </div>
-                                            </div>
-
-                                            {/* Inteligência */}
-                                            <div className="animate-in fade-in duration-200">
-                                                <div className="flex items-center gap-2 mb-3 border-b border-border-light dark:border-border-dark pb-1">
-                                                    <Bot size={16} className="text-primary" />
-                                                    <h4 className="text-[10px] font-bold uppercase text-text-light dark:text-text-dark">Inteligência e Observações</h4>
-                                                </div>
-                                                <div className="space-y-4">
-                                                    {/* Priority Selection */}
-                                                    <div>
-                                                        <span className="text-[10px] uppercase font-bold text-amber-500 block mb-2">Classificação de Prioridade</span>
-                                                        <div className="flex gap-2">
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => {
-                                                                    const tags = extractedData.tags || [];
-                                                                    const newTags = tags.includes('Urgente') ? tags.filter((t: string) => t !== 'Urgente') : [...tags, 'Urgente'];
-                                                                    handleExtractedDataChange('tags', newTags);
-                                                                }}
-                                                                className={`flex-1 py-2 px-2 rounded-lg border font-bold text-[10px] transition-all flex items-center justify-center gap-1.5 ${extractedData.tags?.includes('Urgente')
-                                                                    ? 'bg-red-500 border-red-500 text-white'
-                                                                    : 'bg-white dark:bg-surface-dark border-border-light dark:border-border-dark text-text-secondary-light'
-                                                                    }`}
-                                                            >
-                                                                <Zap size={12} className={extractedData.tags?.includes('Urgente') ? 'fill-white' : ''} />
-                                                                URGENTE
-                                                            </button>
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => {
-                                                                    const tags = extractedData.tags || [];
-                                                                    const newTags = tags.includes('Ofício de Cobrança') ? tags.filter((t: string) => t !== 'Ofício de Cobrança') : [...tags, 'Ofício de Cobrança'];
-                                                                    handleExtractedDataChange('tags', newTags);
-                                                                }}
-                                                                className={`flex-1 py-2 px-2 rounded-lg border font-bold text-[10px] transition-all flex items-center justify-center gap-1.5 ${extractedData.tags?.includes('Ofício de Cobrança')
-                                                                    ? 'bg-amber-500 border-amber-500 text-white'
-                                                                    : 'bg-white dark:bg-surface-dark border-border-light dark:border-border-dark text-text-secondary-light'
-                                                                    }`}
-                                                            >
-                                                                <Bell size={12} className={extractedData.tags?.includes('Ofício de Cobrança') ? 'fill-white' : ''} />
-                                                                COBRANÇA
-                                                            </button>
-                                                        </div>
-                                                    </div>
-
-                                                    {/* AI Insights */}
-                                                    <div className="space-y-3">
-                                                        {extractedData.tacticalSummary?.length > 0 && (
-                                                            <div>
-                                                                <div className="flex items-center gap-2 mb-1.5">
-                                                                    <History size={12} className="text-blue-600" />
-                                                                    <span className="text-[9px] uppercase font-bold text-blue-600">Sumário IA</span>
-                                                                </div>
-                                                                <div className="flex flex-wrap gap-1">
-                                                                    {extractedData.tacticalSummary.map((tag: string) => (
-                                                                        <span key={tag} className="text-[8px] px-2 py-0.5 bg-blue-500/10 text-blue-600 border border-blue-200 rounded-full font-bold">
-                                                                            {tag}
-                                                                        </span>
-                                                                    ))}
-                                                                </div>
-                                                            </div>
-                                                        )}
-
-                                                        {extractedData.searchChecklist?.length > 0 && (
-                                                            <div>
-                                                                <div className="flex items-center gap-2 mb-1.5">
-                                                                    <ListTodo size={12} className="text-orange-600" />
-                                                                    <span className="text-[9px] uppercase font-bold text-orange-600">Checklist Operacional</span>
-                                                                </div>
-                                                                <div className="space-y-1">
-                                                                    {extractedData.searchChecklist.map((item: string) => (
-                                                                        <div key={item} className="flex items-center gap-2 text-[9px] text-orange-700 dark:text-orange-400">
-                                                                            <div className="w-1 h-1 bg-orange-400 rounded-full" />
-                                                                            {item}
-                                                                        </div>
-                                                                    ))}
-                                                                </div>
-                                                            </div>
-                                                        )}
-                                                    </div>
-
-                                                    {/* Raw observations */}
-                                                    <div>
-                                                        <div className="flex justify-between items-center mb-1">
-                                                            <label className="text-[10px] uppercase font-bold text-amber-500">Observações / Texto bruto</label>
-                                                            <button onClick={startRecording} className={`p-1.5 rounded-full ${isRecording ? 'bg-red-500 text-white animate-pulse' : 'text-primary'}`}>
-                                                                {isRecording ? <MicOff size={14} /> : <Mic size={14} />}
-                                                            </button>
-                                                        </div>
-                                                        <textarea
-                                                            value={extractedData.observations || ''}
-                                                            onChange={(e) => handleExtractedDataChange('observations', e.target.value)}
-                                                            className="w-full bg-background-light dark:bg-black/20 border border-border-light dark:border-border-dark rounded-lg p-2 text-[10px] outline-none h-20 resize-none"
-                                                        />
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
+                                        )}
+                                        <input type="file" onChange={handlePhotoChange} className="absolute inset-0 opacity-0 cursor-pointer z-10" accept="image/*" />
                                     </div>
-
-
-                                    <div className="bg-surface-light dark:bg-surface-dark rounded-xl border border-border-light dark:border-border-dark p-3 flex items-center gap-3">
-                                        <Paperclip size={18} className="text-text-secondary-light" />
-                                        <div className="flex-1 min-w-0">
-                                            <p className="text-xs font-bold truncate">Anexo: {extractedData.sourceFile || "Texto Colado"}</p>
-                                        </div>
-                                    </div>
-
-                                    {/* Action buttons consolidated in bottom bar */}
-
-                                    {batchResults.length > 1 && (
-                                        <div className="flex items-center justify-center gap-2 py-2">
-                                            {batchResults.map((_, i) => (
-                                                <div key={i} className={`h-1.5 rounded-full transition-all ${i === currentIndex ? 'w-6 bg-primary' : 'w-1.5 bg-gray-300 dark:bg-gray-700'}`} />
-                                            ))}
-                                        </div>
-                                    )}
                                 </div>
-                            )
+
+                                {extractedData.isDuplicate && (
+                                    <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl flex items-center gap-3 animate-pulse">
+                                        <ShieldAlert className="text-red-500" size={20} />
+                                        <div>
+                                            <p className="text-xs font-bold text-red-600 dark:text-red-400">AVISO DE DUPLICIDADE</p>
+                                            <p className="text-[10px] text-red-500/80">Este n├║mero de processo j├í existe no banco de dados.</p>
+                                        </div>
+                                    </div>
+                                )}
+
+                                <div className="bg-surface-light dark:bg-surface-dark rounded-xl border border-border-light dark:border-border-dark overflow-hidden">
+                                    <div className="p-3 border-b border-border-light dark:border-border-dark bg-background-light dark:bg-white/5 flex items-center justify-between">
+                                        <h3 className="font-bold text-xs uppercase">Confer├¬ncia de Dados</h3>
+                                        {hasAi && (
+                                            <button
+                                                onClick={async () => {
+                                                    toast.info("Aprimorando extra├º├úo com Gemini Pro...");
+                                                    const fullText = `Mandado: ${extractedData.processNumber}. Nome: ${extractedData.name}. Crime: ${extractedData.crime}. Texto: ${extractedData.observations}`;
+                                                    const analysis = await analyzeWarrantData(fullText);
+                                                    if (analysis) {
+                                                        const results = [...batchResults];
+                                                        results[currentIndex] = {
+                                                            ...results[currentIndex],
+                                                            tacticalSummary: [analysis.summary],
+                                                            observations: `[AN├üLISE IA]: ${analysis.summary}\n\n${results[currentIndex].observations || ''}`,
+                                                            tags: [...new Set([...(results[currentIndex].tags || []), ...analysis.warnings])]
+                                                        };
+                                                        setBatchResults(results);
+                                                        toast.success("Dados aprimorados com sucesso!");
+                                                    }
+                                                }}
+                                                className="text-[10px] font-black uppercase text-blue-600 flex items-center gap-1 bg-blue-50 dark:bg-blue-950 px-2 py-1 rounded-lg border border-blue-200"
+                                            >
+                                                <Sparkles size={12} /> IA Pro
+                                            </button>
+                                        )}
+                                    </div>
+
+
+
+                                    <div className="p-4 space-y-8">
+                                        {/* Pessoais */}
+                                        <div className="animate-in fade-in duration-200">
+                                            <div className="flex items-center gap-2 mb-3 border-b border-border-light dark:border-border-dark pb-1">
+                                                <User size={16} className="text-primary" />
+                                                <h4 className="text-[10px] font-bold uppercase text-text-light dark:text-text-dark">Dados Pessoais</h4>
+                                            </div>
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                <div className="col-span-2">
+                                                    <label className="text-[10px] uppercase font-black text-amber-600 dark:text-amber-400/90">Nome Completo</label>
+                                                    <input
+                                                        type="text"
+                                                        value={extractedData.name}
+                                                        onChange={(e) => handleExtractedDataChange('name', e.target.value)}
+                                                        className="w-full bg-transparent border-b border-border-light dark:border-border-dark py-1 text-sm font-bold outline-none"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="text-[10px] uppercase font-black text-amber-600 dark:text-amber-400/90">RG</label>
+                                                    <input
+                                                        type="text"
+                                                        value={extractedData.rg}
+                                                        onChange={(e) => handleExtractedDataChange('rg', e.target.value)}
+                                                        className="w-full bg-transparent border-b border-border-light dark:border-border-dark py-1 text-sm outline-none"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="text-[10px] uppercase font-black text-amber-600 dark:text-amber-400/90">CPF</label>
+                                                    <input
+                                                        type="text"
+                                                        value={extractedData.cpf}
+                                                        onChange={(e) => handleExtractedDataChange('cpf', e.target.value)}
+                                                        className="w-full bg-transparent border-b border-border-light dark:border-border-dark py-1 text-sm outline-none"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="text-[10px] uppercase font-black text-amber-600 dark:text-amber-400/90">Nascimento</label>
+                                                    <input
+                                                        type="text"
+                                                        value={extractedData.birthDate || ''}
+                                                        onChange={(e) => handleExtractedDataChange('birthDate', e.target.value)}
+                                                        placeholder="DD/MM/YYYY"
+                                                        className="w-full bg-transparent border-b border-border-light dark:border-border-dark py-1 text-sm outline-none"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="text-[10px] uppercase font-black text-amber-600 dark:text-amber-400/90">Idade Atual</label>
+                                                    <input
+                                                        type="text"
+                                                        value={extractedData.age || ''}
+                                                        onChange={(e) => handleExtractedDataChange('age', e.target.value)}
+                                                        placeholder="Ex: 25 anos"
+                                                        className="w-full bg-transparent border-b border-border-light dark:border-border-dark py-1 text-sm outline-none font-bold"
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Processual */}
+                                        <div className="animate-in fade-in duration-200">
+                                            <div className="flex items-center gap-2 mb-3 border-b border-border-light dark:border-border-dark pb-1">
+                                                <Gavel size={16} className="text-primary" />
+                                                <h4 className="text-[10px] font-bold uppercase text-text-light dark:text-text-dark">Dados Processuais</h4>
+                                            </div>
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                <div className="col-span-2">
+                                                    <label className="text-[10px] uppercase font-black text-amber-600 dark:text-amber-400/90">N┬║ do Processo</label>
+                                                    <input
+                                                        type="text"
+                                                        value={extractedData.processNumber}
+                                                        onChange={(e) => handleExtractedDataChange('processNumber', e.target.value)}
+                                                        className="w-full bg-transparent border-b border-border-light dark:border-border-dark py-1 text-sm font-mono font-bold outline-none"
+                                                    />
+                                                </div>
+                                                <div className="col-span-2">
+                                                    <label className="text-[10px] uppercase font-black text-amber-600 dark:text-amber-400/90">Natureza Criminal</label>
+                                                    <input
+                                                        type="text"
+                                                        value={extractedData.crime}
+                                                        onChange={(e) => handleExtractedDataChange('crime', e.target.value)}
+                                                        className="w-full bg-transparent border-b border-border-light dark:border-border-dark py-1 text-sm outline-none"
+                                                    />
+                                                </div>
+                                                <div className="col-span-2">
+                                                    <label className="text-[10px] uppercase font-black text-amber-600 dark:text-amber-400/90">Regime Prisional</label>
+                                                    <input
+                                                        type="text"
+                                                        value={extractedData.regime}
+                                                        onChange={(e) => handleExtractedDataChange('regime', e.target.value)}
+                                                        className="w-full bg-transparent border-b border-border-light dark:border-border-dark py-1 text-sm outline-none"
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Datas */}
+                                        <div className="animate-in fade-in duration-200">
+                                            <div className="flex items-center gap-2 mb-3 border-b border-border-light dark:border-border-dark pb-1">
+                                                <Calendar size={16} className="text-primary" />
+                                                <h4 className="text-[10px] font-bold uppercase text-text-light dark:text-text-dark">Prazos e Datas</h4>
+                                            </div>
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                <div>
+                                                    <label className="text-[10px] uppercase font-black text-amber-600 dark:text-amber-400/90">Expedi├º├úo</label>
+                                                    <input
+                                                        type="text"
+                                                        value={extractedData.issueDate || ''}
+                                                        onChange={(e) => handleExtractedDataChange('issueDate', e.target.value)}
+                                                        placeholder="DD/MM/YYYY"
+                                                        className="w-full bg-transparent border-b border-border-light dark:border-border-dark py-1 text-sm outline-none"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="text-[10px] uppercase font-black text-amber-600 dark:text-amber-400/90">Vencimento</label>
+                                                    <input
+                                                        type="text"
+                                                        value={extractedData.expirationDate || ''}
+                                                        onChange={(e) => handleExtractedDataChange('expirationDate', e.target.value)}
+                                                        placeholder="DD/MM/YYYY"
+                                                        className="w-full bg-transparent border-b border-red-200 dark:border-red-900 py-1 text-sm font-bold text-red-500 outline-none"
+                                                    />
+                                                </div>
+                                                <div className="col-span-2 p-3 bg-red-500/5 rounded-lg border border-red-500/10 mt-2">
+                                                    <p className="text-[9px] text-red-600 dark:text-red-400 leading-tight">
+                                                        <AlertTriangle size={10} className="inline mr-1 mb-0.5" />
+                                                        <b>Nota:</b> O sistema calcula automaticamente o vencimento para Busca e Apreens├úo (+180 dias) se n├úo for identificado no arquivo.
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Localiza├º├úo */}
+                                        <div className="animate-in fade-in duration-200">
+                                            <div className="flex items-center gap-2 mb-3 border-b border-border-light dark:border-border-dark pb-1">
+                                                <MapPin size={16} className="text-primary" />
+                                                <h4 className="text-[10px] font-bold uppercase text-text-light dark:text-text-dark">Endere├ºos</h4>
+                                            </div>
+                                            <div className="space-y-3">
+                                                {extractedData.addresses.length > 0 ? extractedData.addresses.map((addr: string, i: number) => (
+                                                    <div key={i} className="flex gap-2 items-center">
+                                                        <MapPin size={12} className="text-primary" />
+                                                        <input
+                                                            type="text"
+                                                            value={addr}
+                                                            onChange={(e) => handleAddressChange(i, e.target.value)}
+                                                            className="flex-1 bg-transparent border-b border-border-light dark:border-border-dark py-1 text-sm outline-none"
+                                                        />
+                                                    </div>
+                                                )) : (
+                                                    <p className="text-xs text-text-secondary-light italic">Nenhum endere├ºo identificado automaticamente.</p>
+                                                )}
+                                                <button
+                                                    onClick={() => {
+                                                        const results = [...batchResults];
+                                                        results[currentIndex] = { ...results[currentIndex], addresses: [...(results[currentIndex].addresses || []), ''] };
+                                                        setBatchResults(results);
+                                                    }}
+                                                    className="text-[10px] text-primary font-bold hover:underline"
+                                                >
+                                                    + ADICIONAR ENDERE├çO
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        {/* Intelig├¬ncia */}
+                                        <div className="animate-in fade-in duration-200">
+                                            <div className="flex items-center gap-2 mb-3 border-b border-border-light dark:border-border-dark pb-1">
+                                                <Bot size={16} className="text-primary" />
+                                                <h4 className="text-[10px] font-bold uppercase text-text-light dark:text-text-dark">Intelig├¬ncia e Observa├º├Áes</h4>
+                                            </div>
+                                            <div className="space-y-4">
+                                                {/* Priority Selection */}
+                                                <div>
+                                                    <span className="text-[10px] uppercase font-bold text-amber-500 block mb-2">Classifica├º├úo de Prioridade</span>
+                                                    <div className="flex gap-2">
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                const tags = extractedData.tags || [];
+                                                                const newTags = tags.includes('Urgente') ? tags.filter((t: string) => t !== 'Urgente') : [...tags, 'Urgente'];
+                                                                handleExtractedDataChange('tags', newTags);
+                                                            }}
+                                                            className={`flex-1 py-2 px-2 rounded-lg border font-bold text-[10px] transition-all flex items-center justify-center gap-1.5 ${extractedData.tags?.includes('Urgente')
+                                                                ? 'bg-red-500 border-red-500 text-white'
+                                                                : 'bg-white dark:bg-surface-dark border-border-light dark:border-border-dark text-text-secondary-light'
+                                                                }`}
+                                                        >
+                                                            <Zap size={12} className={extractedData.tags?.includes('Urgente') ? 'fill-white' : ''} />
+                                                            URGENTE
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                const tags = extractedData.tags || [];
+                                                                const newTags = tags.includes('Of├¡cio de Cobran├ºa') ? tags.filter((t: string) => t !== 'Of├¡cio de Cobran├ºa') : [...tags, 'Of├¡cio de Cobran├ºa'];
+                                                                handleExtractedDataChange('tags', newTags);
+                                                            }}
+                                                            className={`flex-1 py-2 px-2 rounded-lg border font-bold text-[10px] transition-all flex items-center justify-center gap-1.5 ${extractedData.tags?.includes('Of├¡cio de Cobran├ºa')
+                                                                ? 'bg-amber-500 border-amber-500 text-white'
+                                                                : 'bg-white dark:bg-surface-dark border-border-light dark:border-border-dark text-text-secondary-light'
+                                                                }`}
+                                                        >
+                                                            <Bell size={12} className={extractedData.tags?.includes('Of├¡cio de Cobran├ºa') ? 'fill-white' : ''} />
+                                                            COBRAN├çA
+                                                        </button>
+                                                    </div>
+                                                </div>
+
+                                                {/* AI Insights */}
+                                                <div className="space-y-3">
+                                                    {extractedData.tacticalSummary?.length > 0 && (
+                                                        <div>
+                                                            <div className="flex items-center gap-2 mb-1.5">
+                                                                <History size={12} className="text-blue-600" />
+                                                                <span className="text-[9px] uppercase font-bold text-blue-600">Sum├írio IA</span>
+                                                            </div>
+                                                            <div className="flex flex-wrap gap-1">
+                                                                {extractedData.tacticalSummary.map((tag: string) => (
+                                                                    <span key={tag} className="text-[8px] px-2 py-0.5 bg-blue-500/10 text-blue-600 border border-blue-200 rounded-full font-bold">
+                                                                        {tag}
+                                                                    </span>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                    )}
+
+                                                    {extractedData.searchChecklist?.length > 0 && (
+                                                        <div>
+                                                            <div className="flex items-center gap-2 mb-1.5">
+                                                                <ListTodo size={12} className="text-orange-600" />
+                                                                <span className="text-[9px] uppercase font-bold text-orange-600">Checklist Operacional</span>
+                                                            </div>
+                                                            <div className="space-y-1">
+                                                                {extractedData.searchChecklist.map((item: string) => (
+                                                                    <div key={item} className="flex items-center gap-2 text-[9px] text-orange-700 dark:text-orange-400">
+                                                                        <div className="w-1 h-1 bg-orange-400 rounded-full" />
+                                                                        {item}
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
+
+                                                {/* Raw observations */}
+                                                <div>
+                                                    <div className="flex justify-between items-center mb-1">
+                                                        <label className="text-[10px] uppercase font-bold text-amber-500">Observa├º├Áes / Texto bruto</label>
+                                                        <button onClick={startRecording} className={`p-1.5 rounded-full ${isRecording ? 'bg-red-500 text-white animate-pulse' : 'text-primary'}`}>
+                                                            {isRecording ? <MicOff size={14} /> : <Mic size={14} />}
+                                                        </button>
+                                                    </div>
+                                                    <textarea
+                                                        value={extractedData.observations || ''}
+                                                        onChange={(e) => handleExtractedDataChange('observations', e.target.value)}
+                                                        className="w-full bg-background-light dark:bg-black/20 border border-border-light dark:border-border-dark rounded-lg p-2 text-[10px] outline-none h-20 resize-none"
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+
+                                <div className="bg-surface-light dark:bg-surface-dark rounded-xl border border-border-light dark:border-border-dark p-3 flex items-center gap-3">
+                                    <Paperclip size={18} className="text-text-secondary-light" />
+                                    <div className="flex-1 min-w-0">
+                                        <p className="text-xs font-bold truncate">Anexo: {extractedData.sourceFile || "Texto Colado"}</p>
+                                    </div>
+                                </div>
+
+                                <div className="flex gap-3 pt-2">
+                                    <button
+                                        onClick={() => {
+                                            if (window.confirm("Descartar este resultado da extra├º├úo?")) {
+                                                const newResults = batchResults.filter((_, i) => i !== currentIndex);
+                                                setBatchResults(newResults);
+                                                if (newResults.length === 0) {
+                                                    reset();
+                                                } else if (currentIndex >= newResults.length) {
+                                                    setCurrentIndex(newResults.length - 1);
+                                                }
+                                            }
+                                        }}
+                                        className="flex-1 py-3 bg-red-50 text-red-600 border border-red-200 rounded-xl text-sm font-bold hover:bg-red-100 flex items-center justify-center gap-2"
+                                    >
+                                        <Trash2 size={16} /> Descartar
+                                    </button>
+                                    <button onClick={backToInput} className="flex-1 py-3 border border-border-light dark:border-border-dark rounded-xl text-sm font-bold hover:bg-black/5 dark:hover:bg-white/5 flex items-center justify-center gap-2">
+                                        <RefreshCw size={16} /> Voltar
+                                    </button>
+                                    <button onClick={handleSave} disabled={isSaving} className="flex-[2] py-3 bg-primary text-white rounded-xl text-sm font-bold shadow-lg flex items-center justify-center gap-2 active:scale-[0.98] transition-all">
+                                        {isSaving ? <RefreshCw className="animate-spin" size={18} /> : <Save size={18} />}
+                                        {currentIndex < batchResults.length - 1 ? 'Pr├│ximo Arquivo' : 'Finalizar Lote'}
+                                    </button>
+                                </div>
+
+                                {batchResults.length > 1 && (
+                                    <div className="flex items-center justify-center gap-2 py-2">
+                                        {batchResults.map((_, i) => (
+                                            <div key={i} className={`h-1.5 rounded-full transition-all ${i === currentIndex ? 'w-6 bg-primary' : 'w-1.5 bg-gray-300 dark:bg-gray-700'}`} />
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
                         )}
 
                         {/* STEP 4: SAVED SUCCESS */}
@@ -995,7 +993,7 @@ const AIAssistantPage = () => {
                                 </div>
                                 <h3 className="text-xl font-bold text-text-light dark:text-text-dark mb-2">Salvo com Sucesso!</h3>
                                 <p className="text-sm text-text-secondary-light mb-6 max-w-xs text-justify">
-                                    Registro adicionado à lista {extractedData.category === 'prison' ? 'de Prisão' : 'de Busca'} e anexo vinculado ao CPF.
+                                    Registro adicionado ├á lista {extractedData.category === 'prison' ? 'de Pris├úo' : 'de Busca'} e anexo vinculado ao CPF.
                                 </p>
 
                                 <div className="w-full space-y-3">
@@ -1041,7 +1039,7 @@ const AIAssistantPage = () => {
                             {showFilters && (
                                 <div className="bg-surface-light dark:bg-surface-dark p-4 rounded-xl shadow-sm border border-border-light dark:border-border-dark animate-in slide-in-from-top-2">
                                     <div className="flex justify-between items-center mb-3">
-                                        <h3 className="font-bold text-text-light dark:text-text-dark text-sm">Filtros Avançados</h3>
+                                        <h3 className="font-bold text-text-light dark:text-text-dark text-sm">Filtros Avan├ºados</h3>
                                         {hasActiveFilters && (
                                             <button onClick={clearFilters} className="text-xs text-primary font-bold hover:underline">
                                                 Limpar
@@ -1068,7 +1066,7 @@ const AIAssistantPage = () => {
                                     </div>
                                     <div className="grid grid-cols-2 gap-3">
                                         <div>
-                                            <label className="block text-xs font-medium text-text-secondary-light mb-1">Data Início</label>
+                                            <label className="block text-xs font-medium text-text-secondary-light mb-1">Data In├¡cio</label>
                                             <input
                                                 type="text"
                                                 value={dateStart}
@@ -1136,38 +1134,17 @@ const AIAssistantPage = () => {
                         className="flex-1 min-w-0 flex flex-col items-center justify-center gap-1 p-2 rounded-xl bg-gray-500/10 text-gray-600 dark:text-gray-400 transition-all active:scale-95 touch-manipulation hover:bg-gray-500/20"
                     >
                         <Home size={20} />
-                        <span className="text-[9px] font-bold uppercase truncate w-full text-center">Início</span>
+                        <span className="text-[9px] font-bold uppercase truncate w-full text-center">In├¡cio</span>
                     </Link>
 
-
-
-
-                    {/* Restored Action Buttons from Commit f925a98 + Consolidated Discard */}
                     {activeTab === 'extraction' && step === 'review' && (
                         <>
-                            <button
-                                onClick={() => {
-                                    if (window.confirm("Descartar este resultado da extração?")) {
-                                        const newResults = batchResults.filter((_, i) => i !== currentIndex);
-                                        setBatchResults(newResults);
-                                        if (newResults.length === 0) {
-                                            reset();
-                                        } else if (currentIndex >= newResults.length) {
-                                            setCurrentIndex(newResults.length - 1);
-                                        }
-                                    }
-                                }}
-                                className="flex-1 min-w-0 flex flex-col items-center justify-center gap-1 p-2 rounded-xl bg-red-500/10 text-red-600 transition-all active:scale-95 touch-manipulation hover:bg-red-500/20"
-                            >
-                                <Trash2 size={20} />
-                                <span className="text-[9px] font-bold uppercase truncate w-full text-center">Descartar</span>
-                            </button>
                             <button
                                 onClick={backToInput}
                                 className="flex-1 min-w-0 flex flex-col items-center justify-center gap-1 p-2 rounded-xl bg-amber-500/10 text-amber-600 transition-all active:scale-95 touch-manipulation hover:bg-amber-500/20"
                             >
                                 <RefreshCw size={20} />
-                                <span className="text-[9px] font-bold uppercase truncate w-full text-center">Voltar</span>
+                                <span className="text-[9px] font-bold uppercase truncate w-full text-center">Pular</span>
                             </button>
                             <button
                                 onClick={handleSave}
@@ -1175,7 +1152,7 @@ const AIAssistantPage = () => {
                                 className="flex-[2] min-w-0 flex flex-col items-center justify-center gap-1 p-2 rounded-xl bg-primary text-white shadow-lg shadow-indigo-500/20 transition-all active:scale-95 touch-manipulation hover:bg-primary/90"
                             >
                                 {isSaving ? <RefreshCw className="animate-spin" size={20} /> : <Save size={20} />}
-                                <span className="text-[9px] font-bold uppercase truncate w-full text-center">{currentIndex < batchResults.length - 1 ? 'Salvar' : 'Finalizar'}</span>
+                                <span className="text-[9px] font-bold uppercase truncate w-full text-center">{currentIndex < batchResults.length - 1 ? 'Salvar e Pr├│ximo' : 'Finalizar Lote'}</span>
                             </button>
                         </>
                     )}
@@ -1230,7 +1207,7 @@ const AIAssistantPage = () => {
                     <ConfirmModal
                         isOpen={isSaveConfirmOpen}
                         title="Salvar Mandado"
-                        message={`Deseja adicionar este mandado à lista de ${extractedData?.category === 'prison' ? 'PRISÃO' : 'BUSCA'} e salvar o registro?`}
+                        message={`Deseja adicionar este mandado ├á lista de ${extractedData?.category === 'prison' ? 'PRIS├âO' : 'BUSCA'} e salvar o registro?`}
                         onConfirm={handleConfirmSave}
                         onCancel={() => setIsSaveConfirmOpen(false)}
                         confirmText="Salvar"
