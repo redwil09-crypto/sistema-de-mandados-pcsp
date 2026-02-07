@@ -2719,15 +2719,6 @@ Equipe de Capturas - DIG / PCSP
                         </div>
                     )
                 }
-                {/* Floating Action Dock */}
-                <FloatingDock
-                    onBack={() => navigate(-1)}
-                    onSave={() => setIsConfirmSaveOpen(true)}
-                    onPrint={() => setIsCapturasModalOpen(true)}
-                    onIfood={() => setIsIfoodModalOpen(true)}
-                    onFinalize={handleFinalize}
-                    className="animate-in slide-in-from-bottom-10 duration-700 delay-300"
-                />
             </div>
         </div >
     );
