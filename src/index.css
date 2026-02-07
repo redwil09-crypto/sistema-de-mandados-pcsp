@@ -4,148 +4,117 @@
 
 @layer base {
   body {
-    @apply bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark antialiased;
-    background-color: #475569;
-    /* Slate 600 - Deep Mid Tone */
-    background-image:
-      radial-gradient(circle at 50% 0%, rgba(99, 102, 241, 0.25) 0%, rgba(34, 211, 238, 0.1) 50%, transparent 90%),
-      linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
-    background-size: 100% 100%, 40px 40px, 40px 40px;
+    @apply bg-cyber-black text-text-main antialiased selection:bg-neon-red selection:text-white;
+    font-feature-settings: "cv11", "ss01";
+    /* Subtle grid pattern for texture */
+    background-image: 
+        linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+        radial-gradient(circle at 50% 0%, rgba(42, 98, 255, 0.1), transparent 60%);
+    background-size: 50px 50px, 50px 50px, 100% 100%;
     background-attachment: fixed;
   }
+}
 
-  .dark body {
-    background-color: #020617;
-    background-image: none;
+@layer components {
+  /* 
+   * NEW UI COMPONENT: CYBER CARD
+   * Glassmorphism + Thin Borders + Glow
+   */
+  .cyber-card {
+    @apply relative overflow-hidden rounded-xl border border-white/10 bg-black/40 backdrop-blur-md transition-all duration-300;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
+  }
+
+  .cyber-card:hover {
+    @apply border-white/20 bg-black/50;
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.05);
+  }
+
+  .cyber-card-red {
+    @apply cyber-card border-neon-red/30;
+  }
+
+  .cyber-card-red:hover {
+    @apply border-neon-red shadow-neon-red;
+  }
+
+  .cyber-card-blue {
+    @apply cyber-card border-neon-blue/30;
+  }
+
+  .cyber-card-blue:hover {
+    @apply border-neon-blue shadow-neon-blue;
+  }
+
+  /* 
+   * NEW UI COMPONENT: CYBER BUTTON
+   * Geometric + Neon Glow
+   */
+  .cyber-btn {
+    @apply relative inline-flex items-center justify-center px-6 py-2 overflow-hidden font-display font-bold tracking-wider text-white transition-all duration-300 rounded-md group;
+    background: linear-gradient(45deg, transparent 5%, #18181b 5%);
+    border: 1px solid #333;
+  }
+
+  .cyber-btn::after {
+    content: '';
+    @apply absolute inset-0 w-full h-full transition-all duration-300 transform scale-x-0 bg-neon-red/20 origin-left;
+  }
+
+  .cyber-btn:hover {
+    @apply border-neon-red text-neon-red shadow-neon-red;
+  }
+
+  .cyber-btn:hover::after {
+    @apply scale-x-100;
+  }
+
+  .cyber-btn-primary {
+    @apply cyber-btn border-neon-red bg-neon-red/10 text-neon-red;
+  }
+  
+  .cyber-btn-secondary {
+    @apply cyber-btn border-neon-blue bg-neon-blue/10 text-neon-blue hover:border-neon-blue hover:text-white hover:shadow-neon-blue;
+  }
+    
+  .cyber-btn-secondary::after {
+      @apply bg-neon-blue/20;
+  }
+
+  /*
+   * NEW UI COMPONENT: CYBER INPUT
+   */
+  .cyber-input {
+    @apply w-full bg-black/50 border border-white/10 rounded-lg px-4 py-2 text-text-main placeholder-text-muted focus:outline-none focus:border-neon-blue focus:ring-1 focus:ring-neon-blue transition-all duration-300 font-sans;
+  }
+
+  /*
+   * UTILITIES
+   */
+  .text-glow-red {
+    text-shadow: 0 0 10px rgba(255, 42, 42, 0.7);
+  }
+  
+  .text-glow-blue {
+    text-shadow: 0 0 10px rgba(42, 98, 255, 0.7);
   }
 }
 
-@layer utilities {
-  .shadow-soft {
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-  }
-
-  .shadow-sun {
-    box-shadow: 0 8px 15px -3px rgba(0, 0, 0, 0.12), 0 4px 6px -2px rgba(0, 0, 0, 0.08);
-  }
-
-  /* Scrollbar utilities */
-  .no-scrollbar::-webkit-scrollbar {
-    display: none;
-  }
-
-  .no-scrollbar {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-  }
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
 }
 
-/* Animations */
-@keyframes fade-in-up {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+::-webkit-scrollbar-track {
+  @apply bg-cyber-black;
 }
 
-.page-enter {
-  animation: fade-in-up 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+::-webkit-scrollbar-thumb {
+  @apply bg-cyber-gray rounded-full;
 }
 
-/* Components - using standard CSS to avoid parser issues */
-.neon-card {
-  @apply bg-surface-light dark:bg-slate-900 border border-neon-purple/30 dark:border-neon-purple/20 shadow-soft transition-all duration-300;
-  border-radius: 0.75rem;
-}
-
-.neon-card:hover {
-  @apply border-neon-purple dark:border-neon-purple/50 shadow-neon-purple transform -translate-y-1;
-}
-
-.glass-morphism {
-  @apply bg-slate-400/30 dark:bg-slate-900/80 backdrop-blur-xl border border-neon-purple/30 dark:border-neon-purple/20 shadow-glass;
-}
-
-.border-neon-purple-tactic {
-  @apply border border-neon-purple/50 shadow-neon-purple-tactic backdrop-blur-md;
-}
-
-.border-neon-purple-active {
-  @apply border border-neon-purple shadow-neon-purple;
-}
-
-/* Cyber Button Style - Futuristic */
-.cyber-btn {
-  position: relative;
-  overflow: hidden;
-  background-color: #1e293b;
-  /* Slate 800 */
-  color: #22d3ee;
-  /* Cyan 400 */
-  border: 1px solid rgba(6, 182, 212, 0.3);
-  /* Cyan 500 / 30% */
-  text-transform: uppercase;
-  font-family: 'JetBrains Mono', monospace;
-  letter-spacing: 0.1em;
-  font-size: 0.75rem;
-  font-weight: 700;
-  transition: all 0.3s;
-  box-shadow: 0 0 10px rgba(6, 182, 212, 0.1), inset 0 0 20px rgba(6, 182, 212, 0.05);
-}
-
-.cyber-btn:hover {
-  background-color: #334155;
-  /* Slate 700 */
-  color: #67e8f9;
-  /* Cyan 300 */
-  border-color: #22d3ee;
-  /* Cyan 400 */
-  box-shadow: 0 0 20px rgba(6, 182, 212, 0.3), inset 0 0 30px rgba(6, 182, 212, 0.1);
-  text-shadow: 0 0 8px rgba(6, 182, 212, 0.6);
-}
-
-.cyber-btn::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(6, 182, 212, 0.2), transparent);
-  transform: skewX(-25deg);
-  transition: all 0.7s;
-}
-
-.cyber-btn:hover::before {
-  left: 100%;
-}
-
-.cyber-card {
-  background-color: rgba(15, 23, 42, 0.8);
-  /* Slate 900 / 80% */
-  backdrop-filter: blur(8px);
-  border: 1px solid #334155;
-  /* Slate 700 */
-  position: relative;
-  overflow: hidden;
-  background-image:
-    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-  background-size: 20px 20px;
-}
-
-::selection {
-  background-color: #4f46e5;
-  /* Indigo 600 Vivid */
-  color: #ffffff;
-}
-
-* {
-  caret-color: #4f46e5;
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-neon-blue/50;
 }

@@ -1,10 +1,10 @@
-
 import React, { useState, useMemo } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import {
     Search, Sun, Moon, Bell, Gavel, Baby, FilePlus,
     BarChart2, Route as RouteIcon, Siren, ChevronRight,
-    Activity, CalendarClock, X, CheckCircle, Bot, Shield
+    Activity, CalendarClock, X, CheckCircle, Bot, Shield,
+    Cpu, Database, Zap, MapPin
 } from 'lucide-react';
 import { generateWarrantPDF } from '../services/pdfReportService';
 import { Warrant } from '../types';
@@ -30,12 +30,12 @@ const HomePage = ({ isDark, toggleTheme }: HomePageProps) => {
         }
     };
 
-    // Calculate priority warrants from all warrants
+    // metrics
     const priorityWarrants = warrants.filter(w => (w as any).tags?.includes('Urgente') || (w as any).tags?.includes('Ofício de Cobrança'));
     const urgentCount = priorityWarrants.filter(w => (w as any).tags?.includes('Urgente')).length;
-    const oficioCount = priorityWarrants.filter(w => (w as any).tags?.includes('Ofício de Cobrança')).length;
+    const totalWarrants = warrants.length;
 
-    // Real Notification Logic (Expiring warrants)
+    // Real Notification Logic
     const urgentNotifications = useMemo(() => {
         const today = new Date();
         return warrants
@@ -59,224 +59,217 @@ const HomePage = ({ isDark, toggleTheme }: HomePageProps) => {
         : urgentNotifications.filter(w => w.daysLeft <= 7);
 
     return (
-        <div className="min-h-screen pb-20 relative">
-            {/* Notification Overlay */}
+        <div className="min-h-screen pb-24 bg-cyber-black text-white selection:bg-neon-red selection:text-white overflow-x-hidden">
+
+            {/* BACKGROUND WARP SPEED EFFECT (CSS managed in index.css generally, but ensuring full coverage) */}
+            <div className="fixed inset-0 pointer-events-none bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 z-0 mix-blend-overlay"></div>
+
+            {/* HEADER - COMMAND CENTER STYLE */}
+            <header className="sticky top-0 z-50 bg-cyber-black/80 backdrop-blur-xl border-b border-white/10 px-6 py-4">
+                <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center gap-3">
+                        <div className="p-2 bg-neon-red/10 border border-neon-red/50 rounded-lg shadow-neon-red">
+                            <Shield className="text-neon-red" size={24} />
+                        </div>
+                        <div>
+                            <h1 className="text-2xl font-display font-bold tracking-widest text-white uppercase drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]">
+                                PCSP <span className="text-neon-red">SYSTEM</span>
+                            </h1>
+                            <div className="flex items-center gap-2">
+                                <span className="h-1.5 w-1.5 rounded-full bg-neon-green/80 animate-pulse"></span>
+                                <p className="text-[10px] font-mono text-neon-blue tracking-widest uppercase">
+                                    ONLINE // v4.0.1
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                        <button
+                            onClick={() => setShowNotifications(!showNotifications)}
+                            className={`relative p-3 rounded-lg border border-white/10 hover:border-neon-blue hover:bg-neon-blue/10 transition-all ${showNotifications ? 'border-neon-blue shadow-neon-blue icon-glow-blue' : ''}`}
+                        >
+                            <Bell size={20} className={hasUrgentNotifications ? "text-neon-red animate-pulse" : "text-white"} />
+                            {hasUrgentNotifications && <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-neon-red shadow-[0_0_10px_#ff2a2a]"></span>}
+                        </button>
+                    </div>
+                </div>
+
+                {/* SEARCH MODULE */}
+                <div className="relative group">
+                    <div className="absolute -inset-0.5 bg-gradient-to-r from-neon-blue to-neon-purple opacity-30 group-hover:opacity-70 blur transition duration-500 rounded-xl"></div>
+                    <div className="relative flex items-center bg-cyber-dark rounded-xl border border-white/10 overflow-hidden">
+                        <Search className="ml-4 text-neon-blue/70" size={20} />
+                        <input
+                            type="text"
+                            placeholder="SEARCH DATABASE..."
+                            onKeyDown={handleSearch}
+                            className="w-full bg-transparent py-4 px-4 text-sm font-mono text-white placeholder:text-gray-600 focus:outline-none uppercase tracking-wider"
+                        />
+                        <div className="mr-4 px-2 py-1 text-[10px] font-bold border border-white/20 rounded text-gray-500">RETKEY</div>
+                    </div>
+                </div>
+            </header>
+
+            <main className="relative z-10 px-6 py-6 space-y-8">
+
+                {/* STATUS DASHBOARD */}
+                <div className="grid grid-cols-2 gap-4">
+                    {/* TOTAL WARRANTS WIDGET */}
+                    <div className="cyber-card p-4 flex flex-col justify-between h-32 border-t-4 border-t-neon-blue">
+                        <div className="flex justify-between items-start">
+                            <h3 className="text-xs font-mono text-gray-400 uppercase tracking-widest">Active Cases</h3>
+                            <Database size={16} className="text-neon-blue" />
+                        </div>
+                        <div className="flex items-end gap-2">
+                            <span className="text-4xl font-display font-bold text-white text-glow-blue">{totalWarrants}</span>
+                            <span className="text-xs text-neon-blue mb-1.5">+2 this week</span>
+                        </div>
+                        <div className="w-full bg-gray-800 h-1 mt-2 rounded-full overflow-hidden">
+                            <div className="bg-neon-blue h-full w-3/4 shadow-[0_0_10px_#2a62ff]"></div>
+                        </div>
+                    </div>
+
+                    {/* URGENT PRIORITY WIDGET */}
+                    <div className="cyber-card p-4 flex flex-col justify-between h-32 border-t-4 border-t-neon-red cursor-pointer group hover:bg-neon-red/5 transition-all" onClick={() => navigate('/priority-list')}>
+                        <div className="flex justify-between items-start">
+                            <h3 className="text-xs font-mono text-gray-400 uppercase tracking-widest group-hover:text-neon-red transition-colors">Priority High</h3>
+                            <Siren size={16} className="text-neon-red animate-pulse" />
+                        </div>
+                        <div className="flex items-end gap-2">
+                            <span className="text-4xl font-display font-bold text-white text-glow-red">{urgentCount}</span>
+                            <span className="text-xs text-neon-red mb-1.5 font-bold">CRITICAL</span>
+                        </div>
+                        <div className="flex gap-1 mt-2">
+                            {[...Array(5)].map((_, i) => (
+                                <div key={i} className={`h-1 flex-1 rounded-full ${i < Math.min(urgentCount, 5) ? 'bg-neon-red shadow-[0_0_5px_#ff2a2a]' : 'bg-gray-800'}`}></div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+
+                {/* MAIN MODULES GRID */}
+                <div>
+                    <h2 className="text-sm font-mono text-gray-500 mb-4 flex items-center gap-2">
+                        <Cpu size={14} /> SYSTEM MODLUES
+                    </h2>
+                    <div className="grid grid-cols-2 gap-4">
+                        <Link to="/warrant-list" className="cyber-card p-4 hover:border-neon-blue/50 group transition-all">
+                            <div className="h-10 w-10 mt-1 mb-3 rounded-lg bg-neon-blue/10 flex items-center justify-center border border-neon-blue/30 group-hover:bg-neon-blue/20 group-hover:shadow-neon-blue transition-all">
+                                <Gavel size={20} className="text-neon-blue" />
+                            </div>
+                            <h3 className="font-display font-bold text-lg leading-tight group-hover:text-neon-blue transition-colors">MANDADOS</h3>
+                            <p className="text-[10px] text-gray-400 font-mono mt-1">ACCESS ALL RECORDS</p>
+                        </Link>
+
+                        <Link to="/ai-assistant" className="cyber-card p-4 hover:border-neon-purple/50 group transition-all col-span-2 relative overflow-hidden">
+                            <div className="absolute right-0 top-0 w-32 h-32 bg-neon-purple/20 blur-[50px] rounded-full pointer-events-none"></div>
+                            <div className="relative z-10 flex items-center justify-between">
+                                <div>
+                                    <div className="h-10 w-10 mb-3 rounded-lg bg-neon-purple/10 flex items-center justify-center border border-neon-purple/30 group-hover:bg-neon-purple/20 group-hover:shadow-neon-purple transition-all">
+                                        <Bot size={20} className="text-neon-purple" />
+                                    </div>
+                                    <h3 className="font-display font-bold text-lg leading-tight group-hover:text-neon-purple transition-colors">AI ANALYST</h3>
+                                    <p className="text-[10px] text-gray-400 font-mono mt-1">VOICE & DATA EXTRACTION</p>
+                                </div>
+                                <div className="h-16 w-16 rounded-full border border-neon-purple/30 flex items-center justify-center animate-pulse">
+                                    <div className="h-12 w-12 rounded-full border border-neon-purple/50 flex items-center justify-center">
+                                        <Zap size={20} className="text-neon-purple" />
+                                    </div>
+                                </div>
+                            </div>
+                        </Link>
+
+                        <Link to="/new-warrant" className="cyber-card p-4 hover:border-neon-cyan/50 group transition-all">
+                            <div className="h-10 w-10 mt-1 mb-3 rounded-lg bg-neon-cyan/10 flex items-center justify-center border border-neon-cyan/30 group-hover:bg-neon-cyan/20 group-hover:shadow-neon-cyan transition-all">
+                                <FilePlus size={20} className="text-neon-cyan" />
+                            </div>
+                            <h3 className="font-display font-bold text-lg leading-tight group-hover:text-neon-cyan transition-colors">NOVO</h3>
+                            <p className="text-[10px] text-gray-400 font-mono mt-1">CREATE ENTRY</p>
+                        </Link>
+
+                        <Link to="/route-planner" className="cyber-card p-4 hover:border-white/50 group transition-all">
+                            <div className="h-10 w-10 mt-1 mb-3 rounded-lg bg-white/5 flex items-center justify-center border border-white/20 group-hover:bg-white/10 group-hover:shadow-white transition-all">
+                                <RouteIcon size={20} className="text-white" />
+                            </div>
+                            <h3 className="font-display font-bold text-lg leading-tight group-hover:text-white transition-colors">ROTEIRO</h3>
+                            <p className="text-[10px] text-gray-400 font-mono mt-1">TACTICAL MAP</p>
+                            {routeWarrants.length > 0 && (
+                                <div className="absolute top-4 right-4 px-2 py-0.5 bg-neon-blue text-xs font-bold rounded text-white shadow-neon-blue">
+                                    {routeWarrants.length}
+                                </div>
+                            )}
+                        </Link>
+                    </div>
+                </div>
+
+                {/* RECENT DATA STREAM */}
+                <div className="cyber-card p-1">
+                    <div className="px-4 py-3 border-b border-white/5 flex justify-between items-center bg-white/5">
+                        <h2 className="text-xs font-mono text-neon-blue uppercase tracking-widest flex items-center gap-2">
+                            <Activity size={14} className="animate-spin-slow" /> Data Stream
+                        </h2>
+                        <span className="text-[10px] text-gray-500">LIVE</span>
+                    </div>
+                    <div className="divide-y divide-white/5">
+                        {warrants.length > 0 ? (
+                            warrants
+                                .sort((a, b) => (b.updatedAt || '').localeCompare(a.updatedAt || ''))
+                                .slice(0, 5)
+                                .map((w) => (
+                                    <Link to={`/warrant-detail/${w.id}`} key={w.id} className="flex items-center gap-4 p-4 hover:bg-white/5 transition-colors group">
+                                        <div className={`h-2 w-2 rounded-full shadow-[0_0_5px] ${w.status === 'EM ABERTO' ? 'bg-neon-red shadow-neon-red' : 'bg-neon-green shadow-neon-green'}`}></div>
+                                        <div className="flex-1 min-w-0">
+                                            <h4 className="font-bold text-sm text-gray-200 truncate group-hover:text-neon-blue transition-colors">{w.name}</h4>
+                                            <p className="text-[10px] text-gray-500 font-mono uppercase truncate">{w.type} // {w.number}</p>
+                                        </div>
+                                        <ChevronRight size={16} className="text-gray-600 group-hover:text-white transition-colors" />
+                                    </Link>
+                                ))
+                        ) : (
+                            <div className="p-8 text-center text-gray-500 text-xs font-mono">NO DATA AVAILABLE</div>
+                        )}
+                    </div>
+                </div>
+
+            </main>
+
+            {/* NOTIFICATIONS PANEL (Updated Style) */}
             {showNotifications && (
-                <div className="fixed inset-0 z-50 flex items-start justify-end p-4 pt-16">
-                    <div className="absolute inset-0 bg-black/20 backdrop-blur-[1px]" onClick={() => setShowNotifications(false)}></div>
-                    <div className="relative w-full max-w-sm bg-surface-light dark:bg-surface-dark rounded-xl shadow-2xl border border-border-light dark:border-border-dark animate-in slide-in-from-top-4 duration-200">
-                        <div className="p-4 border-b border-border-light dark:border-border-dark flex justify-between items-center">
-                            <h3 className="font-bold text-text-light dark:text-text-dark flex items-center gap-2">
-                                <CalendarClock className="text-orange-500" size={18} /> Vencendo em Breve
+                <div className="fixed inset-0 z-[100] flex items-start justify-end p-4 pt-20">
+                    <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowNotifications(false)}></div>
+                    <div className="relative w-full max-w-sm cyber-card bg-cyber-dark/95 border-neon-red/30 shadow-2xl animate-in slide-in-from-right-10 duration-300">
+                        <div className="p-4 border-b border-white/10 flex justify-between items-center bg-gradient-to-r from-neon-red/10 to-transparent">
+                            <h3 className="font-display font-bold text-white flex items-center gap-2 tracking-wider">
+                                <CalendarClock className="text-neon-red" size={18} /> CRITICAL DATES
                             </h3>
-                            <button onClick={() => setShowNotifications(false)} className="text-text-secondary-light hover:text-primary">
+                            <button onClick={() => setShowNotifications(false)} className="text-gray-400 hover:text-white">
                                 <X size={18} />
                             </button>
                         </div>
-                        <div className="p-2 max-h-[60vh] overflow-y-auto">
+                        <div className="p-2 max-h-[60vh] overflow-y-auto custom-scrollbar">
                             {displayedNotifications.length > 0 ? (
-                                <div className="space-y-2">
-                                    <div className="px-2 py-1 text-xs font-bold text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/20 rounded">
-                                        {showAllNotifications ? "Próximos 10 Vencimentos" : "Urgente (Menos de 7 dias)"}
-                                    </div>
-                                    {displayedNotifications.map(item => (
-                                        <Link to={`/warrant-detail/${item.id}`} key={item.id} className="flex items-center gap-3 p-3 hover:bg-background-light dark:hover:bg-white/5 rounded-lg transition-colors border border-transparent hover:border-border-light dark:hover:border-border-dark">
-                                            <div className="h-10 w-10 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center text-red-600 font-bold text-xs shrink-0">
-                                                {item.daysLeft}d
-                                            </div>
-                                            <div className="flex-1 min-w-0">
-                                                <p className="font-bold text-sm text-text-light dark:text-text-dark truncate">{item.name}</p>
-                                                <p className="text-xs text-text-secondary-light dark:text-text-secondary-dark">{item.type}</p>
-                                                <p className="text-[10px] text-gray-400 mt-0.5">Vence em: {formatDate(item.expirationDate || item.date)}</p>
-                                            </div>
-                                        </Link>
-                                    ))}
-                                </div>
+                                displayedNotifications.map(item => (
+                                    <Link to={`/warrant-detail/${item.id}`} key={item.id} className="flex items-center gap-3 p-3 hover:bg-white/5 rounded transition-colors border-l-2 border-transparent hover:border-neon-red">
+                                        <div className="h-8 w-8 rounded bg-neon-red/20 flex items-center justify-center text-neon-red font-bold text-xs shrink-0 border border-neon-red/30">
+                                            {item.daysLeft}d
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <p className="font-bold text-sm text-gray-200">{item.name}</p>
+                                            <p className="text-[10px] text-gray-500 uppercase">{item.type}</p>
+                                        </div>
+                                    </Link>
+                                ))
                             ) : (
-                                <div className="p-6 text-center text-text-secondary-light">
-                                    <CheckCircle size={32} className="mx-auto mb-2 text-green-500" />
-                                    <p className="text-sm">Nenhum mandado urgente.</p>
-                                    {!showAllNotifications && EXPIRING_WARRANTS.length > 0 && (
-                                        <p className="text-xs mt-1 text-gray-400">Clique em "Ver completo" para ver os próximos.</p>
-                                    )}
+                                <div className="p-6 text-center">
+                                    <CheckCircle className="mx-auto text-gray-500 mb-2" size={24} />
+                                    <p className="text-xs text-gray-500">ALL SYSTEMS NOMINAL</p>
                                 </div>
                             )}
-                        </div>
-                        <div className="p-3 border-t border-border-light dark:border-border-dark bg-background-light dark:bg-white/5 rounded-b-xl">
-                            <button
-                                onClick={() => setShowAllNotifications(!showAllNotifications)}
-                                className="w-full py-2 text-xs font-bold text-primary hover:underline"
-                            >
-                                {showAllNotifications ? "Ver menos" : "Ver completo"}
-                            </button>
                         </div>
                     </div>
                 </div>
             )}
-
-            <header className="sticky top-0 z-40 bg-background-light dark:bg-background-dark px-4 py-4 pb-2">
-                <div className="flex items-center justify-between mb-4">
-                    <div>
-                        <h1 className="text-lg font-black text-text-light dark:text-text-dark uppercase tracking-widest">Polícia Civil</h1>
-                        <p className="text-xs font-black text-text-secondary-light/60 dark:text-text-dark/50 tracking-wide uppercase">Sistema de Mandados</p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <button
-                            onClick={toggleTheme}
-                            className="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors text-text-light dark:text-text-dark"
-                            aria-label="Alternar tema"
-                        >
-                            {isDark ? <Sun size={24} /> : <Moon size={24} />}
-                        </button>
-                        <button
-                            onClick={() => setShowNotifications(!showNotifications)}
-                            className={`relative rounded-full p-2 hover:bg-black/5 dark:hover:bg-white/10 transition-colors ${showNotifications ? 'bg-black/5 dark:bg-white/10' : ''}`}
-                        >
-                            <Bell size={24} />
-                            {hasUrgentNotifications && <span className="absolute top-2 right-2 h-2.5 w-2.5 rounded-full bg-orange-500 border-2 border-background-light dark:border-background-dark animate-pulse"></span>}
-                        </button>
-                    </div>
-                </div>
-
-                <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary-light/60 dark:text-text-secondary-dark/60" size={20} />
-                    <input
-                        type="text"
-                        placeholder="Nome, RG, endereço, crime, nº mandado..."
-                        onKeyDown={handleSearch}
-                        className="w-full rounded-xl border border-border-light dark:border-white/5 bg-surface-light dark:bg-surface-dark py-3.5 pl-10 pr-4 text-sm shadow-sm placeholder:text-text-secondary-light/40 dark:placeholder:text-gray-500 focus:ring-2 focus:ring-primary/20 transition-all"
-                    />
-                </div>
-            </header>
-
-            <main className="px-4 py-2 space-y-6">
-                <div className="grid grid-cols-2 gap-3">
-                    <Link to="/warrant-list" className="group flex flex-col gap-3 rounded-2xl bg-surface-light p-4 shadow-md transition-all active:scale-[0.98] dark:bg-surface-dark border border-transparent hover:border-blue-400 hover:shadow-neon-blue">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400 group-hover:shadow-neon-blue-card transition-shadow">
-                            <Gavel size={24} />
-                        </div>
-                        <div>
-                            <h3 className="font-bold text-text-light dark:text-text-dark">Mandados de Prisão</h3>
-                            <p className="text-xs text-text-secondary-light dark:text-text-secondary-dark">Todos os mandados</p>
-                        </div>
-                    </Link>
-
-                    <Link to="/minor-search" className="group flex flex-col gap-3 rounded-2xl bg-surface-light p-4 shadow-md transition-all active:scale-[0.98] dark:bg-surface-dark border border-transparent hover:border-orange-500 hover:shadow-neon-orange">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-50 text-orange-600 dark:bg-orange-500/10 dark:text-orange-500 group-hover:shadow-neon-orange-card transition-shadow">
-                            <Baby size={24} />
-                        </div>
-                        <div>
-                            <h3 className="font-bold text-text-light dark:text-text-dark">Busca de Menores</h3>
-                            <p className="text-xs text-text-secondary-light/70 dark:text-text-dark/60">Busca e Apreensão</p>
-                        </div>
-                    </Link>
-
-                    <Link to="/new-warrant" className="group flex flex-col gap-3 rounded-2xl bg-surface-light p-4 shadow-md transition-all active:scale-[0.98] dark:bg-surface-dark border border-transparent hover:border-green-500 hover:shadow-neon-green">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-green-50 text-green-600 dark:bg-green-500/10 dark:text-green-500 group-hover:shadow-neon-green-card transition-shadow">
-                            <FilePlus size={24} />
-                        </div>
-                        <div>
-                            <h3 className="font-bold text-text-light dark:text-text-dark">Novo</h3>
-                            <p className="text-xs text-text-secondary-light/70 dark:text-text-dark/60">Registrar mandado</p>
-                        </div>
-                    </Link>
-
-
-
-                    <Link to="/stats" className="group flex flex-col gap-3 rounded-2xl bg-surface-light p-4 shadow-md transition-all active:scale-[0.98] dark:bg-surface-dark border border-neon-purple/20 hover:border-neon-purple hover:shadow-neon-purple">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-50 text-purple-600 dark:bg-purple-500/10 dark:text-purple-500">
-                            <BarChart2 size={24} />
-                        </div>
-                        <div>
-                            <h3 className="font-bold text-text-light dark:text-text-dark">Estatística</h3>
-                            <p className="text-xs text-text-secondary-light/70 dark:text-text-dark/60">Análise de BI</p>
-                        </div>
-                    </Link>
-
-                    <Link to="/route-planner" className="group flex flex-col gap-3 rounded-2xl bg-surface-light p-4 shadow-md transition-all active:scale-[0.98] dark:bg-surface-dark border border-transparent hover:border-indigo-500 hover:shadow-neon-indigo relative">
-                        {routeWarrants.length > 0 && (
-                            <span className="absolute top-3 right-3 flex h-5 w-5 items-center justify-center rounded-full bg-indigo-600 text-[10px] font-bold text-white shadow-lg animate-bounce">
-                                {routeWarrants.length}
-                            </span>
-                        )}
-                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400 group-hover:shadow-neon-indigo-card transition-shadow">
-                            <RouteIcon size={24} />
-                        </div>
-                        <div>
-                            <h3 className="font-bold text-text-light dark:text-text-dark">Roteiro</h3>
-                            <p className="text-xs text-text-secondary-light/70 dark:text-text-dark/60">Planejar diligência</p>
-                        </div>
-                    </Link>
-
-                    <Link to="/ai-assistant" className="group flex flex-col gap-3 rounded-2xl bg-gradient-to-br from-neon-purple/5 to-neon-purple/10 p-4 shadow-sm transition-all active:scale-[0.98] dark:from-neon-purple/10 dark:to-neon-purple/20 border border-neon-purple/30 hover:border-neon-purple hover:shadow-neon-purple">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-neon-purple text-white shadow-lg shadow-neon-purple/20">
-                            <Bot size={24} />
-                        </div>
-                        <div>
-                            <h3 className="font-bold text-text-light dark:text-text-dark">Assistente IA</h3>
-                            <p className="text-xs text-text-secondary-light/70 dark:text-text-dark/60 tracking-tight">Extração e Voz</p>
-                        </div>
-                    </Link>
-                </div>
-
-                {/* Duty Summary Card */}
-                <Link to="/priority-list" className="block rounded-2xl bg-surface-light dark:bg-surface-dark p-4 shadow-[0_0_10px_rgba(239,68,68,0.6)] border border-red-500 relative overflow-hidden transition-transform active:scale-[0.98]">
-                    <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-red-500/10 blur-xl"></div>
-                    <div className="relative z-10 flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-red-500/10 text-red-600 dark:bg-red-900/20 dark:text-red-400 border border-red-500/20">
-                                <Siren size={24} />
-                            </div>
-                            <div>
-                                <h2 className="font-bold text-text-light dark:text-text-dark">Prioridades</h2>
-                                <p className="text-xs text-text-secondary-light dark:text-text-secondary-dark">
-                                    {urgentCount} Urgentes &bull; {oficioCount} Cobranças
-                                </p>
-                            </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <div className="text-right">
-                                <span className="block text-xs font-bold text-red-600 dark:text-red-400 uppercase tracking-wider">Atenção</span>
-                            </div>
-                            <ChevronRight size={20} className="text-gray-400" />
-                        </div>
-                    </div>
-                </Link>
-
-                <div>
-                    <div className="flex items-center justify-between mb-3">
-                        <h2 className="font-bold text-text-light dark:text-text-dark flex items-center gap-2">
-                            <Activity size={18} className="text-secondary" /> Recentes
-                        </h2>
-                        <Link to="/recents" className="text-xs font-bold bg-secondary/10 text-secondary px-3 py-1.5 rounded-full hover:bg-secondary/20 transition-colors">
-                            Ver todos
-                        </Link>
-                    </div>
-                    <div className="space-y-3">
-                        {[...warrants]
-                            .sort((a, b) => {
-                                const dateA = a.updatedAt || a.createdAt || '';
-                                const dateB = b.updatedAt || b.createdAt || '';
-                                return dateB.localeCompare(dateA);
-                            })
-                            .slice(0, 3)
-                            .map((warrant) => (
-                                <WarrantCard
-                                    key={warrant.id}
-                                    data={warrant}
-                                    onDelete={deleteWarrant}
-                                    onRouteToggle={toggleRouteWarrant}
-                                    isPlanned={routeWarrants.includes(warrant.id)}
-                                    onPrint={(e) => {
-                                        e.preventDefault();
-                                        e.stopPropagation();
-                                        generateWarrantPDF(warrant, updateWarrant);
-                                    }}
-                                />
-                            ))}
-                    </div>
-                </div>
-            </main>
         </div>
     );
 };
