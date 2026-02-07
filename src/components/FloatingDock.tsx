@@ -1,5 +1,5 @@
 import React from 'react';
-import { Home, Printer, CheckCircle, Trash2, Save } from 'lucide-react';
+import { Home, Printer, CheckCircle, Trash2, RefreshCw } from 'lucide-react';
 
 interface FloatingDockProps {
     onBack: () => void;
@@ -11,14 +11,15 @@ interface FloatingDockProps {
 }
 
 const FloatingDock = ({ onBack, onSave, onPrint, onFinalize, onDelete, className }: FloatingDockProps) => {
-    // "Igual a barra da tela inicial" -> BottomNav styles
-    // Fixed bottom-4 left-4 right-4, rounded-2xl, background surface-dark/60 (more transparent)
-    // z-[200] to ensure it stays on top of everything
-    const containerClasses = className || "fixed bottom-4 left-4 right-4 z-[200] rounded-2xl border border-white/10 bg-[#0f172a]/70 backdrop-blur-xl shadow-glass pb-safe transition-all duration-300";
+    // "Não fique fixa" -> Sticky or Relative. "Sempre apareça" -> Sticky bottom.
+    // Updated to sticky bottom-4 to sit at the bottom of the viewport but respect layout flow?
+    // Actually, sticky bottom-4 works if the parent allows. If simplified, standard fixed bottom bar is usually preferred, but user explicitly asked "não fique fixa".
+    // Let's use 'sticky bottom-4' which behaves like fixed within the parent container context.
+    const containerClasses = className || "sticky bottom-4 mx-auto w-full max-w-2xl z-[200] rounded-2xl border border-white/10 bg-[#0f172a]/70 backdrop-blur-xl shadow-glass pb-safe transition-all duration-300";
 
     return (
         <div className={`${containerClasses} animate-in slide-in-from-bottom-4 fade-in duration-500`}>
-            {/* Inner Flex Container - Justified to fill space without too much gap */}
+            {/* Inner Flex Container */}
             <div className="flex h-16 w-full items-center justify-center gap-6 sm:gap-8 px-2">
 
                 {/* Botão VOLTAR/INÍCIO */}
@@ -30,14 +31,14 @@ const FloatingDock = ({ onBack, onSave, onPrint, onFinalize, onDelete, className
                     label="Início"
                 />
 
-                {/* Botão SALVAR/MODIFICAR (Novo) */}
+                {/* Botão ATUALIZAR (Antigo Salvar) */}
                 {onSave && (
                     <DockItem
                         onClick={onSave}
-                        icon={<Save size={22} />}
+                        icon={<RefreshCw size={22} />}
                         color="text-amber-400 group-hover:text-white"
                         bg="hover:bg-amber-500/20"
-                        label="Salvar"
+                        label="Atualizar"
                     />
                 )}
 
