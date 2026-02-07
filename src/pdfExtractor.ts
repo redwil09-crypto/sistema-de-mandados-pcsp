@@ -151,11 +151,13 @@ const extractBirthDate = (text: string): string => {
 
 const extractIssuingCourt = (text: string): string => {
     const patterns = [
+        // Padrão específico para número antes da Vara (ex: "2 VARA", "1ª VARA")
+        /((?:[0-9]+(?:ª|º)?\s+)?VARA\s+(?:Criminal|Cível|da\s+Família|das\s+Sucessões|do\s+Júri|de\s+Execuções\s+Criminais)[^\n,]*)/i,
+        /([0-9]+(?:ª|º)?\s+VARA\s+[^\n,]*)/i,
         /(?:Tribunal de Justiça do Estado de São Paulo|TJSP).*?(?:FORO DE|COMARCA DE|VARA)\s+([a-zA-ZÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑ\s\-]{3,})/i,
         /(?:FÓRUM|FORO|COMARCA)[:\s]+([a-zA-ZÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑ\s\-]{3,})/i,
-        /([0-9]ª\s+Vara\s+(?:Criminal|Cível|da\s+Família|das\s+Sucessões|do\s+Júri|de\s+Execuções\s+Criminais)[^\n,]*)/i,
         /(Vara\s+.*?(?:Criminal|Cível|da\s+Família|das\s+Sucessões|do\s+Júri|de\s+Execuções\s+Criminais)[^\n,]*)/i,
-        /Expedido\s+em\s+autos\s+da\s+([0-9]ª\s+Vara\s+[^\n,]*)/i
+        /Expedido\s+em\s+autos\s+da\s+([0-9]+(?:ª|º)?\s+Vara\s+[^\n,]*)/i
     ];
 
     for (const pattern of patterns) {

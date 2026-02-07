@@ -2641,16 +2641,12 @@ Equipe de Capturas - DIG / PCSP
                 </div>
 
                 {/* Floating Dock (Static at bottom) */}
-                <div className="flex justify-center pb-12 mt-8">
-                    <FloatingDock
-                        className="relative mx-auto w-fit"
-                        onBack={handleBack}
-                        onPrint={handleDownloadPDF}
-                        onFinalize={handleFinalize}
-                        onDelete={isAdmin ? () => setIsDeleteConfirmOpen(true) : undefined}
-                        onSettings={() => toast.info("Configurações Restauradas")}
-                    />
-                </div>
+                <FloatingDock
+                    onBack={() => navigate(-1)}
+                    onPrint={handleDownloadReportPDF}
+                    onFinalize={handleFinalize}
+                    onDelete={isAdmin ? () => setIsDeleteConfirmOpen(true) : undefined}
+                />
 
                 {/* Modals & Overlays */}
                 <ConfirmModal isOpen={isConfirmSaveOpen} onCancel={() => setIsConfirmSaveOpen(false)} onConfirm={handleSaveChanges} title="Sincronizar Protocolo" message="Deseja registrar as alterações no prontuário oficial deste alvo?" confirmText="Sincronizar" cancelText="Abortar" variant="primary" />
