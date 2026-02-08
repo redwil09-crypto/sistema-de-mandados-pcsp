@@ -368,6 +368,7 @@ const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, wa
                 const currentDocs = warrant.ifoodDocs || [];
                 await updateWarrant(warrant.id, { ifoodDocs: [...currentDocs, url] });
                 toast.success("Cópia salva no histórico!", { id: toastId });
+                onClose();
             } else {
                 toast.dismiss(toastId);
             }
