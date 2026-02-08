@@ -44,6 +44,7 @@ const dbToWarrant = (dbWarrant: any): Warrant => {
         tags: dbWarrant.tags || [],
         fulfillmentResult: dbWarrant.fulfillment_result,
         fulfillmentReport: dbWarrant.fulfillment_report,
+        ifoodDocs: dbWarrant.ifood_docs || [], // Added mapping
         date: dbWarrant.entry_date || dbWarrant.created_at?.split('T')[0],
         createdAt: dbWarrant.created_at,
         updatedAt: dbWarrant.updated_at,
@@ -93,6 +94,7 @@ const warrantToDb = (warrant: Partial<Warrant>) => {
     if (warrant.fulfillmentReport !== undefined) dbObj.fulfillment_report = warrant.fulfillmentReport;
     if (warrant.diligentHistory !== undefined) dbObj.diligent_history = warrant.diligentHistory;
     if (warrant.tacticalSummary !== undefined) dbObj.tactical_summary = warrant.tacticalSummary;
+    if (warrant.ifoodDocs !== undefined) dbObj.ifood_docs = warrant.ifoodDocs; // Added mapping
 
     return dbObj;
 };

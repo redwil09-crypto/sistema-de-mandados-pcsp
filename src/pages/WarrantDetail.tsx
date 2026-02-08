@@ -1,5 +1,5 @@
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { jsPDF } from 'jspdf';
 import FloatingDock from '../components/FloatingDock'; // REINTEGRADO
@@ -139,6 +139,8 @@ const WarrantDetail = () => {
         };
         checkAdmin();
     }, []);
+
+    const ifoodFileInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
         if (data) {
@@ -1957,12 +1959,18 @@ Equipe de Capturas - DIG / PCSP
                                         </div>
                                     </div>
                                     <div className="flex gap-2">
-                                        <label
-                                            htmlFor="ifood-upload"
+                                        <input
+                                            type="file"
+                                            ref={ifoodFileInputRef}
+                                            className="hidden"
+                                            onChange={(e) => handleAttachFile(e, 'ifoodDocs')}
+                                        />
+                                        <button
+                                            onClick={() => ifoodFileInputRef.current?.click()}
                                             className="bg-surface-dark border border-white/10 hover:bg-white/5 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-tactic flex items-center gap-2 transition-all active:scale-95 cursor-pointer"
                                         >
                                             <Upload size={14} /> Upload Retorno
-                                        </label>
+                                        </button>
                                         <button
                                             onClick={handleGenerateIfoodOffice}
                                             className="bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-tactic flex items-center gap-2 transition-all active:scale-95"
@@ -1990,18 +1998,12 @@ Equipe de Capturas - DIG / PCSP
                                         <div className="flex items-center justify-between">
                                             <label className="text-[9px] font-black text-text-muted uppercase tracking-wider">Documentos Resposta</label>
                                             <div className="flex gap-2">
-                                                <input
-                                                    type="file"
-                                                    id="ifood-upload"
-                                                    className="hidden"
-                                                    onChange={(e) => handleAttachFile(e, 'ifoodDocs')}
-                                                />
-                                                <label
-                                                    htmlFor="ifood-upload"
+                                                <button
+                                                    onClick={() => ifoodFileInputRef.current?.click()}
                                                     className="px-3 py-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-[10px] font-bold uppercase cursor-pointer transition-all text-white flex items-center gap-2"
                                                 >
                                                     <Paperclip size={12} /> Anexar
-                                                </label>
+                                                </button>
                                             </div>
                                         </div>
 
