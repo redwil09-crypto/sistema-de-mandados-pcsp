@@ -1981,59 +1981,108 @@ Equipe de Capturas - DIG / PCSP
                                     </div>
 
                                     <div className="space-y-4">
-                                        <div className="flex items-center justify-between">
+                                        <div className="space-y-4">
                                             <label className="text-[9px] font-black text-text-muted uppercase tracking-wider">Documentos Resposta</label>
-                                            <div className="flex gap-2">
-                                                <input
-                                                    type="file"
-                                                    id="ifood-upload"
-                                                    className="hidden"
-                                                    onChange={(e) => handleAttachFile(e, 'ifoodDocs')}
-                                                />
-                                                <label
-                                                    htmlFor="ifood-upload"
-                                                    className="px-3 py-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-[10px] font-bold uppercase cursor-pointer transition-all text-white flex items-center gap-2"
-                                                >
-                                                    <Paperclip size={12} /> Anexar
-                                                </label>
-                                            </div>
-                                        </div>
 
-                                        <div className="space-y-2 max-h-[220px] overflow-y-auto pr-2 scrollbar-thumb-white/10 scrollbar-track-transparent">
-                                            {data.ifoodDocs && data.ifoodDocs.length > 0 ? (
-                                                data.ifoodDocs.map((doc: string, idx: number) => (
-                                                    <div key={idx} className="flex items-center justify-between bg-white/5 border border-white/5 p-3 rounded-xl group hover:bg-white/10 transition-all">
-                                                        <div className="flex items-center gap-3 overflow-hidden">
-                                                            <div className="p-2 bg-amber-500/10 text-amber-500 rounded-lg">
-                                                                <FileText size={14} />
-                                                            </div>
-                                                            <span className="text-xs text-white truncate max-w-[150px]">
-                                                                {doc.split('/').pop()?.replace(/^\d+_/, '')}
-                                                            </span>
-                                                        </div>
-                                                        <div className="flex gap-1">
-                                                            <a href={getPublicUrl(doc)} target="_blank" rel="noopener noreferrer" className="p-1.5 text-text-muted hover:text-white" title="Visualizar">
-                                                                <Eye size={14} />
-                                                            </a>
-                                                            <button
-                                                                onClick={async () => {
-                                                                    if (window.confirm("Excluir este documento do iFood?")) {
-                                                                        const updatedDocs = data.ifoodDocs?.filter((d: string) => d !== doc);
-                                                                        await updateWarrant(data.id, { ifoodDocs: updatedDocs });
-                                                                    }
-                                                                }}
-                                                                className="p-1.5 text-red-500 hover:text-red-400"
-                                                            >
-                                                                <Trash2 size={14} />
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                ))
-                                            ) : (
-                                                <div className="text-center py-8 border-2 border-dashed border-white/5 rounded-xl">
-                                                    <p className="text-[10px] text-text-muted font-bold uppercase">Nenhum retorno anexado</p>
+                                            {/* Styled Upload Grid (Matching Repository) */}
+                                            <div className="bg-white/5 rounded-xl p-3 grid grid-cols-1 md:grid-cols-4 gap-2 items-end border border-white/5">
+                                                <div className="space-y-1">
+                                                    <label className="text-[9px] font-black text-text-muted uppercase tracking-wider">Tipo</label>
+                                                    <select
+                                                        className="w-full bg-surface-dark border border-white/10 rounded-lg p-2 text-[10px] text-white outline-none focus:border-indigo-500/50 transition-colors"
+                                                        value={newDocType}
+                                                        onChange={e => setNewDocType(e.target.value)}
+                                                    >
+                                                        <option value="IFFO">IFFO (iFood)</option>
+                                                        <option value="Mandado">Mandado de Prisão</option>
+                                                        <option value="Oficio">Ofício</option>
+                                                        <option value="Outros">Outros</option>
+                                                    </select>
                                                 </div>
-                                            )}
+                                                <div className="space-y-1">
+                                                    <label className="text-[9px] font-black text-text-muted uppercase tracking-wider">Origem/Vara</label>
+                                                    <input
+                                                        className="w-full bg-surface-dark border border-white/10 rounded-lg p-2 text-[10px] text-white outline-none placeholder:text-white/20 focus:border-indigo-500/50 transition-colors"
+                                                        placeholder="Ex: 1ª Vara Criminal"
+                                                        value={newDocSource}
+                                                        onChange={e => setNewDocSource(e.target.value)}
+                                                    />
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <label className="text-[9px] font-black text-text-muted uppercase tracking-wider">Numeração/Edição</label>
+                                                    <input
+                                                        className="w-full bg-surface-dark border border-white/10 rounded-lg p-2 text-[10px] text-white outline-none placeholder:text-white/20 focus:border-indigo-500/50 transition-colors"
+                                                        placeholder="Ex: 001/2026"
+                                                        value={newDocNumber}
+                                                        onChange={e => setNewDocNumber(e.target.value)}
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <input
+                                                        type="file"
+                                                        id="ifood-upload-grid"
+                                                        className="hidden"
+                                                        onChange={(e) => {
+                                                            const files = e.target.files;
+                                                            if (files && files.length > 0) {
+                                                                const file = files[0];
+                                                                const extension = file.name.split('.').pop();
+                                                                const cleanSource = newDocSource.replace(/[^a-zA-Z0-9]/g, '');
+                                                                const cleanNum = newDocNumber.replace(/[^a-zA-Z0-9]/g, '');
+                                                                // Default to IFFO if generic type selected or use selection
+                                                                const prefix = newDocType === 'Mandado' ? 'IFFO' : newDocType;
+                                                                const finalName = `${prefix}_${cleanSource}_${cleanNum}_${Date.now()}.${extension}`;
+
+                                                                const renamedFile = new File([file], finalName, { type: file.type });
+                                                                const mockEvent = { target: { files: [renamedFile] } } as any;
+
+                                                                // Save to iFood Docs
+                                                                handleAttachFile(mockEvent, 'ifoodDocs');
+                                                            }
+                                                        }}
+                                                    />
+                                                    <label htmlFor="ifood-upload-grid" className="w-full bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-2 rounded-lg text-[10px] font-black uppercase cursor-pointer flex items-center justify-center gap-2 transition-all shadow-lg shadow-indigo-500/20">
+                                                        <Plus size={14} /> Upload
+                                                    </label>
+                                                </div>
+                                            </div>
+
+                                            <div className="space-y-2 max-h-[220px] overflow-y-auto pr-2 scrollbar-thumb-white/10 scrollbar-track-transparent">
+                                                {data.ifoodDocs && data.ifoodDocs.length > 0 ? (
+                                                    data.ifoodDocs.map((doc: string, idx: number) => (
+                                                        <div key={idx} className="flex items-center justify-between bg-white/5 border border-white/5 p-3 rounded-xl group hover:bg-white/10 transition-all">
+                                                            <div className="flex items-center gap-3 overflow-hidden">
+                                                                <div className="p-2 bg-amber-500/10 text-amber-500 rounded-lg">
+                                                                    <FileText size={14} />
+                                                                </div>
+                                                                <span className="text-xs text-white truncate max-w-[150px]">
+                                                                    {doc.split('/').pop()?.replace(/^\d+_/, '')}
+                                                                </span>
+                                                            </div>
+                                                            <div className="flex gap-1">
+                                                                <a href={getPublicUrl(doc)} target="_blank" rel="noopener noreferrer" className="p-1.5 text-text-muted hover:text-white" title="Visualizar">
+                                                                    <Eye size={14} />
+                                                                </a>
+                                                                <button
+                                                                    onClick={async () => {
+                                                                        if (window.confirm("Excluir este documento do iFood?")) {
+                                                                            const updatedDocs = data.ifoodDocs?.filter((d: string) => d !== doc);
+                                                                            await updateWarrant(data.id, { ifoodDocs: updatedDocs });
+                                                                        }
+                                                                    }}
+                                                                    className="p-1.5 text-red-500 hover:text-red-400"
+                                                                >
+                                                                    <Trash2 size={14} />
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    ))
+                                                ) : (
+                                                    <div className="text-center py-8 border-2 border-dashed border-white/5 rounded-xl">
+                                                        <p className="text-[10px] text-text-muted font-bold uppercase">Nenhum retorno anexado</p>
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
