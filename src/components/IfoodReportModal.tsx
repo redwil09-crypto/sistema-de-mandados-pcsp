@@ -170,45 +170,19 @@ const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, wa
         const addFooter = (pdf: jsPDF, pageNum: number, totalPages: number) => {
             const footerY = pageHeight - 15;
 
-            // Separator Line
-            // Not spanning full width based on image, looks like left block and right block?
-            // Actually image 1 has no full line, Image 2 header has full line?
-            // The image shows text at bottom.
-
             // Address Block (Left)
             pdf.setFont('helvetica', 'normal');
             pdf.setFontSize(8);
             pdf.setTextColor(0, 0, 0);
 
             const addr1 = "Rua Moisés Ruston, 370, Parque Itamaraty, Jacareí-SP, CEP-12.307-260";
-            const addr2 = "Tel-12-3951-1000 - E-mail - dig.jacarei@policiacivil.sp.gov.br";
-
-            pdf.text(addr1, pageWidth / 2, footerY, { align: "center" });
-
-            // Email link blue
-            const addr2Width = pdf.getTextWidth(addr2);
-            const startX = (pageWidth - addr2Width) / 2;
-            pdf.text("Tel-12-3951-1000 - E-mail - ", startX, footerY + 4);
-
-            const prefixWidth = pdf.getTextWidth("Tel-12-3951-1000 - E-mail - ");
-            pdf.setTextColor(0, 0, 255);
-            // Use simple text for now to avoid withLink typing issues, or cast if needed. 
-            // doc.text supports options in newer definitions but to be safe:
-            pdf.text("dig.jacarei@policiacivil.sp.gov.br", startX + prefixWidth, footerY + 4);
-            // Add link annotation manually over the text area if critical, but for print PDF visual is key.
-            // keeping it simple to solve the build error.
-            pdf.setTextColor(0, 0, 0); // Reset
 
             // Right Block (Date | Page)
-            // The image shows this on the right side with a vertical separator?
-            // "Data (07/02/26) | Página 1 de 2" - roughly
-            // Let's position it at bottom right
-
             const today = new Date();
             const dateStr = `Data (${today.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' })})`;
             const pageStr = `Página ${pageNum} de ${totalPages}`;
 
-            // Let's implement that split footer
+            // Split footer layout
             const dividerX = pageWidth - margin - 35;
             pdf.setDrawColor(0);
             pdf.line(dividerX, footerY - 2, dividerX, footerY + 8);
@@ -216,14 +190,8 @@ const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, wa
             // Left of divider
             pdf.text(addr1, dividerX - 5, footerY, { align: 'right' });
 
-            // We need to support the rich text for email again... simpler to just write text for now to match layout first
-            // pdf.text(addr2, dividerX - 5, footerY + 4, { align: 'right' });
-            // Split email line manually for "align right" logic
-            const emailPart = "dig.jacarei@policiacivil.sp.gov.br";
-            const phonePart = "Tel-12-3951-1000 - E-mail - ";
-            const fullEmailLine = phonePart + emailPart;
+            const fullEmailLine = "Tel-12-3951-1000 - E-mail - dig.jacarei@policiacivil.sp.gov.br";
             pdf.text(fullEmailLine, dividerX - 5, footerY + 4, { align: 'right' });
-            // Make email blue? Hard with right align text. Leave black for now to ensure alignment is perfect.
 
             // Right of divider
             pdf.text(dateStr, dividerX + 5, footerY);
@@ -235,120 +203,31 @@ const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, wa
         // Setup Doc
         doc.setFont('times', 'normal');
 
-        let y = 10;
-
         // Add Header Page 1
-        y = addHeader(doc);
-        y += 5; // Spacing after Gray Bar
+        let y = addHeader(doc);
+        y += 10; // Spacing after Gray Bar
 
-        // 1. Meta Fields
-        doc.setFontSize(10);
-        doc.setFont('helvetica', 'bold');
-        doc.text(`Ofício: nº.${officeNumber}/CAPT/2025`, margin, y);
-        y += 5;
+        // Render Editable Content
+        // We split the edited text to fit the width
+        const splitText = doc.splitTextToSize(generatedText, maxLineWidth);
 
-        doc.text("Referência: ", margin, y);
-        doc.setFont('helvetica', 'normal');
-        doc.text(`PROC. Nº ${warrant.number}`, margin + 22, y);
-        y += 5;
-
-        doc.setFont('helvetica', 'bold');
-        doc.text("Natureza: ", margin, y);
-        doc.setFont('helvetica', 'normal');
-        doc.text("Solicitação de Dados.", margin + 18, y);
-        y += 15;
-
-        // 2. Date (Right Aligned, Bold City)
-        const months = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
-        const today = new Date();
-        const dateLine = `Jacareí, ${today.getDate().toString().padStart(2, '0')} de ${months[today.getMonth()]} de ${today.getFullYear()}.`;
-
-        doc.setFont('helvetica', 'bold'); // "Jacareí," is bold in image? No, looks all bold italic maybe? Or just bold.
-        doc.setFont('helvetica', 'bolditalic');
-        doc.text(dateLine, pageWidth - margin, y, { align: 'right' });
-        doc.setFont('helvetica', 'normal');
-        y += 15;
-
-        // 3. Vocative
-        doc.setFont('helvetica', 'bold');
-        doc.text("ILMO. SENHOR RESPONSÁVEL,", margin, y);
-        y += 15;
-
-        // 4. Body Paragraphs
-        doc.setFont('helvetica', 'normal');
+        doc.setFont('times', 'normal');
         doc.setFontSize(11); // Body font size
 
-        const indent = "          "; // ~10 spaces
+        // Pagination Loop for Content
+        const lineHeight = 5;
+        const pageContentHeight = pageHeight - 30; // approx margins
 
-        const p1 = `${indent}Com a finalidade de instruir investigação policial em trâmite nesta unidade, solicito, respeitosamente, a gentileza de verificar se o indivíduo abaixo relacionado encontra-se cadastrado como usuário ou entregador da plataforma IFOOD.`;
-        const splitP1 = doc.splitTextToSize(p1, maxLineWidth);
-        doc.text(splitP1, margin, y, { align: 'justify', maxWidth: maxLineWidth });
-        y += (splitP1.length * 5) + 5;
-
-        const p2 = `${indent}Em caso positivo, requer-se o envio das informações cadastrais fornecidas para habilitação na plataforma, incluindo, se disponíveis, nome completo, endereço(s), número(s) de telefone, e-mail(s) e demais dados vinculados à respectiva conta.`;
-        const splitP2 = doc.splitTextToSize(p2, maxLineWidth);
-        doc.text(splitP2, margin, y, { align: 'justify', maxWidth: maxLineWidth });
-        y += (splitP2.length * 5) + 5;
-
-        const p3 = `${indent}As informações devem ser encaminhadas ao e-mail institucional do policial responsável pela investigação:`;
-        doc.text(p3, margin, y);
-        y += 8;
-
-        // Email Block
-        doc.setFont('helvetica', 'bold');
-        doc.text("william.castro@policiacivil.sp.gov.br", margin + 10, y);
-        y += 5;
-        doc.setFont('helvetica', 'normal');
-        doc.text("William Campos de Assis Castro – Polícia Civil do Estado de São Paulo", margin + 10, y);
-        y += 15;
-
-        // Person of Interest
-        doc.setFont('helvetica', 'normal');
-        doc.text("Pessoa de interesse para a investigação:", margin, y);
-        y += 6;
-
-        doc.setFont('helvetica', 'bold');
-        const personLine = `${warrant.name.toUpperCase()} – CPF ${warrant.cpf || warrant.rg || 'NÃO INFORMADO'}`;
-        doc.text(personLine, margin, y);
-        y += 15;
-
-        // Closing
-        doc.setFont('helvetica', 'normal');
-        const closing = `${indent}Aproveito a oportunidade para renovar meus votos de elevada estima e consideração.`;
-        doc.text(closing, margin, y);
-        y += 10;
-
-        doc.text("Atenciosamente,", margin, y);
-
-        // Signature
-        y += 20;
-        // Check if page break needed for signature
-        if (y > pageHeight - 40) {
-            doc.addPage();
-            addHeader(doc);
-            y = 50;
+        for (let i = 0; i < splitText.length; i++) {
+            if (y > pageContentHeight) {
+                doc.addPage();
+                y = addHeader(doc) + 10;
+                doc.setFont('times', 'normal');
+                doc.setFontSize(11);
+            }
+            doc.text(splitText[i], margin, y);
+            y += lineHeight;
         }
-
-        doc.setFont('helvetica', 'bold');
-        doc.text("Luiz Antônio Cunha dos Santos", pageWidth / 2, y, { align: 'center' });
-        y += 5;
-        doc.text("Delegado de Polícia", pageWidth / 2, y, { align: 'center' });
-
-        // Addressee Block (Bottom or Next Page)
-        y += 20;
-
-        // Ensure we have space, or move to next page
-        if (y > pageHeight - 40) {
-            doc.addPage();
-            y = 50;
-            addHeader(doc); // Header on page 2 too? Image 2 shows header.
-        }
-
-        doc.setFont('helvetica', 'normal');
-        doc.text("Ao Ilustríssimo Senhor Responsável", margin, y);
-        y += 5;
-        doc.setFont('helvetica', 'bold');
-        doc.text("Empresa iFood.", margin, y);
 
         // Add Footers
         // Fix getNumberOfPages error by casting or using supported property
@@ -358,35 +237,40 @@ const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, wa
             addFooter(doc, i, totalPages);
         }
 
-        doc.save(`Oficio_IFood_${officeNumber}_${warrant.name.replace(/\s+/g, '_')}.pdf`);
-        toast.success("PDF oficial (Padrão DIG) gerado.");
+        const safeOfficeNum = officeNumber ? officeNumber.replace(/\//g, '-') : 'SEM_NUMERO';
+        doc.save(`Oficio_IFood_${safeOfficeNum}_${warrant.name.replace(/\s+/g, '_')}.pdf`);
+        toast.success("PDF oficial gerado.");
     };
 
     if (!isOpen) return null;
 
     return createPortal(
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-            <div className="bg-slate-900 border border-slate-700 w-full max-w-4xl h-[90vh] rounded-xl shadow-2xl flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+            <div className="bg-[#0f172a] border border-blue-900/50 rounded-lg shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in duration-200">
                 {/* Header */}
-                <div className="flex items-center justify-between p-4 border-b border-slate-700 bg-slate-800/50">
+                <div className="flex items-center justify-between p-4 border-b border-blue-900/30 bg-blue-950/20">
                     <div className="flex items-center gap-3">
-                        <div className={`p-2 rounded-lg border ${type === 'uber' ? 'bg-cyan-500/10 border-cyan-500/20 text-cyan-500' : 'bg-red-500/10 border-red-500/20 text-red-500'}`}>
-                            {type === 'uber' ? <Car className="w-6 h-6" /> : <Bike className="w-6 h-6" />}
+                        <div className="p-2 bg-blue-500/10 rounded-lg">
+                            <FileText className="w-5 h-5 text-blue-400" />
                         </div>
                         <div>
-                            <h2 className="text-lg font-bold text-slate-100 uppercase">Ofício {type.toUpperCase()}</h2>
-                            <p className="text-xs text-slate-400">Geração de Documento Oficial</p>
+                            <h3 className="text-lg font-bold text-gray-100">
+                                {type === 'ifood' ? 'OFÍCIO IFOOD' : 'OFÍCIO UBER'}
+                            </h3>
+                            <p className="text-xs text-blue-400/80">Geração de Documento Oficial</p>
                         </div>
                     </div>
-                    <button onClick={onClose} className="p-2 hover:bg-slate-700 rounded-full transition-colors">
-                        <X className="w-5 h-5 text-slate-400" />
+                    <button
+                        onClick={onClose}
+                        className="p-1 hover:bg-white/5 rounded-full transition-colors"
+                    >
+                        <X className="w-5 h-5 text-gray-400" />
                     </button>
                 </div>
 
                 {/* Content */}
-                <div className="flex-1 overflow-hidden relative flex flex-col p-6 gap-4">
-
+                <div className="flex-1 overflow-y-auto p-6 space-y-6">
+                    {/* Steps */}
                     {step === 'input' && (
                         <div className="flex-1 flex flex-col items-center justify-center gap-6 animate-in fade-in slide-in-from-bottom-4">
                             <div className="w-20 h-20 bg-indigo-500/10 rounded-full flex items-center justify-center text-indigo-400 border border-indigo-500/20">
@@ -417,39 +301,66 @@ const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, wa
                     )}
 
                     {step === 'processing' && (
-                        <div className="flex-1 flex flex-col items-center justify-center text-center animate-pulse">
-                            <Loader2 className="w-12 h-12 text-indigo-500 animate-spin mb-4" />
-                            <h3 className="text-xl font-bold text-white uppercase tracking-tighter">Redigindo Ofício Judicial...</h3>
-                            <p className="text-slate-400 mt-2 max-w-sm text-sm">
-                                Substituindo dados de {warrant.name} no modelo {type.toUpperCase()} nº {officeNumber}.
-                            </p>
+                        <div className="flex flex-col items-center justify-center h-64 space-y-4">
+                            <Loader2 className="w-10 h-10 text-blue-400 animate-spin" />
+                            <p className="text-gray-400 animate-pulse">Gerando minuta do ofício com IA...</p>
                         </div>
                     )}
 
                     {step === 'result' && (
-                        <>
-                            <div className="flex-1 bg-white text-slate-900 p-8 rounded-lg shadow-inner overflow-y-auto font-serif whitespace-pre-wrap leading-relaxed border-4 border-slate-200 text-sm md:text-base selection:bg-indigo-100 animate-in fade-in zoom-in-95">
-                                {generatedText}
+                        <div className="space-y-4">
+
+                            <div className="bg-white text-black p-8 rounded shadow-lg min-h-[500px] border border-gray-200">
+                                <textarea
+                                    value={generatedText}
+                                    onChange={(e) => setGeneratedText(e.target.value)}
+                                    className="w-full h-full min-h-[500px] bg-transparent resize-none focus:outline-none font-[Times_New_Roman] text-[11pt] leading-relaxed"
+                                    spellCheck={false}
+                                />
                             </div>
-                            <div className="flex justify-between items-center bg-slate-800/80 p-4 rounded-xl border border-slate-700 backdrop-blur">
-                                <p className="text-xs text-slate-400 font-medium italic">Confira os dados antes de assinar.</p>
-                                <div className="flex gap-3">
-                                    <button
-                                        onClick={handleCopy}
-                                        className="px-6 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg text-sm font-bold flex items-center gap-2 transition-all active:scale-95"
-                                    >
-                                        <Copy className="w-4 h-4" /> Copiar
-                                    </button>
-                                    <button
-                                        onClick={handleDownloadPDF}
-                                        className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-black flex items-center gap-2 transition-all shadow-lg shadow-indigo-900/40 active:scale-95 uppercase tracking-wider"
-                                    >
-                                        <Download className="w-4 h-4" /> Baixar PDF
-                                    </button>
-                                </div>
-                            </div>
-                        </>
+
+                            <p className="text-xs text-center text-gray-500">
+                                * Edite o texto acima conforme necessário antes de baixar o PDF.
+                            </p>
+                        </div>
                     )}
+                </div>
+
+                {/* Footer Actions */}
+                <div className="p-4 border-t border-blue-900/30 bg-blue-950/20 flex justify-between items-center">
+                    <div className="text-xs text-gray-400 italic">
+                        {step === 'result' && "Confira os dados antes de assinar."}
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                        {step === 'result' && (
+                            <>
+                                <button
+                                    onClick={handleCopy}
+                                    className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
+                                >
+                                    <Copy className="w-4 h-4" />
+                                    Copiar
+                                </button>
+                                <button
+                                    onClick={handleDownloadPDF}
+                                    className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-sm font-medium transition-colors flex items-center gap-2 shadow-lg shadow-blue-500/20"
+                                >
+                                    <Download className="w-4 h-4" />
+                                    BAIXAR PDF
+                                </button>
+                            </>
+                        )}
+                        {step === 'input' && (
+                            <button
+                                onClick={handleGenerate}
+                                disabled={isProcessing}
+                                className="px-6 py-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg text-sm font-medium transition-colors shadow-lg shadow-blue-500/20"
+                            >
+                                {isProcessing ? 'Gerando...' : 'GERAR MINUTA'}
+                            </button>
+                        )}
+                    </div>
                 </div>
             </div>
         </div>,
