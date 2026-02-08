@@ -38,7 +38,6 @@ const dbToWarrant = (dbWarrant: any): Warrant => {
         dischargeDate: dbWarrant.discharge_date,
         ifoodNumber: dbWarrant.ifood_number,
         ifoodResult: dbWarrant.ifood_result,
-        ifoodDocs: dbWarrant.ifood_docs || [],
         digOffice: dbWarrant.dig_office,
         reports: dbWarrant.reports || [],
         attachments: dbWarrant.attachments || [],
@@ -88,7 +87,6 @@ const warrantToDb = (warrant: Partial<Warrant>) => {
     if (warrant.ifoodResult !== undefined) dbObj.ifood_result = warrant.ifoodResult;
     if (warrant.digOffice !== undefined) dbObj.dig_office = warrant.digOffice;
     if (warrant.reports !== undefined) dbObj.reports = warrant.reports;
-    if (warrant.ifoodDocs !== undefined) dbObj.ifood_docs = warrant.ifoodDocs;
     if (warrant.attachments !== undefined) dbObj.attachments = warrant.attachments;
     if (warrant.tags !== undefined) dbObj.tags = warrant.tags;
     if (warrant.fulfillmentResult !== undefined) dbObj.fulfillment_result = warrant.fulfillmentResult;
