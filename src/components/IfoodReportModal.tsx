@@ -89,41 +89,102 @@ const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, wa
         toast.success("Texto copiado!");
     };
 
-    const handleDownloadPDF = () => {
+    const handleDownloadPDF = async () => {
         if (!generatedText) return;
 
         const doc = new jsPDF();
         const pageWidth = doc.internal.pageSize.getWidth();
         const pageHeight = doc.internal.pageSize.getHeight();
-        const margin = 20;
+        const margin = 15; // Adjusted to match Dossier standard
         const maxLineWidth = pageWidth - (margin * 2);
 
-        // Institutional Header
-        const addHeader = (pdf: jsPDF) => {
-            pdf.setFont('times', 'bold');
-            pdf.setFontSize(10);
-            pdf.text('POLÍCIA CIVIL DO ESTADO DE SÃO PAULO', pageWidth / 2, 10, { align: 'center' });
-            pdf.text('DELEGACIA GERAL DE POLÍCIA - DGP', pageWidth / 2, 15, { align: 'center' });
-            pdf.text('DELEGACIA DE INVESTIGAÇÕES GERAIS - DIG - JACAREÍ/SP', pageWidth / 2, 20, { align: 'center' });
-            pdf.setLineWidth(0.5);
-            pdf.line(margin, 25, pageWidth - margin, 25);
+        // --- THEME COLORS (Matches pdfReportService) ---
+        const COLORS = {
+            PRIMARY: [15, 23, 42] as [number, number, number],    // Slate 900
+            SECONDARY: [51, 65, 85] as [number, number, number],  // Slate 700
+            BORDER: [226, 232, 240] as [number, number, number],  // Slate 200
+            TEXT: [30, 41, 59] as [number, number, number],      // Slate 800
         };
 
-        // Footer
+        // --- LOAD BADGE IMAGE ---
+        let badgeImg: HTMLImageElement | null = null;
+        try {
+            const badgePC = new Image();
+            badgePC.src = './brasao_pcsp_nova.png';
+            await new Promise((resolve) => {
+                badgePC.onload = () => resolve(true);
+                badgePC.onerror = () => {
+                    badgePC.src = './brasao_pcsp_colorido.png';
+                    badgePC.onload = () => resolve(true);
+                    badgePC.onerror = () => resolve(false);
+                };
+            });
+            badgeImg = badgePC;
+        } catch (e) {
+            console.error("Erro ao carregar brasão", e);
+        }
+
+        // Institutional Header (Dossier Style)
+        const addHeader = (pdf: jsPDF) => {
+            let y = 15;
+
+            try {
+                if (badgeImg) {
+                    const imgProps = pdf.getImageProperties(badgeImg);
+                    const badgeH = 22;
+                    const badgeW = (imgProps.width * badgeH) / imgProps.height;
+                    pdf.addImage(badgeImg, 'PNG', margin, y, badgeW, badgeH);
+
+                    const textX = margin + badgeW + 8;
+                    pdf.setFont('helvetica', 'bold');
+                    pdf.setFontSize(8);
+                    pdf.setTextColor(...COLORS.SECONDARY);
+
+                    const headerLines = [
+                        "GOVERNO DO ESTADO DE SÃO PAULO",
+                        "SECRETARIA DA SEGURANÇA PÚBLICA",
+                        "POLÍCIA CIVIL DO ESTADO DE SÃO PAULO",
+                        "DEINTER 1 - SÃO JOSÉ DOS CAMPOS",
+                        "SECCIONAL DE JACAREÍ - DIG (INVESTIGAÇÕES GERAIS)"
+                    ];
+
+                    headerLines.forEach((line, index) => {
+                        pdf.text(line, textX, y + 3 + (index * 4));
+                    });
+
+                    // Line below header
+                    pdf.setDrawColor(...COLORS.BORDER);
+                    pdf.setLineWidth(0.1);
+                    pdf.line(margin, y + badgeH + 5, pageWidth - margin, y + badgeH + 5);
+                }
+            } catch (e) {
+                console.error("Header drawing error", e);
+            }
+        };
+
+        // Footer (Dossier Style)
         const addFooter = (pdf: jsPDF, pageNum: number, totalPages: number) => {
-            pdf.setFont('times', 'italic');
-            pdf.setFontSize(8);
-            pdf.text('William Campos de Assis Castro – Polícia Civil do Estado de São Paulo', margin, pageHeight - 15);
-            pdf.text('E-mail institucional: william.castro@policiacivil.sp.gov.br', margin, pageHeight - 10);
-            pdf.text(`Página ${pageNum} de ${totalPages}`, pageWidth - margin - 20, pageHeight - 10);
+            pdf.setDrawColor(...COLORS.BORDER);
+            pdf.setLineWidth(0.1);
+            pdf.line(margin, pageHeight - 15, pageWidth - margin, pageHeight - 15);
+
+            pdf.setFont('helvetica', 'normal');
+            pdf.setFontSize(7);
+            pdf.setTextColor(150, 150, 150);
+
+            const now = new Date().toLocaleString('pt-BR');
+            pdf.text(`GERADO EM: ${now} | SISTEMA DE INTELIGÊNCIA DIG/PCSP | DOCUMENTO OFICIAL`, margin, pageHeight - 10);
+            pdf.text(`PÁGINA ${pageNum} DE ${totalPages}`, pageWidth - margin, pageHeight - 10, { align: 'right' });
         };
 
         // Process text for multiple pages
         doc.setFont('times', 'normal');
         doc.setFontSize(11);
+        doc.setTextColor(...COLORS.TEXT);
+
         const splitText = doc.splitTextToSize(generatedText, maxLineWidth);
 
-        let yPos = 35;
+        let yPos = 45; // Start lower to accommodate new header
         let currentPage = 1;
         const lineHeight = 6;
         const linesPerPage = Math.floor((pageHeight - 60) / lineHeight);
@@ -132,14 +193,15 @@ const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, wa
         for (let i = 0; i < splitText.length; i += linesPerPage) {
             if (currentPage > 1) {
                 doc.addPage();
-                yPos = 35;
+                yPos = 45;
             }
 
             addHeader(doc);
 
             const linesToShow = splitText.slice(i, i + linesPerPage);
-            doc.setFont('times', 'normal');
+            doc.setFont('times', 'normal'); // Reset font for body
             doc.setFontSize(11);
+            doc.setTextColor(...COLORS.TEXT);
             doc.text(linesToShow, margin, yPos);
 
             addFooter(doc, currentPage, totalPages || 1);
