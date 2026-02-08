@@ -6,13 +6,12 @@ interface FloatingDockProps {
     onBack: () => void;
     onSave?: () => void;
     onPrint: () => void;
-    onIfood?: () => void;
     onFinalize: () => void;
     onDelete?: () => void;
     className?: string;
 }
 
-const FloatingDock = ({ onBack, onSave, onPrint, onIfood, onFinalize, onDelete, className }: FloatingDockProps) => {
+const FloatingDock = ({ onBack, onSave, onPrint, onFinalize, onDelete, className }: FloatingDockProps) => {
     // Determine the container we are rendering into (usually body)
     // Using portal guarantees "Fixed to Viewport" behavior regardless of parent transforms or layout constraints.
     const [mounted, setMounted] = useState(false);
@@ -62,16 +61,6 @@ const FloatingDock = ({ onBack, onSave, onPrint, onIfood, onFinalize, onDelete, 
                     bg="hover:bg-black/5 dark:hover:bg-white/5"
                     label="PDF"
                 />
-
-                {onIfood && (
-                    <DockItem
-                        onClick={onIfood}
-                        icon={<div className="font-black text-[10px] leading-tight flex items-center justify-center border-2 border-current rounded-full w-5 h-5">iF</div>}
-                        color="text-text-secondary-light dark:text-text-secondary-dark hover:text-red-600 dark:hover:text-red-500"
-                        bg="hover:bg-black/5 dark:hover:bg-white/5"
-                        label="iFood"
-                    />
-                )}
 
                 <DockItem
                     onClick={onFinalize}

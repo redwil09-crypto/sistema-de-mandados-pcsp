@@ -360,8 +360,7 @@ export const generateWarrantPDF = async (
 
 export const generateIfoodOfficePDF = async (
     data: Warrant,
-    onUpdate?: (id: string, updates: Partial<Warrant>) => Promise<boolean>,
-    customBody?: string
+    onUpdate?: (id: string, updates: Partial<Warrant>) => Promise<boolean>
 ) => {
     if (!data) return;
     try {
@@ -430,50 +429,38 @@ export const generateIfoodOfficePDF = async (
         doc.text("Departamento Jurídico / Compliance", margin, y);
         y += 15;
 
-        // --- REFERENCE ---
-        doc.setFontSize(10);
-        doc.setFont('helvetica', 'bold');
-        doc.text(`Referência: PROC. Nº ${data.number || "SEM NÚMERO"}`, margin, y);
-        y += 5;
-        doc.text(`Natureza: Solicitação de Dados.`, margin, y);
-        y += 15;
-
         // --- BODY ---
         doc.setFontSize(10);
         doc.text("Assunto: Requisição de Dados Cadastrais e Registros de Acesso", margin, y);
         y += 10;
 
-        const bodyText = customBody || `Pelo presente, com fundamento na Lei 12.830/2013 e no interesse do Inquérito Policial em epígrafe, REQUISITO a Vossa Senhoria o fornecimento, no prazo improrrogável de 05 (cinco) dias, dos dados cadastrais completos (nome, CPF, telefones, e-mails, endereços de entrega cadastrados e histórico de pedidos com geolocalização se houver) vinculados ao investigado abaixo qualificado:`;
+        const bodyText = `Pelo presente, com fundamento na Lei 12.830/2013 e no interesse do Inquérito Policial em epígrafe, REQUISITO a Vossa Senhoria o fornecimento, no prazo improrrogável de 05 (cinco) dias, dos dados cadastrais completos (nome, CPF, telefones, e-mails, endereços de entrega cadastrados e histórico de pedidos com geolocalização se houver) vinculados ao investigado abaixo qualificado:`;
         const splitBody = doc.splitTextToSize(bodyText, pageWidth - (margin * 2));
         doc.text(splitBody, margin, y);
         y += (splitBody.length * 5) + 10;
 
         // --- SUBJECT DETAILS ---
-        if (!customBody) {
-            doc.setFillColor(240, 240, 240);
-            doc.rect(margin, y, pageWidth - (margin * 2), 35, 'F');
-            doc.setFont('helvetica', 'bold');
+        doc.setFillColor(240, 240, 240);
+        doc.rect(margin, y, pageWidth - (margin * 2), 35, 'F');
+        doc.setFont('helvetica', 'bold');
 
-            let detailY = y + 7;
-            doc.text(`NOME: ${data.name.toUpperCase()}`, margin + 5, detailY);
-            detailY += 7;
-            doc.text(`RG: ${data.rg || "NÃO INFORMADO"}`, margin + 5, detailY);
-            detailY += 7;
-            doc.text(`CPF: ${data.cpf || "NÃO INFORMADO"}`, margin + 5, detailY);
+        let detailY = y + 7;
+        doc.text(`NOME: ${data.name.toUpperCase()}`, margin + 5, detailY);
+        detailY += 7;
+        doc.text(`RG: ${data.rg || "NÃO INFORMADO"}`, margin + 5, detailY);
+        detailY += 7;
+        doc.text(`CPF: ${data.cpf || "NÃO INFORMADO"}`, margin + 5, detailY);
 
-            y += 45;
-        }
+        y += 45;
 
         // --- CLOSING ---
-        if (!customBody) {
-            const closingText = `As informações deverão ser encaminhadas para o e-mail oficial desta unidade (dig.jacarei@policiacivil.sp.gov.br) em formato PDF ou planilha eletrônica. 
+        const closingText = `As informações deverão ser encaminhadas para o e-mail oficial desta unidade (dig.jacarei@policiacivil.sp.gov.br) em formato PDF ou planilha eletrônica. 
         
 Ressalto que o descumprimento injustificado desta requisição poderá acarretar a responsabilidade penal por Crime de Desobediência (art. 330 do CP), sem prejuízo de outras sanções cabíveis.`;
-            const splitClosing = doc.splitTextToSize(closingText, pageWidth - (margin * 2));
-            doc.setFont('helvetica', 'normal');
-            doc.text(splitClosing, margin, y);
-            y += 40;
-        }
+        const splitClosing = doc.splitTextToSize(closingText, pageWidth - (margin * 2));
+        doc.setFont('helvetica', 'normal');
+        doc.text(splitClosing, margin, y);
+        y += 40;
 
         // --- DATE AND SIGNATURE ---
         const today = new Date().toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' });

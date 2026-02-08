@@ -26,7 +26,6 @@ import { analyzeRawDiligence, generateReportBody, analyzeDocumentStrategy, askAs
 import { extractPdfData } from '../services/pdfExtractionService'; // RESTORED
 import { CRIME_OPTIONS, REGIME_OPTIONS } from '../data/constants';
 import { useWarrants } from '../contexts/WarrantContext';
-import IfoodAgentModal from '../components/IfoodAgentModal';
 
 const WarrantDetail = () => {
     const { warrants, updateWarrant, deleteWarrant, routeWarrants, toggleRouteWarrant, refreshWarrants } = useWarrants();
@@ -118,7 +117,6 @@ const WarrantDetail = () => {
         aiInstructions: ''
     });
     const [isGeneratingAiReport, setIsGeneratingAiReport] = useState(false);
-    const [isIfoodModalOpen, setIsIfoodModalOpen] = useState(false);
 
     const data = useMemo(() => warrants.find(w => w.id === id), [warrants, id]);
 
@@ -1655,17 +1653,16 @@ Equipe de Capturas - DIG / PCSP
             {/* Main Content Layout */}
             <div className="relative z-10 p-4 space-y-4 max-w-[1600px] mx-auto">
 
-                {/* Floating Action Dock */}
+                {/* Floating Dock (Overlay Command Bar) */}
                 <FloatingDock
-                    onBack={() => navigate(-1)}
-                    onSave={() => setIsConfirmSaveOpen(true)}
-                    onPrint={() => setIsCapturasModalOpen(true)} // Agora abre o modal de relatórios
-                    onIfood={() => setIsIfoodModalOpen(true)}
+                    onBack={() => navigate('/')}
+                    onSave={() => navigate(`/new-warrant?edit=${id}`)}
+                    onPrint={handleDownloadPDF}
                     onFinalize={handleFinalize}
-                    // onDelete={isAdmin ? () => setIsDeleteConfirmOpen(true) : undefined}
-                    className="animate-in slide-in-from-bottom-10 duration-700 delay-300"
+                    onDelete={isAdmin ? () => setIsDeleteConfirmOpen(true) : undefined}
                 />
 
+                {/* 1. Tactical Profile Header */}
                 <div className="bg-surface-dark/60 backdrop-blur-xl border border-white/10 rounded-2xl p-4 shadow-tactic overflow-hidden relative group">
                     {/* Animated Glow Decorator */}
                     <div className="absolute -top-24 -right-24 w-48 h-48 bg-primary/10 rounded-full blur-3xl group-hover:bg-primary/20 transition-all"></div>
@@ -2657,13 +2654,6 @@ Equipe de Capturas - DIG / PCSP
                 <ConfirmModal isOpen={isConfirmSaveOpen} onCancel={() => setIsConfirmSaveOpen(false)} onConfirm={handleSaveChanges} title="Sincronizar Protocolo" message="Deseja registrar as alterações no prontuário oficial deste alvo?" confirmText="Sincronizar" cancelText="Abortar" variant="primary" />
                 <ConfirmModal isOpen={isReopenConfirmOpen} onCancel={() => setIsReopenConfirmOpen(false)} onConfirm={handleConfirmReopen} title="Reabrir Prontuário" message="Confirmar reabertura do status para 'EM ABERTO'?" confirmText="Reabrir" cancelText="Cancelar" variant="primary" />
                 <ConfirmModal isOpen={isDeleteConfirmOpen} onCancel={() => setIsDeleteConfirmOpen(false)} onConfirm={handleConfirmDelete} title="Excluir Alvo" message="Deseja remover PERMANENTEMENTE este registro? Esta ação é irreversível." confirmText="Excluir" cancelText="Cancelar" variant="danger" />
-
-                <IfoodAgentModal
-                    isOpen={isIfoodModalOpen}
-                    onClose={() => setIsIfoodModalOpen(false)}
-                    warrant={data}
-                    onUpdate={updateWarrant}
-                />
 
                 {
                     isCapturasModalOpen && (
