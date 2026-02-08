@@ -95,16 +95,8 @@ const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, wa
         const doc = new jsPDF();
         const pageWidth = doc.internal.pageSize.getWidth();
         const pageHeight = doc.internal.pageSize.getHeight();
-        const margin = 15; // Adjusted to match Dossier standard
+        const margin = 20;
         const maxLineWidth = pageWidth - (margin * 2);
-
-        // --- THEME COLORS (Matches pdfReportService) ---
-        const COLORS = {
-            PRIMARY: [15, 23, 42] as [number, number, number],    // Slate 900
-            SECONDARY: [51, 65, 85] as [number, number, number],  // Slate 700
-            BORDER: [226, 232, 240] as [number, number, number],  // Slate 200
-            TEXT: [30, 41, 59] as [number, number, number],      // Slate 800
-        };
 
         // --- LOAD BADGE IMAGE ---
         let badgeImg: HTMLImageElement | null = null;
@@ -121,95 +113,253 @@ const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, wa
             });
             badgeImg = badgePC;
         } catch (e) {
-            console.error("Erro ao carregar brasão", e);
+            console.error("Erro brasão", e);
         }
 
-        // Institutional Header (Dossier Style)
+        // --- HEADER FUNCTION ---
         const addHeader = (pdf: jsPDF) => {
-            let y = 15;
+            let y = 10;
 
-            try {
-                if (badgeImg) {
-                    const imgProps = pdf.getImageProperties(badgeImg);
-                    const badgeH = 22;
-                    const badgeW = (imgProps.width * badgeH) / imgProps.height;
-                    pdf.addImage(badgeImg, 'PNG', margin, y, badgeW, badgeH);
-
-                    const textX = margin + badgeW + 8;
-                    pdf.setFont('helvetica', 'bold');
-                    pdf.setFontSize(8);
-                    pdf.setTextColor(...COLORS.SECONDARY);
-
-                    const headerLines = [
-                        "GOVERNO DO ESTADO DE SÃO PAULO",
-                        "SECRETARIA DA SEGURANÇA PÚBLICA",
-                        "POLÍCIA CIVIL DO ESTADO DE SÃO PAULO",
-                        "DEINTER 1 - SÃO JOSÉ DOS CAMPOS",
-                        "SECCIONAL DE JACAREÍ - DIG (INVESTIGAÇÕES GERAIS)"
-                    ];
-
-                    headerLines.forEach((line, index) => {
-                        pdf.text(line, textX, y + 3 + (index * 4));
-                    });
-
-                    // Line below header
-                    pdf.setDrawColor(...COLORS.BORDER);
-                    pdf.setLineWidth(0.1);
-                    pdf.line(margin, y + badgeH + 5, pageWidth - margin, y + badgeH + 5);
-                }
-            } catch (e) {
-                console.error("Header drawing error", e);
+            // 1. Badge (Left)
+            if (badgeImg) {
+                const imgProps = pdf.getImageProperties(badgeImg);
+                const badgeH = 26; // Approx
+                const badgeW = (imgProps.width * badgeH) / imgProps.height;
+                pdf.addImage(badgeImg, 'PNG', margin, y, badgeW, badgeH);
             }
-        };
 
-        // Footer (Dossier Style)
-        const addFooter = (pdf: jsPDF, pageNum: number, totalPages: number) => {
-            pdf.setDrawColor(...COLORS.BORDER);
-            pdf.setLineWidth(0.1);
-            pdf.line(margin, pageHeight - 15, pageWidth - margin, pageHeight - 15);
-
+            // 2. Text (Right of badge)
+            const textX = margin + 32; // Skip badge width
             pdf.setFont('helvetica', 'normal');
-            pdf.setFontSize(7);
-            pdf.setTextColor(150, 150, 150);
+            pdf.setFontSize(8);
+            pdf.setTextColor(0, 0, 0);
 
-            const now = new Date().toLocaleString('pt-BR');
-            pdf.text(`GERADO EM: ${now} | SISTEMA DE INTELIGÊNCIA DIG/PCSP | DOCUMENTO OFICIAL`, margin, pageHeight - 10);
-            pdf.text(`PÁGINA ${pageNum} DE ${totalPages}`, pageWidth - margin, pageHeight - 10, { align: 'right' });
+            const headerLines = [
+                "SECRETARIA DA SEGURANÇA PÚBLICA",
+                "POLÍCIA CIVIL DO ESTADO DE SÃO PAULO",
+                "DEPARTAMENTO DE POLÍCIA JUDICIÁRIA DE SÃO PAULO INTERIOR",
+                "DEINTER 1 - SÃO JOSÉ DOS CAMPOS",
+                "DELEGACIA SECCIONAL DE POLÍCIA DE JACAREÍ –",
+                "“DELEGADO TALIS PRADO PINTO”",
+                "DELEGACIA DE INVESTIGAÇÕES GERAIS DE JACAREÍ – CARTÓRIO",
+                "CENTRAL"
+            ];
+
+            let lineY = y + 3;
+            headerLines.forEach(line => {
+                pdf.text(line, textX, lineY);
+                lineY += 3.5;
+            });
+
+            // 3. Gray Bar "OFÍCIO"
+            const barY = lineY + 2;
+            pdf.setFillColor(200, 200, 200); // Light Gray
+            pdf.rect(margin, barY, maxLineWidth, 6, 'F');
+            pdf.setDrawColor(0);
+            pdf.setLineWidth(0.1);
+            pdf.rect(margin, barY, maxLineWidth, 6, 'S'); // Border
+
+            pdf.setFont('helvetica', 'bold');
+            pdf.setFontSize(10);
+            pdf.text("OFÍCIO", pageWidth / 2, barY + 4.2, { align: 'center' });
+
+            return barY + 10; // Return Y where content starts
         };
 
-        // Process text for multiple pages
+        // --- FOOTER FUNCTION ---
+        const addFooter = (pdf: jsPDF, pageNum: number, totalPages: number) => {
+            const footerY = pageHeight - 15;
+
+            // Separator Line
+            // Not spanning full width based on image, looks like left block and right block?
+            // Actually image 1 has no full line, Image 2 header has full line?
+            // The image shows text at bottom.
+
+            // Address Block (Left)
+            pdf.setFont('helvetica', 'normal');
+            pdf.setFontSize(8);
+            pdf.setTextColor(0, 0, 0);
+
+            const addr1 = "Rua Moisés Ruston, 370, Parque Itamaraty, Jacareí-SP, CEP-12.307-260";
+            const addr2 = "Tel-12-3951-1000 - E-mail - dig.jacarei@policiacivil.sp.gov.br";
+
+            pdf.text(addr1, pageWidth / 2, footerY, { align: "center" });
+
+            // Email link blue
+            const addr2Width = pdf.getTextWidth(addr2);
+            const startX = (pageWidth - addr2Width) / 2;
+            pdf.text("Tel-12-3951-1000 - E-mail - ", startX, footerY + 4);
+
+            const prefixWidth = pdf.getTextWidth("Tel-12-3951-1000 - E-mail - ");
+            pdf.setTextColor(0, 0, 255);
+            // Use simple text for now to avoid withLink typing issues, or cast if needed. 
+            // doc.text supports options in newer definitions but to be safe:
+            pdf.text("dig.jacarei@policiacivil.sp.gov.br", startX + prefixWidth, footerY + 4);
+            // Add link annotation manually over the text area if critical, but for print PDF visual is key.
+            // keeping it simple to solve the build error.
+            pdf.setTextColor(0, 0, 0); // Reset
+
+            // Right Block (Date | Page)
+            // The image shows this on the right side with a vertical separator?
+            // "Data (07/02/26) | Página 1 de 2" - roughly
+            // Let's position it at bottom right
+
+            const today = new Date();
+            const dateStr = `Data (${today.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' })})`;
+            const pageStr = `Página ${pageNum} de ${totalPages}`;
+
+            // Let's implement that split footer
+            const dividerX = pageWidth - margin - 35;
+            pdf.setDrawColor(0);
+            pdf.line(dividerX, footerY - 2, dividerX, footerY + 8);
+
+            // Left of divider
+            pdf.text(addr1, dividerX - 5, footerY, { align: 'right' });
+
+            // We need to support the rich text for email again... simpler to just write text for now to match layout first
+            // pdf.text(addr2, dividerX - 5, footerY + 4, { align: 'right' });
+            // Split email line manually for "align right" logic
+            const emailPart = "dig.jacarei@policiacivil.sp.gov.br";
+            const phonePart = "Tel-12-3951-1000 - E-mail - ";
+            const fullEmailLine = phonePart + emailPart;
+            pdf.text(fullEmailLine, dividerX - 5, footerY + 4, { align: 'right' });
+            // Make email blue? Hard with right align text. Leave black for now to ensure alignment is perfect.
+
+            // Right of divider
+            pdf.text(dateStr, dividerX + 5, footerY);
+            pdf.text(pageStr, dividerX + 5, footerY + 4);
+        };
+
+        // --- CONTENT GENERATION ---
+
+        // Setup Doc
         doc.setFont('times', 'normal');
-        doc.setFontSize(11);
-        doc.setTextColor(...COLORS.TEXT);
 
-        const splitText = doc.splitTextToSize(generatedText, maxLineWidth);
+        let y = 10;
 
-        let yPos = 45; // Start lower to accommodate new header
-        let currentPage = 1;
-        const lineHeight = 6;
-        const linesPerPage = Math.floor((pageHeight - 60) / lineHeight);
-        const totalPages = Math.ceil(splitText.length / linesPerPage);
+        // Add Header Page 1
+        y = addHeader(doc);
+        y += 5; // Spacing after Gray Bar
 
-        for (let i = 0; i < splitText.length; i += linesPerPage) {
-            if (currentPage > 1) {
-                doc.addPage();
-                yPos = 45;
-            }
+        // 1. Meta Fields
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'bold');
+        doc.text(`Ofício: nº.${officeNumber}/CAPT/2025`, margin, y);
+        y += 5;
 
+        doc.text("Referência: ", margin, y);
+        doc.setFont('helvetica', 'normal');
+        doc.text(`PROC. Nº ${warrant.number}`, margin + 22, y);
+        y += 5;
+
+        doc.setFont('helvetica', 'bold');
+        doc.text("Natureza: ", margin, y);
+        doc.setFont('helvetica', 'normal');
+        doc.text("Solicitação de Dados.", margin + 18, y);
+        y += 15;
+
+        // 2. Date (Right Aligned, Bold City)
+        const months = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+        const today = new Date();
+        const dateLine = `Jacareí, ${today.getDate().toString().padStart(2, '0')} de ${months[today.getMonth()]} de ${today.getFullYear()}.`;
+
+        doc.setFont('helvetica', 'bold'); // "Jacareí," is bold in image? No, looks all bold italic maybe? Or just bold.
+        doc.setFont('helvetica', 'bolditalic');
+        doc.text(dateLine, pageWidth - margin, y, { align: 'right' });
+        doc.setFont('helvetica', 'normal');
+        y += 15;
+
+        // 3. Vocative
+        doc.setFont('helvetica', 'bold');
+        doc.text("ILMO. SENHOR RESPONSÁVEL,", margin, y);
+        y += 15;
+
+        // 4. Body Paragraphs
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(11); // Body font size
+
+        const indent = "          "; // ~10 spaces
+
+        const p1 = `${indent}Com a finalidade de instruir investigação policial em trâmite nesta unidade, solicito, respeitosamente, a gentileza de verificar se o indivíduo abaixo relacionado encontra-se cadastrado como usuário ou entregador da plataforma IFOOD.`;
+        const splitP1 = doc.splitTextToSize(p1, maxLineWidth);
+        doc.text(splitP1, margin, y, { align: 'justify', maxWidth: maxLineWidth });
+        y += (splitP1.length * 5) + 5;
+
+        const p2 = `${indent}Em caso positivo, requer-se o envio das informações cadastrais fornecidas para habilitação na plataforma, incluindo, se disponíveis, nome completo, endereço(s), número(s) de telefone, e-mail(s) e demais dados vinculados à respectiva conta.`;
+        const splitP2 = doc.splitTextToSize(p2, maxLineWidth);
+        doc.text(splitP2, margin, y, { align: 'justify', maxWidth: maxLineWidth });
+        y += (splitP2.length * 5) + 5;
+
+        const p3 = `${indent}As informações devem ser encaminhadas ao e-mail institucional do policial responsável pela investigação:`;
+        doc.text(p3, margin, y);
+        y += 8;
+
+        // Email Block
+        doc.setFont('helvetica', 'bold');
+        doc.text("william.castro@policiacivil.sp.gov.br", margin + 10, y);
+        y += 5;
+        doc.setFont('helvetica', 'normal');
+        doc.text("William Campos de Assis Castro – Polícia Civil do Estado de São Paulo", margin + 10, y);
+        y += 15;
+
+        // Person of Interest
+        doc.setFont('helvetica', 'normal');
+        doc.text("Pessoa de interesse para a investigação:", margin, y);
+        y += 6;
+
+        doc.setFont('helvetica', 'bold');
+        const personLine = `${warrant.name.toUpperCase()} – CPF ${warrant.cpf || warrant.rg || 'NÃO INFORMADO'}`;
+        doc.text(personLine, margin, y);
+        y += 15;
+
+        // Closing
+        doc.setFont('helvetica', 'normal');
+        const closing = `${indent}Aproveito a oportunidade para renovar meus votos de elevada estima e consideração.`;
+        doc.text(closing, margin, y);
+        y += 10;
+
+        doc.text("Atenciosamente,", margin, y);
+
+        // Signature
+        y += 20;
+        // Check if page break needed for signature
+        if (y > pageHeight - 40) {
+            doc.addPage();
             addHeader(doc);
-
-            const linesToShow = splitText.slice(i, i + linesPerPage);
-            doc.setFont('times', 'normal'); // Reset font for body
-            doc.setFontSize(11);
-            doc.setTextColor(...COLORS.TEXT);
-            doc.text(linesToShow, margin, yPos);
-
-            addFooter(doc, currentPage, totalPages || 1);
-            currentPage++;
+            y = 50;
         }
 
-        doc.save(`Oficio_${type.toUpperCase()}_${officeNumber}_${warrant.name.replace(/\s+/g, '_')}.pdf`);
-        toast.success("PDF oficial gerado e baixado com sucesso.");
+        doc.setFont('helvetica', 'bold');
+        doc.text("Luiz Antônio Cunha dos Santos", pageWidth / 2, y, { align: 'center' });
+        y += 5;
+        doc.text("Delegado de Polícia", pageWidth / 2, y, { align: 'center' });
+
+        // Addressee Block (Bottom or Next Page)
+        y += 20;
+
+        // Ensure we have space, or move to next page
+        if (y > pageHeight - 40) {
+            doc.addPage();
+            y = 50;
+            addHeader(doc); // Header on page 2 too? Image 2 shows header.
+        }
+
+        doc.setFont('helvetica', 'normal');
+        doc.text("Ao Ilustríssimo Senhor Responsável", margin, y);
+        y += 5;
+        doc.setFont('helvetica', 'bold');
+        doc.text("Empresa iFood.", margin, y);
+
+        // Add Footers
+        // Fix getNumberOfPages error by casting or using supported property
+        const totalPages = (doc as any).internal.pages.length - 1;
+        for (let i = 1; i <= totalPages; i++) {
+            doc.setPage(i);
+            addFooter(doc, i, totalPages);
+        }
+
+        doc.save(`Oficio_IFood_${officeNumber}_${warrant.name.replace(/\s+/g, '_')}.pdf`);
+        toast.success("PDF oficial (Padrão DIG) gerado.");
     };
 
     if (!isOpen) return null;
