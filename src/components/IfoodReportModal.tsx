@@ -428,9 +428,11 @@ const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, wa
 
                     {step === 'result' && (
                         <>
-                            <div className="flex-1 bg-white text-slate-900 p-8 rounded-lg shadow-inner overflow-y-auto font-serif whitespace-pre-wrap leading-relaxed border-4 border-slate-200 text-sm md:text-base selection:bg-indigo-100 animate-in fade-in zoom-in-95">
-                                {generatedText}
-                            </div>
+                            <textarea
+                                className="flex-1 w-full bg-white text-slate-900 p-8 rounded-lg shadow-inner overflow-y-auto font-serif whitespace-pre-wrap leading-relaxed border-4 border-slate-200 text-sm md:text-base selection:bg-indigo-100 animate-in fade-in zoom-in-95 resize-none focus:outline-none focus:border-indigo-400 transition-colors"
+                                value={generatedText}
+                                onChange={(e) => setGeneratedText(e.target.value)}
+                            />
                             <div className="flex justify-between items-center bg-slate-800/80 p-4 rounded-xl border border-slate-700 backdrop-blur">
                                 <p className="text-xs text-slate-400 font-medium italic">Confira os dados antes de assinar.</p>
                                 <div className="flex gap-3">
