@@ -21,7 +21,8 @@ import WarrantAuditLog from '../components/WarrantAuditLog';
 import { formatDate, getStatusColor, maskDate } from '../utils/helpers';
 import { Warrant } from '../types';
 import { geocodeAddress } from '../services/geocodingService';
-import { generateWarrantPDF, generateIfoodOfficePDF } from '../services/pdfReportService';
+import { generateWarrantPDF } from '../services/pdfReportService';
+import IfoodReportModal from '../components/IfoodReportModal';
 import { analyzeRawDiligence, generateReportBody, analyzeDocumentStrategy, askAssistantStrategy, mergeIntelligence } from '../services/geminiService';
 import { extractPdfData } from '../services/pdfExtractionService'; // RESTORED
 import { CRIME_OPTIONS, REGIME_OPTIONS } from '../data/constants';
@@ -117,6 +118,7 @@ const WarrantDetail = () => {
         aiInstructions: ''
     });
     const [isGeneratingAiReport, setIsGeneratingAiReport] = useState(false);
+    const [isIfoodReportModalOpen, setIsIfoodReportModalOpen] = useState(false);
 
     const data = useMemo(() => warrants.find(w => w.id === id), [warrants, id]);
 
@@ -946,14 +948,7 @@ Equipe de Capturas - DIG / PCSP
 
     const handleGenerateIfoodOffice = async () => {
         if (!data) return;
-        const toastId = toast.loading("Gerando Ofício iFood...");
-        try {
-            await generateIfoodOfficePDF(data, updateWarrant);
-            toast.dismiss(toastId);
-        } catch (error) {
-            console.error(error);
-            toast.error("Erro ao gerar ofício", { id: toastId });
-        }
+        setIsIfoodReportModalOpen(true);
     };
 
 
@@ -981,242 +976,7 @@ Equipe de Capturas - DIG / PCSP
 
     const handleGenerateIFoodReport = async () => {
         if (!data) return;
-
-        const currentYear = new Date().getFullYear();
-        let suggestedOfficeId = data.ifoodNumber;
-
-        if (!suggestedOfficeId) {
-            let maxNumber = 0;
-            warrants.forEach(w => {
-                if (w.ifoodNumber) {
-                    const parts = w.ifoodNumber.split('/');
-                    if (parts.length === 3 && parts[1] === 'CAPT' && parseInt(parts[2]) === currentYear) {
-                        const num = parseInt(parts[0]);
-                        if (!isNaN(num) && num > maxNumber) {
-                            maxNumber = num;
-                        }
-                    }
-                }
-            });
-            suggestedOfficeId = `${(maxNumber + 1).toString().padStart(2, '0')}/CAPT/${currentYear}`;
-        }
-
-        const officeId = window.prompt("Digite o número do ofício (Ex: 01/CAPT/2026):", suggestedOfficeId);
-        if (!officeId) return;
-
-        try {
-            const doc = new jsPDF();
-            const pageWidth = doc.internal.pageSize.getWidth();
-            const pageHeight = doc.internal.pageSize.getHeight();
-            const margin = 20; // Standard 2cm margin
-            const contentWidth = pageWidth - (margin * 2);
-            const textWidth = contentWidth - 5;
-
-            let y = 15; // Starting Y slightly higher
-
-            // --- HEADER ---
-            try {
-                const badgePC = new Image();
-                badgePC.src = './brasao_pcsp_nova.png';
-
-                await new Promise((resolve) => {
-                    badgePC.onload = () => resolve(true);
-                    badgePC.onerror = () => {
-                        console.warn("New badge not found, falling back");
-                        badgePC.src = './brasao_pcsp_colorido.png';
-                        badgePC.onload = () => resolve(true);
-                        badgePC.onerror = () => resolve(false);
-                    };
-                });
-
-                // Calculate proportional size
-                const imgProps = doc.getImageProperties(badgePC);
-                const badgeH = 22; // Slightly smaller header badge
-                const badgeW = (imgProps.width * badgeH) / imgProps.height;
-
-                doc.addImage(badgePC, 'PNG', margin, y, badgeW, badgeH);
-
-                doc.setFont('helvetica', 'bold');
-                doc.setFontSize(9);
-                const textX = margin + badgeW + 5;
-                const headerLines = [
-                    "SECRETARIA DA SEGURANÇA PÚBLICA",
-                    "POLÍCIA CIVIL DO ESTADO DE SÃO PAULO",
-                    "DEPARTAMENTO DE POLÍCIA JUDICIÁRIA DE SÃO PAULO INTERIOR",
-                    "DEINTER 1 - SÃO JOSÉ DOS CAMPOS",
-                    "DELEGACIA SECCIONAL DE POLÍCIA DE JACAREÍ",
-                    "DELEGACIA DE INVESTIGAÇÕES GERAIS DE JACAREÍ"
-                ];
-
-                headerLines.forEach((line, index) => {
-                    doc.text(line, textX, y + 4 + (index * 4));
-                });
-
-                // Border line below header
-                doc.setLineWidth(0.5);
-                doc.line(margin, y + badgeH + 5, pageWidth - margin, y + badgeH + 5);
-                y += badgeH + 12; // Reduced spacing
-
-            } catch (e) {
-                console.error("Badge load error", e);
-                y += 30;
-            }
-
-            // Header: OFICIO
-            doc.setFillColor(240, 240, 240);
-            doc.rect(margin, y, contentWidth, 7, 'F');
-            doc.setFont('helvetica', 'bold');
-            doc.setFontSize(12);
-            doc.text("OFÍCIO", pageWidth / 2, y + 5, { align: 'center' });
-
-            y += 12; // Reduced spacing
-
-            doc.setFont('helvetica', 'bold');
-            doc.setFontSize(11);
-            doc.text(`Ofício: ${officeId}`, margin, y);
-            y += 5;
-            doc.text(`Referência: PROC. Nº ${data.number}`, margin, y);
-            y += 5;
-            doc.text(`Natureza: Solicitação de Dados.`, margin, y);
-
-            y += 8; // Reduced spacing
-
-            // Date
-            const today = new Date();
-            const months = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
-            const formattedDate = `Jacareí, ${today.getDate()} de ${months[today.getMonth()]} de ${today.getFullYear()}.`;
-            doc.setFont('helvetica', 'normal');
-            doc.text(formattedDate, pageWidth - margin, y, { align: 'right' });
-
-            y += 12; // Reduced spacing
-
-            // Destination
-            doc.setFont('helvetica', 'bold');
-            doc.text("ILMO. SENHOR RESPONSÁVEL,", margin, y);
-
-            y += 12; // Reduced spacing
-
-            // Body
-            doc.setFont('helvetica', 'normal');
-            doc.setFontSize(11);
-
-            const indent = "\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0"; // 16 NBSP for wider indent
-
-            const bodyText1 = `${indent}Com a finalidade de instruir investigação policial em trâmite nesta unidade, solicito, respeitosamente, a gentileza de verificar se o indivíduo abaixo relacionado encontra-se cadastrado como usuário ou entregador da plataforma IFOOD.`;
-            const splitBody1 = doc.splitTextToSize(bodyText1, textWidth);
-            doc.text(splitBody1, margin, y, { align: 'justify', maxWidth: textWidth });
-            y += (splitBody1.length * 5) + 3; // Reduced spacing
-
-            const bodyText2 = `${indent}Em caso positivo, requer-se o envio das informações cadastrais fornecidas para habilitação na plataforma, incluindo, se disponíveis, nome completo, endereço(s), número(s) de telefone, e-mail(s) e demais dados vinculados à respectiva conta.`;
-            const splitBody2 = doc.splitTextToSize(bodyText2, textWidth);
-            doc.text(splitBody2, margin, y, { align: 'justify', maxWidth: textWidth });
-            y += (splitBody2.length * 5) + 3; // Reduced spacing
-
-            const bodyText3 = `${indent}As informações devem ser encaminhadas ao e-mail institucional do policial responsável pela investigação:`;
-            const splitBody3 = doc.splitTextToSize(bodyText3, textWidth);
-            doc.text(splitBody3, margin, y);
-            y += (splitBody3.length * 5) + 2;
-
-            doc.setFont('helvetica', 'bold');
-            doc.text("     william.castro@policiacivil.sp.gov.br", margin, y);
-            y += 5;
-            doc.text("     William Campos de Assis Castro – Polícia Civil do Estado de São Paulo", margin, y);
-
-            y += 10; // Reduced spacing
-
-            // Restored Section
-            doc.setFont('helvetica', 'normal');
-            doc.text("Pessoa de interesse para a investigação:", margin, y);
-            y += 6;
-            doc.setFont('helvetica', 'bold');
-            doc.setFontSize(12);
-            doc.text(`${data.name.toUpperCase()} / CPF: ${data.cpf || data.rg || 'N/I'}`, margin, y);
-
-            y += 12; // Reduced spacing
-
-            doc.setFontSize(11);
-            doc.setFont('helvetica', 'normal');
-
-            // Indented closing paragraph
-            const closingText = `${indent}Aproveito a oportunidade para renovar meus votos de elevada estima e consideração.`;
-            doc.text(closingText, margin, y);
-            y += 6;
-
-            doc.text("Atenciosamente,", margin, y);
-
-            // Signature & Footer positioning logic
-            // define bottom anchor
-            const footerLineY = pageHeight - 15;
-            const addresseeBlockY = footerLineY - 15; // "Ao Ilustríssimo..." starts here
-            const signatureBlockY = addresseeBlockY - 25; // Signature starts here
-
-            // If text overlaps the signature area, push to new page
-            if (y > signatureBlockY - 10) {
-                doc.addPage();
-            }
-
-            // Position Signature at fixed bottom location
-            y = signatureBlockY;
-            doc.setFont('helvetica', 'bold');
-            doc.text("Luiz Antônio Cunha dos Santos", pageWidth / 2, y, { align: 'center' });
-            y += 5;
-            doc.text("Delegado de Polícia", pageWidth / 2, y, { align: 'center' });
-
-            // Position Addressee at fixed bottom location
-            y = addresseeBlockY;
-            doc.setFont('helvetica', 'normal');
-            doc.text("Ao Ilustríssimo Senhor Responsável", margin, y);
-            y += 5;
-            doc.setFont('helvetica', 'bold');
-            doc.text("Empresa iFood.", margin, y);
-
-            // Footer
-            const footerY = pageHeight - 15; // 15mm from bottom
-            doc.setFontSize(8);
-            doc.setFont('helvetica', 'normal');
-            doc.setLineWidth(0.1);
-            doc.line(margin, footerY, pageWidth - margin, footerY);
-
-            const address1 = "Rua Moisés Ruston, 370, Parque Itamaraty, Jacareí-SP, CEP-12.307-260";
-            const address2 = "Tel-12-3951-1000  - E-mail - dig.jacarei@policiacivil.sp.gov.br";
-
-            doc.text(address1, margin, footerY + 5);
-            doc.text(address2, margin, footerY + 9);
-
-            const todayStr = new Date().toLocaleDateString('pt-BR');
-            doc.text(`Data: ${todayStr}`, pageWidth - margin, footerY + 5, { align: 'right' });
-            doc.text("Página 1 de 1", pageWidth - margin, footerY + 9, { align: 'right' });
-
-            if (officeId !== data.ifoodNumber) {
-                const saveNum = window.confirm(`Deseja salvar o número do ofício '${officeId}' neste mandado?`);
-                if (saveNum) {
-                    await updateWarrant(data.id, { ifoodNumber: officeId });
-                }
-            }
-
-            const pdfBlob = doc.output('blob');
-            const pdfFile = new File([pdfBlob], `Oficio_iFood_${officeId.replace(/\//g, '_')}.pdf`, { type: 'application/pdf' });
-
-            const toastId = toast.loading("Salvando ofício no banco de dados...");
-            try {
-                const path = `ifoodDocs/${data.id}/${Date.now()}_${pdfFile.name}`;
-                const uploadedPath = await uploadFile(pdfFile, path);
-                if (uploadedPath) {
-                    const url = getPublicUrl(uploadedPath);
-                    const currentAttachments = data.attachments || [];
-                    await updateWarrant(data.id, { attachments: [...currentAttachments, url] });
-                    toast.success("Ofício salvo no banco!", { id: toastId });
-                }
-            } catch (err) {
-                console.error("Erro ao salvar PDF do iFood:", err);
-                toast.error("Ofício gerado mas não pôde ser salvo no banco.", { id: toastId });
-            }
-
-            doc.save(`Oficio_IFood_${data.name.replace(/\s+/g, '_')}.pdf`);
-        } catch (error) {
-            console.error("Erro ao gerar PDF iFood:", error);
-            toast.error("Erro ao gerar Ofício iFood.");
-        }
+        setIsIfoodReportModalOpen(true);
     };
 
     const handleOpenCapturasModal = () => {
@@ -1734,6 +1494,15 @@ Equipe de Capturas - DIG / PCSP
                         </div>
                     </div>
                 </div>
+
+                {data && (
+                    <IfoodReportModal
+                        isOpen={isIfoodReportModalOpen}
+                        onClose={() => setIsIfoodReportModalOpen(false)}
+                        warrant={data}
+                        type="ifood"
+                    />
+                )}
 
                 {/* 2. Tactical Navigation Tabs */}
                 <div className="flex bg-surface-dark/80 backdrop-blur border border-white/10 rounded-2xl p-1.5 gap-1.5 shadow-glass sticky top-2 z-[30]">
