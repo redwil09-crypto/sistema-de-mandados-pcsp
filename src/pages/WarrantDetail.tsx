@@ -9,7 +9,7 @@ import {
     Route as RouteIcon, RotateCcw, CheckCircle, Printer,
     Trash2, Zap, Bell, Eye, History, Send, Copy,
     ShieldAlert, MessageSquare, Plus, PlusCircle, X, ChevronRight, Bot, Cpu, Sparkles, RefreshCw, AlertTriangle, ExternalLink,
-    CheckSquare, Users, AlertOctagon, Search, Siren, Scale, Target, Lightbulb, TrendingUp, Activity
+    CheckSquare, Users, AlertOctagon, Search, Siren, Scale, Target, Lightbulb, TrendingUp, Activity, Upload
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '../supabaseClient';
@@ -1956,12 +1956,20 @@ Equipe de Capturas - DIG / PCSP
                                             <p className="text-[10px] text-text-muted font-bold uppercase">Rastreamento de Pedidos e Endereços</p>
                                         </div>
                                     </div>
-                                    <button
-                                        onClick={handleGenerateIfoodOffice}
-                                        className="bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-tactic flex items-center gap-2 transition-all active:scale-95"
-                                    >
-                                        <FileText size={14} /> Gerar Ofício
-                                    </button>
+                                    <div className="flex gap-2">
+                                        <label
+                                            htmlFor="ifood-upload"
+                                            className="bg-surface-dark border border-white/10 hover:bg-white/5 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-tactic flex items-center gap-2 transition-all active:scale-95 cursor-pointer"
+                                        >
+                                            <Upload size={14} /> Upload Retorno
+                                        </label>
+                                        <button
+                                            onClick={handleGenerateIfoodOffice}
+                                            className="bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-tactic flex items-center gap-2 transition-all active:scale-95"
+                                        >
+                                            <FileText size={14} /> Gerar Ofício
+                                        </button>
+                                    </div>
                                 </div>
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
