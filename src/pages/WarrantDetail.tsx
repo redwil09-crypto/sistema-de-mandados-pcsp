@@ -792,65 +792,69 @@ Equipe de Capturas - DIG / PCSP
     };
 
     const handleAttachFile = async (e: React.ChangeEvent<HTMLInputElement>, type: 'reports' | 'attachments' | 'ifoodDocs') => {
-        const file = e.target.files?.[0];
+        const input = e.target;
+        const file = input.files?.[0];
         if (!file || !data) return;
 
         setIsUploadingFile(true);
         const toastId = toast.loading(`Subindo arquivo (${file.name})...`);
         try {
             const cleanName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
-            const path = `${type}/${data.id}/${Date.now()}_${cleanName}`;
-            console.log(`WarrantDetail: Attempting to upload to path: ${path}`);
+
+            // SECURITY: Use 'attachments' folder for iFood docs to avoid bucket root policy issues
+            let storagePathPrefix = type;
+            if (type === 'ifoodDocs') {
+                storagePathPrefix = 'attachments/ifood';
+            }
+
+            const path = `${storagePathPrefix}/${data.id}/${Date.now()}_${cleanName}`;
+            console.log(`WarrantDetail: Uploading ${type} to ${path}`);
+
             const uploadedPath = await uploadFile(file, path);
-            console.log(`WarrantDetail: Upload result path: ${uploadedPath}`);
 
             if (uploadedPath) {
                 const url = getPublicUrl(uploadedPath);
-                console.log(`WarrantDetail: Public URL generated: ${url}`);
 
-                const currentFiles = data[type] || [];
-                const success = await updateWarrant(data.id, { [type]: [...currentFiles, url] });
+                // Determine the correct field to update in DB
+                const fieldName = type;
+                const currentFiles = data[fieldName] || [];
+
+                // Optimistic UI update via Context
+                const success = await updateWarrant(data.id, { [fieldName]: [...currentFiles, url] });
 
                 if (success) {
                     toast.success("Arquivo anexado com sucesso!", { id: toastId });
 
-                    // AUTOMATIC EXTRACTION TRIGGER (RESTORED)
+                    // Auto-Extract PDF for Intelligence
                     if (file.type === 'application/pdf') {
-                        toast.loading("Extraindo conteúdo para Inteligência...", { id: "extract-load" });
-                        try {
-                            const text = await extractPdfData(file);
+                        toast.loading("Lendo documento...", { id: "extract-load" });
+                        extractPdfData(file).then(async (text) => {
                             if (text && text.length > 50) {
                                 setAnalyzedDocumentText(text);
-                                // Auto-trigger deep analysis
                                 const analysis = await analyzeDocumentStrategy(data, text);
                                 if (analysis) {
-                                    // Save analysis as valid intelligence
                                     setAiDiligenceResult(analysis);
-                                    toast.success("Documento analisado pela IA! Veja 'Diligência Inteligente'.", { id: "extract-load" });
+                                    toast.success("Inteligência extraída do documento!", { id: "extract-load" });
                                 }
                             }
-                        } catch (extractErr) {
-                            console.error("Auto-extraction failed", extractErr);
-                            toast.error("Falha na leitura automática do PDF.", { id: "extract-load" });
-                        }
+                        }).catch(err => {
+                            console.error("Extraction error", err);
+                            toast.dismiss("extract-load");
+                        });
                     }
 
                 } else {
-                    console.error("WarrantDetail: Failed to update database with new attachment");
-                    toast.error("Erro ao atualizar dados no banco.", { id: toastId });
+                    toast.error("Erro ao vincular arquivo no banco.", { id: toastId });
                 }
             } else {
-                console.error("WarrantDetail: Upload returned null path");
-                toast.error("Erro ao salvar arquivo no storage.", { id: toastId });
+                toast.error("Falha no upload para o Storage.", { id: toastId });
             }
         } catch (error) {
-            console.error("Erro ao fazer upload:", error);
-            toast.error("Erro ao subir arquivo.", { id: toastId });
+            console.error("Upload error:", error);
+            toast.error("Erro crítico no upload.", { id: toastId });
         } finally {
             setIsUploadingFile(false);
-            if (e.target && 'value' in e.target) {
-                e.target.value = '';
-            }
+            if (input) input.value = '';
         }
     };
     const handleAnalyzeDocument = async (e: React.ChangeEvent<HTMLInputElement>) => {
