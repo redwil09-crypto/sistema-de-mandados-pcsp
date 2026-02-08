@@ -183,22 +183,6 @@ const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, wa
             const addr1 = "Rua Moisés Ruston, 370, Parque Itamaraty, Jacareí-SP, CEP-12.307-260";
             const addr2 = "Tel-12-3951-1000 - E-mail - dig.jacarei@policiacivil.sp.gov.br";
 
-            pdf.text(addr1, pageWidth / 2, footerY, { align: "center" });
-
-            // Email link blue
-            const addr2Width = pdf.getTextWidth(addr2);
-            const startX = (pageWidth - addr2Width) / 2;
-            pdf.text("Tel-12-3951-1000 - E-mail - ", startX, footerY + 4);
-
-            const prefixWidth = pdf.getTextWidth("Tel-12-3951-1000 - E-mail - ");
-            pdf.setTextColor(0, 0, 255);
-            // Use simple text for now to avoid withLink typing issues, or cast if needed. 
-            // doc.text supports options in newer definitions but to be safe:
-            pdf.text("dig.jacarei@policiacivil.sp.gov.br", startX + prefixWidth, footerY + 4);
-            // Add link annotation manually over the text area if critical, but for print PDF visual is key.
-            // keeping it simple to solve the build error.
-            pdf.setTextColor(0, 0, 0); // Reset
-
             // Right Block (Date | Page)
             // The image shows this on the right side with a vertical separator?
             // "Data (07/02/26) | Página 1 de 2" - roughly
@@ -213,17 +197,24 @@ const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, wa
             pdf.setDrawColor(0);
             pdf.line(dividerX, footerY - 2, dividerX, footerY + 8);
 
-            // Left of divider
+            // Left of divider (Address)
             pdf.text(addr1, dividerX - 5, footerY, { align: 'right' });
 
-            // We need to support the rich text for email again... simpler to just write text for now to match layout first
-            // pdf.text(addr2, dividerX - 5, footerY + 4, { align: 'right' });
-            // Split email line manually for "align right" logic
+            // Left of divider (Contact)
             const emailPart = "dig.jacarei@policiacivil.sp.gov.br";
             const phonePart = "Tel-12-3951-1000 - E-mail - ";
-            const fullEmailLine = phonePart + emailPart;
-            pdf.text(fullEmailLine, dividerX - 5, footerY + 4, { align: 'right' });
-            // Make email blue? Hard with right align text. Leave black for now to ensure alignment is perfect.
+
+            // Render the phone part (black)
+            const fullContactWidth = pdf.getTextWidth(phonePart + emailPart);
+            const contactEndX = dividerX - 5;
+            const contactStartX = contactEndX - fullContactWidth;
+
+            pdf.text(phonePart, contactStartX, footerY + 4);
+
+            // Render the email part (blue) next to it
+            pdf.setTextColor(0, 0, 255);
+            pdf.text(emailPart, contactStartX + pdf.getTextWidth(phonePart), footerY + 4);
+            pdf.setTextColor(0, 0, 0); // Reset
 
             // Right of divider
             pdf.text(dateStr, dividerX + 5, footerY);
