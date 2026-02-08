@@ -802,7 +802,7 @@ Equipe de Capturas - DIG / PCSP
             const cleanName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
 
             // SECURITY: Use 'attachments' folder for iFood docs to avoid bucket root policy issues
-            let storagePathPrefix = type;
+            let storagePathPrefix: string = type;
             if (type === 'ifoodDocs') {
                 storagePathPrefix = 'attachments/ifood';
             }
@@ -1507,6 +1507,7 @@ Equipe de Capturas - DIG / PCSP
                         onClose={() => setIsIfoodReportModalOpen(false)}
                         warrant={data}
                         type="ifood"
+                        updateWarrant={updateWarrant}
                     />
                 )}
 

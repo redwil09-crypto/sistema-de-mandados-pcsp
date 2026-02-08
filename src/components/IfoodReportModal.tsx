@@ -6,12 +6,14 @@ import { toast } from 'sonner';
 import { jsPDF } from 'jspdf';
 import { adaptDocumentToTarget } from '../services/geminiService';
 import { Warrant } from '../types';
+import { uploadFile, getPublicUrl } from '../supabaseStorage';
 
 interface IfoodReportModalProps {
     isOpen: boolean;
     onClose: () => void;
     warrant: Warrant;
     type: 'ifood' | 'uber';
+    updateWarrant: (id: string, data: Partial<Warrant>) => Promise<boolean>;
 }
 
 const UBER_TEMPLATE = `OFÍCIO
@@ -45,7 +47,7 @@ Delegado de Polícia
 Ao Ilustríssimo Senhor Responsável
 Empresa iFood.`;
 
-const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, warrant, type }) => {
+const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, warrant, type, updateWarrant }) => {
     const [generatedText, setGeneratedText] = useState('');
     const [isProcessing, setIsProcessing] = useState(false);
     const [officeNumber, setOfficeNumber] = useState('');
@@ -349,8 +351,30 @@ const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, wa
             addFooter(doc, i, totalPages);
         }
 
+        const pdfBlob = doc.output('blob');
+        const pdfFile = new File([pdfBlob], `Oficio_${type.toUpperCase()}_${officeNumber}.pdf`, { type: 'application/pdf' });
+
+        // Save locally first
         doc.save(`Oficio_IFood_${officeNumber}_${warrant.name.replace(/\s+/g, '_')}.pdf`);
-        toast.success("PDF oficial (Padrão DIG) gerado.");
+
+        // Upload & Save to DB
+        const toastId = toast.loading("Salvando cópia no prontuário...");
+        try {
+            const path = `attachments/ifood/${warrant.id}/${Date.now()}_Oficio_${officeNumber}.pdf`;
+            const uploadedPath = await uploadFile(pdfFile, path);
+
+            if (uploadedPath) {
+                const url = getPublicUrl(uploadedPath);
+                const currentDocs = warrant.ifoodDocs || [];
+                await updateWarrant(warrant.id, { ifoodDocs: [...currentDocs, url] });
+                toast.success("Cópia salva no histórico!", { id: toastId });
+            } else {
+                toast.dismiss(toastId);
+            }
+        } catch (err) {
+            console.error(err);
+            toast.error("Erro ao salvar cópia no banco.", { id: toastId });
+        }
     };
 
     if (!isOpen) return null;
