@@ -241,7 +241,7 @@ export const generateWarrantPDF = async (
             ["Regime Prisional", data.regime || "N/A"],
             ["Data de Expedição", formatDate(data.issueDate)],
             ["Data de Validade", formatDate(data.expirationDate)],
-            ["Órgão Expedidor", data.issuingCourt || "-"]
+            ["Vara / Fórum", data.issuingCourt || "-"]
         ]);
         y += 5;
 
