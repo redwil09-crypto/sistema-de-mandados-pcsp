@@ -150,27 +150,41 @@ const extractBirthDate = (text: string): string => {
 };
 
 const extractIssuingCourt = (text: string): string => {
+    // Normaliza espaços para facilitar a busca em linhas quebradas
+    const headerText = text.substring(0, 3000).replace(/\s+/g, ' ');
+
     const patterns = [
-        // Padrão específico para número antes da Vara (ex: "2 VARA", "1ª VARA")
-        /((?:[0-9]+(?:ª|º)?\s+)?VARA\s+(?:Criminal|Cível|da\s+Família|das\s+Sucessões|do\s+Júri|de\s+Execuções\s+Criminais)[^\n,]*)/i,
-        /([0-9]+(?:ª|º)?\s+VARA\s+[^\n,]*)/i,
-        /(?:Tribunal de Justiça do Estado de São Paulo|TJSP).*?(?:FORO DE|COMARCA DE|VARA)\s+([a-zA-ZÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑ\s\-]{3,})/i,
-        /(?:FÓRUM|FORO|COMARCA)[:\s]+([a-zA-ZÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑ\s\-]{3,})/i,
-        /(Vara\s+.*?(?:Criminal|Cível|da\s+Família|das\s+Sucessões|do\s+Júri|de\s+Execuções\s+Criminais)[^\n,]*)/i,
-        /Expedido\s+em\s+autos\s+da\s+([0-9]+(?:ª|º)?\s+Vara\s+[^\n,]*)/i
+        // 1. Padrão explícito (Label: Valor)
+        /(?:Vara|Juízo|Ofício|Fórum|Comarca)[:\s]+([^-\n]+?)(?:\s-|\sProcesso|\sDigital|$)/i,
+
+        // 2. Padrões de Vara Específica (ex: "2ª Vara Criminal")
+        /([0-9]+[ªº]?\s+Vara\s+(?:Criminal|Cível|da\s+Família|das\s+Sucessões|do\s+Júri|de\s+Execuções\s+Criminais|da\s+Infância|do\s+Juizado)[^,\-]*)/i,
+
+        // 3. Padrão Genérico de Vara (ex: "Vara do Júri")
+        /(Vara\s+(?:do\s+Júri|da\s+Infância|de\s+Execuções|Única)[^,\-]*)/i,
+
+        // 4. Foro / Comarca (Fallback se não achar Vara específica)
+        /(?:Foro|Comarca)\s+de\s+([a-zA-ZÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑ\s\-]+?)(?:\s[-–]|\sSecretaria|\sEstado|\sJuiz)/i
     ];
 
     for (const pattern of patterns) {
-        const match = text.match(pattern);
+        const match = headerText.match(pattern);
         if (match && match[1]) {
             let court = match[1].trim();
-            // Limpeza básica
-            court = court.split(/\n|\s{2,}/)[0].trim().toUpperCase();
-            if (court.length > 5 && !court.includes('ESTADO DE')) {
-                return court;
+
+            // Limpezas adicionais de ruído comum
+            court = court.replace(/TRIBUNAL DE JUSTIÇA.*/i, '')
+                .replace(/ESTADO DE SÃO PAULO.*/i, '')
+                .replace(/JUIZ DE DIREITO.*/i, '')
+                .replace(/[.:;]+$/, '')
+                .trim();
+
+            if (court.length > 4 && court.length < 80) {
+                return court.toUpperCase();
             }
         }
     }
+
     return '';
 };
 

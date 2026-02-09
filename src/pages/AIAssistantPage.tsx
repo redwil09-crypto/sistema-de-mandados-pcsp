@@ -787,7 +787,7 @@ const AIAssistantPage = () => {
                                                         />
                                                     </div>
                                                     <div className="col-span-2">
-                                                        <label className="text-[10px] uppercase font-black text-amber-600 dark:text-amber-400/90">Fórum Expedidor</label>
+                                                        <label className="text-[10px] uppercase font-black text-amber-600 dark:text-amber-400/90">Vara / Fórum</label>
                                                         <input
                                                             type="text"
                                                             value={extractedData.issuingCourt || ''}
