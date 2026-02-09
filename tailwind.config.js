@@ -24,12 +24,12 @@ export default {
                 "surface-dark-elevated": "#1e293b",
                 "border-dark": "#1e293b",
                 "border-dark-highlight": "#334155",
-                "background-light": "#475569", // Slate 600
-                "surface-light": "#64748b", // Slate 500
-                "border-light": "#94a3b8", // Slate 400
-                "text-light": "#f8fafc", // Slate 50
+                "background-light": "#f8fafc", // Slate 50 - High Brightness
+                "surface-light": "#ffffff", // White - Pure
+                "border-light": "#cbd5e1", // Slate 300 - Higher Contrast
+                "text-light": "#0f172a", // Slate 900 - Deep Dark for Max Contrast
                 "text-dark": "#f8fafc", // Slate 50
-                "text-secondary-light": "#cbd5e1", // Slate 300
+                "text-secondary-light": "#475569", // Slate 600 - High Contrast Secondary
                 "text-secondary-dark": "#94a3b8", // Slate 400
                 "text-muted": "#94a3b8", // Slate 400
             },

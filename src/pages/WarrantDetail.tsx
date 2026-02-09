@@ -1430,7 +1430,7 @@ Equipe de Capturas - DIG / PCSP
     };
 
     return (
-        <div className="min-h-screen bg-background-dark text-text-dark font-display relative overflow-x-hidden pb-40">
+        <div className="min-h-screen bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark font-display relative overflow-x-hidden pb-40">
             {/* Tactical Grid Background Layer */}
             <div className="fixed inset-0 pointer-events-none opacity-20 z-0">
                 <div className="absolute inset-0 tactical-grid"></div>
@@ -1452,7 +1452,7 @@ Equipe de Capturas - DIG / PCSP
                 />
 
                 {/* 1. Tactical Profile Header */}
-                <div className="bg-surface-dark/60 backdrop-blur-xl border border-white/10 rounded-2xl p-4 shadow-tactic overflow-hidden relative group">
+                <div className="bg-surface-light dark:bg-surface-dark/60 backdrop-blur-xl border border-border-light dark:border-white/10 rounded-2xl p-4 shadow-tactic overflow-hidden relative group">
                     {/* Animated Glow Decorator */}
                     <div className="absolute -top-24 -right-24 w-48 h-48 bg-primary/10 rounded-full blur-3xl group-hover:bg-primary/20 transition-all"></div>
 
@@ -1462,7 +1462,7 @@ Equipe de Capturas - DIG / PCSP
                                 src={data.img || `https://ui-avatars.com/api/?name=${encodeURIComponent(data.name)}&background=random&color=fff`}
                                 alt={data.name}
                                 onClick={() => setIsPhotoModalOpen(true)}
-                                className="h-44 w-44 rounded-2xl object-cover border-2 border-white/10 shadow-glass cursor-zoom-in hover:scale-[1.02] transition-transform"
+                                className="h-44 w-44 rounded-2xl object-cover border-2 border-border-light dark:border-white/10 shadow-glass cursor-zoom-in hover:scale-[1.02] transition-transform"
                             />
                             <div className="absolute -bottom-2 -right-2 bg-primary p-2 rounded-xl shadow-lg border border-white/20">
                                 <ShieldAlert size={18} className="text-white animate-pulse" />
@@ -1481,30 +1481,30 @@ Equipe de Capturas - DIG / PCSP
                                         </span>
                                     )}
                                 </div>
-                                <h1 className="text-2xl font-black text-white leading-tight uppercase group-hover:text-primary transition-colors">
+                                <h1 className="text-2xl font-black text-text-light dark:text-white leading-tight uppercase group-hover:text-primary transition-colors">
                                     {localData.name}
                                 </h1>
-                                <p className="text-sm text-text-secondary-dark font-medium font-mono mt-1 opacity-70">
+                                <p className="text-sm text-text-secondary-light dark:text-text-secondary-dark font-medium font-mono mt-1 opacity-70">
                                     PROC. Nº {localData.number}
                                 </p>
                             </div>
 
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                                <div className="bg-white/5 border border-white/5 p-2 rounded-xl text-center">
-                                    <p className="text-[9px] uppercase font-bold text-text-muted mb-0.5 tracking-tighter">Tipo Crime</p>
-                                    <p className="text-xs font-black text-white truncate px-1">{localData.crime || 'N/I'}</p>
+                                <div className="bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/5 p-2 rounded-xl text-center">
+                                    <p className="text-[9px] uppercase font-bold text-slate-500 dark:text-text-muted mb-0.5 tracking-tighter">Tipo Crime</p>
+                                    <p className="text-xs font-black text-text-light dark:text-white truncate px-1">{localData.crime || 'N/I'}</p>
                                 </div>
-                                <div className="bg-white/5 border border-white/5 p-2 rounded-xl text-center">
-                                    <p className="text-[9px] uppercase font-bold text-text-muted mb-0.5 tracking-tighter">Regime Prisional</p>
-                                    <p className="text-xs font-black text-white">{localData.regime || 'N/I'}</p>
+                                <div className="bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/5 p-2 rounded-xl text-center">
+                                    <p className="text-[9px] uppercase font-bold text-slate-500 dark:text-text-muted mb-0.5 tracking-tighter">Regime Prisional</p>
+                                    <p className="text-xs font-black text-text-light dark:text-white">{localData.regime || 'N/I'}</p>
                                 </div>
-                                <div className="bg-white/5 border border-white/5 p-2 rounded-xl text-center">
-                                    <p className="text-[9px] uppercase font-bold text-text-muted mb-0.5 tracking-tighter">Idade Captura</p>
-                                    <p className="text-xs font-black text-white">{localData.age || 'N/I'}</p>
+                                <div className="bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/5 p-2 rounded-xl text-center">
+                                    <p className="text-[9px] uppercase font-bold text-slate-500 dark:text-text-muted mb-0.5 tracking-tighter">Idade Captura</p>
+                                    <p className="text-xs font-black text-text-light dark:text-white">{localData.age || 'N/I'}</p>
                                 </div>
-                                <div className="bg-white/5 border border-white/5 p-2 rounded-xl text-center">
-                                    <p className="text-[9px] uppercase font-bold text-text-muted mb-0.5 tracking-tighter">Expedição</p>
-                                    <p className="text-xs font-black text-white font-mono">{localData.issueDate || 'N/I'}</p>
+                                <div className="bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/5 p-2 rounded-xl text-center">
+                                    <p className="text-[9px] uppercase font-bold text-slate-500 dark:text-text-muted mb-0.5 tracking-tighter">Expedição</p>
+                                    <p className="text-xs font-black text-text-light dark:text-white font-mono">{localData.issueDate || 'N/I'}</p>
                                 </div>
                             </div>
 
@@ -1535,7 +1535,7 @@ Equipe de Capturas - DIG / PCSP
                 )}
 
                 {/* 2. Tactical Navigation Tabs */}
-                <div className="flex bg-surface-dark/80 backdrop-blur border border-white/10 rounded-2xl p-1.5 gap-1.5 shadow-glass sticky top-2 z-[30]">
+                <div className="flex bg-surface-light dark:bg-surface-dark/80 backdrop-blur border border-border-light dark:border-white/10 rounded-2xl p-1.5 gap-1.5 shadow-glass sticky top-2 z-[30]">
                     {[
                         { id: 'documents', label: 'Dossiê', icon: FileText, color: 'bg-gradient-to-r from-blue-600 to-cyan-500 shadow-blue-500/25 border-blue-400/20' },
                         { id: 'investigation', label: 'Investigações', icon: Bot, color: 'bg-gradient-to-r from-violet-600 to-fuchsia-500 shadow-violet-500/25 border-violet-400/20' },
@@ -1546,7 +1546,7 @@ Equipe de Capturas - DIG / PCSP
                             onClick={() => setActiveDetailTab(tab.id as any)}
                             className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all duration-300 ${activeDetailTab === tab.id
                                 ? `${tab.color} text-white shadow-lg scale-[1.02] border`
-                                : 'text-text-secondary-dark hover:bg-white/5 hover:text-white border border-transparent'
+                                : 'text-text-secondary-light dark:text-text-secondary-dark hover:bg-black/5 dark:hover:bg-white/5 hover:text-primary dark:hover:text-white border border-transparent'
                                 }`}
                         >
                             <tab.icon size={16} className={activeDetailTab === tab.id ? 'animate-pulse' : ''} />
@@ -1561,54 +1561,54 @@ Equipe de Capturas - DIG / PCSP
                     {activeDetailTab === 'documents' && (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {/* Personal Details */}
-                            <div className="bg-surface-dark/90 backdrop-blur-xl border border-white/10 rounded-2xl p-5 shadow-glass space-y-4">
-                                <div className="flex items-center gap-2 mb-2 pb-2 border-b border-white/5">
-                                    <User className="text-indigo-400" size={16} />
-                                    <span className="text-[11px] font-black uppercase tracking-widest text-indigo-100">Qualificação</span>
+                            <div className="bg-surface-light dark:bg-surface-dark/90 backdrop-blur-xl border border-border-light dark:border-white/10 rounded-2xl p-5 shadow-glass space-y-4">
+                                <div className="flex items-center gap-2 mb-2 pb-2 border-b border-border-light dark:border-white/5">
+                                    <User className="text-indigo-600 dark:text-indigo-400" size={16} />
+                                    <span className="text-[11px] font-black uppercase tracking-widest text-indigo-900 dark:text-indigo-100">Qualificação</span>
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="space-y-1">
-                                        <label className="text-[9px] font-black text-text-muted uppercase tracking-wider">RG</label>
-                                        <input className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-sm font-mono text-white outline-none focus:ring-1 focus:ring-primary" value={localData.rg || ''} onChange={e => handleFieldChange('rg', e.target.value)} />
+                                        <label className="text-[9px] font-black text-text-secondary-light dark:text-text-muted uppercase tracking-wider">RG</label>
+                                        <input className="w-full bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg p-3 text-sm font-mono text-text-light dark:text-white outline-none focus:ring-1 focus:ring-primary" value={localData.rg || ''} onChange={e => handleFieldChange('rg', e.target.value)} />
                                     </div>
                                     <div className="space-y-1">
-                                        <label className="text-[9px] font-black text-text-muted uppercase tracking-wider">CPF</label>
-                                        <input className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-sm font-mono text-white outline-none focus:ring-1 focus:ring-primary" value={localData.cpf || ''} onChange={e => handleFieldChange('cpf', e.target.value)} />
+                                        <label className="text-[9px] font-black text-text-secondary-light dark:text-text-muted uppercase tracking-wider">CPF</label>
+                                        <input className="w-full bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg p-3 text-sm font-mono text-text-light dark:text-white outline-none focus:ring-1 focus:ring-primary" value={localData.cpf || ''} onChange={e => handleFieldChange('cpf', e.target.value)} />
                                     </div>
                                     <div className="space-y-1">
-                                        <label className="text-[9px] font-black text-text-muted uppercase tracking-wider">Nascimento</label>
-                                        <input className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-sm font-mono text-white outline-none focus:ring-1 focus:ring-primary" value={localData.birthDate || ''} onChange={e => handleFieldChange('birthDate', e.target.value)} />
+                                        <label className="text-[9px] font-black text-text-secondary-light dark:text-text-muted uppercase tracking-wider">Nascimento</label>
+                                        <input className="w-full bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg p-3 text-sm font-mono text-text-light dark:text-white outline-none focus:ring-1 focus:ring-primary" value={localData.birthDate || ''} onChange={e => handleFieldChange('birthDate', e.target.value)} />
                                     </div>
                                     <div className="space-y-1">
-                                        <label className="text-[9px] font-black text-text-muted uppercase tracking-wider">Expiração Mandado</label>
-                                        <input className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-sm font-mono text-risk-high outline-none focus:ring-1 focus:ring-risk-high" value={localData.expirationDate || ''} onChange={e => handleFieldChange('expirationDate', e.target.value)} />
+                                        <label className="text-[9px] font-black text-text-secondary-light dark:text-text-muted uppercase tracking-wider">Expiração Mandado</label>
+                                        <input className="w-full bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg p-3 text-sm font-mono text-rose-600 dark:text-risk-high outline-none focus:ring-1 focus:ring-risk-high" value={localData.expirationDate || ''} onChange={e => handleFieldChange('expirationDate', e.target.value)} />
                                     </div>
                                     <div className="space-y-1 col-span-2">
-                                        <label className="text-[9px] font-black text-text-muted uppercase tracking-wider flex items-center gap-1"><CheckCircle size={10} className="text-indigo-400" /> Data do Cumprimento</label>
-                                        <input className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-sm font-mono text-white outline-none focus:ring-1 focus:ring-indigo-500" placeholder="DD/MM/AAAA" value={localData.dischargeDate || ''} onChange={e => handleFieldChange('dischargeDate', e.target.value)} />
+                                        <label className="text-[9px] font-black text-text-secondary-light dark:text-text-muted uppercase tracking-wider flex items-center gap-1"><CheckCircle size={10} className="text-indigo-600 dark:text-indigo-400" /> Data do Cumprimento</label>
+                                        <input className="w-full bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg p-3 text-sm font-mono text-text-light dark:text-white outline-none focus:ring-1 focus:ring-indigo-500" placeholder="DD/MM/AAAA" value={localData.dischargeDate || ''} onChange={e => handleFieldChange('dischargeDate', e.target.value)} />
                                     </div>
                                 </div>
                             </div>
 
                             {/* Location View */}
-                            <div className="bg-surface-dark/90 backdrop-blur-xl border border-white/10 rounded-2xl p-5 shadow-glass space-y-4">
-                                <div className="flex items-center justify-between mb-2 pb-2 border-b border-white/5">
+                            <div className="bg-surface-light dark:bg-surface-dark/90 backdrop-blur-xl border border-border-light dark:border-white/10 rounded-2xl p-5 shadow-glass space-y-4">
+                                <div className="flex items-center justify-between mb-2 pb-2 border-b border-border-light dark:border-white/5">
                                     <div className="flex items-center gap-2">
-                                        <MapPin className="text-indigo-400" size={16} />
-                                        <span className="text-[11px] font-black uppercase tracking-widest text-indigo-100">Localização Operacional</span>
+                                        <MapPin className="text-indigo-600 dark:text-indigo-400" size={16} />
+                                        <span className="text-[11px] font-black uppercase tracking-widest text-indigo-900 dark:text-indigo-100">Localização Operacional</span>
                                     </div>
                                     {localData.latitude && localData.longitude ? (
-                                        <span className="text-[10px] font-black bg-green-500/10 text-green-400 border border-green-500/20 px-3 py-1 rounded-full flex items-center gap-1.5 shadow-sm animate-pulse">
+                                        <span className="text-[10px] font-black bg-emerald-100 dark:bg-green-500/10 text-emerald-700 dark:text-green-400 border border-emerald-200 dark:border-green-500/20 px-3 py-1 rounded-full flex items-center gap-1.5 shadow-sm animate-pulse">
                                             <FileCheck size={12} /> MAPEADO
                                         </span>
                                     ) : (
-                                        <span className="text-[10px] font-black bg-red-500/10 text-red-500 border border-red-500/20 px-3 py-1 rounded-full flex items-center gap-1.5 shadow-sm">
+                                        <span className="text-[10px] font-black bg-red-100 dark:bg-red-500/10 text-red-600 dark:text-red-500 border border-red-200 dark:border-red-500/20 px-3 py-1 rounded-full flex items-center gap-1.5 shadow-sm">
                                             <AlertTriangle size={12} /> NÃO MAPEADO
                                         </span>
                                     )}
                                 </div>
                                 <textarea
-                                    className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-sm text-white outline-none focus:ring-2 focus:ring-primary/20 transition-all resize-none h-[95px]"
+                                    className="w-full bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl p-4 text-sm text-text-light dark:text-white outline-none focus:ring-2 focus:ring-primary/20 transition-all resize-none h-[95px]"
                                     value={localData.location || ''}
                                     onChange={e => handleFieldChange('location', e.target.value)}
                                     placeholder="Endereço de diligência..."
@@ -1618,13 +1618,13 @@ Equipe de Capturas - DIG / PCSP
                                         href={`https://www.google.com/maps/search/?api=1&query=${localData.latitude},${localData.longitude}`}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="flex-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl py-3 text-[10px] font-black uppercase flex items-center justify-center gap-2 transition-all active:scale-95"
+                                        className="flex-1 bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 border border-slate-200 dark:border-white/10 rounded-xl py-3 text-[10px] font-black uppercase flex items-center justify-center gap-2 transition-all active:scale-95 text-text-light dark:text-white"
                                     >
                                         <MapIcon size={14} /> Abrir no Mapa
                                     </a>
                                     <button
                                         onClick={() => toggleRouteWarrant(data.id)}
-                                        className={`flex-1 rounded-xl py-3 text-[10px] font-black uppercase flex items-center justify-center gap-2 transition-all active:scale-95 ${routeWarrants.includes(data.id) ? 'bg-indigo-600 text-white shadow-tactic' : 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20'
+                                        className={`flex-1 rounded-xl py-3 text-[10px] font-black uppercase flex items-center justify-center gap-2 transition-all active:scale-95 ${routeWarrants.includes(data.id) ? 'bg-indigo-600 text-white shadow-tactic' : 'bg-slate-100 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-500/20'
                                             }`}
                                     >
                                         <RouteIcon size={14} /> {routeWarrants.includes(data.id) ? 'Em Rota' : 'Marcar Rota'}
@@ -1633,7 +1633,7 @@ Equipe de Capturas - DIG / PCSP
                             </div>
 
                             {/* Attachments Section (Dossiê) */}
-                            <div className="md:col-span-2 bg-surface-dark/60 backdrop-blur border border-white/10 rounded-2xl p-5 shadow-glass">
+                            <div className="md:col-span-2 bg-surface-light dark:bg-surface-dark/60 backdrop-blur border border-border-light dark:border-white/10 rounded-2xl p-5 shadow-glass">
                                 <div className="flex flex-col mb-4 pb-4 border-b border-white/5 gap-3">
                                     <div className="flex items-center gap-2">
                                         <Paperclip className="text-indigo-400" size={16} />
@@ -1641,11 +1641,11 @@ Equipe de Capturas - DIG / PCSP
                                     </div>
 
                                     {/* New Document Inputs */}
-                                    <div className="bg-white/5 rounded-xl p-3 grid grid-cols-1 md:grid-cols-4 gap-2 items-end">
+                                    <div className="bg-slate-100 dark:bg-white/5 rounded-xl p-3 grid grid-cols-1 md:grid-cols-4 gap-2 items-end">
                                         <div className="space-y-1">
-                                            <label className="text-[9px] font-black text-text-muted uppercase tracking-wider">Tipo</label>
+                                            <label className="text-[9px] font-black text-text-secondary-light dark:text-text-muted uppercase tracking-wider">Tipo</label>
                                             <select
-                                                className="w-full bg-surface-dark border border-white/10 rounded-lg p-2 text-[10px] text-white outline-none"
+                                                className="w-full bg-white dark:bg-surface-dark border border-slate-200 dark:border-white/10 rounded-lg p-2 text-[10px] text-text-light dark:text-white outline-none"
                                                 value={newDocType}
                                                 onChange={e => setNewDocType(e.target.value)}
                                             >
@@ -1656,18 +1656,18 @@ Equipe de Capturas - DIG / PCSP
                                             </select>
                                         </div>
                                         <div className="space-y-1">
-                                            <label className="text-[9px] font-black text-text-muted uppercase tracking-wider">Origem/Vara</label>
+                                            <label className="text-[9px] font-black text-text-secondary-light dark:text-text-muted uppercase tracking-wider">Origem/Vara</label>
                                             <input
-                                                className="w-full bg-surface-dark border border-white/10 rounded-lg p-2 text-[10px] text-white outline-none placeholder:text-white/20"
+                                                className="w-full bg-white dark:bg-surface-dark border border-slate-200 dark:border-white/10 rounded-lg p-2 text-[10px] text-text-light dark:text-white outline-none placeholder:text-text-muted/50 dark:placeholder:text-white/20"
                                                 placeholder="Ex: 1ª Vara Criminal"
                                                 value={newDocSource}
                                                 onChange={e => setNewDocSource(e.target.value)}
                                             />
                                         </div>
                                         <div className="space-y-1">
-                                            <label className="text-[9px] font-black text-text-muted uppercase tracking-wider">Numeração/Edição</label>
+                                            <label className="text-[9px] font-black text-text-secondary-light dark:text-text-muted uppercase tracking-wider">Numeração/Edição</label>
                                             <input
-                                                className="w-full bg-surface-dark border border-white/10 rounded-lg p-2 text-[10px] text-white outline-none placeholder:text-white/20"
+                                                className="w-full bg-white dark:bg-surface-dark border border-slate-200 dark:border-white/10 rounded-lg p-2 text-[10px] text-text-light dark:text-white outline-none placeholder:text-text-muted/50 dark:placeholder:text-white/20"
                                                 placeholder="Ex: 001/2026"
                                                 value={newDocNumber}
                                                 onChange={e => setNewDocNumber(e.target.value)}
@@ -1703,12 +1703,12 @@ Equipe de Capturas - DIG / PCSP
                                 {data.attachments && data.attachments.length > 0 ? (
                                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                                         {data.attachments.map((file: string, idx: number) => (
-                                            <div key={idx} className="bg-white/5 border border-white/5 rounded-xl p-3 flex items-center justify-between group hover:bg-white/10 transition-all">
+                                            <div key={idx} className="bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/5 rounded-xl p-3 flex items-center justify-between group hover:bg-slate-200 dark:hover:bg-white/10 transition-all">
                                                 <div className="flex items-center gap-3 min-w-0">
-                                                    <div className="p-2 bg-primary/20 rounded-lg text-primary">
+                                                    <div className="p-2 bg-primary/10 dark:bg-primary/20 rounded-lg text-primary">
                                                         <FileText size={16} />
                                                     </div>
-                                                    <span className="text-[11px] font-bold text-white truncate max-w-[120px]">
+                                                    <span className="text-[11px] font-bold text-text-light dark:text-white truncate max-w-[120px]">
                                                         {(() => {
                                                             const parts = file.split('/').pop()?.split('_') || [];
                                                             if (parts.length >= 4 && (parts[0] === 'Mandado' || parts[0] === 'IFFO' || parts[0] === 'Oficio')) {
@@ -1719,9 +1719,9 @@ Equipe de Capturas - DIG / PCSP
                                                     </span>
                                                 </div>
                                                 <div className="flex items-center gap-1">
-                                                    <a href={getPublicUrl(file)} target="_blank" rel="noopener noreferrer" className="p-2 text-text-muted hover:text-white" title="Visualizar"><Eye size={14} /></a>
-                                                    <a href={getPublicUrl(file)} target="_blank" rel="noopener noreferrer" className="p-2 text-text-muted hover:text-white hidden" title="Abrir Link"><ExternalLink size={14} /></a>
-                                                    <button onClick={() => handleDeleteAttachment(file)} className="p-2 text-red-500 hover:text-red-400" title="Excluir"><Trash2 size={14} /></button>
+                                                    <a href={getPublicUrl(file)} target="_blank" rel="noopener noreferrer" className="p-2 text-text-secondary-light dark:text-text-muted hover:text-text-light dark:hover:text-white" title="Visualizar"><Eye size={14} /></a>
+                                                    <a href={getPublicUrl(file)} target="_blank" rel="noopener noreferrer" className="p-2 text-text-secondary-light dark:text-text-muted hover:text-text-light dark:hover:text-white hidden" title="Abrir Link"><ExternalLink size={14} /></a>
+                                                    <button onClick={() => handleDeleteAttachment(file)} className="p-2 text-rose-500 hover:text-rose-600 dark:text-red-500 dark:hover:text-red-400" title="Excluir"><Trash2 size={14} /></button>
                                                 </div>
                                             </div>
                                         ))}
@@ -1747,8 +1747,8 @@ Equipe de Capturas - DIG / PCSP
                                         <Bot size={28} className="text-white" />
                                     </div>
                                     <div>
-                                        <h4 className="text-xl font-black text-white uppercase tracking-tighter">Sugestão Tática Inteligente</h4>
-                                        <p className="text-[10px] text-indigo-300 font-bold uppercase tracking-widest flex items-center gap-1">
+                                        <h4 className="text-xl font-black text-text-light dark:text-white uppercase tracking-tighter">Sugestão Tática Inteligente</h4>
+                                        <p className="text-[10px] text-indigo-600 dark:text-indigo-300 font-bold uppercase tracking-widest flex items-center gap-1">
                                             <Activity size={10} className="animate-pulse" /> Memória Ativa da Investigação
                                         </p>
                                     </div>
@@ -1762,11 +1762,11 @@ Equipe de Capturas - DIG / PCSP
                                             const progress = intel.progressLevel || 0;
                                             return (
                                                 <div className="hidden md:flex flex-col items-end mr-4">
-                                                    <span className="text-[9px] uppercase font-black text-indigo-300 tracking-widest mb-1">Avanço Global</span>
-                                                    <div className="w-32 h-2 bg-white/10 rounded-full overflow-hidden">
+                                                    <span className="text-[9px] uppercase font-black text-indigo-600 dark:text-indigo-300 tracking-widest mb-1">Avanço Global</span>
+                                                    <div className="w-32 h-2 bg-slate-200 dark:bg-white/10 rounded-full overflow-hidden">
                                                         <div className="h-full bg-gradient-to-r from-indigo-500 to-cyan-400 transition-all duration-1000" style={{ width: `${progress}%` }}></div>
                                                     </div>
-                                                    <span className="text-[10px] font-bold text-white mt-1">{progress}% Concluído</span>
+                                                    <span className="text-[10px] font-bold text-text-light dark:text-white mt-1">{progress}% Concluído</span>
                                                 </div>
                                             )
                                         } catch (e) { return null }
@@ -1775,7 +1775,7 @@ Equipe de Capturas - DIG / PCSP
                                     {/* GENERATE PDF BUTTON */}
                                     <button
                                         onClick={handleDownloadPDF} // Including standard PDF generation
-                                        className="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 border border-white/5"
+                                        className="bg-slate-100 dark:bg-white/10 hover:bg-slate-200 dark:hover:bg-white/20 text-text-light dark:text-white px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 border border-slate-200 dark:border-white/5"
                                     >
                                         <Printer size={14} /> Dossiê Completo
                                     </button>
@@ -1837,14 +1837,14 @@ Equipe de Capturas - DIG / PCSP
                                         <div className="md:col-span-8 space-y-6">
 
                                             {/* 1. STRATEGIC SUMMARY CARD */}
-                                            <div className="bg-surface-dark/90 backdrop-blur border border-white/10 rounded-2xl p-6 shadow-glass relative overflow-hidden group">
+                                            <div className="bg-surface-light dark:bg-surface-dark/90 backdrop-blur border border-border-light dark:border-white/10 rounded-2xl p-6 shadow-glass relative overflow-hidden group">
                                                 <div className="absolute top-0 right-0 p-6 opacity-5 pointer-events-none">
                                                     <Lightbulb size={120} />
                                                 </div>
-                                                <h5 className="text-sm font-black text-indigo-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+                                                <h5 className="text-sm font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest mb-3 flex items-center gap-2">
                                                     <Target size={14} /> Resumo Estratégico Consolidado
                                                 </h5>
-                                                <p className="text-white/90 text-sm leading-relaxed whitespace-pre-wrap font-medium">
+                                                <p className="text-text-light/90 dark:text-white/90 text-sm leading-relaxed whitespace-pre-wrap font-medium">
                                                     {intel.summary || "Sem resumo disponível."}
                                                 </p>
                                             </div>
@@ -1852,53 +1852,53 @@ Equipe de Capturas - DIG / PCSP
                                             {/* 2. HYPOTHESES & RISKS ROW */}
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                 {/* HYPOTHESES */}
-                                                <div className="bg-surface-dark/80 border border-white/10 rounded-2xl p-5 shadow-sm hover:border-indigo-500/30 transition-colors">
-                                                    <h5 className="text-[10px] font-black text-cyan-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+                                                <div className="bg-surface-light dark:bg-surface-dark/80 border border-border-light dark:border-white/10 rounded-2xl p-5 shadow-sm hover:border-indigo-500/30 transition-colors">
+                                                    <h5 className="text-[10px] font-black text-cyan-600 dark:text-cyan-400 uppercase tracking-widest mb-3 flex items-center gap-2">
                                                         <Lightbulb size={12} /> Hipóteses Ativas
                                                     </h5>
                                                     <div className="space-y-3">
                                                         {intel.hypotheses && intel.hypotheses.length > 0 ? (
                                                             intel.hypotheses.map((h: any, i: number) => (
-                                                                <div key={i} className={`p-3 rounded-xl border border-white/5 ${h.status === 'Confirmada' ? 'bg-green-500/10 border-green-500/20' : 'bg-white/5'}`}>
+                                                                <div key={i} className={`p-3 rounded-xl border border-border-light dark:border-white/5 ${h.status === 'Confirmada' ? 'bg-green-500/10 border-green-500/20' : 'bg-slate-50 dark:bg-white/5'}`}>
                                                                     <div className="flex justify-between items-start mb-1">
-                                                                        <span className={`text-[9px] font-black px-1.5 py-0.5 rounded uppercase ${h.confidence === 'Alta' ? 'bg-indigo-500 text-white' : 'bg-white/10 text-gray-400'
+                                                                        <span className={`text-[9px] font-black px-1.5 py-0.5 rounded uppercase ${h.confidence === 'Alta' ? 'bg-indigo-500 text-white' : 'bg-slate-200 dark:bg-white/10 text-slate-500 dark:text-gray-400'
                                                                             }`}>{h.confidence}</span>
-                                                                        {h.status === 'Confirmada' && <CheckCircle size={12} className="text-green-400" />}
+                                                                        {h.status === 'Confirmada' && <CheckCircle size={12} className="text-emerald-600 dark:text-green-400" />}
                                                                     </div>
-                                                                    <p className="text-xs text-white leading-snug">{h.description}</p>
+                                                                    <p className="text-xs text-text-light dark:text-white leading-snug">{h.description}</p>
                                                                 </div>
                                                             ))
-                                                        ) : <p className="text-xs text-gray-500 italic">Nenhuma hipótese formalizada.</p>}
+                                                        ) : <p className="text-xs text-text-secondary-light dark:text-gray-500 italic">Nenhuma hipótese formalizada.</p>}
                                                     </div>
                                                 </div>
 
                                                 {/* RISKS */}
-                                                <div className="bg-surface-dark/80 border border-white/10 rounded-2xl p-5 shadow-sm hover:border-red-500/30 transition-colors">
-                                                    <h5 className="text-[10px] font-black text-red-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+                                                <div className="bg-surface-light dark:bg-surface-dark/80 border border-border-light dark:border-white/10 rounded-2xl p-5 shadow-sm hover:border-red-500/30 transition-colors">
+                                                    <h5 className="text-[10px] font-black text-red-600 dark:text-red-400 uppercase tracking-widest mb-3 flex items-center gap-2">
                                                         <ShieldAlert size={12} /> Riscos Operacionais
                                                     </h5>
                                                     <div className="flex flex-wrap gap-2">
                                                         {intel.risks && intel.risks.length > 0 ? (
                                                             intel.risks.map((r: string, i: number) => (
-                                                                <span key={i} className="px-3 py-1.5 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-bold flex items-center gap-2">
+                                                                <span key={i} className="px-3 py-1.5 rounded-lg bg-red-100 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 text-red-600 dark:text-red-400 text-xs font-bold flex items-center gap-2">
                                                                     <AlertTriangle size={10} /> {r}
                                                                 </span>
                                                             ))
-                                                        ) : <p className="text-xs text-gray-500 italic">Nenhum risco crítico identificado.</p>}
+                                                        ) : <p className="text-xs text-text-secondary-light dark:text-gray-500 italic">Nenhum risco crítico identificado.</p>}
                                                     </div>
                                                 </div>
                                             </div>
 
                                             {/* 3. LOCATIONS & ENTITIES */}
-                                            <div className="bg-surface-dark/80 border border-white/10 rounded-2xl p-5">
-                                                <div className="flex gap-4 mb-4 border-b border-white/10 pb-2">
+                                            <div className="bg-surface-light dark:bg-surface-dark/80 border border-border-light dark:border-white/10 rounded-2xl p-5">
+                                                <div className="flex gap-4 mb-4 border-b border-border-light dark:border-white/10 pb-2">
                                                     <div className="flex-1">
-                                                        <h5 className="text-[10px] font-black text-emerald-400 uppercase tracking-widest flex items-center gap-2">
+                                                        <h5 className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest flex items-center gap-2">
                                                             <MapIcon size={12} /> Endereços mapeados
                                                         </h5>
                                                     </div>
                                                     <div className="flex-1">
-                                                        <h5 className="text-[10px] font-black text-amber-400 uppercase tracking-widest flex items-center gap-2">
+                                                        <h5 className="text-[10px] font-black text-amber-600 dark:text-amber-400 uppercase tracking-widest flex items-center gap-2">
                                                             <Users size={12} /> Vínculos / Rede
                                                         </h5>
                                                     </div>
@@ -1906,33 +1906,33 @@ Equipe de Capturas - DIG / PCSP
 
                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                     {/* Locations List */}
-                                                    <div className="space-y-2 max-h-48 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-white/10">
+                                                    <div className="space-y-2 max-h-48 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-white/10">
                                                         {intel.locations && intel.locations.map((l: any, i: number) => (
-                                                            <div key={i} className="flex items-start gap-2 p-2 rounded-lg hover:bg-white/5 transition-colors group">
-                                                                <MapPin size={14} className={`mt-0.5 shrink-0 ${l.priority === 'Alta' ? 'text-red-400' : 'text-gray-400'}`} />
+                                                            <div key={i} className="flex items-start gap-2 p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-white/5 transition-colors group">
+                                                                <MapPin size={14} className={`mt-0.5 shrink-0 ${l.priority === 'Alta' ? 'text-red-600 dark:text-red-400' : 'text-slate-400 dark:text-gray-400'}`} />
                                                                 <div className="flex-1 min-w-0">
                                                                     {/* Fix: Allow text wrap instead of truncate */}
-                                                                    <p className="text-xs font-bold text-white break-words leading-tight">
+                                                                    <p className="text-xs font-bold text-text-light dark:text-white break-words leading-tight">
                                                                         {l.address}
                                                                     </p>
-                                                                    <p className="text-[10px] text-gray-400 break-words mt-0.5 leading-snug">
+                                                                    <p className="text-[10px] text-text-secondary-light dark:text-gray-400 break-words mt-0.5 leading-snug">
                                                                         {l.context}
                                                                     </p>
                                                                 </div>
-                                                                <span className={`text-[9px] px-1.5 py-0.5 rounded font-bold shrink-0 ${l.status === 'Verificado' ? 'bg-green-500/20 text-green-400' : 'bg-white/10 text-gray-500'
+                                                                <span className={`text-[9px] px-1.5 py-0.5 rounded font-bold shrink-0 ${l.status === 'Verificado' ? 'bg-green-100 dark:bg-green-500/20 text-green-600 dark:text-green-400' : 'bg-slate-200 dark:bg-white/10 text-slate-500 dark:text-gray-500'
                                                                     }`}>{l.status || 'Pendente'}</span>
                                                             </div>
                                                         ))}
                                                     </div>
 
                                                     {/* Entities List */}
-                                                    <div className="space-y-2 max-h-48 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-white/10">
+                                                    <div className="space-y-2 max-h-48 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-white/10">
                                                         {intel.entities && intel.entities.map((e: any, i: number) => (
-                                                            <div key={i} className="flex items-center gap-2 p-2 rounded-lg hover:bg-white/5 transition-colors">
-                                                                <User size={14} className="text-indigo-400" />
+                                                            <div key={i} className="flex items-center gap-2 p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-white/5 transition-colors">
+                                                                <User size={14} className="text-indigo-600 dark:text-indigo-400" />
                                                                 <div className="flex-1 min-w-0">
-                                                                    <p className="text-xs font-bold text-white truncate">{e.name}</p>
-                                                                    <p className="text-[10px] text-gray-400">{e.role}</p>
+                                                                    <p className="text-xs font-bold text-text-light dark:text-white truncate">{e.name}</p>
+                                                                    <p className="text-[10px] text-text-secondary-light dark:text-gray-400">{e.role}</p>
                                                                 </div>
                                                             </div>
                                                         ))}
@@ -1946,45 +1946,45 @@ Equipe de Capturas - DIG / PCSP
                                         <div className="md:col-span-4 space-y-6">
 
                                             {/* NEXT STEPS (ACTIONABLE) */}
-                                            <div className="bg-gradient-to-br from-indigo-900/40 to-surface-dark border border-indigo-500/30 rounded-2xl p-5 shadow-lg">
-                                                <h5 className="text-[10px] font-black text-white uppercase tracking-widest mb-4 flex items-center gap-2">
-                                                    <CheckSquare size={14} className="text-green-400" /> Próximos Passos
+                                            <div className="bg-gradient-to-br from-indigo-50 to-white dark:from-indigo-900/40 dark:to-surface-dark border border-indigo-200 dark:border-indigo-500/30 rounded-2xl p-5 shadow-lg">
+                                                <h5 className="text-[10px] font-black text-indigo-900 dark:text-white uppercase tracking-widest mb-4 flex items-center gap-2">
+                                                    <CheckSquare size={14} className="text-green-600 dark:text-green-400" /> Próximos Passos
                                                 </h5>
                                                 <div className="space-y-3">
                                                     {intel.checklist && intel.checklist.length > 0 ? (
                                                         intel.checklist.map((s: any, i: number) => (
-                                                            <label key={i} className="flex items-start gap-3 p-2 rounded-xl bg-black/20 hover:bg-black/40 transition-colors cursor-pointer group">
-                                                                <div className={`mt-1 w-4 h-4 rounded border flex items-center justify-center ${s.status === 'Concluído' || s.checked ? 'bg-green-500 border-green-500' : 'border-gray-500 group-hover:border-white'
+                                                            <label key={i} className="flex items-start gap-3 p-2 rounded-xl bg-slate-100 dark:bg-black/20 hover:bg-slate-200 dark:hover:bg-black/40 transition-colors cursor-pointer group">
+                                                                <div className={`mt-1 w-4 h-4 rounded border flex items-center justify-center ${s.status === 'Concluído' || s.checked ? 'bg-green-500 border-green-500' : 'border-slate-400 dark:border-gray-500 group-hover:border-indigo-500 dark:group-hover:border-white'
                                                                     }`}>
                                                                     {(s.status === 'Concluído' || s.checked) && <CheckSquare size={10} className="text-white" />}
                                                                 </div>
                                                                 <div className="flex-1">
-                                                                    <p className={`text-xs font-medium leading-relaxed ${(s.status === 'Concluído' || s.checked) ? 'text-gray-500 line-through' : 'text-white'}`}>
+                                                                    <p className={`text-xs font-medium leading-relaxed ${(s.status === 'Concluído' || s.checked) ? 'text-slate-500 dark:text-gray-500 line-through' : 'text-text-light dark:text-white'}`}>
                                                                         {s.task}
                                                                     </p>
-                                                                    {s.priority === 'Alta' && <span className="text-[9px] text-red-400 font-bold uppercase mt-1 inline-block">Prioridade Alta</span>}
+                                                                    {s.priority === 'Alta' && <span className="text-[9px] text-red-600 dark:text-red-400 font-bold uppercase mt-1 inline-block">Prioridade Alta</span>}
                                                                 </div>
                                                             </label>
                                                         ))
-                                                    ) : <p className="text-xs text-gray-500 text-center">Nenhuma ação pendente.</p>}
+                                                    ) : <p className="text-xs text-text-secondary-light dark:text-gray-500 text-center">Nenhuma ação pendente.</p>}
                                                 </div>
                                             </div>
 
                                             {/* STRATEGIC TIMELINE (NOT THE RAW LOG) */}
-                                            <div className="bg-surface-dark border border-white/5 rounded-2xl p-5">
-                                                <h5 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                                            <div className="bg-surface-light dark:bg-surface-dark border border-border-light dark:border-white/5 rounded-2xl p-5">
+                                                <h5 className="text-[10px] font-black text-text-secondary-light dark:text-gray-400 uppercase tracking-widest mb-4 flex items-center gap-2">
                                                     <History size={14} /> Evolução da Investigação
                                                 </h5>
                                                 <div className="space-y-4 relative pl-2">
                                                     {/* Timeline Line */}
-                                                    <div className="absolute left-[11px] top-2 bottom-2 w-px bg-white/10"></div>
+                                                    <div className="absolute left-[11px] top-2 bottom-2 w-px bg-slate-200 dark:bg-white/10"></div>
 
                                                     {intel.timeline && intel.timeline.slice(0, 5).map((t: any, i: number) => (
                                                         <div key={i} className="relative pl-6">
-                                                            <div className="absolute left-[7px] top-1.5 w-2 h-2 rounded-full bg-indigo-500 ring-4 ring-surface-dark"></div>
-                                                            <p className="text-[10px] text-indigo-300 font-bold mb-0.5">{t.date}</p>
-                                                            <p className="text-xs text-white leading-tight">{t.event}</p>
-                                                            <p className="text-[9px] text-gray-500 mt-0.5">{t.source}</p>
+                                                            <div className="absolute left-[7px] top-1.5 w-2 h-2 rounded-full bg-indigo-500 ring-4 ring-white dark:ring-surface-dark"></div>
+                                                            <p className="text-[10px] text-indigo-600 dark:text-indigo-300 font-bold mb-0.5">{t.date}</p>
+                                                            <p className="text-xs text-text-light dark:text-white leading-tight">{t.event}</p>
+                                                            <p className="text-[9px] text-text-secondary-light dark:text-gray-500 mt-0.5">{t.source}</p>
                                                         </div>
                                                     ))}
                                                 </div>

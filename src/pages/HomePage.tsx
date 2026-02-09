@@ -87,7 +87,7 @@ const HomePage = ({ isDark, toggleTheme }: HomePageProps) => {
                                             <div className="flex-1 min-w-0">
                                                 <p className="font-bold text-sm text-text-light dark:text-text-dark truncate">{item.name}</p>
                                                 <p className="text-xs text-text-secondary-light dark:text-text-secondary-dark">{item.type}</p>
-                                                <p className="text-[10px] text-gray-400 mt-0.5">Vence em: {formatDate(item.expirationDate || item.date)}</p>
+                                                <p className="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">Vence em: {formatDate(item.expirationDate || item.date)}</p>
                                             </div>
                                         </Link>
                                     ))}
@@ -97,7 +97,7 @@ const HomePage = ({ isDark, toggleTheme }: HomePageProps) => {
                                     <CheckCircle size={32} className="mx-auto mb-2 text-green-500" />
                                     <p className="text-sm">Nenhum mandado urgente.</p>
                                     {!showAllNotifications && EXPIRING_WARRANTS.length > 0 && (
-                                        <p className="text-xs mt-1 text-gray-400">Clique em "Ver completo" para ver os próximos.</p>
+                                        <p className="text-xs mt-1 text-gray-500 dark:text-gray-400">Clique em "Ver completo" para ver os próximos.</p>
                                     )}
                                 </div>
                             )}
@@ -144,7 +144,7 @@ const HomePage = ({ isDark, toggleTheme }: HomePageProps) => {
                         type="text"
                         placeholder="Nome, RG, endereço, crime, nº mandado..."
                         onKeyDown={handleSearch}
-                        className="w-full rounded-xl border border-border-light dark:border-white/5 bg-surface-light dark:bg-surface-dark py-3.5 pl-10 pr-4 text-sm shadow-sm placeholder:text-text-secondary-light/40 dark:placeholder:text-gray-500 focus:ring-2 focus:ring-primary/20 transition-all"
+                        className="w-full rounded-xl border border-border-light dark:border-white/5 bg-surface-light dark:bg-surface-dark py-3.5 pl-10 pr-4 text-sm shadow-sm placeholder:text-text-secondary-light/60 dark:placeholder:text-gray-500 focus:ring-2 focus:ring-primary/20 transition-all"
                     />
                 </div>
             </header>
@@ -238,7 +238,7 @@ const HomePage = ({ isDark, toggleTheme }: HomePageProps) => {
                             <div className="text-right">
                                 <span className="block text-xs font-bold text-red-600 dark:text-red-400 uppercase tracking-wider">Atenção</span>
                             </div>
-                            <ChevronRight size={20} className="text-gray-400" />
+                            <ChevronRight size={20} className="text-gray-500 dark:text-gray-400" />
                         </div>
                     </div>
                 </Link>

@@ -81,9 +81,9 @@ const WarrantCard = ({ data, onPrint, isPlanned, onRouteToggle, onFinalize, onDe
                             </div>
 
                             {/* Status Badge */}
-                            <span className={`text-[9px] font-mono font-bold px-2 py-0.5 rounded border ${data.status === 'EM ABERTO' ? 'bg-risk-high/10 text-risk-high border-risk-high/20' :
-                                data.status === 'CUMPRIDO' ? 'bg-success/10 text-success border-success/20' :
-                                    'bg-risk-med/10 text-risk-med border-risk-med/20'
+                            <span className={`text-[9px] font-mono font-bold px-2 py-0.5 rounded border ${data.status === 'EM ABERTO' ? 'bg-risk-high/10 text-rose-600 dark:text-risk-high border-risk-high/20' :
+                                data.status === 'CUMPRIDO' ? 'bg-success/10 text-emerald-600 dark:text-success border-success/20' :
+                                    'bg-risk-med/10 text-amber-600 dark:text-risk-med border-risk-med/20'
                                 }`}>
                                 {data.status}
                             </span>
@@ -99,8 +99,8 @@ const WarrantCard = ({ data, onPrint, isPlanned, onRouteToggle, onFinalize, onDe
 
                         {(data.crime || data.regime) && (
                             <div className="flex flex-wrap gap-x-3 gap-y-1">
-                                {data.crime && <span className="text-[10px] text-text-muted">Art: <span className="text-text-secondary-light dark:text-text-secondary-dark">{data.crime}</span></span>}
-                                {data.regime && <span className="text-[10px] text-text-muted">Reg: <span className="text-text-secondary-light dark:text-text-secondary-dark">{data.regime}</span></span>}
+                                {data.crime && <span className="text-[10px] text-slate-500 dark:text-slate-400">Art: <span className="text-text-secondary-light dark:text-text-secondary-dark">{data.crime}</span></span>}
+                                {data.regime && <span className="text-[10px] text-slate-500 dark:text-slate-400">Reg: <span className="text-text-secondary-light dark:text-text-secondary-dark">{data.regime}</span></span>}
                             </div>
                         )}
                     </div>
@@ -108,8 +108,8 @@ const WarrantCard = ({ data, onPrint, isPlanned, onRouteToggle, onFinalize, onDe
                     {/* Footer: Tech Data */}
                     <div className="pt-2 border-t border-border-light dark:border-white/5 flex items-end justify-between">
                         <div className="space-y-0.5">
-                            <p className="text-[10px] font-mono text-text-muted flex items-center gap-1.5">
-                                <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-white/20"></span>
+                            <p className="text-[10px] font-mono text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                                <span className="w-1 h-1 rounded-full bg-slate-400 dark:bg-white/20"></span>
                                 {data.number}
                             </p>
                             {data.location && (
@@ -119,7 +119,7 @@ const WarrantCard = ({ data, onPrint, isPlanned, onRouteToggle, onFinalize, onDe
                                 </p>
                             )}
                             {data.status === 'CUMPRIDO' && data.dischargeDate && (
-                                <p className="text-[10px] font-bold text-green-400 flex items-center gap-1.5 mt-0.5">
+                                <p className="text-[10px] font-bold text-emerald-600 dark:text-green-400 flex items-center gap-1.5 mt-0.5">
                                     <CheckCircle size={10} />
                                     {formatDate(data.dischargeDate)}
                                 </p>
