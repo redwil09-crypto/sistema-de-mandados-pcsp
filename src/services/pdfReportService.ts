@@ -141,7 +141,7 @@ export const generateWarrantPDF = async (
         doc.setTextColor(...COLORS.PRIMARY);
         const nameLines = doc.splitTextToSize(data.name.toUpperCase(), contentWidth - photoW - 15);
         doc.text(nameLines, infoX, infoY);
-        infoY += (nameLines.length * 8);
+        infoY += (nameLines.length * 8); // Adjust Y based on lines needed
 
         // Status & Risk Badges
         let badgeX = infoX;
@@ -189,10 +189,17 @@ export const generateWarrantPDF = async (
             doc.setFont('helvetica', 'bold');
             doc.setTextColor(...COLORS.SECONDARY);
             doc.text(`${label}:`, infoX, infoY);
+
             doc.setFont('helvetica', 'bold');
             doc.setTextColor(...COLORS.PRIMARY);
-            doc.text(String(value).toUpperCase(), infoX + 30, infoY);
-            infoY += 6;
+
+            // Fix: Wrap long text (especially ADDRESS/LOCATION)
+            const maxWidth = contentWidth - photoW - 45; // Calculate remaining width
+            const valStr = String(value).toUpperCase();
+            const valLines = doc.splitTextToSize(valStr, maxWidth);
+
+            doc.text(valLines, infoX + 30, infoY);
+            infoY += (valLines.length * 5) + 2; // Dynamic spacing based on lines
         });
 
         y += photoH + 5;
