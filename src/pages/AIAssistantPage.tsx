@@ -53,6 +53,48 @@ const AIAssistantPage = () => {
         isGeminiEnabled().then(setHasAi);
     }, []);
 
+    // --- PERSISTENCIA DE SESSÃO ---
+    useEffect(() => {
+        const saved = localStorage.getItem('ai_assist_session');
+        if (saved) {
+            try {
+                const parsed = JSON.parse(saved);
+                if (parsed.batchResults?.length > 0 || parsed.inputText) {
+                    setBatchResults(parsed.batchResults || []);
+                    setCurrentIndex(parsed.currentIndex || 0);
+                    setInputText(parsed.inputText || '');
+
+                    // Se tiver dados, vai para revisão. Se estava processando, volta pro input para evitar travamento.
+                    let nextStep = parsed.step || 'input';
+                    if (parsed.batchResults?.length > 0 && nextStep !== 'saved') {
+                        nextStep = 'review';
+                    }
+
+                    setStep(nextStep);
+
+                    if (parsed.batchResults?.length > 0) {
+                        toast.info("Dados da extração anterior restaurados.");
+                    }
+                }
+            } catch (e) {
+                localStorage.removeItem('ai_assist_session');
+            }
+        }
+    }, []);
+
+    useEffect(() => {
+        if (batchResults.length > 0 || inputText.length > 5) {
+            const session = {
+                step,
+                batchResults,
+                currentIndex,
+                inputText
+            };
+            localStorage.setItem('ai_assist_session', JSON.stringify(session));
+        }
+    }, [step, batchResults, currentIndex, inputText]);
+
+
 
     // Filter Logic
     const filteredWarrants = useMemo(() => {
@@ -369,6 +411,7 @@ const AIAssistantPage = () => {
                     setPhotoPreview(null);
                 } else {
                     setStep('saved');
+                    localStorage.removeItem('ai_assist_session'); // Limpa sessão ao concluir
                 }
             } else {
                 toast.error("Erro ao salvar no banco de dados. Verifique a conexão.");
@@ -491,6 +534,7 @@ const AIAssistantPage = () => {
 
 
     const reset = () => {
+        localStorage.removeItem('ai_assist_session'); // Garante limpeza
         setStep('input');
         setFiles([]);
         setBatchResults([]);
