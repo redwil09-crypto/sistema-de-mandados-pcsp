@@ -8,7 +8,7 @@ import {
     RefreshCw, Save, CheckCircle, Filter, Home, History,
     Bell, Zap, Printer, User, Calendar, MapPin, Mic,
     MicOff, Bot, Briefcase, FileUp, Gavel, AlertTriangle, FileCheck,
-    Paperclip, ShieldAlert, Layers, Sparkles, Camera, Map as MapIcon
+    Paperclip, ShieldAlert, Layers, Sparkles, Camera, Map as MapIcon, ExternalLink
 } from 'lucide-react';
 import Header from '../components/Header';
 import ConfirmModal from '../components/ConfirmModal';
@@ -882,128 +882,137 @@ const AIAssistantPage = () => {
                                                 </div>
                                             </div>
 
-                                            {/* Localização */}
+                                            {/* Localização Operacional (NewWarrant Style) */}
                                             <div className="animate-in fade-in duration-200">
-                                                <div className="flex items-center gap-2 mb-3 border-b border-border-light dark:border-border-dark pb-1">
-                                                    <MapPin size={16} className="text-primary" />
-                                                    <h4 className="text-[10px] font-bold uppercase text-text-light dark:text-text-dark">Endereços</h4>
-                                                </div>
-                                                <div className="space-y-3">
-                                                    {extractedData.addresses.length > 0 ? extractedData.addresses.map((addr: string, i: number) => (
-                                                        <div key={i} className="flex gap-2 items-center">
-                                                            <MapPin size={12} className="text-primary" />
-                                                            <input
-                                                                type="text"
-                                                                value={addr}
-                                                                onChange={(e) => handleAddressChange(i, e.target.value)}
-                                                                className="flex-1 bg-transparent border-b border-border-light dark:border-border-dark py-1 text-sm outline-none"
-                                                            />
-                                                        </div>
-                                                    )) : (
-                                                        <p className="text-xs text-text-secondary-light italic">Nenhum endereço identificado automaticamente.</p>
-                                                    )}
-                                                    <button
-                                                        onClick={() => {
-                                                            const results = [...batchResults];
-                                                            results[currentIndex] = { ...results[currentIndex], addresses: [...(results[currentIndex].addresses || []), ''] };
-                                                            setBatchResults(results);
-                                                        }}
-                                                        className="text-[10px] text-primary font-bold hover:underline"
-                                                    >
-                                                        + ADICIONAR ENDEREÇO
-                                                    </button>
-                                                </div>
-                                            </div>
-
-                                            {/* Localização Operacional */}
-                                            <div className="animate-in fade-in duration-200">
-                                                <div className="flex items-center justify-between mb-3 border-b border-border-light dark:border-border-dark pb-1">
-                                                    <div className="flex items-center gap-2">
-                                                        <MapIcon size={16} className="text-primary" />
-                                                        <h4 className="text-[10px] font-bold uppercase text-text-light dark:text-text-dark">Localização Operacional</h4>
-                                                    </div>
-                                                    {extractedData.latitude && extractedData.longitude ? (
-                                                        <span className="text-[10px] font-black bg-emerald-100 dark:bg-green-500/10 text-emerald-700 dark:text-green-400 border border-emerald-200 dark:border-green-500/20 px-3 py-1 rounded-full flex items-center gap-1.5 shadow-sm animate-pulse">
-                                                            <FileCheck size={12} /> MAPEADO
-                                                        </span>
-                                                    ) : (
-                                                        <span className="text-[10px] font-black bg-red-100 dark:bg-red-500/10 text-red-600 dark:text-red-500 border border-red-200 dark:border-red-500/20 px-3 py-1 rounded-full flex items-center gap-1.5 shadow-sm">
-                                                            <AlertTriangle size={12} /> NÃO MAPEADO
-                                                        </span>
-                                                    )}
-                                                </div>
-
-                                                <div className="bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-xl p-4 space-y-4">
-                                                    <div className="grid grid-cols-2 gap-3">
-                                                        <div>
-                                                            <label className="text-[10px] font-black text-text-secondary-light dark:text-text-muted uppercase tracking-wider">Latitude</label>
-                                                            <input
-                                                                type="text"
-                                                                value={extractedData.latitude || ''}
-                                                                onChange={(e) => handleExtractedDataChange('latitude', e.target.value)}
-                                                                className="w-full bg-transparent border-b border-border-light dark:border-border-dark py-1 text-sm outline-none font-mono"
-                                                                placeholder="-23.xxxxx"
-                                                            />
-                                                        </div>
-                                                        <div>
-                                                            <label className="text-[10px] font-black text-text-secondary-light dark:text-text-muted uppercase tracking-wider">Longitude</label>
-                                                            <input
-                                                                type="text"
-                                                                value={extractedData.longitude || ''}
-                                                                onChange={(e) => handleExtractedDataChange('longitude', e.target.value)}
-                                                                className="w-full bg-transparent border-b border-border-light dark:border-border-dark py-1 text-sm outline-none font-mono"
-                                                                placeholder="-45.xxxxx"
-                                                            />
-                                                        </div>
-                                                    </div>
-
-                                                    <div className="flex gap-2">
-                                                        <button
-                                                            onClick={async () => {
-                                                                const address = extractedData.addresses?.[0] || extractedData.location;
-                                                                if (!address) {
-                                                                    toast.error("Nenhum endereço para buscar.");
-                                                                    return;
-                                                                }
-                                                                try {
-                                                                    const toastId = toast.loading("Buscando coordenadas...");
-                                                                    const geoResult = await geocodeAddress(address);
-                                                                    if (geoResult) {
-                                                                        toast.dismiss(toastId);
-                                                                        toast.success(`Encontrado: ${geoResult.displayName}`);
-                                                                        setBatchResults(prev => {
-                                                                            const newResults = [...prev];
-                                                                            newResults[currentIndex] = {
-                                                                                ...newResults[currentIndex],
-                                                                                latitude: geoResult.lat,
-                                                                                longitude: geoResult.lng
-                                                                            };
-                                                                            return newResults;
-                                                                        });
-                                                                    } else {
-                                                                        toast.dismiss(toastId);
-                                                                        toast.error("Endereço não localizado.");
-                                                                    }
-                                                                } catch (e) {
-                                                                    toast.dismiss();
-                                                                    toast.error("Erro na geocodificação.");
-                                                                }
-                                                            }}
-                                                            className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl py-2 text-[10px] font-black uppercase flex items-center justify-center gap-2 transition-all active:scale-95 shadow-lg shadow-indigo-500/20"
-                                                        >
-                                                            <Search size={14} /> Buscar Coordenadas
-                                                        </button>
-
-                                                        {extractedData.latitude && extractedData.longitude && (
-                                                            <a
-                                                                href={`https://www.google.com/maps/search/?api=1&query=${extractedData.latitude},${extractedData.longitude}`}
-                                                                target="_blank"
-                                                                rel="noopener noreferrer"
-                                                                className="flex-1 bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 border border-slate-200 dark:border-white/10 rounded-xl py-2 text-[10px] font-black uppercase flex items-center justify-center gap-2 transition-all active:scale-95 text-text-light dark:text-white"
-                                                            >
-                                                                <MapIcon size={14} /> Ver no Mapa
-                                                            </a>
+                                                <div className="bg-surface-light dark:bg-surface-dark rounded-xl shadow-sm border border-border-light dark:border-border-dark overflow-hidden transition-all hover:shadow-md mb-6">
+                                                    <div className="p-4 border-b border-border-light dark:border-border-dark bg-gray-50/50 dark:bg-white/5 flex items-center justify-between">
+                                                        <h3 className="font-bold text-text-light dark:text-text-dark text-sm flex items-center gap-2">
+                                                            <MapIcon size={18} className="text-primary" /> Localização Operacional
+                                                        </h3>
+                                                        {extractedData.latitude && extractedData.longitude ? (
+                                                            <span className="text-[10px] font-black bg-green-500/10 text-green-600 dark:text-green-400 border border-green-500/20 px-3 py-1 rounded-full flex items-center gap-1.5 shadow-sm animate-pulse">
+                                                                <FileCheck size={12} /> MAPEADO
+                                                            </span>
+                                                        ) : (
+                                                            <span className="text-[10px] font-black bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20 px-3 py-1 rounded-full flex items-center gap-1.5 shadow-sm">
+                                                                <AlertTriangle size={12} /> NÃO MAPEADO
+                                                            </span>
                                                         )}
+                                                    </div>
+
+                                                    <div className="p-5 space-y-6">
+                                                        <div className="space-y-2 relative">
+                                                            <label className="text-[10px] font-black text-text-secondary-light dark:text-text-secondary-dark/50 uppercase tracking-widest px-1">Endereço de Diligência</label>
+                                                            <div className="flex gap-3 items-center">
+                                                                <div className="relative flex-1 group">
+                                                                    <input
+                                                                        value={extractedData.addresses?.[0] || ''}
+                                                                        onChange={(e) => {
+                                                                            const newAddresses = [...(extractedData.addresses || [])];
+                                                                            newAddresses[0] = e.target.value;
+                                                                            handleExtractedDataChange('addresses', newAddresses);
+                                                                            handleExtractedDataChange('location', e.target.value);
+                                                                        }}
+                                                                        type="text"
+                                                                        className="w-full rounded-xl border border-border-light dark:border-border-dark bg-white dark:bg-black/20 p-3.5 text-sm text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none transition-all shadow-sm"
+                                                                        placeholder="Rua, Número, Bairro, Cidade ou CEP"
+                                                                    />
+                                                                    <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none opacity-20 group-focus-within:opacity-50 transition-opacity">
+                                                                        <Search size={16} />
+                                                                    </div>
+                                                                </div>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={async () => {
+                                                                        const address = extractedData.addresses?.[0];
+                                                                        if (!address) {
+                                                                            toast.error("Informe um endereço primeiro");
+                                                                            return;
+                                                                        }
+                                                                        const tid = toast.loading("Buscando coordenadas...");
+                                                                        const res = await geocodeAddress(address);
+                                                                        if (res) {
+                                                                            const results = [...batchResults];
+                                                                            results[currentIndex] = {
+                                                                                ...results[currentIndex],
+                                                                                latitude: res.lat,
+                                                                                longitude: res.lng
+                                                                            };
+                                                                            setBatchResults(results);
+                                                                            toast.success("Mapeado com sucesso!", { id: tid });
+                                                                        } else {
+                                                                            toast.error("Endereço não localizado", { id: tid });
+                                                                        }
+                                                                    }}
+                                                                    className="bg-primary hover:bg-primary-dark text-white p-3.5 rounded-xl transition-all active:scale-95 shrink-0 shadow-lg shadow-primary/30 flex items-center justify-center"
+                                                                    title="Mapear Endereço"
+                                                                >
+                                                                    <RefreshCw size={20} />
+                                                                </button>
+                                                            </div>
+                                                        </div>
+
+                                                        <div className="pt-4 border-t border-dashed border-border-light dark:border-border-dark">
+                                                            <label className="text-[10px] font-black text-text-secondary-light dark:text-text-dark/50 uppercase tracking-widest px-1 mb-2 block">Coordenadas de Precisão (Lat, Long)</label>
+                                                            <div className="flex flex-col sm:flex-row gap-3">
+                                                                <div className="flex-1 bg-white dark:bg-black/20 border border-border-light dark:border-border-dark rounded-xl p-3.5 shadow-sm flex items-center gap-3 focus-within:ring-2 focus-within:ring-primary/30 focus-within:border-primary transition-all">
+                                                                    <div className="p-1.5 bg-gray-100 dark:bg-white/5 rounded-lg">
+                                                                        <MapIcon size={14} className="text-text-secondary-light/40" />
+                                                                    </div>
+                                                                    <input
+                                                                        value={extractedData.latitude && extractedData.longitude ? `${extractedData.latitude}, ${extractedData.longitude}` : ''}
+                                                                        onChange={(e) => {
+                                                                            const val = e.target.value;
+                                                                            const results = [...batchResults];
+
+                                                                            if (!val) {
+                                                                                results[currentIndex] = { ...results[currentIndex], latitude: undefined, longitude: undefined };
+                                                                                setBatchResults(results);
+                                                                                return;
+                                                                            }
+
+                                                                            const matches = val.match(/-?\d+\.\d+/g);
+                                                                            if (matches && matches.length >= 2) {
+                                                                                results[currentIndex] = {
+                                                                                    ...results[currentIndex],
+                                                                                    latitude: parseFloat(matches[0]),
+                                                                                    longitude: parseFloat(matches[1])
+                                                                                };
+                                                                                setBatchResults(results);
+                                                                            }
+                                                                        }}
+                                                                        type="text"
+                                                                        className="flex-1 bg-transparent border-none text-sm font-mono text-text-light dark:text-text-dark outline-none placeholder:text-text-secondary-light/30"
+                                                                        placeholder="Ex: -23.31, -45.96"
+                                                                    />
+                                                                </div>
+
+                                                                {extractedData.latitude && extractedData.longitude && (
+                                                                    <div className="flex gap-2">
+                                                                        <Link
+                                                                            to={`/map?lat=${extractedData.latitude}&lng=${extractedData.longitude}`}
+                                                                            className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-3 rounded-xl text-[10px] font-black flex items-center justify-center gap-2 transition-all shadow-lg shadow-indigo-500/20 tracking-wider uppercase active:scale-95"
+                                                                        >
+                                                                            <MapPin size={14} className="fill-white/20" /> MAPA OPS
+                                                                        </Link>
+                                                                        <a
+                                                                            href={`https://www.google.com/maps?q=${extractedData.latitude},${extractedData.longitude}`}
+                                                                            target="_blank"
+                                                                            rel="noopener noreferrer"
+                                                                            className="bg-white dark:bg-white/5 text-slate-700 dark:text-white px-5 py-3 rounded-xl text-[10px] font-black flex items-center justify-center gap-2 transition-all shadow-sm tracking-wider uppercase border border-border-light dark:border-border-dark hover:bg-gray-50 dark:hover:bg-white/10 active:scale-95"
+                                                                        >
+                                                                            <ExternalLink size={14} className="text-green-500" /> GOOGLE MAPS
+                                                                        </a>
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                            <div className="flex items-center gap-2 mt-3 px-1">
+                                                                <Sparkles size={12} className="text-primary/40" />
+                                                                <p className="text-[9px] text-text-secondary-light/60 dark:text-text-dark/40 font-medium italic">
+                                                                    O georeferenciamento integra bases de dados geográficas para precisão tática em campo.
+                                                                </p>
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
