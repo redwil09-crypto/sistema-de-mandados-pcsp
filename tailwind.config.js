@@ -24,7 +24,7 @@ export default {
                 "surface-dark-elevated": "#1e293b",
                 "border-dark": "#1e293b",
                 "border-dark-highlight": "#334155",
-                "background-light": "#f8fafc", // Slate 50 - High Brightness
+                "background-light": "#e2e8f0", // Slate 200 - Distinct Gray
                 "surface-light": "#ffffff", // White - Pure
                 "border-light": "#cbd5e1", // Slate 300 - Higher Contrast
                 "text-light": "#0f172a", // Slate 900 - Deep Dark for Max Contrast
