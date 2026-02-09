@@ -579,96 +579,107 @@ const WarrantDetail = () => {
 
     const handleAddDiligence = async () => {
         // Validation: Must have either text OR AI result
-        if (!newDiligence.trim() && !aiDiligenceResult) {
+        const hasText = newDiligence && newDiligence.trim().length > 0;
+        const hasAI = !!aiDiligenceResult;
+
+        if (!hasText && !hasAI) {
             toast.error("Nada para registrar.");
             return;
         }
 
         setIsSavingDiligence(true);
-        const toastId = toast.loading("Processando Inteligência e Fusão de Dados...");
+        const toastId = toast.loading("Processando dados...");
 
-        // 0. Normalize AI Result for Merge (Handle String vs Object)
-        let analysisToMerge: any = null;
-        if (aiDiligenceResult) {
-            if (typeof aiDiligenceResult === 'string') {
-                analysisToMerge = { summary: aiDiligenceResult };
-            } else {
-                analysisToMerge = aiDiligenceResult;
+        try {
+            // 0. Normalize AI Result for Merge (Handle String vs Object)
+            let analysisToMerge: any = null;
+            if (hasAI) {
+                if (typeof aiDiligenceResult === 'string') {
+                    analysisToMerge = { summary: aiDiligenceResult };
+                } else {
+                    analysisToMerge = aiDiligenceResult;
+                }
             }
-        }
 
-        // 1. Prepare raw note for history (Audit purpose)
-        let finalNotes = newDiligence;
+            // 1. Prepare raw note for history (Audit purpose)
+            let finalNotes = newDiligence || "";
 
-        // If we have AI analysis, we append a tag to the note
-        if (analysisToMerge) {
-            const hasText = newDiligence.trim().length > 0;
-            finalNotes = hasText
-                ? `${newDiligence}\n\n[INTELIGÊNCIA PROCESSADA E ENVIADA AO CENTRO]`
-                : `[INTELIGÊNCIA PROCESSADA E ENVIADA AO CENTRO]`;
-        }
+            // If we have AI analysis, we append a tag to the note
+            if (analysisToMerge) {
+                finalNotes = hasText
+                    ? `${newDiligence}\n\n[INTELIGÊNCIA PROCESSADA E ENVIADA AO CENTRO]`
+                    : `[INTELIGÊNCIA PROCESSADA E ENVIADA AO CENTRO]`;
+            }
 
-        // 2. INTELLIGENT MERGE LOGIC (THE CORE)
-        let updatedTacticalSummary = data?.tacticalSummary || '{}';
+            // 2. INTELLIGENT MERGE LOGIC (THE CORE)
+            let updatedTacticalSummary = data?.tacticalSummary || '{}';
 
-        if (analysisToMerge) {
-            try {
-                // Parse current state
-                let currentIntel = {};
+            if (analysisToMerge) {
                 try {
-                    currentIntel = JSON.parse(updatedTacticalSummary);
-                } catch (e) { currentIntel = {}; }
+                    toast.loading("Realizando fusão de inteligência...", { id: toastId });
 
-                // CALL THE AI MERGE SERVICE
-                const mergedIntel = await mergeIntelligence(data, currentIntel, analysisToMerge);
+                    // Parse current state
+                    let currentIntel = {};
+                    try {
+                        currentIntel = JSON.parse(updatedTacticalSummary);
+                    } catch (e) { currentIntel = {}; }
 
-                updatedTacticalSummary = JSON.stringify(mergedIntel);
-            } catch (mergeError) {
-                console.error("Error calling AI Merge:", mergeError);
-                toast.error("Falha na fusão inteligente. Salvando dados brutos.", { id: toastId });
+                    // CALL THE AI MERGE SERVICE
+                    const mergedIntel = await mergeIntelligence(data, currentIntel, analysisToMerge);
+
+                    updatedTacticalSummary = JSON.stringify(mergedIntel);
+                } catch (mergeError) {
+                    console.error("Error calling AI Merge:", mergeError);
+                    toast.error("Falha na fusão IA. Salvando apenas texto.", { id: toastId });
+                }
             }
-        }
 
-        const entry: any = {
-            id: Date.now().toString(),
-            date: new Date().toISOString(),
-            investigator: "Policial",
-            notes: finalNotes,
-            type: 'intelligence'
-        };
+            const entry: any = {
+                id: Date.now().toString(),
+                date: new Date().toISOString(),
+                investigator: "Policial",
+                notes: finalNotes,
+                type: 'intelligence'
+            };
 
-        const updatedHistory = [...(data.diligentHistory || []), entry];
+            const updatedHistory = [...(data.diligentHistory || []), entry];
 
-        // 3. Save updates
-        const updates: any = {
-            diligentHistory: updatedHistory,
-            tacticalSummary: updatedTacticalSummary,
-            observation: localData.observation, // Sync forms just in case
-            location: localData.location
-        };
+            // 3. Save updates
+            const updates: any = {
+                diligentHistory: updatedHistory,
+                tacticalSummary: updatedTacticalSummary,
+                // Only update observation/location if they changed in local state to avoid overwrites
+                ...(localData.observation !== data.observation && { observation: localData.observation }),
+                ...(localData.location !== data.location && { location: localData.location })
+            };
 
-        const success = await updateWarrant(data.id, updates);
+            toast.loading("Salvando no banco de dados...", { id: toastId });
+            const success = await updateWarrant(data.id, updates);
 
-        if (success) {
-            setNewDiligence('');
-            setAiAnalysisSaved(true);
-            setAnalyzedDocumentText('');
+            if (success) {
+                // Critical: Update parent state immediately
+                await refreshWarrants();
 
-            // Critical: Update parent state immediately
-            await refreshWarrants();
+                setNewDiligence('');
+                setAiAnalysisSaved(true);
+                setAnalyzedDocumentText('');
 
-            toast.success("Informações Transferidas para o Centro de Inteligência!", { id: toastId });
+                toast.success("Prontuário atualizado!", { id: toastId });
 
-            // CLEAR THE "RELATÓRIO ESTRATÉGICO" (TIMELINE INPUTS)
-            // This ensures the source is disposable/temporary as requested
-            setTimeout(() => {
-                setAiAnalysisSaved(false);
-                setAiDiligenceResult(null);
-            }, 1000);
-        } else {
+                // CLEAR THE "RELATÓRIO ESTRATÉGICO" (TIMELINE INPUTS)
+                setTimeout(() => {
+                    setAiAnalysisSaved(false);
+                    setAiDiligenceResult(null);
+                }, 1000);
+            } else {
+                throw new Error("Falha na atualização do banco.");
+            }
+        } catch (error) {
+            console.error("Erro ao salvar:", error);
             toast.error("Erro ao salvar no prontuário.", { id: toastId });
+        } finally {
+            setIsSavingDiligence(false);
         }
-        setIsSavingDiligence(false);
     };
 
     const handleAnalyzeDiligence = async () => {
