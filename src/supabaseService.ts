@@ -53,6 +53,7 @@ const dbToWarrant = (dbWarrant: any): Warrant => {
         latitude: dbWarrant.latitude,
         longitude: dbWarrant.longitude,
         birthDate: dbWarrant.birth_date,
+        issuingCourt: dbWarrant.issuing_court,
     };
 };
 
@@ -95,6 +96,7 @@ const warrantToDb = (warrant: Partial<Warrant>) => {
     if (warrant.diligentHistory !== undefined) dbObj.diligent_history = warrant.diligentHistory;
     if (warrant.tacticalSummary !== undefined) dbObj.tactical_summary = warrant.tacticalSummary;
     if (warrant.ifoodDocs !== undefined) dbObj.ifood_docs = warrant.ifoodDocs; // Added mapping
+    if (warrant.issuingCourt !== undefined) dbObj.issuing_court = warrant.issuingCourt;
 
     return dbObj;
 };
@@ -348,7 +350,9 @@ export const translateField = (field: string) => {
         longitude: 'Longitude',
         age: 'Idade',
         dischargeDate: 'Data Baixa',
-        discharge_date: 'Data Baixa'
+        discharge_date: 'Data Baixa',
+        issuingCourt: 'Vara / Fórum',
+        issuing_court: 'Vara / Fórum'
     };
     return map[field] || field;
 };
