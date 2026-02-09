@@ -1898,12 +1898,17 @@ Equipe de Capturas - DIG / PCSP
                                                     <div className="space-y-2 max-h-48 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-white/10">
                                                         {intel.locations && intel.locations.map((l: any, i: number) => (
                                                             <div key={i} className="flex items-start gap-2 p-2 rounded-lg hover:bg-white/5 transition-colors group">
-                                                                <MapPin size={14} className={`mt-0.5 ${l.priority === 'Alta' ? 'text-red-400' : 'text-gray-400'}`} />
+                                                                <MapPin size={14} className={`mt-0.5 shrink-0 ${l.priority === 'Alta' ? 'text-red-400' : 'text-gray-400'}`} />
                                                                 <div className="flex-1 min-w-0">
-                                                                    <p className="text-xs font-bold text-white truncate">{l.address}</p>
-                                                                    <p className="text-[10px] text-gray-400 truncate">{l.context}</p>
+                                                                    {/* Fix: Allow text wrap instead of truncate */}
+                                                                    <p className="text-xs font-bold text-white break-words leading-tight">
+                                                                        {l.address}
+                                                                    </p>
+                                                                    <p className="text-[10px] text-gray-400 break-words mt-0.5 leading-snug">
+                                                                        {l.context}
+                                                                    </p>
                                                                 </div>
-                                                                <span className={`text-[9px] px-1.5 rounded ${l.status === 'Verificado' ? 'bg-green-500/20 text-green-400' : 'bg-white/10 text-gray-500'
+                                                                <span className={`text-[9px] px-1.5 py-0.5 rounded font-bold shrink-0 ${l.status === 'Verificado' ? 'bg-green-500/20 text-green-400' : 'bg-white/10 text-gray-500'
                                                                     }`}>{l.status || 'Pendente'}</span>
                                                             </div>
                                                         ))}
