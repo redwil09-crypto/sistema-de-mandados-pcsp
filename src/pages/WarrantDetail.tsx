@@ -202,7 +202,7 @@ const WarrantDetail = () => {
             DADOS DO PROCESSO:
             - Alvo: ${currentData.name} (RG: ${currentData.rg || 'N/I'}, CPF: ${currentData.cpf || 'N/I'})
             - Processo: ${currentData.number}
-            - Vara/Fórum: ${(currentData as any).court || capturasData.court || 'Não especificado'}
+            - Vara/Fórum: ${currentData.issuingCourt || capturasData.court || 'Não especificado'}
             - Crime: ${currentData.crime}
             - Pena/Regime: ${currentData.regime || 'N/I'}
             - Data Expedição: ${currentData.issueDate ? fmtDate(currentData.issueDate as string) : 'N/I'}
@@ -235,7 +235,7 @@ const WarrantDetail = () => {
             ...prev,
             body: defaultBody,
             reportNumber: currentData.fulfillmentReport || prev.reportNumber || `001/DIG/${new Date().getFullYear()}`,
-            court: prev.court || 'Vara Criminal de Jacareí/SP'
+            court: currentData.issuingCourt || prev.court || 'Vara Criminal de Jacareí/SP'
         }));
 
         // Auto-run AI to apply templates immediately

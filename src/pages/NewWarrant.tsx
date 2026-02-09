@@ -471,7 +471,7 @@ const NewWarrant = () => {
                         <input name="number" required value={formData.number} onChange={handleChange} type="text" className="w-full rounded-lg border border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark p-2.5 text-sm text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none" placeholder="0000000-00.0000.0.00.0000" />
                     </div>
                     <div>
-                        <label className="block text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark mb-1">Fórum Expedidor</label>
+                        <label className="block text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark mb-1">Vara / Fórum</label>
                         <input name="issuingCourt" value={formData.issuingCourt} onChange={handleChange} type="text" className="w-full rounded-lg border border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark p-2.5 text-sm text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none" placeholder="Ex: Vara Criminal de Jacareí" />
                     </div>
                     <div>
