@@ -587,19 +587,31 @@ const WarrantDetail = () => {
         setIsSavingDiligence(true);
         const toastId = toast.loading("Processando Inteligência e Fusão de Dados...");
 
+        // 0. Normalize AI Result for Merge (Handle String vs Object)
+        let analysisToMerge: any = null;
+        if (aiDiligenceResult) {
+            if (typeof aiDiligenceResult === 'string') {
+                analysisToMerge = { summary: aiDiligenceResult };
+            } else {
+                analysisToMerge = aiDiligenceResult;
+            }
+        }
+
         // 1. Prepare raw note for history (Audit purpose)
         let finalNotes = newDiligence;
-        if (aiDiligenceResult && typeof aiDiligenceResult !== 'string') {
+
+        // If we have AI analysis, we append a tag to the note
+        if (analysisToMerge) {
             const hasText = newDiligence.trim().length > 0;
             finalNotes = hasText
-                ? `${newDiligence}\n\n[ANÁLISE IA REALIZADA E ENVIADA AO CENTRO DE INTELIGÊNCIA]`
-                : `[ANÁLISE DE INTELIGÊNCIA AUTOMÁTICA COMPUTADA E MERGEADA]`;
+                ? `${newDiligence}\n\n[INTELIGÊNCIA PROCESSADA E ENVIADA AO CENTRO]`
+                : `[INTELIGÊNCIA PROCESSADA E ENVIADA AO CENTRO]`;
         }
 
         // 2. INTELLIGENT MERGE LOGIC (THE CORE)
         let updatedTacticalSummary = data?.tacticalSummary || '{}';
 
-        if (aiDiligenceResult && typeof aiDiligenceResult !== 'string') {
+        if (analysisToMerge) {
             try {
                 // Parse current state
                 let currentIntel = {};
@@ -608,7 +620,7 @@ const WarrantDetail = () => {
                 } catch (e) { currentIntel = {}; }
 
                 // CALL THE AI MERGE SERVICE
-                const mergedIntel = await mergeIntelligence(data, currentIntel, aiDiligenceResult);
+                const mergedIntel = await mergeIntelligence(data, currentIntel, analysisToMerge);
 
                 updatedTacticalSummary = JSON.stringify(mergedIntel);
             } catch (mergeError) {
