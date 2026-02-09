@@ -5,8 +5,8 @@
 @layer base {
   body {
     @apply bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark antialiased;
-    background-color: #cbd5e1;
-    /* Slate 300 - Darker Gray */
+    background-color: #d4d4d8;
+    /* Zinc 300 - Neutral/Lead Gray */
     background-image:
       radial-gradient(circle at 50% 0%, rgba(99, 102, 241, 0.15) 0%, rgba(34, 211, 238, 0.08) 50%, transparent 90%),
       linear-gradient(rgba(15, 23, 42, 0.03) 1px, transparent 1px),
