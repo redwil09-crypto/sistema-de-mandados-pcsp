@@ -686,12 +686,13 @@ const AIAssistantPage = () => {
                                                 <span className="text-[10px] opacity-70">Arquivo {currentIndex + 1} de {batchResults.length}</span>
                                             </div>
                                         </div>
-                                        <div className="relative w-12 h-12 rounded-full border-2 border-dashed border-primary/30 overflow-hidden group cursor-pointer bg-surface-light dark:bg-black/20">
+                                        <div className="relative w-20 h-20 sm:w-24 sm:h-24 shrink-0 rounded-full border-2 border-dashed border-slate-300 dark:border-slate-500 hover:border-primary dark:hover:border-primary overflow-hidden group cursor-pointer bg-slate-100 dark:bg-slate-800 transition-all shadow-md">
                                             {photoPreview ? (
                                                 <img src={photoPreview} alt="Alvo" className="w-full h-full object-cover" />
                                             ) : (
-                                                <div className="w-full h-full flex items-center justify-center">
-                                                    <Camera size={16} className="text-primary/50" />
+                                                <div className="w-full h-full flex flex-col items-center justify-center gap-1">
+                                                    <Camera size={28} className="text-slate-400 dark:text-slate-400 group-hover:text-primary transition-colors" />
+                                                    <span className="text-[9px] font-bold text-slate-400 dark:text-slate-400 group-hover:text-primary uppercase">Foto</span>
                                                 </div>
                                             )}
                                             <input type="file" onChange={handlePhotoChange} className="absolute inset-0 opacity-0 cursor-pointer z-10" accept="image/*" />
