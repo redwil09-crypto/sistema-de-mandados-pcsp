@@ -257,13 +257,35 @@ export const generateWarrantPDF = async (
             intelRows.push(["Fundamentação IA", aiTimeSuggestion.reason]);
         }
 
-        // Tactical Summary Expansion
+        // Tactical Summary Expansion (Full Data)
         try {
             if (data.tacticalSummary) {
                 const intel = JSON.parse(data.tacticalSummary || '{}');
+
+                // 1. Resumo Estratégico
+                if (intel.summary) {
+                    intelRows.push(["Resumo Estratégico", intel.summary]);
+                }
+
+                // 2. Hipóteses
+                if (intel.hypotheses?.length) {
+                    const hypText = intel.hypotheses
+                        .map((h: any) => `[${h.confidence?.toUpperCase()}] ${h.description} ${h.status === 'Confirmada' ? '(CONFIRMADA)' : ''}`)
+                        .join('\n');
+                    intelRows.push(["Hipóteses Ativas", hypText]);
+                }
+
+                // 3. Riscos
+                if (intel.risks?.length) {
+                    intelRows.push(["Riscos Operacionais", intel.risks.join(', ')]);
+                }
+
+                // 4. Entidades
                 if (intel.entities?.length) {
                     intelRows.push(["Alvos Relacionados", intel.entities.map((e: any) => `${e.name} (${e.role})`).join('; ')]);
                 }
+
+                // 5. Locais
                 if (intel.locations?.length) {
                     intelRows.push(["Pontos de Interesse", intel.locations.map((l: any) => `${l.address}`).join(' | ')]);
                 }
