@@ -7,8 +7,8 @@ import {
     Cpu, ListTodo, Search, Database, Plus, Trash2,
     RefreshCw, Save, CheckCircle, Filter, Home, History,
     Bell, Zap, Printer, User, Calendar, MapPin, Mic,
-    MicOff, Bot, Briefcase, FileUp, Gavel, AlertTriangle,
-    Paperclip, ShieldAlert, Layers, Sparkles, Camera
+    MicOff, Bot, Briefcase, FileUp, Gavel, AlertTriangle, FileCheck,
+    Paperclip, ShieldAlert, Layers, Sparkles, Camera, Map as MapIcon
 } from 'lucide-react';
 import Header from '../components/Header';
 import ConfirmModal from '../components/ConfirmModal';
@@ -18,6 +18,7 @@ import { CRIME_OPTIONS } from '../data/constants';
 import { extractPdfData, extractFromText } from '../pdfExtractor';
 import { uploadFile, getPublicUrl } from '../supabaseStorage';
 import { analyzeWarrantData, isGeminiEnabled } from '../services/geminiService';
+import { geocodeAddress } from '../services/geocodingService';
 import { useWarrants } from '../contexts/WarrantContext';
 import BottomNav from '../components/BottomNav';
 
@@ -398,7 +399,9 @@ const AIAssistantPage = () => {
                 location: extractedData.addresses && extractedData.addresses.length > 0 ? extractedData.addresses.join(' | ') : '',
                 birthDate: extractedData.birthDate,
                 age: extractedData.age,
-                issuingCourt: extractedData.issuingCourt
+                issuingCourt: extractedData.issuingCourt,
+                latitude: extractedData.latitude,
+                longitude: extractedData.longitude
             };
 
             const result = await onAdd(newWarrant);
@@ -909,6 +912,99 @@ const AIAssistantPage = () => {
                                                     >
                                                         + ADICIONAR ENDEREÇO
                                                     </button>
+                                                </div>
+                                            </div>
+
+                                            {/* Localização Operacional */}
+                                            <div className="animate-in fade-in duration-200">
+                                                <div className="flex items-center justify-between mb-3 border-b border-border-light dark:border-border-dark pb-1">
+                                                    <div className="flex items-center gap-2">
+                                                        <MapIcon size={16} className="text-primary" />
+                                                        <h4 className="text-[10px] font-bold uppercase text-text-light dark:text-text-dark">Localização Operacional</h4>
+                                                    </div>
+                                                    {extractedData.latitude && extractedData.longitude ? (
+                                                        <span className="text-[10px] font-black bg-emerald-100 dark:bg-green-500/10 text-emerald-700 dark:text-green-400 border border-emerald-200 dark:border-green-500/20 px-3 py-1 rounded-full flex items-center gap-1.5 shadow-sm animate-pulse">
+                                                            <FileCheck size={12} /> MAPEADO
+                                                        </span>
+                                                    ) : (
+                                                        <span className="text-[10px] font-black bg-red-100 dark:bg-red-500/10 text-red-600 dark:text-red-500 border border-red-200 dark:border-red-500/20 px-3 py-1 rounded-full flex items-center gap-1.5 shadow-sm">
+                                                            <AlertTriangle size={12} /> NÃO MAPEADO
+                                                        </span>
+                                                    )}
+                                                </div>
+
+                                                <div className="bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-xl p-4 space-y-4">
+                                                    <div className="grid grid-cols-2 gap-3">
+                                                        <div>
+                                                            <label className="text-[10px] font-black text-text-secondary-light dark:text-text-muted uppercase tracking-wider">Latitude</label>
+                                                            <input
+                                                                type="text"
+                                                                value={extractedData.latitude || ''}
+                                                                onChange={(e) => handleExtractedDataChange('latitude', e.target.value)}
+                                                                className="w-full bg-transparent border-b border-border-light dark:border-border-dark py-1 text-sm outline-none font-mono"
+                                                                placeholder="-23.xxxxx"
+                                                            />
+                                                        </div>
+                                                        <div>
+                                                            <label className="text-[10px] font-black text-text-secondary-light dark:text-text-muted uppercase tracking-wider">Longitude</label>
+                                                            <input
+                                                                type="text"
+                                                                value={extractedData.longitude || ''}
+                                                                onChange={(e) => handleExtractedDataChange('longitude', e.target.value)}
+                                                                className="w-full bg-transparent border-b border-border-light dark:border-border-dark py-1 text-sm outline-none font-mono"
+                                                                placeholder="-45.xxxxx"
+                                                            />
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="flex gap-2">
+                                                        <button
+                                                            onClick={async () => {
+                                                                const address = extractedData.addresses?.[0] || extractedData.location;
+                                                                if (!address) {
+                                                                    toast.error("Nenhum endereço para buscar.");
+                                                                    return;
+                                                                }
+                                                                try {
+                                                                    const toastId = toast.loading("Buscando coordenadas...");
+                                                                    const geoResult = await geocodeAddress(address);
+                                                                    if (geoResult) {
+                                                                        toast.dismiss(toastId);
+                                                                        toast.success(`Encontrado: ${geoResult.displayName}`);
+                                                                        setBatchResults(prev => {
+                                                                            const newResults = [...prev];
+                                                                            newResults[currentIndex] = {
+                                                                                ...newResults[currentIndex],
+                                                                                latitude: geoResult.lat,
+                                                                                longitude: geoResult.lng
+                                                                            };
+                                                                            return newResults;
+                                                                        });
+                                                                    } else {
+                                                                        toast.dismiss(toastId);
+                                                                        toast.error("Endereço não localizado.");
+                                                                    }
+                                                                } catch (e) {
+                                                                    toast.dismiss();
+                                                                    toast.error("Erro na geocodificação.");
+                                                                }
+                                                            }}
+                                                            className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl py-2 text-[10px] font-black uppercase flex items-center justify-center gap-2 transition-all active:scale-95 shadow-lg shadow-indigo-500/20"
+                                                        >
+                                                            <Search size={14} /> Buscar Coordenadas
+                                                        </button>
+
+                                                        {extractedData.latitude && extractedData.longitude && (
+                                                            <a
+                                                                href={`https://www.google.com/maps/search/?api=1&query=${extractedData.latitude},${extractedData.longitude}`}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                className="flex-1 bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 border border-slate-200 dark:border-white/10 rounded-xl py-2 text-[10px] font-black uppercase flex items-center justify-center gap-2 transition-all active:scale-95 text-text-light dark:text-white"
+                                                            >
+                                                                <MapIcon size={14} /> Ver no Mapa
+                                                            </a>
+                                                        )}
+                                                    </div>
                                                 </div>
                                             </div>
 
