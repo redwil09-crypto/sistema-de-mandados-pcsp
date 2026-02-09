@@ -1790,6 +1790,22 @@ Equipe de Capturas - DIG / PCSP
 
                                 const hasData = intel.summary && intel.summary !== 'Aguardando primeira análise...';
 
+                                // AUTOMATIC CHECKLIST INJECTION: Check iFood Status
+                                if (hasData) {
+                                    const hasValidIfood = localData.ifoodResult && localData.ifoodResult.length > 20;
+                                    const ifoodTaskExists = intel.checklist?.some((t: any) => t.task.toLowerCase().includes('ifood') || t.task.toLowerCase().includes('iffo'));
+
+                                    if (!hasValidIfood && !ifoodTaskExists) {
+                                        if (!intel.checklist) intel.checklist = [];
+                                        intel.checklist.unshift({
+                                            task: "Solicitar quebra de sigilo iFood (IFFO)",
+                                            priority: "Alta",
+                                            status: "Pendente",
+                                            checked: false
+                                        });
+                                    }
+                                }
+
                                 if (!hasData) {
                                     return (
                                         <div className="text-center py-20 opacity-50 border-2 border-dashed border-white/10 rounded-3xl">
