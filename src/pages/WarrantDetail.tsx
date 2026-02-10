@@ -1442,15 +1442,7 @@ Equipe de Capturas - DIG / PCSP
             {/* Main Content Layout */}
             <div className="relative z-10 p-4 space-y-4 max-w-[1600px] mx-auto">
 
-                {/* Floating Dock (Overlay Command Bar) */}
-                <FloatingDock
-                    onBack={() => window.history.length > 1 ? navigate(-1) : navigate('/')}
-                    onHome={() => navigate('/')}
-                    onSave={() => navigate(`/new-warrant?edit=${id}`)}
-                    onPrint={handleDownloadPDF}
-                    onFinalize={handleFinalize}
-                    onDelete={isAdmin ? () => setIsDeleteConfirmOpen(true) : undefined}
-                />
+
 
                 {/* 1. Tactical Profile Header */}
                 <div className="bg-surface-light dark:bg-surface-dark/60 backdrop-blur-xl border border-border-light dark:border-white/10 rounded-2xl p-4 shadow-tactic overflow-hidden relative group">
@@ -2534,6 +2526,15 @@ Equipe de Capturas - DIG / PCSP
                         </div>
                     )
                 }
+                {/* Action Command Bar - Relocated to end of page */}
+                <FloatingDock
+                    onBack={() => window.history.length > 1 ? navigate(-1) : navigate('/')}
+                    onHome={() => navigate('/')}
+                    onSave={() => navigate(`/new-warrant?edit=${id}`)}
+                    onPrint={handleDownloadPDF}
+                    onFinalize={handleFinalize}
+                    onDelete={isAdmin ? () => setIsDeleteConfirmOpen(true) : undefined}
+                />
             </div>
         </div >
     );

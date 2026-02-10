@@ -13,19 +13,11 @@ interface FloatingDockProps {
 }
 
 const FloatingDock = ({ onBack, onHome, onSave, onPrint, onFinalize, onDelete, className }: FloatingDockProps) => {
-    const [mounted, setMounted] = useState(false);
+    const containerClasses = className || "w-full max-w-5xl mx-auto z-10 rounded-3xl border border-border-light dark:border-white/10 bg-surface-light/95 dark:bg-surface-dark/95 backdrop-blur-xl shadow-glass transition-all duration-300 px-6 py-4 mt-8 mb-12";
 
-    useEffect(() => {
-        setMounted(true);
-        return () => setMounted(false);
-    }, []);
-
-    const containerClasses = className || "fixed bottom-0 left-0 right-0 w-full z-[9999] rounded-t-[32px] border-t border-border-light dark:border-white/10 bg-surface-light/95 dark:bg-surface-dark/95 backdrop-blur-xl shadow-[0_-10px_30px_rgba(0,0,0,0.4)] transition-all duration-300 pointer-events-auto px-6 py-4 pb-8 md:pb-4";
-
-    const content = (
+    return (
         <div className={`${containerClasses} animate-in fade-in slide-in-from-bottom-5 duration-500`}>
-            <div className="flex w-full items-center justify-between max-w-5xl mx-auto">
-
+            <div className="flex w-full items-center justify-between">
                 {/* Botão VOLTAR (Histórico) */}
                 <DockItem
                     onClick={onBack}
@@ -87,10 +79,6 @@ const FloatingDock = ({ onBack, onHome, onSave, onPrint, onFinalize, onDelete, c
             </div>
         </div>
     );
-
-    if (!mounted) return null;
-
-    return createPortal(content, document.body);
 };
 
 const DockItem = ({ onClick, icon, color, bg, label, active = false }: { onClick: () => void, icon: React.ReactNode, color: string, bg: string, label: string, active?: boolean }) => {
