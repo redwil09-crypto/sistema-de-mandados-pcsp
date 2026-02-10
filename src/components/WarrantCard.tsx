@@ -19,10 +19,14 @@ const WarrantCard = ({ data, onPrint, isPlanned, onRouteToggle, onFinalize, onDe
     // Determine stripe color based on search/seizure vs arrest
     const isSearch = data.type ? (data.type.toLowerCase().includes('busca') || data.type.toLowerCase().includes('apreensão')) : false;
 
+    const hoverClasses = isSearch
+        ? 'hover:border-orange-500/50 hover:shadow-[0_0_20px_rgba(249,115,22,0.3)]'
+        : 'hover:border-blue-500/50 hover:shadow-[0_0_20px_rgba(59,130,246,0.3)]';
+
     return (
         <Link
             to={`/warrant-detail/${data.id}`}
-            className="group block relative overflow-hidden rounded-lg bg-surface-light dark:bg-surface-dark/60 backdrop-blur-md border border-neon-purple/20 dark:border-neon-purple/10 hover:border-neon-purple dark:hover:border-neon-purple hover:shadow-neon-purple transition-all duration-300 shadow-sm"
+            className={`group block relative overflow-hidden rounded-lg bg-surface-light dark:bg-[#121214] border border-border-light dark:border-white/5 transition-all duration-300 shadow-sm ${hoverClasses}`}
             {...props}
         >
             {/* Type Indicator Strip (Left Border) */}
