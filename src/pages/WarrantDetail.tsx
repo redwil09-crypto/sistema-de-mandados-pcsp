@@ -1537,7 +1537,7 @@ Equipe de Capturas - DIG / PCSP
                         <button
                             key={tab.id}
                             onClick={() => setActiveDetailTab(tab.id as any)}
-                            className={`flex-1 min-w-[120px] flex items-center justify-center gap-2 py-3.5 px-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 border backdrop-blur-md bg-surface-light dark:bg-white/5 ${activeDetailTab === tab.id
+                            className={`flex-1 min-w-[120px] flex items-center justify-center gap-2 py-3.5 px-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 border backdrop-blur-md bg-zinc-100 dark:bg-zinc-800/50 ${activeDetailTab === tab.id
                                 ? `${tab.activeClass} scale-[1.05]`
                                 : 'text-text-secondary-light dark:text-text-secondary-dark border-border-light dark:border-white/10 hover:border-primary/30 hover:text-primary dark:hover:text-white'
                                 }`}
