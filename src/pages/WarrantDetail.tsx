@@ -176,6 +176,39 @@ const WarrantDetail = () => {
         });
     }, [localData, data]);
 
+    const tabTheme = useMemo(() => {
+        switch (activeDetailTab) {
+            case 'documents': return {
+                border: 'border-blue-500/40',
+                hdrBorder: 'border-blue-500/20',
+                text: 'text-blue-600 dark:text-blue-400',
+                bg: 'bg-blue-500/5',
+                shadow: 'shadow-blue-500/10'
+            };
+            case 'investigation': return {
+                border: 'border-red-500/40',
+                hdrBorder: 'border-red-500/20',
+                text: 'text-red-600 dark:text-red-500',
+                bg: 'bg-red-500/5',
+                shadow: 'shadow-red-500/10'
+            };
+            case 'timeline': return {
+                border: 'border-white/40',
+                hdrBorder: 'border-white/20',
+                text: 'text-slate-900 dark:text-white',
+                bg: 'bg-white/5',
+                shadow: 'shadow-white/10'
+            };
+            default: return {
+                border: 'border-border-light dark:border-white/10',
+                hdrBorder: 'border-border-light dark:border-white/5',
+                text: 'text-primary',
+                bg: 'bg-white/5',
+                shadow: ''
+            };
+        }
+    }, [activeDetailTab]);
+
     // Pre-fill report body when modal opens
     useEffect(() => {
         if (isCapturasModalOpen && data && !capturasData.body) {
@@ -1554,10 +1587,10 @@ Equipe de Capturas - DIG / PCSP
                     {activeDetailTab === 'documents' && (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {/* Personal Details */}
-                            <div className="bg-surface-light dark:bg-surface-dark/90 backdrop-blur-xl border border-border-light dark:border-white/10 rounded-2xl p-5 shadow-glass space-y-4">
-                                <div className="flex items-center gap-2 mb-2 pb-2 border-b border-border-light dark:border-white/5">
-                                    <User className="text-indigo-600 dark:text-indigo-400" size={16} />
-                                    <span className="text-[11px] font-black uppercase tracking-widest text-indigo-900 dark:text-indigo-100">Qualificação</span>
+                            <div className={`bg-surface-light dark:bg-surface-dark/90 backdrop-blur-xl border ${tabTheme.border} rounded-2xl p-5 shadow-glass space-y-4`}>
+                                <div className={`flex items-center gap-2 mb-2 pb-2 border-b ${tabTheme.hdrBorder}`}>
+                                    <User className={tabTheme.text} size={16} />
+                                    <span className={`text-[11px] font-black uppercase tracking-widest ${tabTheme.text}`}>Qualificação</span>
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="space-y-1">
@@ -1588,11 +1621,11 @@ Equipe de Capturas - DIG / PCSP
                             </div>
 
                             {/* Location View */}
-                            <div className="bg-surface-light dark:bg-surface-dark/90 backdrop-blur-xl border border-border-light dark:border-white/10 rounded-2xl p-5 shadow-glass space-y-4">
-                                <div className="flex items-center justify-between mb-2 pb-2 border-b border-border-light dark:border-white/5">
+                            <div className={`bg-surface-light dark:bg-surface-dark/90 backdrop-blur-xl border ${tabTheme.border} rounded-2xl p-5 shadow-glass space-y-4`}>
+                                <div className={`flex items-center justify-between mb-2 pb-2 border-b ${tabTheme.hdrBorder}`}>
                                     <div className="flex items-center gap-2">
-                                        <MapPin className="text-indigo-600 dark:text-indigo-400" size={16} />
-                                        <span className="text-[11px] font-black uppercase tracking-widest text-indigo-900 dark:text-indigo-100">Localização Operacional</span>
+                                        <MapPin className={tabTheme.text} size={16} />
+                                        <span className={`text-[11px] font-black uppercase tracking-widest ${tabTheme.text}`}>Localização Operacional</span>
                                     </div>
                                     {localData.latitude && localData.longitude ? (
                                         <span className="text-[10px] font-black bg-emerald-100 dark:bg-green-500/10 text-emerald-700 dark:text-green-400 border border-emerald-200 dark:border-green-500/20 px-3 py-1 rounded-full flex items-center gap-1.5 shadow-sm animate-pulse">
@@ -1630,11 +1663,11 @@ Equipe de Capturas - DIG / PCSP
                             </div>
 
                             {/* Attachments Section (Dossiê) */}
-                            <div className="md:col-span-2 bg-surface-light dark:bg-surface-dark/60 backdrop-blur border border-border-light dark:border-white/10 rounded-2xl p-5 shadow-glass">
-                                <div className="flex flex-col mb-4 pb-4 border-b border-white/5 gap-3">
+                            <div className={`md:col-span-2 bg-surface-light dark:bg-surface-dark/60 backdrop-blur border ${tabTheme.border} rounded-2xl p-5 shadow-glass`}>
+                                <div className={`flex flex-col mb-4 pb-4 border-b ${tabTheme.hdrBorder} gap-3`}>
                                     <div className="flex items-center gap-2">
-                                        <Paperclip className="text-indigo-400" size={16} />
-                                        <span className="text-[11px] font-black uppercase tracking-widest text-indigo-100">Repositório de Documentos</span>
+                                        <Paperclip className={tabTheme.text} size={16} />
+                                        <span className={`text-[11px] font-black uppercase tracking-widest ${tabTheme.text}`}>Repositório de Documentos</span>
                                     </div>
 
                                     {/* New Document Inputs */}
@@ -1834,11 +1867,11 @@ Equipe de Capturas - DIG / PCSP
                                         <div className="md:col-span-8 space-y-6">
 
                                             {/* 1. STRATEGIC SUMMARY CARD */}
-                                            <div className="bg-surface-light dark:bg-surface-dark/90 backdrop-blur border border-border-light dark:border-white/10 rounded-2xl p-6 shadow-glass relative overflow-hidden group">
+                                            <div className={`bg-surface-light dark:bg-surface-dark/90 backdrop-blur border ${tabTheme.border} rounded-2xl p-6 shadow-glass relative overflow-hidden group`}>
                                                 <div className="absolute top-0 right-0 p-6 opacity-5 pointer-events-none">
                                                     <Lightbulb size={120} />
                                                 </div>
-                                                <h5 className="text-sm font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+                                                <h5 className={`text-sm font-black uppercase tracking-widest mb-3 flex items-center gap-2 ${tabTheme.text}`}>
                                                     <Target size={14} /> Resumo Estratégico Consolidado
                                                 </h5>
                                                 <p className="text-text-light/90 dark:text-white/90 text-sm leading-relaxed whitespace-pre-wrap font-medium">
@@ -1849,8 +1882,8 @@ Equipe de Capturas - DIG / PCSP
                                             {/* 2. HYPOTHESES & RISKS ROW */}
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                 {/* HYPOTHESES */}
-                                                <div className="bg-surface-light dark:bg-surface-dark/80 border border-border-light dark:border-white/10 rounded-2xl p-5 shadow-sm hover:border-indigo-500/30 transition-colors">
-                                                    <h5 className="text-[10px] font-black text-cyan-600 dark:text-cyan-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+                                                <div className={`bg-surface-light dark:bg-surface-dark/80 border ${tabTheme.border} rounded-2xl p-5 shadow-sm transition-colors`}>
+                                                    <h5 className={`text-[10px] font-black uppercase tracking-widest mb-3 flex items-center gap-2 ${tabTheme.text}`}>
                                                         <Lightbulb size={12} /> Hipóteses Ativas
                                                     </h5>
                                                     <div className="space-y-3">
@@ -1870,8 +1903,8 @@ Equipe de Capturas - DIG / PCSP
                                                 </div>
 
                                                 {/* RISKS */}
-                                                <div className="bg-surface-light dark:bg-surface-dark/80 border border-border-light dark:border-white/10 rounded-2xl p-5 shadow-sm hover:border-red-500/30 transition-colors">
-                                                    <h5 className="text-[10px] font-black text-red-600 dark:text-red-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+                                                <div className={`bg-surface-light dark:bg-surface-dark/80 border ${tabTheme.border} rounded-2xl p-5 shadow-sm transition-colors`}>
+                                                    <h5 className={`text-[10px] font-black uppercase tracking-widest mb-3 flex items-center gap-2 ${tabTheme.text}`}>
                                                         <ShieldAlert size={12} /> Riscos Operacionais
                                                     </h5>
                                                     <div className="flex flex-wrap gap-2">
@@ -1887,15 +1920,15 @@ Equipe de Capturas - DIG / PCSP
                                             </div>
 
                                             {/* 3. LOCATIONS & ENTITIES */}
-                                            <div className="bg-surface-light dark:bg-surface-dark/80 border border-border-light dark:border-white/10 rounded-2xl p-5">
-                                                <div className="flex gap-4 mb-4 border-b border-border-light dark:border-white/10 pb-2">
+                                            <div className={`bg-surface-light dark:bg-surface-dark/80 border ${tabTheme.border} rounded-2xl p-5`}>
+                                                <div className={`flex gap-4 mb-4 border-b ${tabTheme.hdrBorder} pb-2`}>
                                                     <div className="flex-1">
-                                                        <h5 className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest flex items-center gap-2">
+                                                        <h5 className={`text-[10px] font-black uppercase tracking-widest flex items-center gap-2 ${tabTheme.text}`}>
                                                             <MapIcon size={12} /> Endereços mapeados
                                                         </h5>
                                                     </div>
                                                     <div className="flex-1">
-                                                        <h5 className="text-[10px] font-black text-amber-600 dark:text-amber-400 uppercase tracking-widest flex items-center gap-2">
+                                                        <h5 className={`text-[10px] font-black uppercase tracking-widest flex items-center gap-2 ${tabTheme.text}`}>
                                                             <Users size={12} /> Vínculos / Rede
                                                         </h5>
                                                     </div>
@@ -2166,9 +2199,9 @@ Equipe de Capturas - DIG / PCSP
                                     </div>
                                 </div>
 
-                                <div className="bg-white/5 border border-white/10 rounded-2xl p-4 focus-within:ring-2 focus-within:ring-primary/40 transition-all shadow-inner relative group">
+                                <div className={`bg-zinc-100 dark:bg-zinc-800/50 border ${tabTheme.border} rounded-2xl p-4 focus-within:ring-2 focus-within:ring-primary/40 transition-all shadow-inner relative group`}>
                                     <div className="flex justify-between items-center mb-3">
-                                        <span className="text-xs font-black uppercase tracking-widest text-primary/80">Entrada de Informe de Campo</span>
+                                        <span className={`text-xs font-black uppercase tracking-widest ${tabTheme.text}`}>Entrada de Informe de Campo</span>
                                         <button onClick={handleAnalyzeDiligence} disabled={!newDiligence.trim() || isAnalyzingDiligence} className="text-[10px] font-black uppercase bg-indigo-500 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow-lg shadow-indigo-500/20 active:scale-95 disabled:opacity-50">
                                             <Sparkles size={14} className={isAnalyzingDiligence ? 'animate-spin' : ''} /> ANALISAR INTELIGÊNCIA
                                         </button>
@@ -2400,10 +2433,10 @@ Equipe de Capturas - DIG / PCSP
                                 </div>
 
                                 {/* Document Analysis Button */}
-                                <div className="bg-white/5 border border-white/10 rounded-2xl p-4 flex flex-col items-center justify-center gap-3 text-center group hover:bg-white/10 transition-all cursor-dashed border-2 border-indigo-500/20">
-                                    <Bot size={24} className="text-indigo-400 group-hover:scale-110 transition-transform" />
+                                <div className={`bg-zinc-100 dark:bg-zinc-800/50 border ${tabTheme.border} border-dashed rounded-2xl p-4 flex flex-col items-center justify-center gap-3 text-center group hover:bg-zinc-200 dark:hover:bg-zinc-700/50 transition-all cursor-dashed`}>
+                                    <Bot size={24} className={`${tabTheme.text} group-hover:scale-110 transition-transform`} />
                                     <div>
-                                        <h4 className="text-sm font-black text-white uppercase tracking-wider">Centro de Fusão de Dados</h4>
+                                        <h4 className={`text-sm font-black uppercase tracking-wider ${tabTheme.text}`}>Centro de Fusão de Dados</h4>
                                         <p className="text-[10px] text-text-muted mt-1 uppercase">Carregar arquivos externos (PDF/TXT) para cruzamento de dados</p>
                                     </div>
                                     <input
@@ -2427,10 +2460,10 @@ Equipe de Capturas - DIG / PCSP
                                     {Array.isArray(data.diligentHistory) && data.diligentHistory.length > 0 ? (
                                         [...data.diligentHistory].reverse().map((h: any, idx: number) => (
                                             <div key={h.id} className="relative pl-12 animate-in slide-in-from-left duration-500" style={{ animationDelay: `${idx * 100}ms` }}>
-                                                <div className="absolute left-0 top-1 w-9 h-9 rounded-xl bg-surface-dark border border-white/10 flex items-center justify-center z-10 shadow-glass">
-                                                    <History size={16} className="text-primary" />
+                                                <div className={`absolute left-0 top-1 w-9 h-9 rounded-xl border ${tabTheme.hdrBorder || tabTheme.border.split(' ')[0]} bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center z-10 shadow-glass`}>
+                                                    <History size={16} className={tabTheme.text} />
                                                 </div>
-                                                <div className="bg-surface-dark/90 backdrop-blur border border-white/5 rounded-2xl p-4 group hover:border-primary/30 transition-all shadow-glass">
+                                                <div className={`bg-zinc-100/80 dark:bg-zinc-800/80 backdrop-blur border ${tabTheme.border} rounded-2xl p-4 group hover:shadow-lg transition-all shadow-glass`}>
                                                     <div className="flex justify-between items-center mb-3">
                                                         <div className="flex items-center gap-2">
                                                             <span className="text-[10px] font-black text-primary font-mono bg-primary/10 px-2 py-0.5 rounded border border-primary/20">{new Date(h.date).toLocaleDateString('pt-BR')}</span>
