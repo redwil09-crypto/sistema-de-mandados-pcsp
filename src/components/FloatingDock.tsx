@@ -34,7 +34,6 @@ const FloatingDock = ({ onBack, onHome, onSave, onPrint, onFinalize, onDelete, c
                     color="text-blue-500"
                     bg="hover:bg-blue-500/10"
                     label="Home"
-                    active={true}
                 />
 
                 {/* Botão ATUALIZAR */}
