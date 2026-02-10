@@ -65,20 +65,20 @@ const Sidebar = ({ routeCount = 0, isCollapsed, toggleCollapse, isDark, toggleTh
     ];
 
     const NavGroup = ({ title, items }: { title?: string, items: typeof mainNavItems }) => (
-        <div className="mb-2">
+        <div className="mb-4">
             {title && !isCollapsed && (
-                <h3 className="px-5 mb-1 text-[9px] font-black text-zinc-500 uppercase tracking-[0.2em] fade-in">
+                <h3 className="px-5 mb-2 text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] fade-in">
                     {title}
                 </h3>
             )}
-            <div className="space-y-0.5">
+            <div className="space-y-1">
                 {items.map((item) => (
                     <NavLink
                         key={item.path}
                         to={item.path}
                         title={isCollapsed ? item.label : ''}
                         className={({ isActive }) => `
-                            flex items-center ${isCollapsed ? 'justify-center px-0' : 'justify-start px-3'} py-1.5 mx-2 rounded-lg transition-all duration-300 group relative
+                            flex items-center ${isCollapsed ? 'justify-center px-0' : 'justify-start px-4'} py-3 mx-3 rounded-xl transition-all duration-300 group relative
                             ${isActive
                                 ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/40'
                                 : 'text-zinc-400 hover:text-white hover:bg-white/5'
@@ -87,14 +87,14 @@ const Sidebar = ({ routeCount = 0, isCollapsed, toggleCollapse, isDark, toggleTh
                     >
                         {({ isActive }) => (
                             <>
-                                <div className={`flex items-center gap-2 relative z-10`}>
+                                <div className={`flex items-center gap-3 relative z-10`}>
                                     <item.icon
-                                        size={18}
+                                        size={20}
                                         strokeWidth={isActive ? 2.5 : 2}
                                         className={`transition-transform duration-300 ${isActive ? 'scale-110' : 'group-hover:scale-110'}`}
                                     />
                                     {!isCollapsed && (
-                                        <span className={`text-xs font-bold tracking-wide whitespace-nowrap overflow-hidden transition-all duration-300`}>
+                                        <span className={`text-sm font-bold tracking-wide whitespace-nowrap overflow-hidden transition-all duration-300`}>
                                             {item.label}
                                         </span>
                                     )}
@@ -102,9 +102,9 @@ const Sidebar = ({ routeCount = 0, isCollapsed, toggleCollapse, isDark, toggleTh
 
                                 {item.badge ? (
                                     isCollapsed ? (
-                                        <div className="absolute top-1.5 right-1.5 h-1.5 w-1.5 rounded-full bg-red-500 shadow-md shadow-red-500/50" />
+                                        <div className="absolute top-2 right-2 h-2 w-2 rounded-full bg-red-500 shadow-md shadow-red-500/50" />
                                     ) : (
-                                        <span className="ml-auto relative z-10 flex h-4 w-4 items-center justify-center rounded-md bg-blue-500 text-[9px] font-bold text-white shadow-md shadow-blue-500/50">
+                                        <span className="ml-auto relative z-10 flex h-5 w-5 items-center justify-center rounded-md bg-blue-500 text-[10px] font-bold text-white shadow-md shadow-blue-500/50">
                                             {item.badge}
                                         </span>
                                     )
@@ -120,17 +120,17 @@ const Sidebar = ({ routeCount = 0, isCollapsed, toggleCollapse, isDark, toggleTh
     return (
         <>
             {/* Mobile Header / Toggle */}
-            <div className="md:hidden fixed top-0 left-0 right-0 h-14 bg-zinc-950/90 backdrop-blur-xl border-b border-white/5 flex items-center justify-between px-4 z-50">
+            <div className="md:hidden fixed top-0 left-0 right-0 h-16 bg-zinc-950/90 backdrop-blur-xl border-b border-white/5 flex items-center justify-between px-4 z-50">
                 <div className="flex items-center gap-2">
-                    <div className="h-7 w-7 rounded-lg bg-blue-600 flex items-center justify-center shadow-neon-blue">
-                        <Siren size={16} className="text-white" />
+                    <div className="h-8 w-8 rounded-lg bg-blue-600 flex items-center justify-center shadow-neon-blue">
+                        <Siren size={18} className="text-white" />
                     </div>
                 </div>
                 <button
                     onClick={() => setIsOpen(!isOpen)}
                     className="p-2 text-zinc-400 hover:text-white transition-colors active:scale-95"
                 >
-                    {isOpen ? <X size={20} /> : <Menu size={20} />}
+                    {isOpen ? <X size={24} /> : <Menu size={24} />}
                 </button>
             </div>
 
@@ -148,18 +148,18 @@ const Sidebar = ({ routeCount = 0, isCollapsed, toggleCollapse, isDark, toggleTh
                 bg-[#09090b] border-r border-white/5
                 flex flex-col
                 transform transition-all duration-300 cubic-bezier(0.4, 0, 0.2, 1)
-                pt-14 md:pt-0
+                pt-16 md:pt-0
                 ${isCollapsed ? 'w-20' : 'w-64'}
                 ${isOpen ? 'translate-x-0 shadow-2xl shadow-black w-64' : '-translate-x-full md:translate-x-0'}
             `}>
                 {/* Desktop Header */}
-                <div className={`hidden md:flex items-center ${isCollapsed ? 'justify-center' : 'justify-between px-4'} h-14 border-b border-white/5 relative`}>
-                    <div className="flex items-center gap-2">
-                        <div className="h-7 w-7 rounded-lg bg-blue-600 flex items-center justify-center shadow-[0_0_20px_rgba(37,99,235,0.4)] border border-blue-400/30 shrink-0">
-                            <Siren size={16} className="text-white fill-white/20" />
+                <div className={`hidden md:flex items-center ${isCollapsed ? 'justify-center' : 'justify-between px-6'} h-20 border-b border-white/5 relative`}>
+                    <div className="flex items-center gap-3">
+                        <div className="h-8 w-8 rounded-xl bg-blue-600 flex items-center justify-center shadow-[0_0_20px_rgba(37,99,235,0.4)] border border-blue-400/30 shrink-0">
+                            <Siren size={18} className="text-white fill-white/20" />
                         </div>
                         {!isCollapsed && (
-                            <h1 className="font-display font-black text-sm text-white tracking-widest whitespace-nowrap overflow-hidden">
+                            <h1 className="font-display font-black text-xl text-white tracking-widest whitespace-nowrap overflow-hidden">
                                 PCSP
                             </h1>
                         )}
@@ -168,75 +168,75 @@ const Sidebar = ({ routeCount = 0, isCollapsed, toggleCollapse, isDark, toggleTh
                     <button
                         onClick={toggleCollapse}
                         className={`
-                            h-5 w-5 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center 
+                            h-6 w-6 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center 
                             text-zinc-400 hover:text-white hover:bg-blue-600 hover:border-blue-500 transition-all
-                            absolute -right-2.5 top-1/2 -translate-y-1/2 shadow-lg z-20
+                            absolute -right-3 top-1/2 -translate-y-1/2 shadow-lg z-20
                             ${isCollapsed ? '' : ''}
                         `}
                     >
-                        {isCollapsed ? <ChevronRight size={12} /> : <ChevronLeft size={12} />}
+                        {isCollapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
                     </button>
                 </div>
 
                 {/* Nav Links */}
-                <nav className="flex-1 overflow-y-auto py-2 custom-scrollbar overflow-x-hidden">
+                <nav className="flex-1 overflow-y-auto py-6 custom-scrollbar overflow-x-hidden">
                     <NavGroup title="Principal" items={mainNavItems} />
                     <NavGroup title="Operacional" items={operationalNavItems} />
                     <NavGroup title="Sistema" items={systemNavItems} />
                 </nav>
 
                 {/* Footer */}
-                <div className="p-2 border-t border-white/5 bg-zinc-900/30 backdrop-blur-sm flex flex-col gap-2">
+                <div className="p-3 border-t border-white/5 bg-zinc-900/30 backdrop-blur-sm flex flex-col gap-3">
                     {/* Theme and Notifications */}
-                    <div className={`flex items-center ${isCollapsed ? 'flex-col gap-2' : 'justify-between px-1'}`}>
+                    <div className={`flex items-center ${isCollapsed ? 'flex-col gap-3' : 'justify-between px-2'}`}>
                         <button
                             onClick={toggleTheme}
-                            className="p-1.5 rounded-lg text-zinc-400 hover:bg-white/5 hover:text-white transition-all border border-transparent hover:border-white/10 group relative"
+                            className="p-2 rounded-lg text-zinc-400 hover:bg-white/5 hover:text-white transition-all border border-transparent hover:border-white/10 group relative"
                             title={isDark ? "Modo Claro" : "Modo Escuro"}
                         >
-                            {isDark ? <Sun size={16} /> : <Moon size={16} />}
+                            {isDark ? <Sun size={20} /> : <Moon size={20} />}
                         </button>
 
                         <button
-                            className="p-1.5 rounded-lg text-zinc-400 hover:bg-white/5 hover:text-white transition-all border border-transparent hover:border-white/10 group relative"
+                            className="p-2 rounded-lg text-zinc-400 hover:bg-white/5 hover:text-white transition-all border border-transparent hover:border-white/10 group relative"
                             title="Notificações"
                         >
-                            <Bell size={16} />
-                            <span className="absolute top-1 right-1 w-1.5 h-1.5 bg-red-500 rounded-full border border-[#09090b]" />
+                            <Bell size={20} />
+                            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border border-[#09090b]" />
                         </button>
                     </div>
 
                     {/* User Profile */}
                     <div className={`
-                        flex items-center gap-2 p-1.5 rounded-lg border border-white/5 bg-white/5 
+                        flex items-center gap-3 p-2 rounded-xl border border-white/5 bg-white/5 
                         ${isCollapsed ? 'justify-center border-0 bg-transparent p-0' : 'hover:bg-white/10 hover:border-blue-500/30'} 
                         transition-all duration-300 group
                     `}>
                         {isCollapsed ? (
                             <div className="relative cursor-pointer group">
-                                <div className="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center border border-white/10 group-hover:border-blue-500 transition-all overflow-hidden">
-                                    <User size={16} className="text-zinc-400 group-hover:text-white" />
+                                <div className="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center border border-white/10 group-hover:border-blue-500 transition-all overflow-hidden">
+                                    <User size={20} className="text-zinc-400 group-hover:text-white" />
                                 </div>
-                                <div className="absolute bottom-0 right-0 h-2 w-2 bg-green-500 rounded-full border-2 border-[#09090b]" />
+                                <div className="absolute bottom-0 right-0 h-2.5 w-2.5 bg-green-500 rounded-full border-2 border-[#09090b]" />
                             </div>
                         ) : (
                             <>
                                 <div className="relative">
-                                    <div className="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center border border-white/10 group-hover:border-blue-500 transition-all overflow-hidden">
-                                        <User size={14} className="text-zinc-400 group-hover:text-white" />
+                                    <div className="w-9 h-9 rounded-full bg-zinc-800 flex items-center justify-center border border-white/10 group-hover:border-blue-500 transition-all overflow-hidden">
+                                        <User size={18} className="text-zinc-400 group-hover:text-white" />
                                     </div>
-                                    <div className="absolute bottom-0 right-0 h-2 w-2 bg-green-500 rounded-full border-2 border-[#09090b]" />
+                                    <div className="absolute bottom-0 right-0 h-2.5 w-2.5 bg-green-500 rounded-full border-2 border-[#09090b]" />
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                    <p className="text-[10px] font-bold text-white truncate">Investigador</p>
-                                    <p className="text-[8px] text-zinc-500 uppercase tracking-wider truncate">Em Serviço</p>
+                                    <p className="text-xs font-bold text-white truncate">Investigador</p>
+                                    <p className="text-[10px] text-zinc-500 uppercase tracking-wider truncate">Em Serviço</p>
                                 </div>
                                 <button
                                     onClick={handleLogout}
-                                    className="p-1 rounded-lg text-red-400/50 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                                    className="p-1.5 rounded-lg text-red-400/50 hover:text-red-400 hover:bg-red-500/10 transition-colors"
                                     title="Sair"
                                 >
-                                    <LogOut size={14} />
+                                    <LogOut size={16} />
                                 </button>
                             </>
                         )}

@@ -137,7 +137,7 @@ function AppContent({ isDark, toggleTheme }: { isDark: boolean; toggleTheme: () 
                         </div>
                     </div>
                 }>
-                    <div key={location.pathname} className="page-enter pb-20 md:pb-0 pt-16 md:pt-4 px-4 md:px-8 max-w-7xl mx-auto">
+                    <div key={location.pathname} className="page-enter pb-20 md:pb-0 pt-16 md:pt-4 px-4 w-full">
                         <Routes>
                             {/* Passes theme props to Home since these are layout related, not warrant related */}
                             <Route path="/" element={<HomePage isDark={isDark} toggleTheme={toggleTheme} />} />
