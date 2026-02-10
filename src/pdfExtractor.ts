@@ -737,54 +737,87 @@ export const extractRawTextFromPdf = async (file: File): Promise<string> => {
     }
 };
 
-// --- NEW: AI-FIRST EXTRACTION ---
-// (Note: we use a sync-like check here but extractFromText should ideally be async
-// for now we prioritize regex for immediate text paste, but if AI is enabled 
-// it will be called within AIAssistantPage directly for better UX)
+// Function to extract from text input
+export const extractFromText = async (text: string, sourceName: string): Promise<ExtractedData> => {
+    // --- NEW: AI-FIRST EXTRACTION ---
+    if (await isGeminiEnabled() && text.length > 50) {
+        try {
+            const aiData = await extractFullWarrantIntelligence(text);
+            if (aiData && aiData.name) {
+                return {
+                    id: Date.now().toString(),
+                    name: aiData.name,
+                    rg: aiData.rg || '',
+                    cpf: aiData.cpf || '',
+                    processNumber: aiData.processNumber || '',
+                    type: aiData.type || 'MANDADO DE PRISÃO',
+                    category: (aiData.type && aiData.type.includes('BUSCA')) ? 'search' : 'prison',
+                    crime: aiData.crime || 'Outros',
+                    regime: aiData.regime || 'Outro',
+                    issueDate: aiData.issueDate || new Date().toISOString().split('T')[0],
+                    expirationDate: aiData.expirationDate || '',
+                    addresses: aiData.addresses && aiData.addresses.length > 0 ? aiData.addresses : ['Não informado'],
+                    sourceFile: sourceName,
+                    status: 'EM ABERTO',
+                    attachments: [],
+                    observations: aiData.observations || '',
+                    tacticalSummary: [],
+                    searchChecklist: [],
+                    autoPriority: aiData.tags || [],
+                    birthDate: aiData.birthDate || '',
+                    age: calculateAge(aiData.birthDate),
+                    issuingCourt: aiData.issuingCourt || ''
+                };
+            }
+        } catch (aiError) {
+            console.warn("AI Specialist failed for text, falling back to regex:", aiError);
+        }
+    }
 
-// Parse extracted text (REGEX FALLBACK)
-const name = extractName(text);
-const rg = extractRG(text);
-const cpf = extractCPF(text);
-const birthDate = extractBirthDate(text);
-const processNumber = extractProcessNumber(text);
-const { issueDate, expirationDate = new Date().toISOString().split('T')[0] } = extractDates(text);
-const addresses = extractAddresses(text);
-const { type, category } = determineMandadoType(text);
-const crime = extractCrime(text);
-const regime = extractRegime(text, category, crime);
-const issuingCourt = extractIssuingCourt(text);
-const tacticalSummaryArray = extractTacticalSummary(text);
-const tacticalSummary = JSON.stringify({ risk: 'NORMAL', markers: tacticalSummaryArray });
-const observations = extractObservations(text);
+    // Parse extracted text (REGEX FALLBACK)
+    const name = extractName(text);
+    const rg = extractRG(text);
+    const cpf = extractCPF(text);
+    const birthDate = extractBirthDate(text);
+    const processNumber = extractProcessNumber(text);
+    const { issueDate, expirationDate = new Date().toISOString().split('T')[0] } = extractDates(text);
+    const addresses = extractAddresses(text);
+    const { type, category } = determineMandadoType(text);
+    const crime = extractCrime(text);
+    const regime = extractRegime(text, category, crime);
+    const issuingCourt = extractIssuingCourt(text);
+    const tacticalSummaryArray = extractTacticalSummary(text);
+    const tacticalSummary = JSON.stringify({ risk: 'NORMAL', markers: tacticalSummaryArray });
+    const observations = extractObservations(text);
 
-// Append tactical summary to observations
-const fullObservations = tacticalSummaryArray.length > 0
-    ? `${observations} | Atenção: ${tacticalSummaryArray.join(', ')}`
-    : observations;
+    // Append tactical summary to observations
+    const fullObservations = tacticalSummaryArray.length > 0
+        ? `${observations} | Atenção: ${tacticalSummaryArray.join(', ')}`
+        : observations;
 
-return {
-    id: Date.now().toString(),
-    name,
-    rg,
-    cpf,
-    processNumber,
-    type,
-    category,
-    crime,
-    regime,
-    issueDate,
-    expirationDate,
-    addresses,
-    sourceFile: sourceName,
-    status: 'EM ABERTO',
-    attachments: [],
-    observations: fullObservations,
-    tacticalSummary: tacticalSummaryArray, // FIX: Return array directly
-    searchChecklist: extractSearchChecklist(text, category),
-    autoPriority: determineAutoPriority(text, crime),
-    birthDate,
-    age: calculateAge(birthDate),
-    issuingCourt
+    return {
+        id: Date.now().toString(),
+        name,
+        rg,
+        cpf,
+        processNumber,
+        type,
+        category,
+        crime,
+        regime,
+        issueDate,
+        expirationDate,
+        addresses,
+        sourceFile: sourceName,
+        status: 'EM ABERTO',
+        attachments: [],
+        observations: fullObservations,
+        tacticalSummary: tacticalSummaryArray, // FIX: Return array directly
+        searchChecklist: extractSearchChecklist(text, category),
+        autoPriority: determineAutoPriority(text, crime),
+        birthDate,
+        age: calculateAge(birthDate),
+        issuingCourt
+    };
 };
-};
+

@@ -230,7 +230,7 @@ const AIAssistantPage = () => {
             const text = event.results[0][0].transcript;
             setStep('processing');
             try {
-                const data = extractFromText(text, "Comando de Voz");
+                const data = await extractFromText(text, "Comando de Voz");
                 const isDuplicate = warrants.some(w => w.number === data.processNumber);
                 setBatchResults([{ ...data, isDuplicate, tags: data.autoPriority || [] }]);
                 setCurrentIndex(0);
@@ -306,11 +306,11 @@ const AIAssistantPage = () => {
         }
     };
 
-    const handleTextExtraction = () => {
+    const handleTextExtraction = async () => {
         if (!inputText.trim()) return;
         setStep('processing');
         try {
-            const data = extractFromText(inputText, "Texto via Transferência");
+            const data = await extractFromText(inputText, "Texto via Transferência");
             const isDuplicate = warrants.some(w => w.number === data.processNumber);
             const formattedData = {
                 ...data,
