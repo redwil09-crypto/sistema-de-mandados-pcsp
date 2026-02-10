@@ -1612,7 +1612,7 @@ Equipe de Capturas - DIG / PCSP
                                     )}
                                 </div>
                                 <textarea
-                                    className="w-full bg-slate-100 dark:bg-zinc-800 border border-slate-200 dark:border-white/10 rounded-xl p-4 text-sm text-text-light dark:text-white outline-none focus:ring-2 focus:ring-primary/20 transition-all resize-none h-[95px]"
+                                    className="w-full bg-slate-100 dark:bg-surface-dark border border-slate-200 dark:border-white/10 rounded-xl p-4 text-sm text-text-light dark:text-white outline-none focus:ring-2 focus:ring-primary/20 transition-all resize-none h-[95px]"
                                     value={localData.location || ''}
                                     onChange={e => handleFieldChange('location', e.target.value)}
                                     placeholder="Endereço de diligência..."
@@ -1622,7 +1622,7 @@ Equipe de Capturas - DIG / PCSP
                                         href={`https://www.google.com/maps/search/?api=1&query=${localData.latitude},${localData.longitude}`}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="flex-1 bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 dark:hover:bg-white/10 border border-slate-200 dark:border-white/10 rounded-xl py-3 text-[10px] font-black uppercase flex items-center justify-center gap-2 transition-all active:scale-95 text-text-light dark:text-white"
+                                        className="flex-1 bg-slate-100 dark:bg-surface-dark hover:bg-slate-200 dark:hover:bg-white/10 border border-slate-200 dark:border-white/10 rounded-xl py-3 text-[10px] font-black uppercase flex items-center justify-center gap-2 transition-all active:scale-95 text-text-light dark:text-white"
                                     >
                                         <MapIcon size={14} /> Abrir no Mapa
                                     </a>
@@ -1645,7 +1645,7 @@ Equipe de Capturas - DIG / PCSP
                                     </div>
 
                                     {/* New Document Inputs */}
-                                    <div className="bg-slate-100 dark:bg-zinc-800 rounded-xl p-3 grid grid-cols-1 md:grid-cols-4 gap-2 items-end">
+                                    <div className="bg-slate-100 dark:bg-surface-dark rounded-xl p-3 grid grid-cols-1 md:grid-cols-4 gap-2 items-end">
                                         <div className="space-y-1">
                                             <label className="text-[9px] font-black text-text-secondary-light dark:text-text-muted uppercase tracking-wider">Tipo</label>
                                             <select
