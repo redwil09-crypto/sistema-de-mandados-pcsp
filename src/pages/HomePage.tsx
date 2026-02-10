@@ -220,11 +220,11 @@ const HomePage = ({ isDark, toggleTheme }: HomePageProps) => {
                 </div>
 
                 {/* Duty Summary Card */}
-                <Link to="/priority-list" className="block rounded-2xl bg-surface-light dark:bg-surface-dark p-4 shadow-[0_0_10px_rgba(239,68,68,0.6)] border border-red-500 relative overflow-hidden transition-transform active:scale-[0.98]">
-                    <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-red-500/10 blur-xl"></div>
+                <Link to="/priority-list" className="block mt-4 rounded-2xl bg-surface-light p-4 shadow-md transition-all active:scale-[0.98] dark:bg-zinc-900 border border-transparent hover:border-red-500 hover:shadow-[0_0_25px_rgba(239,68,68,0.6)] relative overflow-hidden group">
+                    <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-red-500/10 blur-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
                     <div className="relative z-10 flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-red-500/10 text-red-600 dark:bg-red-900/20 dark:text-red-400 border border-red-500/20">
+                            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-500 border border-transparent group-hover:border-red-500/30 transition-colors">
                                 <Siren size={24} />
                             </div>
                             <div>
@@ -236,9 +236,9 @@ const HomePage = ({ isDark, toggleTheme }: HomePageProps) => {
                         </div>
                         <div className="flex items-center gap-2">
                             <div className="text-right">
-                                <span className="block text-xs font-bold text-red-600 dark:text-red-400 uppercase tracking-wider">Atenção</span>
+                                <span className="block text-xs font-bold text-red-600 dark:text-red-500 uppercase tracking-wider group-hover:scale-105 transition-transform">Atenção</span>
                             </div>
-                            <ChevronRight size={20} className="text-gray-500 dark:text-gray-400" />
+                            <ChevronRight size={20} className="text-gray-500 dark:text-gray-400 group-hover:translate-x-1 transition-transform" />
                         </div>
                     </div>
                 </Link>
