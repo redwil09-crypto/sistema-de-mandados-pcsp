@@ -96,7 +96,7 @@ export const generateWarrantPDF = async (
 
             doc.setFontSize(14);
             doc.setTextColor(...COLORS.PRIMARY);
-            doc.text("DOSSIÊ OPERACIONAL TÁTICO", pageWidth / 2, y, { align: 'center' });
+            doc.text("DOSSIÊ OPERACIONAL", pageWidth / 2, y, { align: 'center' });
 
             doc.setFontSize(7);
             doc.setTextColor(100, 100, 100);
