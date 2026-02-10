@@ -26,7 +26,7 @@ const WarrantCard = ({ data, onPrint, isPlanned, onRouteToggle, onFinalize, onDe
             {...props}
         >
             {/* Type Indicator Strip (Left Border) */}
-            <div className={`absolute left-0 top-0 bottom-0 w-1 transition-colors duration-300 ${isSearch ? 'bg-orange-500 shadow-[2px_0_10px_rgba(249,115,22,0.4)]' : 'bg-secondary shadow-[2px_0_10px_rgba(34,211,238,0.2)]'}`}></div>
+            <div className={`absolute left-0 top-0 bottom-0 w-1.5 transition-colors duration-300 ${isSearch ? 'bg-orange-600 shadow-[2px_0_15px_rgba(234,88,12,0.6)] animate-pulse' : 'bg-blue-600 shadow-[2px_0_15px_rgba(37,99,235,0.6)]'}`}></div>
 
             {/* Hover Tech Pattern Overlay */}
             <div className="absolute inset-0 bg-grid-pattern opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />

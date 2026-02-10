@@ -151,7 +151,7 @@ const HomePage = ({ isDark, toggleTheme }: HomePageProps) => {
 
             <main className="px-4 py-2 space-y-6">
                 <div className="grid grid-cols-2 gap-3">
-                    <Link to="/warrant-list" className="group flex flex-col gap-3 rounded-2xl bg-surface-light p-4 shadow-md transition-all active:scale-[0.98] dark:bg-surface-dark border border-transparent hover:border-blue-400 hover:shadow-neon-blue">
+                    <Link to="/warrant-list" className="group flex flex-col gap-3 rounded-2xl bg-surface-light p-4 shadow-md transition-all active:scale-[0.98] dark:bg-zinc-900 border border-transparent hover:border-blue-400 hover:shadow-neon-blue">
                         <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400 group-hover:shadow-neon-blue-card transition-shadow">
                             <Gavel size={24} />
                         </div>
@@ -161,7 +161,7 @@ const HomePage = ({ isDark, toggleTheme }: HomePageProps) => {
                         </div>
                     </Link>
 
-                    <Link to="/minor-search" className="group flex flex-col gap-3 rounded-2xl bg-surface-light p-4 shadow-md transition-all active:scale-[0.98] dark:bg-surface-dark border border-transparent hover:border-orange-500 hover:shadow-neon-orange">
+                    <Link to="/minor-search" className="group flex flex-col gap-3 rounded-2xl bg-surface-light p-4 shadow-md transition-all active:scale-[0.98] dark:bg-zinc-900 border border-transparent hover:border-orange-500 hover:shadow-neon-orange">
                         <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-50 text-orange-600 dark:bg-orange-500/10 dark:text-orange-500 group-hover:shadow-neon-orange-card transition-shadow">
                             <Baby size={24} />
                         </div>
@@ -171,7 +171,7 @@ const HomePage = ({ isDark, toggleTheme }: HomePageProps) => {
                         </div>
                     </Link>
 
-                    <Link to="/new-warrant" className="group flex flex-col gap-3 rounded-2xl bg-surface-light p-4 shadow-md transition-all active:scale-[0.98] dark:bg-surface-dark border border-transparent hover:border-green-500 hover:shadow-neon-green">
+                    <Link to="/new-warrant" className="group flex flex-col gap-3 rounded-2xl bg-surface-light p-4 shadow-md transition-all active:scale-[0.98] dark:bg-zinc-900 border border-transparent hover:border-green-500 hover:shadow-neon-green">
                         <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-green-50 text-green-600 dark:bg-green-500/10 dark:text-green-500 group-hover:shadow-neon-green-card transition-shadow">
                             <FilePlus size={24} />
                         </div>
@@ -183,7 +183,7 @@ const HomePage = ({ isDark, toggleTheme }: HomePageProps) => {
 
 
 
-                    <Link to="/stats" className="group flex flex-col gap-3 rounded-2xl bg-surface-light p-4 shadow-md transition-all active:scale-[0.98] dark:bg-surface-dark border border-transparent hover:border-yellow-500 hover:shadow-neon-yellow">
+                    <Link to="/stats" className="group flex flex-col gap-3 rounded-2xl bg-surface-light p-4 shadow-md transition-all active:scale-[0.98] dark:bg-zinc-900 border border-transparent hover:border-yellow-500 hover:shadow-neon-yellow">
                         <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-yellow-50 text-yellow-600 dark:bg-yellow-500/10 dark:text-yellow-500 group-hover:shadow-neon-yellow-card transition-shadow">
                             <BarChart2 size={24} />
                         </div>
@@ -193,7 +193,7 @@ const HomePage = ({ isDark, toggleTheme }: HomePageProps) => {
                         </div>
                     </Link>
 
-                    <Link to="/route-planner" className="group flex flex-col gap-3 rounded-2xl bg-surface-light p-4 shadow-md transition-all active:scale-[0.98] dark:bg-surface-dark border border-transparent hover:border-cyan-500 hover:shadow-neon-cyan relative">
+                    <Link to="/route-planner" className="group flex flex-col gap-3 rounded-2xl bg-surface-light p-4 shadow-md transition-all active:scale-[0.98] dark:bg-zinc-900 border border-transparent hover:border-cyan-500 hover:shadow-neon-cyan relative">
                         {routeWarrants.length > 0 && (
                             <span className="absolute top-3 right-3 flex h-5 w-5 items-center justify-center rounded-full bg-cyan-600 text-[10px] font-bold text-white shadow-lg animate-bounce">
                                 {routeWarrants.length}
@@ -208,7 +208,7 @@ const HomePage = ({ isDark, toggleTheme }: HomePageProps) => {
                         </div>
                     </Link>
 
-                    <Link to="/ai-assistant" className="group flex flex-col gap-3 rounded-2xl bg-gradient-to-br from-blue-500/5 to-cyan-500/10 p-4 shadow-sm transition-all active:scale-[0.98] dark:from-blue-500/10 dark:to-cyan-500/20 border border-blue-500/30 hover:border-blue-500 hover:shadow-neon-blue">
+                    <Link to="/ai-assistant" className="group flex flex-col gap-3 rounded-2xl bg-gradient-to-br from-blue-500/5 to-cyan-500/10 p-4 shadow-sm transition-all active:scale-[0.98] dark:from-zinc-900 dark:to-zinc-800 border border-blue-500/30 hover:border-blue-500 hover:shadow-neon-blue">
                         <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-500 text-white shadow-lg shadow-blue-500/20">
                             <Bot size={24} />
                         </div>
