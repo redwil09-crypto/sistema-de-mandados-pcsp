@@ -1560,7 +1560,7 @@ Equipe de Capturas - DIG / PCSP
                     />
                 )}
 
-                {/* 2. Tactical Navigation Tabs - STRONG CONTOUR, REDUCED GLOW */}
+                {/* 2. Tactical Navigation Tabs - STRONG CONTOUR, LIGHTER ACTIVE BG */}
                 <div className="flex flex-wrap items-center gap-4 sticky top-2 z-[30] py-4 backdrop-blur-md bg-background-light/40 dark:bg-background-dark/40 -mx-2 px-2 rounded-xl">
                     {[
                         { id: 'documents', label: 'Dossiê', icon: FileText, colorClass: 'border-blue-500/80', hoverClass: 'hover:border-blue-500 hover:bg-blue-500/5' },
@@ -1570,10 +1570,10 @@ Equipe de Capturas - DIG / PCSP
                         <button
                             key={tab.id}
                             onClick={() => setActiveDetailTab(tab.id as any)}
-                            className={`flex-1 min-w-[120px] flex flex-col sm:flex-row items-center justify-center gap-2 py-3 px-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-300 border-2 backdrop-blur-md bg-zinc-100 dark:bg-zinc-800 text-white shadow-sm ${tab.colorClass} ${tab.hoverClass} ${activeDetailTab === tab.id
-                                ? 'scale-[1.02] border-opacity-100 ring-1 ring-white/10'
-                                : 'opacity-80'
-                                }`}
+                            className={`flex-1 min-w-[120px] flex flex-col sm:flex-row items-center justify-center gap-2 py-3 px-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-300 border-2 backdrop-blur-md shadow-sm ${tab.colorClass} ${tab.hoverClass} ${activeDetailTab === tab.id
+                                ? 'scale-[1.02] bg-zinc-200 dark:bg-zinc-700 border-opacity-100 ring-1 ring-white/10'
+                                : 'bg-zinc-100 dark:bg-zinc-800 opacity-80'
+                                } text-white`}
                         >
                             <tab.icon size={16} className={activeDetailTab === tab.id ? 'animate-pulse' : ''} />
                             <span>{tab.label}</span>
