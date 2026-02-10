@@ -25,6 +25,7 @@ import {
     FileSearch
 } from 'lucide-react';
 import { supabase } from '../supabaseClient';
+import { toast } from 'sonner';
 
 interface SidebarProps {
     routeCount?: number;
@@ -200,6 +201,7 @@ const Sidebar = ({ routeCount = 0, isCollapsed, toggleCollapse, isDark, toggleTh
                         </button>
 
                         <button
+                            onClick={() => toast.info('Nenhuma notificação nova')}
                             className="p-2 rounded-lg text-zinc-400 hover:bg-white/5 hover:text-white transition-all border border-transparent hover:border-white/10 group relative"
                             title="Notificações"
                         >
@@ -209,7 +211,9 @@ const Sidebar = ({ routeCount = 0, isCollapsed, toggleCollapse, isDark, toggleTh
                     </div>
 
                     {/* User Profile */}
-                    <div className={`
+                    <NavLink
+                        to="/profile"
+                        className={`
                         flex items-center gap-3 p-2 rounded-xl border border-white/5 bg-white/5 
                         ${isCollapsed ? 'justify-center border-0 bg-transparent p-0' : 'hover:bg-white/10 hover:border-blue-500/30'} 
                         transition-all duration-300 group
@@ -234,7 +238,10 @@ const Sidebar = ({ routeCount = 0, isCollapsed, toggleCollapse, isDark, toggleTh
                                     <p className="text-[10px] text-zinc-500 uppercase tracking-wider truncate">Em Serviço</p>
                                 </div>
                                 <button
-                                    onClick={handleLogout}
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        handleLogout();
+                                    }}
                                     className="p-1.5 rounded-lg text-red-400/50 hover:text-red-400 hover:bg-red-500/10 transition-colors"
                                     title="Sair"
                                 >
@@ -242,7 +249,7 @@ const Sidebar = ({ routeCount = 0, isCollapsed, toggleCollapse, isDark, toggleTh
                                 </button>
                             </>
                         )}
-                    </div>
+                    </NavLink>
                 </div>
             </aside>
         </>
