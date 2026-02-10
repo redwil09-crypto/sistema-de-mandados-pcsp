@@ -150,24 +150,24 @@ const extractBirthDate = (text: string): string => {
 };
 
 const extractIssuingCourt = (text: string): string => {
-    // Normaliza espaços para facilitar a busca em linhas quebradas
-    const headerText = text.substring(0, 5000).replace(/\s+/g, ' ');
+    // Aumenta o range de busca para 8000 caracteres pois alguns mandados têm cabeçalhos imensos
+    const headerText = text.substring(0, 8000).replace(/\s+/g, ' ');
 
     const patterns = [
-        // 1. Padrão explícito (Label: Valor)
+        // 1. Padrão explícito (Label: Valor) - Prioritário
         /(?:Vara|Juízo|Ofício|Fórum|Comarca|JUÍZO DE DIREITO)[:\s]+([^-\n]+?)(?:\s-|\sProcesso|\sDigital|$)/i,
 
-        // 2. Padrões de Vara Específica (ex: "2ª Vara Criminal")
-        /([0-9]+[ªº]?\s+Vara\s+(?:Criminal|Cível|da\s+Família|das\s+Sucessões|do\s+Júri|de\s+Execuções\s+Criminais|da\s+Infância|do\s+Juizado)[^,\-]*)/i,
+        // 2. Padrões de Vara Específica no início (ex: "2ª Vara Criminal")
+        /([0-9]+[ªº]?\s+Vara\s+(?:Criminal|Cível|da\s+Família|das\s+Sucessões|do\s+Júri|de\s+Execuções\s+Criminais|da\s+Infância|do\s+Juizado|Única)[^,\-]*)/i,
 
-        // 3. Padrão Genérico de Vara (ex: "Vara do Júri")
-        /(Vara\s+(?:do\s+Júri|da\s+Infância|de\s+Execuções|Única|Criminal)[^,\-]*)/i,
+        // 3. Padrão de Tribunal de Justiça (Comum no topo)
+        /TRIBUNAL DE JUSTIÇA DO ESTADO DE SÃO PAULO\s+([A-Z0-9ªº\s]+VARA\s+[A-Z\s]+)/i,
 
         // 4. Foro / Comarca (Fallback se não achar Vara específica)
         /(?:Foro|Comarca|Fórum)\s+de\s+([a-zA-ZÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑ\s\-]+?)(?:\s[-–]|\sSecretaria|\sEstado|\sJuiz)/i,
 
-        // 5. Cabeçalho de Tribunal
-        /TRIBUNAL DE JUSTIÇA DO ESTADO DE SÃO PAULO\s+([A-Z0-9ªº\s]+VARA\s+[A-Z\s]+)/i
+        // 5. Padrão Genérico de Vara (ex: "Vara do Júri")
+        /(Vara\s+(?:do\s+Júri|da\s+Infância|de\s+Execuções|Única|Criminal)[^,\-]*)/i
     ];
 
     for (const pattern of patterns) {
@@ -175,15 +175,16 @@ const extractIssuingCourt = (text: string): string => {
         if (match && match[1]) {
             let court = match[1].trim();
 
-            // Limpezas adicionais de ruído comum
+            // Limpezas agressivas
             court = court.replace(/TRIBUNAL DE JUSTIÇA.*/i, '')
                 .replace(/ESTADO DE SÃO PAULO.*/i, '')
                 .replace(/JUIZ DE DIREITO.*/i, '')
                 .replace(/SECRETARIA.*/i, '')
+                .replace(/Processo Digital.*/i, '')
                 .replace(/[.:;]+$/, '')
                 .trim();
 
-            if (court.length > 4 && court.length < 100) {
+            if (court.length > 3 && court.length < 120) {
                 return court.toUpperCase();
             }
         }
@@ -386,8 +387,15 @@ const determineMandadoType = (text: string): { type: string; category: 'prison' 
 const extractCrime = (text: string): string => {
     const lowerText = text.toLowerCase();
 
-    const lawArticlePattern = /(?:Assunto|Natureza|Capitula[çc][ãa]o|Incorreu\s+no(?:s)?\s+Artigo(?:s)?|Tipifica[çc][ãa]o|Artigo\(s\))[:\s\d]*([0-9]{2,4})/i;
-    const articleMatch = text.match(lawArticlePattern);
+    // 1. Padrão de Artigo com rótulo
+    const lawArticlePattern = /(?:Assunto|Natureza|Capitula[çc][ãa]o|Incorreu\s+no(?:s)?\s+Artigo(?:s)?|Tipifica[çc][ãa]o|Artigo\(s\)|Delito\(s\)|Incid[êe]ncia\s+Penal)[:\s\d]*([0-9]{2,4})/i;
+    let articleMatch = text.match(lawArticlePattern);
+
+    // 2. Se não achou com rótulo, tenta achar "Art. XXX" ou "Artigo XXX" em qualquer lugar
+    if (!articleMatch) {
+        const standaloneArticle = /\bArt(?:\.|igo)?\s*([0-9]{2,4})/i;
+        articleMatch = text.match(standaloneArticle);
+    }
 
     if (articleMatch && articleMatch[1]) {
         const art = articleMatch[1];
@@ -404,22 +412,24 @@ const extractCrime = (text: string): string => {
         if (art === '159') return "Extorsão mediante sequestro";
         if (art === '14' || art === '16') return "Armas (Lei 10826)";
         if (art === '302' || art === '303') return "Crimes de Trânsito";
+        if (art === '331') return "Desacato";
+        if (art === '329') return "Resistência";
     }
 
     const specificRules = [
         { crime: "Pensão alimenticia", keywords: [/\bpens[ãa]o\b/i, /\baliment[íi]cia\b/i, /\bd[ée]bito\s+alimentar\b/i, /\bd[íi]vida\s+de\s+alimentos\b/i, /\bpris[ãa]o\s+civil\b/i] },
-        { crime: "Homicídio", keywords: [/\bhomic[íi]dio\b/i, /\bmatar\b/i, /\bassassinato\b/i] },
+        { crime: "Homicídio", keywords: [/\bhomic[íi]dio\b/i, /\bmatar\b/i, /\bassassinato\b/i, /\bart\.?\s*121\b/i] },
         { crime: "Feminicídio", keywords: [/\bfeminic[íi]dio\b/i] },
         { crime: "Roubo", keywords: [/\broubo\b/i, /\bassalto\b/i, /\bart\.?\s*157\b/i] },
         { crime: "Furto", keywords: [/\bfurto\b/i, /\bart\.?\s*155\b/i] },
-        { crime: "Drogas/Trafico", keywords: [/\btr[áa]fico\b/i, /\bentorpecente\b/i, /\bdrogas\b/i, /\bart\.?\s*33\b/i] },
+        { crime: "Drogas/Trafico", keywords: [/\btr[áa]fico\b/i, /\bentorpecente\b/i, /\bdrogas\b/i, /\bart\.?\s*33\b/i, /\bart\.?\s*35\b/i] },
         { crime: "Violencia domestica", keywords: [/\bmaria\s+da\s+penha\b/i, /\bviol[êe]ncia\s+dom[ée]stica\b/i] },
-        { crime: "Crimes Sexuais (Estupro)", keywords: [/\bestupro\b/i, /\blasc[íi]via\b/i, /\bdignidade\s+sexual\b/i, /\bestupro\s+de\s+vulner[áa]vel\b/i] },
-        { crime: "Armas", keywords: [/\barma\s+de\s+fogo\b/i, /\bporte\s+ilegal\b/i, /\bposse\s+de\s+arma\b/i] },
+        { crime: "Estupro", keywords: [/\bestupro\b/i, /\blasc[íi]via\b/i, /\bdignidade\s+sexual\b/i, /\bestupro\s+de\s+vulner[áa]vel\b/i, /\bart\.?\s*213\b/i, /\bart\.?\s*217\b/i] },
+        { crime: "Armas", keywords: [/\barma\s+de\s+fogo\b/i, /\bporte\s+ilegal\b/i, /\bposse\s+de\s+arma\b/i, /\bart\.?\s*14\b/i, /\bart\.?\s*16\b/i] },
         { crime: "Estelionato", keywords: [/\bestelionato\b/i, /\bfraude\b/i, /\bart\.?\s*171\b/i] },
         { crime: "Receptação", keywords: [/\brecepta[çc][ãa]o\b/i, /\bart\.?\s*180\b/i] },
-        { crime: "Ameaça/Injuria/Briga/Lesão", keywords: [/\bamea[çc]a\b/i, /\binj[úu]ria\b/i, /\bdifama[çc][ãa]o\b/i, /\bkalan[úu]nia\b/i] },
-        { crime: "Crimes de Trânsito", keywords: [/\btr[âa]nsito\b/i, /\bcodingo\s+de\s+transito\b/i, /\bembriaguez\b/i] },
+        { crime: "Ameaça", keywords: [/\bamea[çc]a\b/i, /\bart\.?\s*147\b/i] },
+        { crime: "Crimes de Trânsito", keywords: [/\btr[âa]nsito\b/i, /\bcodingo\s+de\s+transito\b/i, /\bembriaguez\b/i, /\bart\.?\s*302\b/i, /\bart\.?\s*303\b/i] },
     ];
 
     for (const rule of specificRules) {

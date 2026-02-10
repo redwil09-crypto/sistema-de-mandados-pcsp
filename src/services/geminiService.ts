@@ -191,33 +191,43 @@ export async function extractFullWarrantIntelligence(rawText: string): Promise<a
 
     const prompt = `
         VOCÊ É UM ANALISTA DE INTELIGÊNCIA DA POLÍCIA CIVIL DE ELITE.
-        SUA MISSÃO: Extrair dados estruturados de um MANDADO JUDICIAL.
+        SUA MISSÃO: Extrair dados estruturados de um MANDADO JUDICIAL com 100% de precisão tática.
 
-        REGRAS DE OURO:
-        1. MAPEAMENTO DE CRIMES: Se encontrar um ARTIGO, converta para o NOME DO CRIME.
-           Exemplos: 
-           - Art. 121 -> Homicídio
-           - Art. 157 -> Roubo
-           - Art. 155 -> Furto
-           - Art. 33 ou 35 -> Tráfico de Drogas
-           - Art. 213 ou 217 -> Estupro / Crime Sexual
-           - Art. 147 -> Ameaça
-           - Art. 129 -> Lesão Corporal
-           - Art. 171 -> Estelionato
-           - Art. 180 -> Receptação
-           - Art. 14 ou 16 (Lei 10826) -> Porte/Posse de Arma
-           - Pensão / Alimentos -> Pensão Alimentícia
+        REGRAS DE OURO (NÃO IGNORE NENHUMA):
         
-        2. VARA / FÓRUM: Procure no topo do documento. Geralmente começa com "Vara...", "Juízo...", "Comarca de...".
-        3. ENDEREÇOS: Capture todos os endereços mencionados para diligência.
-        4. DATAS: Formate no padrão AAAA-MM-DD.
+        1. 🏛️ VARA / FÓRUM (ISSUING COURT): 
+           - Procure no primeiríssimo parágrafo ou no cabeçalho.
+           - Formatos comuns: "Vara Criminal da Comarca de...", "2ª Vara Criminal de...", "Juízo de Direito da Vara...", "Foro Central Criminal Barra Funda".
+           - Se houver "TRIBUNAL DE JUSTIÇA DO ESTADO DE SÃO PAULO", a Vara geralmente vem logo abaixo. 
+           - EXTRAIA O NOME COMPLETO DA VARA E A COMARCA.
 
-        TEXTO BRUTO DO MANDADO:
+        2. ⚖️ ARTIGO E CRIME:
+           - Localize a "Capitulação", "Incidência Penal" ou "Artigo".
+           - SE ENCONTRAR UM ARTIGO, VOCÊ DEVE ESCREVER O NOME DO CRIME.
+           - Exemplos de mapeamento obrigatório: 
+             - Art. 121 -> Homicídio
+             - Art. 157 -> Roubo
+             - Art. 155 -> Furto
+             - Art. 33 ou 35 -> Tráfico de Drogas
+             - Art. 213 ou 217 -> Estupro
+             - Art. 147 -> Ameaça
+             - Art. 129 -> Lesão Corporal
+             - Art. 171 -> Estelionato
+             - Art. 180 -> Receptação
+             - Art. 14 ou 16 (Lei 10826) -> Porte/Posse de Arma
+             - Art. 331 -> Desacato
+             - Pensão / Alimentos -> Pensão Alimentícia
+
+        3. 📍 ENDEREÇOS: Capture todos os endereços residenciais ou comerciais citados para o alvo.
+
+        4. 📅 DATAS: Formate estritamente no padrão AAAA-MM-DD.
+
+        TEXTO BRUTO DO MANDADO (OCR):
         """
         ${rawText}
         """
 
-        SAÍDA OBRIGATÓRIA EM JSON:
+        SAÍDA OBRIGATÓRIA EM JSON (SEM COMENTÁRIOS):
         {
             "name": "NOME COMPLETO EM MAIÚSCULAS",
             "rg": "Apenas números",
@@ -225,9 +235,9 @@ export async function extractFullWarrantIntelligence(rawText: string): Promise<a
             "birthDate": "AAAA-MM-DD",
             "processNumber": "Número do processo unificado",
             "type": "MANDADO DE PRISÃO" ou "BUSCA E APREENSÃO",
-            "crime": "NOME DO CRIME (TRADUZIDO DO ARTIGO SE NECESSÁRIO)",
+            "crime": "NOME DO CRIME TRADUZIDO (Ex: Roubo)",
             "regime": "Fechado / Semiaberto / Aberto / Preventiva / Temporária / Civil",
-            "issuingCourt": "VARA E COMARCA POR EXTENSO",
+            "issuingCourt": "VARA E COMARCA POR EXTENSO (Ex: 1ª VARA CRIMINAL DE JACAREÍ)",
             "addresses": ["Endereço 1", "Endereço 2"],
             "issueDate": "AAAA-MM-DD",
             "expirationDate": "AAAA-MM-DD",
