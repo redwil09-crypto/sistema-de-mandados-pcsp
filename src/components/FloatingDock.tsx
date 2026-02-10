@@ -37,8 +37,8 @@ const FloatingDock = ({ onBack, onSave, onPrint, onFinalize, onDelete, className
                 <DockItem
                     onClick={onBack}
                     icon={<Home size={22} />}
-                    color="text-text-secondary-light dark:text-text-secondary-dark hover:text-sky-600 dark:hover:text-sky-400"
-                    bg="hover:bg-black/5 dark:hover:bg-white/5"
+                    color="text-text-secondary-light dark:text-text-secondary-dark hover:text-blue-600 dark:hover:text-blue-400"
+                    bg="hover:bg-blue-500/10 dark:hover:bg-blue-400/10"
                     label="Início"
                 />
 
@@ -47,8 +47,8 @@ const FloatingDock = ({ onBack, onSave, onPrint, onFinalize, onDelete, className
                     <DockItem
                         onClick={onSave}
                         icon={<RefreshCw size={22} />}
-                        color="text-text-secondary-light dark:text-text-secondary-dark hover:text-amber-600 dark:hover:text-amber-400"
-                        bg="hover:bg-black/5 dark:hover:bg-white/5"
+                        color="text-text-secondary-light dark:text-text-secondary-dark hover:text-orange-600 dark:hover:text-orange-400"
+                        bg="hover:bg-orange-500/10 dark:hover:bg-orange-400/10"
                         label="Atualizar"
                     />
                 )}
@@ -57,16 +57,16 @@ const FloatingDock = ({ onBack, onSave, onPrint, onFinalize, onDelete, className
                 <DockItem
                     onClick={onPrint}
                     icon={<Printer size={22} />}
-                    color="text-text-secondary-light dark:text-text-secondary-dark hover:text-indigo-600 dark:hover:text-indigo-400"
-                    bg="hover:bg-black/5 dark:hover:bg-white/5"
+                    color="text-text-secondary-light dark:text-text-secondary-dark hover:text-yellow-600 dark:hover:text-yellow-400"
+                    bg="hover:bg-yellow-500/10 dark:hover:bg-yellow-400/10"
                     label="PDF"
                 />
 
                 <DockItem
                     onClick={onFinalize}
                     icon={<CheckCircle size={22} />}
-                    color="text-text-secondary-light dark:text-text-secondary-dark hover:text-emerald-600 dark:hover:text-emerald-400"
-                    bg="hover:bg-black/5 dark:hover:bg-white/5"
+                    color="text-text-secondary-light dark:text-text-secondary-dark hover:text-green-600 dark:hover:text-green-400"
+                    bg="hover:bg-green-500/10 dark:hover:bg-green-400/10"
                     label="Concluir"
                 />
 
@@ -74,8 +74,8 @@ const FloatingDock = ({ onBack, onSave, onPrint, onFinalize, onDelete, className
                     <DockItem
                         onClick={onDelete}
                         icon={<Trash2 size={22} />}
-                        color="text-text-secondary-light dark:text-text-secondary-dark hover:text-rose-600 dark:hover:text-rose-400"
-                        bg="hover:bg-black/5 dark:hover:bg-white/5"
+                        color="text-text-secondary-light dark:text-text-secondary-dark hover:text-red-600 dark:hover:text-red-400"
+                        bg="hover:bg-red-500/10 dark:hover:bg-red-400/10"
                         label="Excluir"
                     />
                 )}

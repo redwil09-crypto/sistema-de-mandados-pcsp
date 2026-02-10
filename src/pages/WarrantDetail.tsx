@@ -1538,8 +1538,8 @@ Equipe de Capturas - DIG / PCSP
                 <div className="flex bg-surface-light dark:bg-surface-dark/80 backdrop-blur border border-border-light dark:border-white/10 rounded-2xl p-1.5 gap-1.5 shadow-glass sticky top-2 z-[30]">
                     {[
                         { id: 'documents', label: 'Dossiê', icon: FileText, color: 'bg-gradient-to-r from-blue-600 to-cyan-500 shadow-blue-500/25 border-blue-400/20' },
-                        { id: 'investigation', label: 'Investigações', icon: Bot, color: 'bg-gradient-to-r from-violet-600 to-fuchsia-500 shadow-violet-500/25 border-violet-400/20' },
-                        { id: 'timeline', label: 'Operações', icon: History, color: 'bg-gradient-to-r from-emerald-500 to-teal-500 shadow-emerald-500/25 border-emerald-400/20' }
+                        { id: 'investigation', label: 'Investigações', icon: Bot, color: 'bg-gradient-to-r from-orange-600 to-yellow-500 shadow-orange-500/25 border-orange-400/20' },
+                        { id: 'timeline', label: 'Operações', icon: History, color: 'bg-gradient-to-r from-green-600 to-emerald-500 shadow-green-500/25 border-green-400/20' }
                     ].map(tab => (
                         <button
                             key={tab.id}
