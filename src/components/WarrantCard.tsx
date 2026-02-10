@@ -20,13 +20,13 @@ const WarrantCard = ({ data, onPrint, isPlanned, onRouteToggle, onFinalize, onDe
     const isSearch = data.type ? (data.type.toLowerCase().includes('busca') || data.type.toLowerCase().includes('apreensão')) : false;
 
     const hoverClasses = isSearch
-        ? 'hover:border-orange-500 hover:shadow-[0_0_25px_rgba(249,115,22,0.4)]'
-        : 'hover:border-blue-500 hover:shadow-[0_0_25px_rgba(59,130,246,0.4)]';
+        ? 'hover:border-orange-500 hover:shadow-[0_0_25px_rgba(249,115,22,0.6)]'
+        : 'hover:border-blue-500 hover:shadow-[0_0_25px_rgba(59,130,246,0.6)]';
 
     return (
         <Link
             to={`/warrant-detail/${data.id}`}
-            className={`group block relative overflow-hidden rounded-lg bg-surface-light dark:bg-surface-dark border border-border-light dark:border-white/5 transition-all duration-300 shadow-sm ${hoverClasses}`}
+            className={`group block relative overflow-hidden rounded-lg bg-surface-light dark:bg-zinc-900 border border-border-light dark:border-white/5 transition-all duration-300 shadow-sm ${hoverClasses}`}
             {...props}
         >
             {/* Type Indicator Strip (Left Border) */}
