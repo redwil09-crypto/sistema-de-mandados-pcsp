@@ -59,6 +59,7 @@ export default {
             boxShadow: {
                 'neon-blue': '0 0 10px rgba(59, 130, 246, 0.5), 0 0 20px rgba(59, 130, 246, 0.3)',
                 'neon-blue-card': '0 0 15px rgba(59, 130, 246, 0.3)',
+                'neon-blue-tactic': '0 0 10px rgba(59, 130, 246, 0.4)',
                 'neon-purple': '0 0 10px rgba(168, 85, 247, 0.5), 0 0 20px rgba(168, 85, 247, 0.3)',
                 'neon-purple-tactic': '0 0 10px rgba(168, 85, 247, 0.4)',
                 'neon-orange': '0 0 10px rgba(249, 115, 22, 0.5), 0 0 20px rgba(249, 115, 22, 0.3)',
@@ -66,6 +67,10 @@ export default {
                 'neon-green': '0 0 10px rgba(34, 197, 94, 0.5), 0 0 20px rgba(34, 197, 94, 0.3)',
                 'neon-green-card': '0 0 15px rgba(34, 197, 94, 0.3)',
                 'neon-red': '0 0 10px rgba(239, 68, 68, 0.5), 0 0 20px rgba(239, 68, 68, 0.3)',
+                'neon-yellow': '0 0 10px rgba(234, 179, 8, 0.5), 0 0 20px rgba(234, 179, 8, 0.3)',
+                'neon-yellow-card': '0 0 15px rgba(234, 179, 8, 0.3)',
+                'neon-cyan': '0 0 10px rgba(6, 182, 212, 0.5), 0 0 20px rgba(6, 182, 212, 0.3)',
+                'neon-cyan-card': '0 0 15px rgba(6, 182, 212, 0.3)',
                 'glass': '0 8px 32px 0 rgba(0, 0, 0, 0.37)',
                 'tactic': '0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -1px rgba(0, 0, 0, 0.3)',
             }
