@@ -181,6 +181,70 @@ const parseGeminiJSON = (text: string, fallback: any = null) => {
     }
 };
 
+/**
+ * ESPECIALISTA EM EXTRAÇÃO - AGENTE DE ELITE
+ * Esta função analisa o texto bruto do PDF e extrai TODOS os campos necessários,
+ * convertendo artigos em nomes de crimes e identificando Varas/Fóruns com precisão.
+ */
+export async function extractFullWarrantIntelligence(rawText: string): Promise<any> {
+    if (!(await isGeminiEnabled())) return null;
+
+    const prompt = `
+        VOCÊ É UM ANALISTA DE INTELIGÊNCIA DA POLÍCIA CIVIL DE ELITE.
+        SUA MISSÃO: Extrair dados estruturados de um MANDADO JUDICIAL.
+
+        REGRAS DE OURO:
+        1. MAPEAMENTO DE CRIMES: Se encontrar um ARTIGO, converta para o NOME DO CRIME.
+           Exemplos: 
+           - Art. 121 -> Homicídio
+           - Art. 157 -> Roubo
+           - Art. 155 -> Furto
+           - Art. 33 ou 35 -> Tráfico de Drogas
+           - Art. 213 ou 217 -> Estupro / Crime Sexual
+           - Art. 147 -> Ameaça
+           - Art. 129 -> Lesão Corporal
+           - Art. 171 -> Estelionato
+           - Art. 180 -> Receptação
+           - Art. 14 ou 16 (Lei 10826) -> Porte/Posse de Arma
+           - Pensão / Alimentos -> Pensão Alimentícia
+        
+        2. VARA / FÓRUM: Procure no topo do documento. Geralmente começa com "Vara...", "Juízo...", "Comarca de...".
+        3. ENDEREÇOS: Capture todos os endereços mencionados para diligência.
+        4. DATAS: Formate no padrão AAAA-MM-DD.
+
+        TEXTO BRUTO DO MANDADO:
+        """
+        ${rawText}
+        """
+
+        SAÍDA OBRIGATÓRIA EM JSON:
+        {
+            "name": "NOME COMPLETO EM MAIÚSCULAS",
+            "rg": "Apenas números",
+            "cpf": "Apenas números",
+            "birthDate": "AAAA-MM-DD",
+            "processNumber": "Número do processo unificado",
+            "type": "MANDADO DE PRISÃO" ou "BUSCA E APREENSÃO",
+            "crime": "NOME DO CRIME (TRADUZIDO DO ARTIGO SE NECESSÁRIO)",
+            "regime": "Fechado / Semiaberto / Aberto / Preventiva / Temporária / Civil",
+            "issuingCourt": "VARA E COMARCA POR EXTENSO",
+            "addresses": ["Endereço 1", "Endereço 2"],
+            "issueDate": "AAAA-MM-DD",
+            "expirationDate": "AAAA-MM-DD",
+            "observations": "Resumo tático das observações",
+            "tags": ["Urgente", "Risco de Fuga", etc]
+        }
+    `;
+
+    try {
+        const resultText = await tryGenerateContent(prompt);
+        return parseGeminiJSON(resultText, null);
+    } catch (error) {
+        console.error("Erro no Especialista de Extração:", error);
+        return null;
+    }
+}
+
 export async function analyzeRawDiligence(warrantData: any, rawInfo: string) {
     if (!(await isGeminiEnabled())) return null;
 

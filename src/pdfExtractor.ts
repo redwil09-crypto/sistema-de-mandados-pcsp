@@ -1,5 +1,5 @@
-// Imports seguros usando Named Imports para compatibilidade total com Vite/PDF.js v4
 // NOTE: pdfjs-dist is now dynamically imported to avoid top-level crashes
+import { extractFullWarrantIntelligence, isGeminiEnabled } from './services/geminiService';
 
 
 export interface ExtractedData {
@@ -151,20 +151,23 @@ const extractBirthDate = (text: string): string => {
 
 const extractIssuingCourt = (text: string): string => {
     // Normaliza espaços para facilitar a busca em linhas quebradas
-    const headerText = text.substring(0, 3000).replace(/\s+/g, ' ');
+    const headerText = text.substring(0, 5000).replace(/\s+/g, ' ');
 
     const patterns = [
         // 1. Padrão explícito (Label: Valor)
-        /(?:Vara|Juízo|Ofício|Fórum|Comarca)[:\s]+([^-\n]+?)(?:\s-|\sProcesso|\sDigital|$)/i,
+        /(?:Vara|Juízo|Ofício|Fórum|Comarca|JUÍZO DE DIREITO)[:\s]+([^-\n]+?)(?:\s-|\sProcesso|\sDigital|$)/i,
 
         // 2. Padrões de Vara Específica (ex: "2ª Vara Criminal")
         /([0-9]+[ªº]?\s+Vara\s+(?:Criminal|Cível|da\s+Família|das\s+Sucessões|do\s+Júri|de\s+Execuções\s+Criminais|da\s+Infância|do\s+Juizado)[^,\-]*)/i,
 
         // 3. Padrão Genérico de Vara (ex: "Vara do Júri")
-        /(Vara\s+(?:do\s+Júri|da\s+Infância|de\s+Execuções|Única)[^,\-]*)/i,
+        /(Vara\s+(?:do\s+Júri|da\s+Infância|de\s+Execuções|Única|Criminal)[^,\-]*)/i,
 
         // 4. Foro / Comarca (Fallback se não achar Vara específica)
-        /(?:Foro|Comarca)\s+de\s+([a-zA-ZÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑ\s\-]+?)(?:\s[-–]|\sSecretaria|\sEstado|\sJuiz)/i
+        /(?:Foro|Comarca|Fórum)\s+de\s+([a-zA-ZÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑ\s\-]+?)(?:\s[-–]|\sSecretaria|\sEstado|\sJuiz)/i,
+
+        // 5. Cabeçalho de Tribunal
+        /TRIBUNAL DE JUSTIÇA DO ESTADO DE SÃO PAULO\s+([A-Z0-9ªº\s]+VARA\s+[A-Z\s]+)/i
     ];
 
     for (const pattern of patterns) {
@@ -176,10 +179,11 @@ const extractIssuingCourt = (text: string): string => {
             court = court.replace(/TRIBUNAL DE JUSTIÇA.*/i, '')
                 .replace(/ESTADO DE SÃO PAULO.*/i, '')
                 .replace(/JUIZ DE DIREITO.*/i, '')
+                .replace(/SECRETARIA.*/i, '')
                 .replace(/[.:;]+$/, '')
                 .trim();
 
-            if (court.length > 4 && court.length < 80) {
+            if (court.length > 4 && court.length < 100) {
                 return court.toUpperCase();
             }
         }
@@ -389,14 +393,16 @@ const extractCrime = (text: string): string => {
         const art = articleMatch[1];
         if (art === '157') return "Roubo";
         if (art === '155') return "Furto";
-        if (art === '33' || art === '35') return "Drogas/Trafico";
+        if (art === '33' || art === '35') return "Tráfico de Drogas";
         if (art === '121') return "Homicídio";
         if (art === '129') return "Lesão corporal";
-        if (art === '213' || art === '217') return "Crimes Sexuais (Estupro)";
+        if (art === '213' || art === '217') return "Estupro / Crime Sexual";
         if (art === '180') return "Receptação";
         if (art === '171') return "Estelionato";
-        if (art === '147') return "Ameaça/Injuria/Briga/Lesão";
-        if (art === '14' || art === '16') return "Armas";
+        if (art === '147') return "Ameaça";
+        if (art === '158') return "Extorsão";
+        if (art === '159') return "Extorsão mediante sequestro";
+        if (art === '14' || art === '16') return "Armas (Lei 10826)";
         if (art === '302' || art === '303') return "Crimes de Trânsito";
     }
 
@@ -609,6 +615,41 @@ export const extractPdfData = async (file: File): Promise<ExtractedData> => {
             fullText = await file.text();
         }
 
+        // --- NEW: AI-FIRST EXTRACTION ---
+        if (await isGeminiEnabled() && fullText.length > 50) {
+            try {
+                const aiData = await extractFullWarrantIntelligence(fullText);
+                if (aiData && aiData.name) {
+                    return {
+                        id: Date.now().toString(),
+                        name: aiData.name,
+                        rg: aiData.rg || '',
+                        cpf: aiData.cpf || '',
+                        processNumber: aiData.processNumber || '',
+                        type: aiData.type || 'MANDADO DE PRISÃO',
+                        category: (aiData.type && aiData.type.includes('BUSCA')) ? 'search' : 'prison',
+                        crime: aiData.crime || 'Outros',
+                        regime: aiData.regime || 'Outro',
+                        issueDate: aiData.issueDate || new Date().toISOString().split('T')[0],
+                        expirationDate: aiData.expirationDate || '',
+                        addresses: aiData.addresses && aiData.addresses.length > 0 ? aiData.addresses : ['Não informado'],
+                        sourceFile: file.name,
+                        status: 'EM ABERTO',
+                        attachments: [file.name],
+                        observations: aiData.observations || '',
+                        tacticalSummary: [],
+                        searchChecklist: [],
+                        autoPriority: aiData.tags || [],
+                        birthDate: aiData.birthDate || '',
+                        age: calculateAge(aiData.birthDate),
+                        issuingCourt: aiData.issuingCourt || ''
+                    };
+                }
+            } catch (aiError) {
+                console.warn("AI Specialist failed, falling back to regex:", aiError);
+            }
+        }
+
         // Parse extracted text
         const name = extractName(fullText);
         const rg = extractRG(fullText);
@@ -696,50 +737,54 @@ export const extractRawTextFromPdf = async (file: File): Promise<string> => {
     }
 };
 
-// Function to extract from text input
-export const extractFromText = (text: string, sourceName: string): ExtractedData => {
-    const name = extractName(text);
-    const rg = extractRG(text);
-    const cpf = extractCPF(text);
-    const birthDate = extractBirthDate(text);
-    const processNumber = extractProcessNumber(text);
-    const { issueDate, expirationDate = new Date().toISOString().split('T')[0] } = extractDates(text);
-    const addresses = extractAddresses(text);
-    const { type, category } = determineMandadoType(text);
-    const crime = extractCrime(text);
-    const regime = extractRegime(text, category, crime);
-    const issuingCourt = extractIssuingCourt(text);
-    const tacticalSummaryArray = extractTacticalSummary(text);
-    const tacticalSummary = JSON.stringify({ risk: 'NORMAL', markers: tacticalSummaryArray });
-    const observations = extractObservations(text);
+// --- NEW: AI-FIRST EXTRACTION ---
+// (Note: we use a sync-like check here but extractFromText should ideally be async
+// for now we prioritize regex for immediate text paste, but if AI is enabled 
+// it will be called within AIAssistantPage directly for better UX)
 
-    // Append tactical summary to observations
-    const fullObservations = tacticalSummaryArray.length > 0
-        ? `${observations} | Atenção: ${tacticalSummaryArray.join(', ')}`
-        : observations;
+// Parse extracted text (REGEX FALLBACK)
+const name = extractName(text);
+const rg = extractRG(text);
+const cpf = extractCPF(text);
+const birthDate = extractBirthDate(text);
+const processNumber = extractProcessNumber(text);
+const { issueDate, expirationDate = new Date().toISOString().split('T')[0] } = extractDates(text);
+const addresses = extractAddresses(text);
+const { type, category } = determineMandadoType(text);
+const crime = extractCrime(text);
+const regime = extractRegime(text, category, crime);
+const issuingCourt = extractIssuingCourt(text);
+const tacticalSummaryArray = extractTacticalSummary(text);
+const tacticalSummary = JSON.stringify({ risk: 'NORMAL', markers: tacticalSummaryArray });
+const observations = extractObservations(text);
 
-    return {
-        id: Date.now().toString(),
-        name,
-        rg,
-        cpf,
-        processNumber,
-        type,
-        category,
-        crime,
-        regime,
-        issueDate,
-        expirationDate,
-        addresses,
-        sourceFile: sourceName,
-        status: 'EM ABERTO',
-        attachments: [],
-        observations: fullObservations,
-        tacticalSummary: tacticalSummaryArray, // FIX: Return array directly
-        searchChecklist: extractSearchChecklist(text, category),
-        autoPriority: determineAutoPriority(text, crime),
-        birthDate,
-        age: calculateAge(birthDate),
-        issuingCourt
-    };
+// Append tactical summary to observations
+const fullObservations = tacticalSummaryArray.length > 0
+    ? `${observations} | Atenção: ${tacticalSummaryArray.join(', ')}`
+    : observations;
+
+return {
+    id: Date.now().toString(),
+    name,
+    rg,
+    cpf,
+    processNumber,
+    type,
+    category,
+    crime,
+    regime,
+    issueDate,
+    expirationDate,
+    addresses,
+    sourceFile: sourceName,
+    status: 'EM ABERTO',
+    attachments: [],
+    observations: fullObservations,
+    tacticalSummary: tacticalSummaryArray, // FIX: Return array directly
+    searchChecklist: extractSearchChecklist(text, category),
+    autoPriority: determineAutoPriority(text, crime),
+    birthDate,
+    age: calculateAge(birthDate),
+    issuingCourt
+};
 };
