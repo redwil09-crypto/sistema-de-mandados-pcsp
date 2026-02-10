@@ -26,6 +26,25 @@ const FloatingDock = ({ onBack, onHome, onSave, onPrint, onFinalize, onDelete, c
         <div className={`${containerClasses} animate-in fade-in slide-in-from-bottom-5 duration-500`}>
             <div className="flex w-full items-center justify-between max-w-5xl mx-auto">
 
+                {/* Botão VOLTAR (Histórico) */}
+                <DockItem
+                    onClick={onBack}
+                    icon={<ChevronLeft size={24} />}
+                    color="text-text-secondary-light dark:text-text-secondary-dark hover:text-primary"
+                    bg="hover:bg-primary/10"
+                    label="Voltar"
+                />
+
+                {/* Botão INÍCIO (Casinha) - SEMPRE AZUL NEON */}
+                <DockItem
+                    onClick={onHome || onBack}
+                    icon={<Home size={24} className="text-blue-500 drop-shadow-[0_0_8px_rgba(59,130,246,0.6)]" />}
+                    color="text-blue-500"
+                    bg="hover:bg-blue-500/10"
+                    label="Home"
+                    active={true}
+                />
+
                 {/* Botão ATUALIZAR */}
                 {onSave && (
                     <DockItem
@@ -44,25 +63,6 @@ const FloatingDock = ({ onBack, onHome, onSave, onPrint, onFinalize, onDelete, c
                     color="text-text-secondary-light dark:text-text-secondary-dark hover:text-yellow-500"
                     bg="hover:bg-yellow-500/10"
                     label="Imprimir"
-                />
-
-                {/* Botão VOLTAR (Histórico) */}
-                <DockItem
-                    onClick={onBack}
-                    icon={<ChevronLeft size={24} />}
-                    color="text-text-secondary-light dark:text-text-secondary-dark hover:text-primary"
-                    bg="hover:bg-primary/10"
-                    label="Voltar"
-                />
-
-                {/* Botão INÍCIO (Casinha) - SEMPRE AZUL NEON */}
-                <DockItem
-                    onClick={onHome || onBack}
-                    icon={<Home size={24} className="text-blue-500 drop-shadow-[0_0_8px_rgba(59,130,246,0.6)]" />}
-                    color="text-blue-500"
-                    bg="hover:bg-blue-500/10"
-                    label="Home"
-                    active={true}
                 />
 
                 {/* CONCLUIR */}
