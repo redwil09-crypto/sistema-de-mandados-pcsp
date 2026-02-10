@@ -1527,23 +1527,23 @@ Equipe de Capturas - DIG / PCSP
                     />
                 )}
 
-                {/* 2. Tactical Navigation Tabs */}
-                <div className="flex bg-surface-light dark:bg-surface-dark/80 backdrop-blur border border-border-light dark:border-white/10 rounded-2xl p-1.5 gap-1.5 shadow-glass sticky top-2 z-[30]">
+                {/* 2. Tactical Navigation Tabs - SEPARATED */}
+                <div className="flex flex-wrap items-center gap-3 sticky top-2 z-[30] py-2 backdrop-blur-sm bg-background-light/50 dark:bg-background-dark/50 -mx-2 px-2 rounded-xl">
                     {[
-                        { id: 'documents', label: 'Dossiê', icon: FileText, activeClass: 'border-blue-500 text-blue-500 dark:text-blue-400 bg-blue-500/5 shadow-blue-500/10' },
-                        { id: 'investigation', label: 'Investigações', icon: Bot, activeClass: 'border-zinc-400 text-zinc-500 dark:text-zinc-400 bg-zinc-400/5 shadow-zinc-400/10' },
-                        { id: 'timeline', label: 'Operações', icon: History, activeClass: 'border-red-500 text-red-500 dark:text-red-400 bg-red-500/5 shadow-red-500/10' }
+                        { id: 'documents', label: 'Dossiê', icon: FileText, activeClass: 'border-blue-500 text-blue-500 shadow-lg shadow-blue-500/20' },
+                        { id: 'investigation', label: 'Investigações', icon: Bot, activeClass: 'border-emerald-500 text-emerald-500 shadow-lg shadow-emerald-500/20' },
+                        { id: 'timeline', label: 'Operações', icon: History, activeClass: 'border-red-500 text-red-500 shadow-lg shadow-red-500/20' }
                     ].map(tab => (
                         <button
                             key={tab.id}
                             onClick={() => setActiveDetailTab(tab.id as any)}
-                            className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all duration-300 border ${activeDetailTab === tab.id
-                                ? `${tab.activeClass} scale-[1.02]`
-                                : 'bg-black/5 dark:bg-white/5 text-text-secondary-light dark:text-text-secondary-dark border-transparent hover:border-white/10 hover:text-primary dark:hover:text-white'
+                            className={`flex-1 min-w-[120px] flex items-center justify-center gap-2 py-3.5 px-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 border backdrop-blur-md bg-surface-light dark:bg-white/5 ${activeDetailTab === tab.id
+                                ? `${tab.activeClass} scale-[1.05]`
+                                : 'text-text-secondary-light dark:text-text-secondary-dark border-border-light dark:border-white/10 hover:border-primary/30 hover:text-primary dark:hover:text-white'
                                 }`}
                         >
-                            <tab.icon size={16} className={activeDetailTab === tab.id ? 'animate-pulse' : 'opacity-50'} />
-                            <span className="hidden sm:inline">{tab.label}</span>
+                            <tab.icon size={16} className={activeDetailTab === tab.id ? 'animate-pulse' : 'opacity-40'} />
+                            <span>{tab.label}</span>
                         </button>
                     ))}
                 </div>
