@@ -147,113 +147,114 @@ const Sidebar = ({ routeCount = 0, isCollapsed, toggleCollapse, isDark, toggleTh
             )}
 
             {/* Sidebar Container */}
-            fixed top-0 bottom-0 left-0 z-50
-            bg-zinc-900 border-r border-white/5
-            flex flex-col
-            transform transition-all duration-300 cubic-bezier(0.4, 0, 0.2, 1)
-            pt-16 md:pt-0
-            ${isCollapsed ? 'w-20' : 'w-56'}
-            ${isOpen ? 'translate-x-0 shadow-2xl shadow-black w-56' : '-translate-x-full md:translate-x-0'}
+            <aside className={`
+                fixed top-0 bottom-0 left-0 z-50
+                bg-zinc-900 border-r border-white/5
+                flex flex-col
+                transform transition-all duration-300 cubic-bezier(0.4, 0, 0.2, 1)
+                pt-16 md:pt-0
+                ${isCollapsed ? 'w-20' : 'w-56'}
+                ${isOpen ? 'translate-x-0 shadow-2xl shadow-black w-56' : '-translate-x-full md:translate-x-0'}
             `}>
-            {/* Desktop Header */}
-            <div className={`hidden md:flex items-center ${isCollapsed ? 'justify-center' : 'justify-between px-6'} h-20 border-b border-white/5 relative`}>
-                <div className="flex items-center gap-3">
-                    <div className="h-8 w-8 rounded-xl bg-blue-600 flex items-center justify-center shadow-[0_0_20px_rgba(37,99,235,0.4)] border border-blue-400/30 shrink-0">
-                        <Siren size={18} className="text-white fill-white/20" />
+                {/* Desktop Header */}
+                <div className={`hidden md:flex items-center ${isCollapsed ? 'justify-center' : 'justify-between px-6'} h-20 border-b border-white/5 relative`}>
+                    <div className="flex items-center gap-3">
+                        <div className="h-8 w-8 rounded-xl bg-blue-600 flex items-center justify-center shadow-[0_0_20px_rgba(37,99,235,0.4)] border border-blue-400/30 shrink-0">
+                            <Siren size={18} className="text-white fill-white/20" />
+                        </div>
+                        {!isCollapsed && (
+                            <h1 className="font-display font-black text-xl text-white tracking-widest whitespace-nowrap overflow-hidden">
+                                PCSP
+                            </h1>
+                        )}
                     </div>
-                    {!isCollapsed && (
-                        <h1 className="font-display font-black text-xl text-white tracking-widest whitespace-nowrap overflow-hidden">
-                            PCSP
-                        </h1>
-                    )}
-                </div>
 
-                <button
-                    onClick={toggleCollapse}
-                    className={`
+                    <button
+                        onClick={toggleCollapse}
+                        className={`
                             h-6 w-6 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center 
                             text-zinc-400 hover:text-white hover:bg-blue-600 hover:border-blue-500 transition-all
                             absolute -right-3 top-1/2 -translate-y-1/2 shadow-lg z-20
                             ${isCollapsed ? '' : ''}
                         `}
-                >
-                    {isCollapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
-                </button>
-            </div>
-
-            {/* Nav Links */}
-            <nav className="flex-1 overflow-y-auto py-6 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden overflow-x-hidden">
-                <NavGroup title="Principal" items={mainNavItems} />
-                <NavGroup title="Operacional" items={operationalNavItems} />
-                <NavGroup title="Sistema" items={systemNavItems} />
-            </nav>
-
-            {/* Footer */}
-            <div className="p-3 border-t border-white/5 bg-zinc-900/30 backdrop-blur-sm flex flex-col gap-3">
-                {/* Theme and Notifications */}
-                <div className={`flex items-center ${isCollapsed ? 'flex-col gap-3' : 'justify-between px-2'}`}>
-                    <button
-                        onClick={toggleTheme}
-                        className="p-2 rounded-lg text-zinc-400 hover:bg-white/5 hover:text-white transition-all border border-transparent hover:border-white/10 group relative"
-                        title={isDark ? "Modo Claro" : "Modo Escuro"}
                     >
-                        {isDark ? <Sun size={20} /> : <Moon size={20} />}
-                    </button>
-
-                    <button
-                        onClick={() => toast.info(hasNotifications ? 'Novas notificações' : 'Nenhuma notificação nova')}
-                        className="p-2 rounded-lg text-zinc-400 hover:bg-white/5 hover:text-white transition-all border border-transparent hover:border-white/10 group relative"
-                        title="Notificações"
-                    >
-                        <Bell size={20} />
-                        {hasNotifications && (
-                            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border border-[#09090b]" />
-                        )}
+                        {isCollapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
                     </button>
                 </div>
 
-                {/* User Profile */}
-                <NavLink
-                    to="/profile"
-                    className={`
+                {/* Nav Links */}
+                <nav className="flex-1 overflow-y-auto py-6 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden overflow-x-hidden">
+                    <NavGroup title="Principal" items={mainNavItems} />
+                    <NavGroup title="Operacional" items={operationalNavItems} />
+                    <NavGroup title="Sistema" items={systemNavItems} />
+                </nav>
+
+                {/* Footer */}
+                <div className="p-3 border-t border-white/5 bg-zinc-900/30 backdrop-blur-sm flex flex-col gap-3">
+                    {/* Theme and Notifications */}
+                    <div className={`flex items-center ${isCollapsed ? 'flex-col gap-3' : 'justify-between px-2'}`}>
+                        <button
+                            onClick={toggleTheme}
+                            className="p-2 rounded-lg text-zinc-400 hover:bg-white/5 hover:text-white transition-all border border-transparent hover:border-white/10 group relative"
+                            title={isDark ? "Modo Claro" : "Modo Escuro"}
+                        >
+                            {isDark ? <Sun size={20} /> : <Moon size={20} />}
+                        </button>
+
+                        <button
+                            onClick={() => toast.info(hasNotifications ? 'Novas notificações' : 'Nenhuma notificação nova')}
+                            className="p-2 rounded-lg text-zinc-400 hover:bg-white/5 hover:text-white transition-all border border-transparent hover:border-white/10 group relative"
+                            title="Notificações"
+                        >
+                            <Bell size={20} />
+                            {hasNotifications && (
+                                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border border-[#09090b]" />
+                            )}
+                        </button>
+                    </div>
+
+                    {/* User Profile */}
+                    <NavLink
+                        to="/profile"
+                        className={`
                         flex items-center gap-3 p-2 rounded-xl border border-white/5 bg-white/5 
                         ${isCollapsed ? 'justify-center border-0 bg-transparent p-0' : 'hover:bg-white/10 hover:border-blue-500/30'} 
                         transition-all duration-300 group
                     `}>
-                    {isCollapsed ? (
-                        <div className="relative cursor-pointer group">
-                            <div className="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center border border-white/10 group-hover:border-blue-500 transition-all overflow-hidden">
-                                <User size={20} className="text-zinc-400 group-hover:text-white" />
-                            </div>
-                            <div className="absolute bottom-0 right-0 h-2.5 w-2.5 bg-green-500 rounded-full border-2 border-[#09090b]" />
-                        </div>
-                    ) : (
-                        <>
-                            <div className="relative">
-                                <div className="w-9 h-9 rounded-full bg-zinc-800 flex items-center justify-center border border-white/10 group-hover:border-blue-500 transition-all overflow-hidden">
-                                    <User size={18} className="text-zinc-400 group-hover:text-white" />
+                        {isCollapsed ? (
+                            <div className="relative cursor-pointer group">
+                                <div className="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center border border-white/10 group-hover:border-blue-500 transition-all overflow-hidden">
+                                    <User size={20} className="text-zinc-400 group-hover:text-white" />
                                 </div>
                                 <div className="absolute bottom-0 right-0 h-2.5 w-2.5 bg-green-500 rounded-full border-2 border-[#09090b]" />
                             </div>
-                            <div className="flex-1 min-w-0">
-                                <p className="text-xs font-bold text-white truncate">Investigador</p>
-                                <p className="text-[10px] text-zinc-500 uppercase tracking-wider truncate">Em Serviço</p>
-                            </div>
-                            <button
-                                onClick={(e) => {
-                                    e.preventDefault();
-                                    handleLogout();
-                                }}
-                                className="p-1.5 rounded-lg text-red-400/50 hover:text-red-400 hover:bg-red-500/10 transition-colors"
-                                title="Sair"
-                            >
-                                <LogOut size={16} />
-                            </button>
-                        </>
-                    )}
-                </NavLink>
-            </div>
-        </aside >
+                        ) : (
+                            <>
+                                <div className="relative">
+                                    <div className="w-9 h-9 rounded-full bg-zinc-800 flex items-center justify-center border border-white/10 group-hover:border-blue-500 transition-all overflow-hidden">
+                                        <User size={18} className="text-zinc-400 group-hover:text-white" />
+                                    </div>
+                                    <div className="absolute bottom-0 right-0 h-2.5 w-2.5 bg-green-500 rounded-full border-2 border-[#09090b]" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <p className="text-xs font-bold text-white truncate">Investigador</p>
+                                    <p className="text-[10px] text-zinc-500 uppercase tracking-wider truncate">Em Serviço</p>
+                                </div>
+                                <button
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        handleLogout();
+                                    }}
+                                    className="p-1.5 rounded-lg text-red-400/50 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                                    title="Sair"
+                                >
+                                    <LogOut size={16} />
+                                </button>
+                            </>
+                        )}
+                    </NavLink>
+                </div>
+            </aside >
         </>
     );
 };
