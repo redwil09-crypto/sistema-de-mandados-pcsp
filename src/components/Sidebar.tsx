@@ -21,7 +21,8 @@ import {
     Sun,
     Moon,
     Bell,
-    Settings
+    Settings,
+    FileSearch
 } from 'lucide-react';
 import { supabase } from '../supabaseClient';
 
@@ -49,6 +50,7 @@ const Sidebar = ({ routeCount = 0, isCollapsed, toggleCollapse, isDark, toggleTh
     const mainNavItems = [
         { icon: Home, label: 'Dashboard', path: '/' },
         { icon: FileText, label: 'Mandados', path: '/warrant-list' },
+        { icon: FileSearch, label: 'Busca e Apreensão', path: '/minor-search' },
         { icon: PlusCircle, label: 'Novo Registro', path: '/new-warrant' },
         { icon: Search, label: 'Investigação', path: '/advanced-search' },
     ];
@@ -64,7 +66,7 @@ const Sidebar = ({ routeCount = 0, isCollapsed, toggleCollapse, isDark, toggleTh
         { icon: ShieldAlert, label: 'Auditoria', path: '/audit' },
     ];
 
-    const NavGroup = ({ title, items }: { title?: string, items: typeof mainNavItems }) => (
+    const NavGroup = ({ title, items }: { title?: string, items: { icon: any; label: string; path: string; badge?: number }[] }) => (
         <div className="mb-4">
             {title && !isCollapsed && (
                 <h3 className="px-5 mb-2 text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] fade-in">
