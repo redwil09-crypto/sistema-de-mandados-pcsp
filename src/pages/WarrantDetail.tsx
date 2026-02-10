@@ -6,7 +6,7 @@ import FloatingDock from '../components/FloatingDock'; // REINTEGRADO
 import {
     AlertCircle, User, Gavel, Calendar, MapPin, Map as MapIcon, Home,
     Bike, FileCheck, FileText, Paperclip, Edit,
-    Route as RouteIcon, RotateCcw, CheckCircle, Printer,
+    Route as RouteIcon, RotateCcw, CheckCircle, Printer, ChevronLeft,
     Trash2, Zap, Bell, Eye, History, Send, Copy,
     ShieldAlert, MessageSquare, Plus, PlusCircle, X, ChevronRight, Bot, Cpu, Sparkles, RefreshCw, AlertTriangle, ExternalLink,
     CheckSquare, Users, AlertOctagon, Search, Siren, Scale, Target, Lightbulb, TrendingUp, Activity, Upload
@@ -37,9 +37,9 @@ const WarrantDetail = () => {
     const [searchParams, setSearchParams] = useSearchParams();
     const [activeDetailTab, setActiveDetailTab] = useState<'documents' | 'reports' | 'investigation' | 'timeline' | 'ifood'>((searchParams.get('tab') as any) || 'documents');
 
-    // Persistence Effect
+    // Persistence Effect - USES REPLACE TRUE TO AVOID HISTORY POLLUTION (Fixes mobile gestures)
     useEffect(() => {
-        setSearchParams({ tab: activeDetailTab });
+        setSearchParams({ tab: activeDetailTab }, { replace: true });
     }, [activeDetailTab, setSearchParams]);
 
     // New Document Form Local State
@@ -1458,8 +1458,7 @@ Equipe de Capturas - DIG / PCSP
     };
 
     const handleBack = () => {
-        // Force navigate to Home Screen as requested
-        navigate('/');
+        navigate(-1);
     };
 
     return (
@@ -1474,6 +1473,21 @@ Equipe de Capturas - DIG / PCSP
 
             {/* Main Content Layout */}
             <div className="relative z-10 p-4 space-y-4 max-w-[1600px] mx-auto">
+
+                {/* BOTÃO VOLTAR SUPERIOR ESQUERDO (SOLICITADO) */}
+                <div className="flex items-center gap-4 mb-2">
+                    <button
+                        onClick={handleBack}
+                        className="p-3 bg-white/10 hover:bg-white/20 dark:bg-zinc-800/80 dark:hover:bg-zinc-700 backdrop-blur-md rounded-2xl border border-white/20 transition-all flex items-center justify-center shadow-lg group active:scale-95"
+                        title="Voltar"
+                    >
+                        <ChevronLeft size={24} className="text-text-light dark:text-white group-hover:-translate-x-1 transition-transform" />
+                    </button>
+                    <div className="flex flex-col">
+                        <span className="text-[10px] font-black uppercase tracking-widest text-primary">Protocolo Operacional</span>
+                        <span className="text-xs font-bold text-text-muted">Detalhes do Mandado</span>
+                    </div>
+                </div>
 
 
 
@@ -2561,7 +2575,7 @@ Equipe de Capturas - DIG / PCSP
                 }
                 {/* Action Command Bar - Relocated to end of page */}
                 <FloatingDock
-                    onBack={() => window.history.length > 1 ? navigate(-1) : navigate('/')}
+                    onBack={handleBack}
                     onHome={() => navigate('/')}
                     onSave={() => navigate(`/new-warrant?edit=${id}`)}
                     onPrint={handleDownloadPDF}
