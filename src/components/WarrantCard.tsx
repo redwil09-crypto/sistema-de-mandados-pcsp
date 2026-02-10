@@ -20,17 +20,17 @@ const WarrantCard = ({ data, onPrint, isPlanned, onRouteToggle, onFinalize, onDe
     const isSearch = data.type ? (data.type.toLowerCase().includes('busca') || data.type.toLowerCase().includes('apreensão')) : false;
 
     const hoverClasses = isSearch
-        ? 'hover:border-orange-500/50 hover:shadow-[0_0_20px_rgba(249,115,22,0.3)]'
-        : 'hover:border-blue-500/50 hover:shadow-[0_0_20px_rgba(59,130,246,0.3)]';
+        ? 'hover:border-orange-500 hover:shadow-[0_0_25px_rgba(249,115,22,0.4)]'
+        : 'hover:border-blue-500 hover:shadow-[0_0_25px_rgba(59,130,246,0.4)]';
 
     return (
         <Link
             to={`/warrant-detail/${data.id}`}
-            className={`group block relative overflow-hidden rounded-lg bg-surface-light dark:bg-[#121214] border border-border-light dark:border-white/5 transition-all duration-300 shadow-sm ${hoverClasses}`}
+            className={`group block relative overflow-hidden rounded-lg bg-surface-light dark:bg-surface-dark border border-border-light dark:border-white/5 transition-all duration-300 shadow-sm ${hoverClasses}`}
             {...props}
         >
             {/* Type Indicator Strip (Left Border) */}
-            <div className={`absolute left-0 top-0 bottom-0 w-1.5 transition-colors duration-300 ${isSearch ? 'bg-orange-600 shadow-[2px_0_15px_rgba(234,88,12,0.6)] animate-pulse' : 'bg-blue-600 shadow-[2px_0_15px_rgba(37,99,235,0.6)]'}`}></div>
+            <div className={`absolute left-0 top-0 bottom-0 w-1.5 transition-colors duration-300 ${isSearch ? 'bg-orange-600 shadow-[2px_0_15px_rgba(234,88,12,0.6)]' : 'bg-blue-600 shadow-[2px_0_15px_rgba(37,99,235,0.6)]'}`}></div>
 
             {/* Hover Tech Pattern Overlay */}
             <div className="absolute inset-0 bg-grid-pattern opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
