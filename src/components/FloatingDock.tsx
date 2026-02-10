@@ -81,20 +81,12 @@ const FloatingDock = ({ onBack, onHome, onSave, onPrint, onFinalize, onDelete, c
 };
 
 const DockItem = ({ onClick, icon, color, bg, label, active = false }: { onClick: () => void, icon: React.ReactNode, color: string, bg: string, label: string, active?: boolean }) => {
-    // Extract base color to match border
-    const borderClass = color.includes('primary') ? 'border-primary' :
-        color.includes('orange') ? 'border-orange-500' :
-            color.includes('yellow') ? 'border-yellow-500' :
-                color.includes('blue') ? 'border-blue-500' :
-                    color.includes('green') ? 'border-green-500' :
-                        color.includes('red') ? 'border-red-500' : 'border-white/20';
-
     return (
         <button
             onClick={onClick}
-            className={`group relative flex flex-col items-center justify-center gap-1 w-14 h-14 rounded-xl transition-all duration-200 border ${borderClass} border-opacity-40 hover:border-opacity-100 ${color} bg-zinc-100 dark:bg-zinc-800/50 hover:shadow-lg active:scale-95`}
+            className={`group relative flex flex-col items-center justify-center gap-1 w-14 h-14 rounded-xl transition-all duration-200 ${color} ${active ? bg.replace('hover:bg-', 'bg-') : bg} active:scale-95`}
         >
-            <div className="relative z-10 scale-90 transition-transform group-hover:scale-100">
+            <div className="relative z-10 scale-90">
                 {icon}
             </div>
 
@@ -102,9 +94,7 @@ const DockItem = ({ onClick, icon, color, bg, label, active = false }: { onClick
                 {label}
             </span>
 
-            {/* Neon Glow Layer */}
-            <div className={`absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 shadow-[0_0_15px_rgba(0,0,0,0.2)] ${bg.replace('hover:bg-', 'bg-').replace('/10', '/5')}`}></div>
-            <div className={`absolute -inset-[1px] rounded-xl border-2 ${borderClass} opacity-0 group-hover:opacity-40 transition-opacity`}></div>
+            <div className={`absolute inset-0 rounded-xl transition-opacity duration-300 ${active ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'} ${bg.replace('hover:bg-', 'bg-').replace('/20', '/10')}`}></div>
         </button>
     );
 };
