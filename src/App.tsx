@@ -100,6 +100,7 @@ function AppContent({ isDark, toggleTheme }: { isDark: boolean; toggleTheme: () 
     const location = useLocation();
     // const hideNav = ['/warrant-detail', '/new-warrant', '/ai-assistant', '/route-planner', '/map'].some(p => location.pathname.startsWith(p));
     const { routeWarrants, loading } = useWarrants();
+    const [isCollapsed, setIsCollapsed] = useState(true); // Default to collapsed for slim look
 
     if (loading) {
         return (
@@ -118,10 +119,16 @@ function AppContent({ isDark, toggleTheme }: { isDark: boolean; toggleTheme: () 
             <Toaster richColors position="top-right" />
 
             {/* Sidebar Navigation */}
-            <Sidebar routeCount={routeWarrants.length} />
+            <Sidebar
+                routeCount={routeWarrants.length}
+                isCollapsed={isCollapsed}
+                toggleCollapse={() => setIsCollapsed(!isCollapsed)}
+                isDark={isDark}
+                toggleTheme={toggleTheme}
+            />
 
             {/* Main Content Area - Padded for Sidebar on Desktop */}
-            <div className="md:pl-72 min-h-screen">
+            <div className={`transition-all duration-300 ${isCollapsed ? 'md:pl-20' : 'md:pl-64'} min-h-screen`}>
                 <React.Suspense fallback={
                     <div className="flex h-[80vh] items-center justify-center">
                         <div className="flex flex-col items-center gap-4">
