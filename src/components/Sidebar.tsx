@@ -55,7 +55,7 @@ const Sidebar = ({ routeCount = 0, isCollapsed, toggleCollapse, isDark, toggleTh
         { icon: FileText, label: 'Mandados', path: '/warrant-list' },
         { icon: FileSearch, label: 'Busca e Apreensão', path: '/minor-search' },
         { icon: PlusCircle, label: 'Novo Registro', path: '/new-warrant' },
-        { icon: Search, label: 'Investigação', path: '/advanced-search' },
+        { icon: Search, label: 'Busca Avançada', path: '/advanced-search' },
     ];
 
     const operationalNavItems = [
