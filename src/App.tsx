@@ -25,7 +25,7 @@ const RoutePlanner = React.lazy(() => import('./pages/RoutePlanner'));
 const OperationalMap = React.lazy(() => import('./pages/OperationalMap'));
 
 // Components
-import BottomNav from './components/BottomNav';
+import Sidebar from './components/Sidebar';
 import { useLocation } from 'react-router-dom';
 
 import { Toaster } from 'sonner';
@@ -98,7 +98,7 @@ function App() {
 
 function AppContent({ isDark, toggleTheme }: { isDark: boolean; toggleTheme: () => void }) {
     const location = useLocation();
-    const hideNav = ['/warrant-detail', '/new-warrant', '/ai-assistant', '/route-planner', '/map'].some(p => location.pathname.startsWith(p));
+    // const hideNav = ['/warrant-detail', '/new-warrant', '/ai-assistant', '/route-planner', '/map'].some(p => location.pathname.startsWith(p));
     const { routeWarrants, loading } = useWarrants();
 
     if (loading) {
@@ -116,42 +116,47 @@ function AppContent({ isDark, toggleTheme }: { isDark: boolean; toggleTheme: () 
         <div className="min-h-screen bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark transition-colors duration-200">
             <ScrollToTop />
             <Toaster richColors position="top-right" />
-            <React.Suspense fallback={
-                <div className="flex h-[80vh] items-center justify-center">
-                    <div className="flex flex-col items-center gap-4">
-                        <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent shadow-lg shadow-primary/20"></div>
-                        <span className="text-[10px] font-black text-primary uppercase tracking-[0.2em] animate-pulse">Sincronizando Módulos...</span>
+
+            {/* Sidebar Navigation */}
+            <Sidebar routeCount={routeWarrants.length} />
+
+            {/* Main Content Area - Padded for Sidebar on Desktop */}
+            <div className="md:pl-72 min-h-screen">
+                <React.Suspense fallback={
+                    <div className="flex h-[80vh] items-center justify-center">
+                        <div className="flex flex-col items-center gap-4">
+                            <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent shadow-lg shadow-primary/20"></div>
+                            <span className="text-[10px] font-black text-primary uppercase tracking-[0.2em] animate-pulse">Sincronizando Módulos...</span>
+                        </div>
                     </div>
-                </div>
-            }>
-                <div key={location.pathname} className="page-enter">
-                    <Routes>
-                        {/* Passes theme props to Home since these are layout related, not warrant related */}
-                        <Route path="/" element={<HomePage isDark={isDark} toggleTheme={toggleTheme} />} />
+                }>
+                    <div key={location.pathname} className="page-enter pb-20 md:pb-0 pt-16 md:pt-4 px-4 md:px-8 max-w-7xl mx-auto">
+                        <Routes>
+                            {/* Passes theme props to Home since these are layout related, not warrant related */}
+                            <Route path="/" element={<HomePage isDark={isDark} toggleTheme={toggleTheme} />} />
 
-                        <Route path="/warrant-list" element={<WarrantList />} />
-                        <Route path="/advanced-search" element={<AdvancedSearch />} />
-                        <Route path="/recents" element={<RecentActivityPage />} />
-                        <Route path="/minor-search" element={<MinorSearch />} />
-                        <Route path="/priority-list" element={<PriorityList />} />
+                            <Route path="/warrant-list" element={<WarrantList />} />
+                            <Route path="/advanced-search" element={<AdvancedSearch />} />
+                            <Route path="/recents" element={<RecentActivityPage />} />
+                            <Route path="/minor-search" element={<MinorSearch />} />
+                            <Route path="/priority-list" element={<PriorityList />} />
 
-                        <Route path="/route-planner" element={<RoutePlanner />} />
+                            <Route path="/route-planner" element={<RoutePlanner />} />
 
-                        <Route path="/stats" element={<Stats />} />
-                        <Route path="/audit" element={<AuditPage />} />
-                        <Route path="/profile" element={<Profile />} />
-                        <Route path="/ai-assistant" element={<AIAssistantPage />} />
-                        <Route path="/map" element={<OperationalMap />} />
+                            <Route path="/stats" element={<Stats />} />
+                            <Route path="/audit" element={<AuditPage />} />
+                            <Route path="/profile" element={<Profile />} />
+                            <Route path="/ai-assistant" element={<AIAssistantPage />} />
+                            <Route path="/map" element={<OperationalMap />} />
 
-                        <Route path="/warrant-detail/:id" element={<WarrantDetail />} />
-                        <Route path="/new-warrant" element={<NewWarrant />} />
+                            <Route path="/warrant-detail/:id" element={<WarrantDetail />} />
+                            <Route path="/new-warrant" element={<NewWarrant />} />
 
-                        <Route path="*" element={<Navigate to="/" replace />} />
-                    </Routes>
-                </div>
-            </React.Suspense>
-
-            {!hideNav && <BottomNav routeCount={routeWarrants.length} />}
+                            <Route path="*" element={<Navigate to="/" replace />} />
+                        </Routes>
+                    </div>
+                </React.Suspense>
+            </div>
         </div>
     );
 }
