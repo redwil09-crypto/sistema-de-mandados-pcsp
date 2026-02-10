@@ -144,7 +144,7 @@ const HomePage = ({ isDark, toggleTheme }: HomePageProps) => {
                         type="text"
                         placeholder="Nome, RG, endereço, crime, nº mandado..."
                         onKeyDown={handleSearch}
-                        className="w-full rounded-xl border border-border-light dark:border-white/20 bg-surface-light dark:bg-zinc-800 py-3.5 pl-10 pr-4 text-sm shadow-sm placeholder:text-text-secondary-light/60 dark:placeholder:text-gray-400 focus:ring-2 focus:ring-primary/20 transition-all"
+                        className="w-full rounded-xl border border-border-light dark:border-white/20 bg-surface-light dark:bg-surface-dark py-3.5 pl-10 pr-4 text-sm shadow-sm placeholder:text-text-secondary-light/60 dark:placeholder:text-gray-400 focus:ring-2 focus:ring-primary/20 transition-all"
                     />
                 </div>
             </header>

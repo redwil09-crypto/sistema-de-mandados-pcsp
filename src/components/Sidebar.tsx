@@ -149,7 +149,7 @@ const Sidebar = ({ routeCount = 0, isCollapsed, toggleCollapse, isDark, toggleTh
             {/* Sidebar Container */}
             <aside className={`
                 fixed top-0 bottom-0 left-0 z-50
-                bg-surface-light dark:bg-zinc-900 border-r border-border-light dark:border-white/5
+                bg-surface-light dark:bg-surface-dark border-r border-border-light dark:border-white/5
                 flex flex-col
                 transform transition-all duration-300 cubic-bezier(0.4, 0, 0.2, 1)
                 pt-16 md:pt-0
