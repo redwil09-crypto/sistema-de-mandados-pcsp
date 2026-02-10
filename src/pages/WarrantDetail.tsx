@@ -1445,6 +1445,7 @@ Equipe de Capturas - DIG / PCSP
                 {/* Floating Dock (Overlay Command Bar) */}
                 <FloatingDock
                     onBack={() => window.history.length > 1 ? navigate(-1) : navigate('/')}
+                    onHome={() => navigate('/')}
                     onSave={() => navigate(`/new-warrant?edit=${id}`)}
                     onPrint={handleDownloadPDF}
                     onFinalize={handleFinalize}

@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Home, Printer, CheckCircle, Trash2, RefreshCw } from 'lucide-react';
+import { Home, Printer, CheckCircle, Trash2, RefreshCw, ChevronLeft } from 'lucide-react';
 
 interface FloatingDockProps {
     onBack: () => void;
+    onHome?: () => void;
     onSave?: () => void;
     onPrint: () => void;
     onFinalize: () => void;
@@ -11,9 +12,7 @@ interface FloatingDockProps {
     className?: string;
 }
 
-const FloatingDock = ({ onBack, onSave, onPrint, onFinalize, onDelete, className }: FloatingDockProps) => {
-    // Determine the container we are rendering into (usually body)
-    // Using portal guarantees "Fixed to Viewport" behavior regardless of parent transforms or layout constraints.
+const FloatingDock = ({ onBack, onHome, onSave, onPrint, onFinalize, onDelete, className }: FloatingDockProps) => {
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
@@ -21,95 +20,94 @@ const FloatingDock = ({ onBack, onSave, onPrint, onFinalize, onDelete, className
         return () => setMounted(false);
     }, []);
 
-    // "Barra transparente" -> bg-transparent or very low opacity dark.
-    // "Tons neon sutis" -> Text shadows and button glows.
-    // "No celular passa da borda" -> max-w-[92vw], overflow-hidden protection.
-    // "Justifique ela" -> justify-between on mobile if needed, or just center with smaller gaps.
-    // "Mesma formatação da barra inicial" -> bg-surface-light, dark:bg-surface-dark/80, shadow-glass, border-border-light
-    const containerClasses = className || "fixed bottom-4 left-1/2 -translate-x-1/2 md:bottom-auto md:left-auto md:top-4 md:right-4 md:transform-none w-max max-w-[95vw] sm:max-w-2xl z-[9999] rounded-2xl border border-border-light dark:border-white/10 bg-surface-light/95 dark:bg-surface-dark/90 backdrop-blur-lg shadow-glass transition-all duration-300 pointer-events-auto px-2 sm:px-4 py-1.5 md:py-2";
+    const containerClasses = className || "fixed bottom-0 left-0 right-0 w-full z-[9999] rounded-t-[32px] border-t border-border-light dark:border-white/10 bg-surface-light/95 dark:bg-surface-dark/95 backdrop-blur-xl shadow-[0_-10px_30px_rgba(0,0,0,0.4)] transition-all duration-300 pointer-events-auto px-6 py-4 pb-8 md:pb-4";
 
     const content = (
-        <div className={`${containerClasses} animate-in fade-in slide-in-from-bottom-2 duration-300`}>
-            {/* Inner Flex Container - Reduced gap for mobile */}
-            <div className="flex h-14 sm:h-16 w-full items-center justify-center gap-1.5 sm:gap-8">
+        <div className={`${containerClasses} animate-in fade-in slide-in-from-bottom-5 duration-500`}>
+            <div className="flex w-full items-center justify-between max-w-5xl mx-auto">
 
-                {/* Botão VOLTAR/INÍCIO */}
-                <DockItem
-                    onClick={onBack}
-                    icon={<Home size={22} />}
-                    color="text-text-secondary-light dark:text-text-secondary-dark hover:text-blue-600 dark:hover:text-blue-400"
-                    bg="hover:bg-blue-500/10 dark:hover:bg-blue-400/10"
-                    label="Início"
-                />
-
-                {/* Botão ATUALIZAR (Antigo Salvar) */}
+                {/* Botão ATUALIZAR */}
                 {onSave && (
                     <DockItem
                         onClick={onSave}
-                        icon={<RefreshCw size={22} />}
-                        color="text-text-secondary-light dark:text-text-secondary-dark hover:text-orange-600 dark:hover:text-orange-400"
-                        bg="hover:bg-orange-500/10 dark:hover:bg-orange-400/10"
-                        label="Atualizar"
+                        icon={<RefreshCw size={24} />}
+                        color="text-text-secondary-light dark:text-text-secondary-dark hover:text-orange-500"
+                        bg="hover:bg-orange-500/10"
+                        label="Editar"
                     />
                 )}
 
-                {/* Ações Principais */}
+                {/* PDF */}
                 <DockItem
                     onClick={onPrint}
-                    icon={<Printer size={22} />}
-                    color="text-text-secondary-light dark:text-text-secondary-dark hover:text-yellow-600 dark:hover:text-yellow-400"
-                    bg="hover:bg-yellow-500/10 dark:hover:bg-yellow-400/10"
-                    label="PDF"
+                    icon={<Printer size={24} />}
+                    color="text-text-secondary-light dark:text-text-secondary-dark hover:text-yellow-500"
+                    bg="hover:bg-yellow-500/10"
+                    label="Imprimir"
                 />
 
+                {/* Botão VOLTAR (Histórico) */}
+                <DockItem
+                    onClick={onBack}
+                    icon={<ChevronLeft size={24} />}
+                    color="text-text-secondary-light dark:text-text-secondary-dark hover:text-primary"
+                    bg="hover:bg-primary/10"
+                    label="Voltar"
+                />
+
+                {/* Botão INÍCIO (Casinha) - SEMPRE AZUL NEON */}
+                <DockItem
+                    onClick={onHome || onBack}
+                    icon={<Home size={24} className="text-blue-500 drop-shadow-[0_0_8px_rgba(59,130,246,0.6)]" />}
+                    color="text-blue-500"
+                    bg="hover:bg-blue-500/10"
+                    label="Home"
+                    active={true}
+                />
+
+                {/* CONCLUIR */}
                 <DockItem
                     onClick={onFinalize}
-                    icon={<CheckCircle size={22} />}
-                    color="text-text-secondary-light dark:text-text-secondary-dark hover:text-green-600 dark:hover:text-green-400"
-                    bg="hover:bg-green-500/10 dark:hover:bg-green-400/10"
-                    label="Concluir"
+                    icon={<CheckCircle size={24} />}
+                    color="text-text-secondary-light dark:text-text-secondary-dark hover:text-green-500"
+                    bg="hover:bg-green-500/10"
+                    label="Baixar"
                 />
 
+                {/* EXCLUIR */}
                 {onDelete && (
                     <DockItem
                         onClick={onDelete}
-                        icon={<Trash2 size={22} />}
-                        color="text-text-secondary-light dark:text-text-secondary-dark hover:text-red-600 dark:hover:text-red-400"
-                        bg="hover:bg-red-500/10 dark:hover:bg-red-400/10"
-                        label="Excluir"
+                        icon={<Trash2 size={24} />}
+                        color="text-text-secondary-light dark:text-text-secondary-dark hover:text-red-500"
+                        bg="hover:bg-red-500/10"
+                        label="Apagar"
                     />
                 )}
             </div>
         </div>
     );
 
-    // Only render via portal when mounted on client to avoid hydration mismatch (if applicable) 
-    // or just to be safe. Since this is likely client-side only (Vite/CRA), direct portal is fine, 
-    // but the effect ensures document.body is ready.
     if (!mounted) return null;
 
     return createPortal(content, document.body);
 };
 
-// Subcomponente para Item do Dock - Style adjusted slightly to match BottomNav size/feel
-const DockItem = ({ onClick, icon, color, bg, label }: { onClick: () => void, icon: React.ReactNode, color: string, bg: string, label: string }) => {
+const DockItem = ({ onClick, icon, color, bg, label, active = false }: { onClick: () => void, icon: React.ReactNode, color: string, bg: string, label: string, active?: boolean }) => {
     return (
         <button
             onClick={onClick}
-            // Responsive width/height: w-12 on mobile, w-14 on desktop to fit screen
-            className={`group relative flex md:flex-row flex-col items-center justify-center gap-0.5 md:gap-2 w-12 h-12 md:w-auto md:h-9 md:px-3 rounded-xl md:rounded-lg transition-all duration-200 ${color} ${bg} active:scale-95`}
+            className={`group relative flex flex-col items-center justify-center gap-1 w-14 h-14 rounded-xl transition-all duration-200 ${color} ${active ? bg.replace('hover:bg-', 'bg-') : bg} active:scale-95`}
         >
-            <div className="relative z-10 scale-90 sm:scale-100">
+            <div className="relative z-10 scale-90">
                 {icon}
             </div>
 
-            {/* Label below icon like BottomNav */}
-            <span className="text-[8px] md:text-xs font-bold relative z-10 font-display opacity-80 group-hover:opacity-100 transition-opacity block md:hidden">
+            <span className="text-[9px] font-black uppercase tracking-tighter relative z-10 font-display opacity-80 group-hover:opacity-100 transition-opacity">
                 {label}
             </span>
 
-            {/* Glow effect on hover */}
-            <div className={`absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 ${bg.replace('hover:bg-', 'bg-').replace('/20', '/10')}`}></div>
+            <div className={`absolute inset-0 rounded-xl transition-opacity duration-300 ${active ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'} ${bg.replace('hover:bg-', 'bg-').replace('/20', '/10')}`}></div>
         </button>
     );
 };
