@@ -153,8 +153,8 @@ const Sidebar = ({ routeCount = 0, isCollapsed, toggleCollapse, isDark, toggleTh
                 flex flex-col
                 transform transition-all duration-300 cubic-bezier(0.4, 0, 0.2, 1)
                 pt-16 md:pt-0
-                ${isCollapsed ? 'w-20' : 'w-64'}
-                ${isOpen ? 'translate-x-0 shadow-2xl shadow-black w-64' : '-translate-x-full md:translate-x-0'}
+                ${isCollapsed ? 'w-20' : 'w-56'}
+                ${isOpen ? 'translate-x-0 shadow-2xl shadow-black w-56' : '-translate-x-full md:translate-x-0'}
             `}>
                 {/* Desktop Header */}
                 <div className={`hidden md:flex items-center ${isCollapsed ? 'justify-center' : 'justify-between px-6'} h-20 border-b border-white/5 relative`}>
