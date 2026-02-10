@@ -1560,22 +1560,22 @@ Equipe de Capturas - DIG / PCSP
                     />
                 )}
 
-                {/* 2. Tactical Navigation Tabs - ALWAYS ON NEON */}
+                {/* 2. Tactical Navigation Tabs - ALWAYS ON STRONG NEON */}
                 <div className="flex flex-wrap items-center gap-4 sticky top-2 z-[30] py-4 backdrop-blur-md bg-background-light/40 dark:bg-background-dark/40 -mx-2 px-2 rounded-xl">
                     {[
-                        { id: 'documents', label: 'Dossiê', icon: FileText, colorClass: 'border-blue-500 text-blue-600 dark:text-blue-400 shadow-blue-500/20', hoverClass: 'hover:shadow-blue-500/40 hover:border-blue-400 active:shadow-blue-500/60 shadow-lg' },
-                        { id: 'investigation', label: 'Investigações', icon: Bot, colorClass: 'border-red-500 text-red-600 dark:text-red-500 shadow-red-500/20', hoverClass: 'hover:shadow-red-500/40 hover:border-red-400 active:shadow-red-500/60 shadow-lg' },
-                        { id: 'timeline', label: 'Operações', icon: History, colorClass: 'border-white text-slate-900 dark:text-white shadow-white/20', hoverClass: 'hover:shadow-white/40 hover:border-white active:shadow-white/60 shadow-lg' }
+                        { id: 'documents', label: 'Dossiê', icon: FileText, colorClass: 'border-blue-500 shadow-blue-500/40 shadow-lg', hoverClass: 'hover:shadow-blue-500/60 active:scale-95' },
+                        { id: 'investigation', label: 'Investigações', icon: Bot, colorClass: 'border-red-500 shadow-red-500/40 shadow-lg', hoverClass: 'hover:shadow-red-500/60 active:scale-95' },
+                        { id: 'timeline', label: 'Operações', icon: History, colorClass: 'border-white shadow-white/30 shadow-lg', hoverClass: 'hover:shadow-white/50 active:scale-95' }
                     ].map(tab => (
                         <button
                             key={tab.id}
                             onClick={() => setActiveDetailTab(tab.id as any)}
-                            className={`flex-1 min-w-[120px] flex flex-col sm:flex-row items-center justify-center gap-2 py-3 px-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.15em] transition-all duration-300 border backdrop-blur-md bg-zinc-100 dark:bg-zinc-800/50 ${tab.colorClass} ${tab.hoverClass} ${activeDetailTab === tab.id
-                                ? 'scale-[1.05] brightness-110 border-opacity-100 shadow-xl'
-                                : 'border-opacity-40 brightness-90 shadow-sm'
+                            className={`flex-1 min-w-[120px] flex flex-col sm:flex-row items-center justify-center gap-2 py-3 px-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-300 border-2 backdrop-blur-md bg-zinc-100 dark:bg-zinc-800 text-white ${tab.colorClass} ${tab.hoverClass} ${activeDetailTab === tab.id
+                                ? 'scale-[1.05] brightness-125'
+                                : 'brightness-100 opacity-90'
                                 }`}
                         >
-                            <tab.icon size={16} className={activeDetailTab === tab.id ? 'animate-pulse' : 'opacity-70'} />
+                            <tab.icon size={16} className={activeDetailTab === tab.id ? 'animate-pulse' : ''} />
                             <span>{tab.label}</span>
                         </button>
                     ))}
