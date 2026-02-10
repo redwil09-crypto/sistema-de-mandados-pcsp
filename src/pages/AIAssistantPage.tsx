@@ -473,26 +473,74 @@ const AIAssistantPage = () => {
     };
 
 
-    const handlePrintList = () => {
+    const handlePrintList = async () => {
         try {
             const doc = new jsPDF();
             doc.setFontSize(18);
-            doc.text("Lista de Mandados (Filtrada)", 105, 20, { align: 'center' });
+            doc.text("Relatório de Inteligência - Lista de Alvos", 105, 20, { align: 'center' });
             doc.setFontSize(10);
             let y = 40;
 
-            filteredWarrants.forEach((w, index) => {
-                if (y > 270) { doc.addPage(); y = 20; }
+            const loadImage = (url: string): Promise<HTMLImageElement> => {
+                return new Promise((resolve, reject) => {
+                    const img = new Image();
+                    img.crossOrigin = 'Anonymous';
+                    img.src = url;
+                    img.onload = () => resolve(img);
+                    img.onerror = reject;
+                });
+            };
+
+            for (let i = 0; i < filteredWarrants.length; i++) {
+                const w = filteredWarrants[i];
+                if (y > 250) { doc.addPage(); y = 20; }
+
+                // Card Border
+                doc.setDrawColor(200);
+                doc.roundedRect(15, y - 5, 180, 25, 2, 2);
+
+                // Add Photo if exists
+                if (w.img) {
+                    try {
+                        const img = await loadImage(w.img);
+                        doc.addImage(img, 'JPEG', 20, y - 2, 18, 18);
+                    } catch (e) {
+                        // If image fails, draw a placeholder
+                        doc.setDrawColor(230);
+                        doc.rect(20, y - 2, 18, 18);
+                        doc.setFontSize(6);
+                        doc.text("S/ FOTO", 24, y + 8);
+                    }
+                } else {
+                    doc.setDrawColor(230);
+                    doc.rect(20, y - 2, 18, 18);
+                    doc.setFontSize(6);
+                    doc.text("S/ FOTO", 24, y + 8);
+                }
+
+                doc.setFontSize(10);
                 doc.setFont('helvetica', 'bold');
-                doc.text(`${index + 1}. ${w.name}`, 20, y);
+                doc.text(`${i + 1}. ${w.name.toUpperCase()}`, 45, y + 2);
+
+                doc.setFontSize(8);
                 doc.setFont('helvetica', 'normal');
-                doc.text(`RG: ${w.rg || '-'} | Proc: ${w.number}`, 20, y + 5);
-                doc.text(`Crime: ${w.crime || '-'} | Status: ${w.status}`, 20, y + 10);
-                y += 20;
-            });
-            toast.success("Lista filtrada gerada com sucesso!");
-            doc.save("Lista_Filtrada.pdf");
-        } catch (e) { toast.error("Erro ao imprimir lista."); }
+                doc.text(`RG: ${w.rg || '-'} | CPF: ${w.cpf || '-'}`, 45, y + 7);
+                doc.text(`PROCESSO: ${w.number}`, 45, y + 12);
+
+                doc.setTextColor(220, 38, 38); // Red for status
+                doc.setFont('helvetica', 'bold');
+                doc.text(`STATUS: ${w.status}`, 150, y + 2);
+                doc.setTextColor(0, 0, 0);
+
+                y += 30;
+            }
+
+            toast.success("Lista de inteligência com fotos gerada!");
+            doc.save(`Lista_Inteligencia_${new Date().getTime()}.pdf`);
+        } catch (e) {
+            console.error(e);
+            toast.error("Erro ao imprimir lista com fotos.");
+        }
     };
 
 
@@ -1372,7 +1420,7 @@ const AIAssistantPage = () => {
                                 className="flex-1 min-w-0 flex flex-col items-center justify-center gap-1 p-2 rounded-xl bg-gray-500/10 text-gray-600 dark:text-gray-400 transition-all active:scale-95 touch-manipulation hover:bg-gray-500/20"
                             >
                                 <ListTodo size={20} />
-                                <span className="text-[9px] font-bold uppercase truncate w-full text-center">Lista</span>
+                                <span className="text-[9px] font-bold uppercase truncate w-full text-center">Imprimir Lista</span>
                             </button>
                             <button
                                 onClick={handlePrintDatabaseSplit}

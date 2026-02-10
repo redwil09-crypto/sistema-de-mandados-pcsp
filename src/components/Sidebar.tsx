@@ -60,7 +60,7 @@ const Sidebar = ({ routeCount = 0, isCollapsed, toggleCollapse, isDark, toggleTh
 
     const operationalNavItems = [
         { icon: Map, label: 'Roteiro Tático', path: '/route-planner', badge: routeCount },
-        { icon: Bot, label: 'Assistente IA', path: '/ai-assistant' },
+        { icon: Bot, label: 'Extrair Mandado', path: '/ai-assistant?tab=extraction' },
         { icon: BarChart2, label: 'Estatísticas', path: '/stats' },
     ];
 
@@ -83,13 +83,28 @@ const Sidebar = ({ routeCount = 0, isCollapsed, toggleCollapse, isDark, toggleTh
                         key={item.path}
                         to={item.path}
                         title={isCollapsed ? item.label : ''}
-                        className={({ isActive }) => `
-                            flex items-center ${isCollapsed ? 'justify-center px-0' : 'justify-start px-4'} py-3 mx-3 rounded-xl transition-all duration-300 group relative
-                            ${isActive
-                                ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/40'
-                                : 'text-zinc-400 hover:text-white hover:bg-white/5'
+                        className={({ isActive }) => {
+                            // Custom active check for tabs
+                            let customActive = isActive;
+                            if (item.path.includes('?tab=')) {
+                                const pathPart = item.path.split('?')[0];
+                                const tabPart = item.path.split('tab=')[1];
+                                const currentTab = new URLSearchParams(location.search).get('tab');
+                                // Se o path base bate E o tab bate, ou se o path base bate e não tem tab (extraction é o default)
+                                customActive = location.pathname === pathPart && (currentTab === tabPart || (!currentTab && tabPart === 'extraction'));
+                            } else if (location.pathname === '/ai-assistant' && !item.path.includes('ai-assistant')) {
+                                // Garante que outros não fiquem ativos na tela de assistente
+                                customActive = false;
                             }
-                        `}
+
+                            return `
+                                flex items-center ${isCollapsed ? 'justify-center px-0' : 'justify-start px-4'} py-3 mx-3 rounded-xl transition-all duration-300 group relative
+                                ${customActive
+                                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/40'
+                                    : 'text-zinc-400 hover:text-white hover:bg-white/5'
+                                }
+                            `;
+                        }}
                     >
                         {({ isActive }) => (
                             <>
