@@ -93,7 +93,7 @@ export const generateWarrantPDF = async (
             // --- TITLE ON THE RIGHT (AS REQUESTED TO REVERT) ---
             doc.setFontSize(16);
             doc.setTextColor(...COLORS.PRIMARY);
-            doc.text("DOSSIÊ OPERACIONAL TÁTICO", pageWidth - margin, y + 10, { align: 'right' });
+            doc.text("DOSSIÊ OPERACIONAL", pageWidth - margin, y + 10, { align: 'right' });
 
             doc.setFontSize(9);
             doc.setTextColor(...COLORS.SECONDARY);
