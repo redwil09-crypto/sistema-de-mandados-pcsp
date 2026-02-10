@@ -532,7 +532,7 @@ const AIAssistantPage = () => {
                 doc.text(`STATUS: ${w.status}`, 150, y + 2);
                 doc.setTextColor(0, 0, 0);
 
-                y += 30;
+                y += 27;
             }
 
             toast.success("Lista de inteligência com fotos gerada!");
