@@ -99,8 +99,21 @@ function App() {
 function AppContent({ isDark, toggleTheme }: { isDark: boolean; toggleTheme: () => void }) {
     const location = useLocation();
     // const hideNav = ['/warrant-detail', '/new-warrant', '/ai-assistant', '/route-planner', '/map'].some(p => location.pathname.startsWith(p));
-    const { routeWarrants, loading } = useWarrants();
+    const { routeWarrants, warrants, loading } = useWarrants();
     const [isCollapsed, setIsCollapsed] = useState(true); // Default to collapsed for slim look
+
+    const hasNotifications = React.useMemo(() => {
+        if (!warrants) return false;
+        const now = new Date();
+        const threshold = new Date();
+        threshold.setDate(now.getDate() + 7); // 7 days warning
+
+        return warrants.some(w => {
+            if (w.status !== 'EM ABERTO' || !w.expirationDate) return false;
+            const exp = new Date(w.expirationDate);
+            return exp <= threshold;
+        });
+    }, [warrants]);
 
     if (loading) {
         return (
@@ -122,6 +135,7 @@ function AppContent({ isDark, toggleTheme }: { isDark: boolean; toggleTheme: () 
             <Sidebar
                 routeCount={routeWarrants.length}
                 isCollapsed={isCollapsed}
+                hasNotifications={hasNotifications}
                 toggleCollapse={() => setIsCollapsed(!isCollapsed)}
                 isDark={isDark}
                 toggleTheme={toggleTheme}
