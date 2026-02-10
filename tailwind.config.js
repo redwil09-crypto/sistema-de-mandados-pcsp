@@ -24,8 +24,8 @@ export default {
 
                 // Dark Mode Palette - The New Standard
                 "background-dark": "#000000",
-                "surface-dark": "#09090b", // Zinc 950
-                "surface-dark-elevated": "#18181b", // Zinc 900
+                "surface-dark": "#27272a", // Zinc 800 (Even lighter)
+                "surface-dark-elevated": "#3f3f46", // Zinc 700 (Lighter still)
                 "border-dark": "#27272a", // Zinc 800
                 "border-dark-highlight": "#3f3f46", // Zinc 700
 
