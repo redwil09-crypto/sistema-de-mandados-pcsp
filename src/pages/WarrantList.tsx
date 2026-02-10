@@ -63,7 +63,7 @@ const WarrantList = () => {
 
     return (
         <div className="min-h-screen pb-20 bg-background-light dark:bg-background-dark">
-            <Header title="Mandados" back onBack={() => navigate('/')} />
+            <Header title="Mandados" back />
             <div className="p-4">
                 <div className="flex gap-2 mb-4">
                     <div className="relative flex-1">

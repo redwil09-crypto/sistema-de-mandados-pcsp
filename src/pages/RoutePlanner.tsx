@@ -134,7 +134,7 @@ const RoutePlanner = () => {
 
     return (
         <div className="min-h-screen pb-40 bg-background-light dark:bg-background-dark overflow-x-hidden">
-            <Header title="Roteiro de Diligências" back onBack={() => navigate('/')} />
+            <Header title="Roteiro de Diligências" back />
 
             <div className="p-4 space-y-5 max-w-md mx-auto">
                 {warrants.length === 0 ? (

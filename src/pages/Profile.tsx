@@ -4,6 +4,7 @@ import { supabase } from '../supabaseClient';
 import { useNavigate } from 'react-router-dom';
 import { User, Mail, Shield, LogOut, ChevronLeft } from 'lucide-react';
 import { toast } from 'sonner';
+import Header from '../components/Header';
 
 export default function Profile() {
     const navigate = useNavigate();
@@ -24,14 +25,7 @@ export default function Profile() {
 
     return (
         <div className="min-h-screen pb-24 bg-background-light dark:bg-background-dark">
-            <header className="sticky top-0 z-40 flex items-center justify-between bg-white px-4 py-3 dark:bg-surface-dark border-b border-border-light dark:border-border-dark">
-                <div className="flex items-center gap-3">
-                    <button onClick={() => navigate(-1)} type="button" className="rounded-full p-1 hover:bg-black/5 dark:hover:bg-white/10">
-                        <ChevronLeft size={24} />
-                    </button>
-                    <h1 className="text-lg font-bold text-text-light dark:text-text-dark">Perfil</h1>
-                </div>
-            </header>
+            <Header title="Perfil" back showHome />
 
             <div className="p-4 space-y-6">
                 {/* User Info Card */}

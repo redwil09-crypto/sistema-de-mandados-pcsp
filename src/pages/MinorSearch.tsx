@@ -60,7 +60,7 @@ const MinorSearch = () => {
 
     return (
         <div className="min-h-screen pb-20 bg-background-light dark:bg-background-dark">
-            <Header title="Busca de Menores" back onBack={() => navigate('/')} />
+            <Header title="Busca de Menores" back />
             <div className="p-4">
                 <div className="flex gap-2 mb-4">
                     <div className="relative flex-1">

@@ -4,6 +4,7 @@ import { ChevronLeft, ClipboardList, User, Calendar, Info, Search, AlertTriangle
 import { getAllAuditLogs, translateAction, translateField, deleteAuditLog, deleteAuditLogs } from '../supabaseService';
 import { supabase } from '../supabaseClient';
 import { toast } from 'sonner';
+import Header from '../components/Header';
 
 export default function AuditPage() {
     const navigate = useNavigate();
@@ -115,19 +116,7 @@ export default function AuditPage() {
 
     return (
         <div className="min-h-screen pb-24 bg-background-light dark:bg-background-dark">
-            <header className="sticky top-0 z-40 bg-surface-light/80 dark:bg-surface-dark/80 backdrop-blur-lg border-b border-border-light dark:border-border-dark px-4 py-4">
-                <div className="flex items-center gap-4">
-                    <button onClick={() => navigate(-1)} className="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors">
-                        <ChevronLeft size={24} />
-                    </button>
-                    <div>
-                        <h1 className="text-xl font-black text-text-light dark:text-text-dark flex items-center gap-2 uppercase tracking-tighter">
-                            <ClipboardList className="text-primary" /> Central de Auditoria
-                        </h1>
-                        <p className="text-[10px] font-bold text-text-secondary-light dark:text-text-secondary-dark uppercase tracking-widest">Controle Total de Atividades</p>
-                    </div>
-                </div>
-            </header>
+            <Header title="Central de Auditoria" back showHome />
 
             <div className="p-4 space-y-4">
                 {/* Search and Bulk Actions */}

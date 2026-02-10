@@ -18,7 +18,12 @@ const Header = ({ title, back = false, onBack, action, showHome = false }: Heade
         if (onBack) {
             onBack();
         } else {
-            navigate(-1);
+            // If we have history, go back, otherwise go home
+            if (window.history.length > 1) {
+                navigate(-1);
+            } else {
+                navigate('/');
+            }
         }
     };
 
