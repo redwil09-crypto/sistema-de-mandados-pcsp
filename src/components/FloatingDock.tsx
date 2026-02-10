@@ -26,7 +26,7 @@ const FloatingDock = ({ onBack, onSave, onPrint, onFinalize, onDelete, className
     // "No celular passa da borda" -> max-w-[92vw], overflow-hidden protection.
     // "Justifique ela" -> justify-between on mobile if needed, or just center with smaller gaps.
     // "Mesma formatação da barra inicial" -> bg-surface-light, dark:bg-surface-dark/80, shadow-glass, border-border-light
-    const containerClasses = className || "fixed bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 w-max max-w-[95vw] sm:max-w-2xl z-[9999] rounded-2xl border border-border-light dark:border-white/5 bg-surface-light/95 dark:bg-surface-dark/90 backdrop-blur-lg shadow-glass transition-all duration-300 pointer-events-auto px-2 sm:px-6";
+    const containerClasses = className || "fixed bottom-4 left-1/2 -translate-x-1/2 md:bottom-auto md:left-auto md:top-4 md:right-4 md:transform-none w-max max-w-[95vw] sm:max-w-2xl z-[9999] rounded-2xl border border-border-light dark:border-white/10 bg-surface-light/95 dark:bg-surface-dark/90 backdrop-blur-lg shadow-glass transition-all duration-300 pointer-events-auto px-2 sm:px-4 py-1.5 md:py-2";
 
     const content = (
         <div className={`${containerClasses} animate-in fade-in slide-in-from-bottom-2 duration-300`}>
@@ -97,14 +97,14 @@ const DockItem = ({ onClick, icon, color, bg, label }: { onClick: () => void, ic
         <button
             onClick={onClick}
             // Responsive width/height: w-12 on mobile, w-14 on desktop to fit screen
-            className={`group relative flex flex-col items-center justify-center gap-0.5 sm:gap-1 w-12 h-12 sm:w-14 sm:h-14 rounded-xl transition-all duration-200 ${color} ${bg} active:scale-95`}
+            className={`group relative flex md:flex-row flex-col items-center justify-center gap-0.5 md:gap-2 w-12 h-12 md:w-auto md:h-9 md:px-3 rounded-xl md:rounded-lg transition-all duration-200 ${color} ${bg} active:scale-95`}
         >
             <div className="relative z-10 scale-90 sm:scale-100">
                 {icon}
             </div>
 
             {/* Label below icon like BottomNav */}
-            <span className="text-[8px] sm:text-[9px] font-bold relative z-10 font-display opacity-80 group-hover:opacity-100 transition-opacity">
+            <span className="text-[8px] md:text-xs font-bold relative z-10 font-display opacity-80 group-hover:opacity-100 transition-opacity block md:hidden">
                 {label}
             </span>
 
