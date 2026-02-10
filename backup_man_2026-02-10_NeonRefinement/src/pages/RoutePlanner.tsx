@@ -1,0 +1,271 @@
+
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Route as RouteIcon, Navigation, Map, Printer, Trash2, X, CheckCircle, AlertCircle } from 'lucide-react';
+import Header from '../components/Header';
+import WarrantCard from '../components/WarrantCard';
+import ConfirmModal from '../components/ConfirmModal';
+import { toast } from 'sonner';
+import { Warrant } from '../types';
+import PatrolMode from '../components/PatrolMode';
+import { generateWarrantPDF } from '../services/pdfReportService';
+import { useWarrants } from '../contexts/WarrantContext';
+
+const RoutePlanner = () => {
+    const { selectedRouteWarrants: warrants, toggleRouteWarrant, updateWarrant } = useWarrants();
+    const navigate = useNavigate();
+    const [confirmModal, setConfirmModal] = useState<{
+        isOpen: boolean;
+        title: string;
+        message: string;
+        onConfirm: () => void;
+        variant?: 'primary' | 'danger';
+    }>({
+        isOpen: false,
+        title: '',
+        message: '',
+        onConfirm: () => { }
+    });
+
+    // Debugging render
+    useEffect(() => {
+        console.log("RoutePlanner: Mounted with", warrants.length, "warrants");
+    }, [warrants]);
+
+    const openConfirm = (title: string, message: string, onConfirm: () => void, variant: 'primary' | 'danger' = 'primary') => {
+        setConfirmModal({ isOpen: true, title, message, onConfirm, variant });
+    };
+
+    const handleFinalizeWarrant = async (w: Warrant) => {
+        try {
+            const success = await updateWarrant(w.id, { status: 'CUMPRIDO' });
+            if (success) {
+                toast.success(`${w.name} marcado como cumprido.`);
+                toggleRouteWarrant(w.id); // Also remove from route
+            } else {
+                toast.error("Erro ao atualizar mandado.");
+            }
+        } catch (err) {
+            console.error("Error finalizing warrant:", err);
+            toast.error("Erro inesperado ao finalizar.");
+        }
+    };
+
+    const [userCoords, setUserCoords] = useState<{ lat: number, lng: number } | null>(null);
+
+    useEffect(() => {
+        if ("geolocation" in navigator) {
+            navigator.geolocation.getCurrentPosition(
+                (pos) => setUserCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+                (err) => console.log("Geolocation error:", err)
+            );
+        }
+    }, []);
+
+    const calculateDistance = (lat1: number, lng1: number, lat2: number, lng2: number) => {
+        return Math.sqrt(Math.pow(lat1 - lat2, 2) + Math.pow(lng1 - lng2, 2));
+    };
+
+    const handleOpenMap = () => {
+        if (warrants.length === 0) {
+            toast.error("Roteiro vazio.");
+            return;
+        }
+
+        // 1. Separate warrants with and without coordinates
+        let withCoords = warrants.filter(w => w.latitude && w.longitude);
+        const withoutCoords = warrants.filter(w => !w.latitude || !w.longitude);
+
+        // 2. Sort by closeness (Greedy Nearest Neighbor)
+        let sortedTargets: Warrant[] = [];
+        let currentLocation = userCoords || { lat: -23.5505, lng: -46.6333 }; // Fallback to SP Center if no GPS
+
+        let remaining = [...withCoords];
+        while (remaining.length > 0) {
+            let closestIdx = 0;
+            let minDistance = calculateDistance(currentLocation.lat, currentLocation.lng, remaining[0].latitude!, remaining[0].longitude!);
+
+            for (let i = 1; i < remaining.length; i++) {
+                const dist = calculateDistance(currentLocation.lat, currentLocation.lng, remaining[i].latitude!, remaining[i].longitude!);
+                if (dist < minDistance) {
+                    minDistance = dist;
+                    closestIdx = i;
+                }
+            }
+
+            const next = remaining.splice(closestIdx, 1)[0];
+            sortedTargets.push(next);
+            currentLocation = { lat: next.latitude!, lng: next.longitude! };
+        }
+
+        // Add those without coords to the end
+        const finalOrder = [...sortedTargets, ...withoutCoords];
+
+        const locations = finalOrder
+            .filter(w => w && w.location && w.location.trim().length > 0)
+            .map(w => w.location as string);
+
+        if (locations.length === 0) {
+            toast.error("Nenhum endereço válido encontrado.");
+            return;
+        }
+
+        // Google Maps URL with "My Location" as origin
+        const origin = "My+Location";
+        const destination = encodeURIComponent(locations[locations.length - 1]);
+        const waypoints = locations.slice(0, -1).map(loc => encodeURIComponent(loc)).join('|');
+
+        // Use the Google Maps Directions URL format: origin/destination/waypoints
+        const url = `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}&waypoints=${waypoints}&travelmode=driving`;
+        window.open(url, '_blank');
+    };
+
+    // Safety fallback
+    if (!warrants || !Array.isArray(warrants)) {
+        return (
+            <div className="min-h-screen bg-background-light p-10 text-center">
+                <AlertCircle size={48} className="mx-auto text-red-500 mb-4" />
+                <h2 className="text-xl font-bold">Erro de Dados</h2>
+                <p>Não foi possível carregar a lista do roteiro.</p>
+                <button onClick={() => navigate('/')} className="mt-4 text-primary font-bold">Voltar ao Início</button>
+            </div>
+        );
+    }
+
+    return (
+        <div className="min-h-screen pb-40 bg-background-light dark:bg-background-dark overflow-x-hidden">
+            <Header title="Roteiro de Diligências" back onBack={() => navigate('/')} />
+
+            <div className="p-4 space-y-5 max-w-md mx-auto">
+                {warrants.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-20 text-center space-y-4">
+                        <div className="p-6 rounded-full bg-gray-100 dark:bg-white/5">
+                            <RouteIcon size={48} className="text-gray-400" />
+                        </div>
+                        <div>
+                            <h3 className="text-lg font-bold text-text-light dark:text-text-dark">Roteiro Vazio</h3>
+                            <p className="text-sm text-text-secondary-light max-w-xs mx-auto">
+                                Adicione mandados ao roteiro clicando no ícone de roteiro presente nos cards de mandados.
+                            </p>
+                        </div>
+                        <button
+                            onClick={() => navigate('/advanced-search')}
+                            className="px-6 py-3 bg-primary text-white font-bold rounded-xl shadow-lg active:scale-95 transition-transform"
+                        >
+                            Ir para Busca Avançada
+                        </button>
+                    </div>
+                ) : (
+                    <>
+                        {/* Summary Card */}
+                        <div className="bg-indigo-600 p-5 rounded-2xl text-white shadow-xl space-y-1 relative overflow-hidden group">
+                            <div className="absolute -right-4 -bottom-4 opacity-10 group-hover:scale-110 transition-transform duration-500">
+                                <Navigation size={100} />
+                            </div>
+                            <div className="relative z-10">
+                                <h3 className="font-bold flex items-center gap-2 text-indigo-100">
+                                    <Navigation size={20} /> Missão em Planejamento
+                                </h3>
+                                <p className="text-4xl font-black">{warrants.length} <span className="text-sm font-medium opacity-80 uppercase tracking-widest ml-1">Alvos</span></p>
+                            </div>
+                        </div>
+
+                        {/* Warrant List */}
+                        <div className="space-y-4 pt-2">
+                            {warrants.map((w, index) => {
+                                if (!w) return null;
+                                return (
+                                    <div key={w.id || `route-item-${index}`} className="relative group">
+                                        {/* Counter Badge */}
+                                        <div className="absolute -left-2 -top-2 w-7 h-7 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold text-xs ring-4 ring-background-light dark:ring-background-dark z-20 shadow-md transform group-hover:scale-110 transition-transform">
+                                            {index + 1}
+                                        </div>
+
+                                        <div className="transition-transform duration-200 group-hover:translate-x-1">
+                                            <WarrantCard
+                                                data={w}
+                                                onRouteToggle={toggleRouteWarrant}
+                                                isPlanned={true}
+                                                onFinalize={(e, data) => {
+                                                    e.preventDefault();
+                                                    e.stopPropagation();
+                                                    openConfirm(
+                                                        "Finalizar Mandado",
+                                                        "Deseja marcar este mandado como CUMPRIDO?",
+                                                        () => handleFinalizeWarrant(data)
+                                                    );
+                                                }}
+                                                onPrint={(e) => {
+                                                    e.preventDefault();
+                                                    e.stopPropagation();
+                                                    generateWarrantPDF(w, updateWarrant);
+                                                }}
+                                            />
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+
+                        {/* Actions Footer - Justified and smaller above BottomNav */}
+                        <div className="fixed bottom-16 left-0 right-0 p-3 bg-surface-light border-t border-border-light dark:bg-surface-dark dark:border-border-dark backdrop-blur-lg bg-opacity-95 dark:bg-opacity-95 z-40 shadow-[0_-10px_25px_rgba(0,0,0,0.1)]">
+                            <div className="max-w-md mx-auto grid grid-cols-4 gap-2">
+                                <button
+                                    onClick={handleOpenMap}
+                                    className="flex flex-col items-center justify-center gap-1 py-2 bg-indigo-600 text-white font-bold rounded-xl shadow-lg active:scale-95 transition-all hover:bg-indigo-700"
+                                >
+                                    <Map size={18} />
+                                    <span className="text-[10px] uppercase">Navegar</span>
+                                </button>
+
+                                <PatrolMode warrants={warrants} variant="button" />
+
+                                <button
+                                    onClick={() => navigate('/map')}
+                                    className="flex flex-col items-center justify-center gap-1 py-2 bg-gray-100 dark:bg-gray-800 text-text-light dark:text-text-dark font-bold rounded-xl active:scale-95 transition-all"
+                                >
+                                    <Map size={18} className="text-primary" />
+                                    <span className="text-[10px] uppercase">Mapa Ops</span>
+                                </button>
+
+                                <button
+                                    onClick={() => {
+                                        openConfirm(
+                                            "Limpar Roteiro",
+                                            "Tem certeza que deseja remover todos os itens do roteiro?",
+                                            () => {
+                                                warrants.forEach(w => toggleRouteWarrant(w.id));
+                                                toast.success("Roteiro limpo com sucesso!");
+                                            },
+                                            'danger'
+                                        );
+                                    }}
+                                    className="flex flex-col items-center justify-center gap-1 py-2 bg-red-100 dark:bg-red-900/20 text-red-600 dark:text-red-400 font-bold rounded-xl active:scale-95 transition-all"
+                                >
+                                    <Trash2 size={18} />
+                                    <span className="text-[10px] uppercase">Limpar</span>
+                                </button>
+                            </div>
+                        </div>
+                    </>
+                )}
+            </div>
+
+            <ConfirmModal
+                isOpen={confirmModal.isOpen}
+                title={confirmModal.title}
+                message={confirmModal.message}
+                onConfirm={() => {
+                    confirmModal.onConfirm();
+                    setConfirmModal(prev => ({ ...prev, isOpen: false }));
+                }}
+                onCancel={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+                confirmText="Sim, Confirmar"
+                cancelText="Cancelar"
+                variant={confirmModal.variant}
+            />
+        </div>
+    );
+};
+
+export default RoutePlanner;
