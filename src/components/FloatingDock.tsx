@@ -13,7 +13,7 @@ interface FloatingDockProps {
 }
 
 const FloatingDock = ({ onBack, onHome, onSave, onPrint, onFinalize, onDelete, className }: FloatingDockProps) => {
-    const containerClasses = className || "w-full z-10 rounded-3xl border border-border-light dark:border-white/10 bg-surface-light/95 dark:bg-surface-dark/95 backdrop-blur-xl shadow-glass transition-all duration-300 px-4 py-4 mt-8 mb-12";
+    const containerClasses = className || "w-full z-10 rounded-3xl border border-border-light dark:border-white/10 bg-surface-light/95 dark:bg-surface-dark/95 backdrop-blur-xl shadow-glass transition-all duration-300 px-4 py-4 mt-8 mb-2";
 
     return (
         <div className={`${containerClasses} animate-in fade-in slide-in-from-bottom-5 duration-500`}>
