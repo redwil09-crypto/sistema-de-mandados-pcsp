@@ -159,9 +159,11 @@ const Sidebar = ({ routeCount = 0, isCollapsed, toggleCollapse, isDark, toggleTh
                 {/* Desktop Header */}
                 <div className={`hidden md:flex items-center ${isCollapsed ? 'justify-center' : 'justify-between px-6'} h-20 border-b border-white/5 relative`}>
                     <div className="flex items-center gap-3">
-                        <div className="h-8 w-8 rounded-xl bg-blue-600 flex items-center justify-center shadow-[0_0_20px_rgba(37,99,235,0.4)] border border-blue-400/30 shrink-0">
-                            <Siren size={18} className="text-white fill-white/20" />
-                        </div>
+                        <img
+                            src="/brasao_pcsp_nova.png"
+                            alt="Brasão PCSP"
+                            className="h-10 w-auto object-contain shrink-0 drop-shadow-[0_0_8px_rgba(255,255,255,0.3)] transition-transform hover:scale-110"
+                        />
                         {!isCollapsed && (
                             <h1 className="font-display font-black text-xl text-white tracking-widest whitespace-nowrap overflow-hidden">
                                 PCSP
