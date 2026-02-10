@@ -521,11 +521,11 @@ const AIAssistantPage = () => {
                 doc.setFontSize(10);
                 doc.setFont('helvetica', 'bold');
                 doc.text(`${i + 1}. ${w.name.toUpperCase()}`, 45, y + 2);
-
                 doc.setFontSize(8);
                 doc.setFont('helvetica', 'normal');
                 doc.text(`RG: ${w.rg || '-'} | CPF: ${w.cpf || '-'}`, 45, y + 7);
                 doc.text(`PROCESSO: ${w.number}`, 45, y + 12);
+                doc.text(`CRIME: ${w.crime || '-'} | REGIME: ${w.regime || '-'}`, 45, y + 17);
 
                 doc.setTextColor(220, 38, 38); // Red for status
                 doc.setFont('helvetica', 'bold');
@@ -1329,7 +1329,8 @@ const AIAssistantPage = () => {
                                                 <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-[10px] text-text-secondary-light dark:text-zinc-400">
                                                     <p className="truncate"><span className="font-black text-primary/80 uppercase mr-1">RG:</span> {w.rg || '-'}</p>
                                                     <p className="truncate"><span className="font-black text-primary/80 uppercase mr-1">CPF:</span> {w.cpf || '-'}</p>
-                                                    <p className="truncate col-span-2"><span className="font-black text-orange-500 uppercase mr-1">Crime:</span> {w.crime || '-'}</p>
+                                                    <p className="truncate"><span className="font-black text-orange-500 uppercase mr-1">Crime:</span> {w.crime || '-'}</p>
+                                                    <p className="truncate"><span className="font-black text-blue-500 uppercase mr-1">Regime:</span> {w.regime || '-'}</p>
                                                 </div>
                                             </div>
                                         </div>
