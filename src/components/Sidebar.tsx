@@ -183,7 +183,7 @@ const Sidebar = ({ routeCount = 0, isCollapsed, toggleCollapse, isDark, toggleTh
                 </div>
 
                 {/* Nav Links */}
-                <nav className="flex-1 overflow-y-auto py-6 custom-scrollbar overflow-x-hidden">
+                <nav className="flex-1 overflow-y-auto py-6 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden overflow-x-hidden">
                     <NavGroup title="Principal" items={mainNavItems} />
                     <NavGroup title="Operacional" items={operationalNavItems} />
                     <NavGroup title="Sistema" items={systemNavItems} />

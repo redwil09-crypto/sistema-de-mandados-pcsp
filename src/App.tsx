@@ -142,7 +142,7 @@ function AppContent({ isDark, toggleTheme }: { isDark: boolean; toggleTheme: () 
             />
 
             {/* Main Content Area - Padded for Sidebar on Desktop */}
-            <div className={`transition-all duration-300 ${isCollapsed ? 'md:pl-20' : 'md:pl-64'} min-h-screen`}>
+            <div className={`transition-all duration-300 ${isCollapsed ? 'md:pl-20' : 'md:pl-56'} min-h-screen`}>
                 <React.Suspense fallback={
                     <div className="flex h-[80vh] items-center justify-center">
                         <div className="flex flex-col items-center gap-4">
