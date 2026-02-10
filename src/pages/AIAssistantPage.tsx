@@ -1,6 +1,6 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { jsPDF } from 'jspdf';
 import { formatDate, maskDate } from '../utils/helpers';
 import {
@@ -26,7 +26,8 @@ import BottomNav from '../components/BottomNav';
 const AIAssistantPage = () => {
     const { addWarrant: onAdd, warrants } = useWarrants();
     const navigate = useNavigate();
-    const [activeTab, setActiveTab] = useState<'extraction' | 'database'>('extraction');
+    const [searchParams, setSearchParams] = useSearchParams();
+    const [activeTab, setActiveTab] = useState<'extraction' | 'database'>((searchParams.get('tab') as any) || 'extraction');
 
     // Extraction State
     const [step, setStep] = useState<'input' | 'processing' | 'review' | 'saved'>('input');
@@ -53,6 +54,11 @@ const AIAssistantPage = () => {
     useEffect(() => {
         isGeminiEnabled().then(setHasAi);
     }, []);
+
+    // Atualiza a URL quando a aba muda
+    useEffect(() => {
+        setSearchParams({ tab: activeTab }, { replace: true });
+    }, [activeTab, setSearchParams]);
 
     // --- PERSISTENCIA DE SESSÃO ---
     useEffect(() => {

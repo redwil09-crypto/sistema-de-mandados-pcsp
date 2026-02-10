@@ -53,7 +53,6 @@ const Sidebar = ({ routeCount = 0, isCollapsed, toggleCollapse, isDark, toggleTh
     const mainNavItems = [
         { icon: Home, label: 'Dashboard', path: '/' },
         { icon: FileText, label: 'Mandados', path: '/warrant-list' },
-        { icon: Database, label: 'Banco de Dados', path: '/ai-assistant?tab=database' },
         { icon: FileSearch, label: 'Busca e Apreensão', path: '/minor-search' },
         { icon: PlusCircle, label: 'Novo Registro', path: '/new-warrant' },
         { icon: Search, label: 'Investigação', path: '/advanced-search' },
@@ -67,6 +66,7 @@ const Sidebar = ({ routeCount = 0, isCollapsed, toggleCollapse, isDark, toggleTh
 
     const systemNavItems = [
         { icon: Activity, label: 'Log de Atividade', path: '/recents' },
+        { icon: Database, label: 'Banco de Dados', path: '/ai-assistant?tab=database' },
         { icon: ShieldAlert, label: 'Auditoria', path: '/audit' },
     ];
 
