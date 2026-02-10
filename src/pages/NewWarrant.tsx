@@ -640,7 +640,7 @@ const NewWarrant = () => {
                                     <div className="flex gap-2">
                                         <Link
                                             to={`/map?lat=${formData.latitude}&lng=${formData.longitude}`}
-                                            className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-3 rounded-xl text-[10px] font-black flex items-center justify-center gap-2 transition-all shadow-lg shadow-indigo-500/20 tracking-wider uppercase active:scale-95"
+                                            className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-xl text-[10px] font-black flex items-center justify-center gap-2 transition-all shadow-lg shadow-blue-500/20 tracking-wider uppercase active:scale-95"
                                         >
                                             <MapPin size={14} className="fill-white/20" /> MAPA OPS
                                         </Link>
@@ -758,7 +758,7 @@ const NewWarrant = () => {
                             <Zap size={14} className={formData.tags?.includes('Urgente') ? 'fill-white' : ''} />
                             URGENTE
                         </button>
-                        <button type="button" onClick={() => handleTagToggle('Ofício de Cobrança')} className={`flex-1 py-3 px-2 rounded-xl border-2 font-bold text-xs transition-all flex items-center justify-center gap-1.5 ${formData.tags?.includes('Ofício de Cobrança') ? 'bg-amber-500 border-amber-500 text-white shadow-md shadow-amber-500/20' : 'bg-surface-light dark:bg-surface-dark border-border-light dark:border-border-dark text-text-secondary-light dark:text-text-secondary-dark'}`}>
+                        <button type="button" onClick={() => handleTagToggle('Ofício de Cobrança')} className={`flex-1 py-3 px-2 rounded-xl border-2 font-bold text-xs transition-all flex items-center justify-center gap-1.5 ${formData.tags?.includes('Ofício de Cobrança') ? 'bg-orange-500 border-orange-500 text-white shadow-md shadow-orange-500/20' : 'bg-surface-light dark:bg-surface-dark border-border-light dark:border-border-dark text-text-secondary-light dark:text-text-secondary-dark'}`}>
                             <Bell size={14} className={formData.tags?.includes('Ofício de Cobrança') ? 'fill-white' : ''} />
                             COBRANÇA
                         </button>

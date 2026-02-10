@@ -183,8 +183,8 @@ const HomePage = ({ isDark, toggleTheme }: HomePageProps) => {
 
 
 
-                    <Link to="/stats" className="group flex flex-col gap-3 rounded-2xl bg-surface-light p-4 shadow-md transition-all active:scale-[0.98] dark:bg-surface-dark border border-neon-purple/20 hover:border-neon-purple hover:shadow-neon-purple">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-50 text-purple-600 dark:bg-purple-500/10 dark:text-purple-500">
+                    <Link to="/stats" className="group flex flex-col gap-3 rounded-2xl bg-surface-light p-4 shadow-md transition-all active:scale-[0.98] dark:bg-surface-dark border border-transparent hover:border-yellow-500 hover:shadow-neon-yellow">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-yellow-50 text-yellow-600 dark:bg-yellow-500/10 dark:text-yellow-500 group-hover:shadow-neon-yellow-card transition-shadow">
                             <BarChart2 size={24} />
                         </div>
                         <div>
@@ -193,13 +193,13 @@ const HomePage = ({ isDark, toggleTheme }: HomePageProps) => {
                         </div>
                     </Link>
 
-                    <Link to="/route-planner" className="group flex flex-col gap-3 rounded-2xl bg-surface-light p-4 shadow-md transition-all active:scale-[0.98] dark:bg-surface-dark border border-transparent hover:border-indigo-500 hover:shadow-neon-indigo relative">
+                    <Link to="/route-planner" className="group flex flex-col gap-3 rounded-2xl bg-surface-light p-4 shadow-md transition-all active:scale-[0.98] dark:bg-surface-dark border border-transparent hover:border-cyan-500 hover:shadow-neon-cyan relative">
                         {routeWarrants.length > 0 && (
-                            <span className="absolute top-3 right-3 flex h-5 w-5 items-center justify-center rounded-full bg-indigo-600 text-[10px] font-bold text-white shadow-lg animate-bounce">
+                            <span className="absolute top-3 right-3 flex h-5 w-5 items-center justify-center rounded-full bg-cyan-600 text-[10px] font-bold text-white shadow-lg animate-bounce">
                                 {routeWarrants.length}
                             </span>
                         )}
-                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400 group-hover:shadow-neon-indigo-card transition-shadow">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-cyan-50 text-cyan-600 dark:bg-cyan-500/10 dark:text-cyan-400 group-hover:shadow-neon-cyan-card transition-shadow">
                             <RouteIcon size={24} />
                         </div>
                         <div>
@@ -208,8 +208,8 @@ const HomePage = ({ isDark, toggleTheme }: HomePageProps) => {
                         </div>
                     </Link>
 
-                    <Link to="/ai-assistant" className="group flex flex-col gap-3 rounded-2xl bg-gradient-to-br from-neon-purple/5 to-neon-purple/10 p-4 shadow-sm transition-all active:scale-[0.98] dark:from-neon-purple/10 dark:to-neon-purple/20 border border-neon-purple/30 hover:border-neon-purple hover:shadow-neon-purple">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-neon-purple text-white shadow-lg shadow-neon-purple/20">
+                    <Link to="/ai-assistant" className="group flex flex-col gap-3 rounded-2xl bg-gradient-to-br from-blue-500/5 to-cyan-500/10 p-4 shadow-sm transition-all active:scale-[0.98] dark:from-blue-500/10 dark:to-cyan-500/20 border border-blue-500/30 hover:border-blue-500 hover:shadow-neon-blue">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-500 text-white shadow-lg shadow-blue-500/20">
                             <Bot size={24} />
                         </div>
                         <div>

@@ -60,24 +60,24 @@
 
 /* Components - using standard CSS to avoid parser issues */
 .neon-card {
-  @apply bg-surface-light dark:bg-surface-dark border border-neon-purple/50 dark:border-neon-purple/20 shadow-soft transition-all duration-300;
+  @apply bg-surface-light dark:bg-surface-dark border border-primary/50 dark:border-primary/20 shadow-soft transition-all duration-300;
   border-radius: 0.75rem;
 }
 
 .neon-card:hover {
-  @apply border-neon-purple dark:border-neon-purple/50 shadow-neon-purple transform -translate-y-1;
+  @apply border-primary dark:border-primary/50 shadow-neon-blue transform -translate-y-1;
 }
 
 .glass-morphism {
-  @apply bg-slate-400/30 dark:bg-surface-dark/80 backdrop-blur-xl border border-neon-purple/50 dark:border-neon-purple/20 shadow-glass;
+  @apply bg-slate-400/30 dark:bg-surface-dark/80 backdrop-blur-xl border border-primary/50 dark:border-primary/20 shadow-glass;
 }
 
-.border-neon-purple-tactic {
-  @apply border border-neon-purple/50 shadow-neon-purple-tactic backdrop-blur-md;
+.border-neon-blue-tactic {
+  @apply border border-primary/50 shadow-neon-blue-tactic backdrop-blur-md;
 }
 
-.border-neon-purple-active {
-  @apply border border-neon-purple shadow-neon-purple;
+.border-neon-blue-active {
+  @apply border border-primary shadow-neon-blue;
 }
 
 /* Cyber Button Style - Futuristic */
@@ -141,11 +141,11 @@
 }
 
 ::selection {
-  background-color: #4f46e5;
-  /* Indigo 600 Vivid */
+  background-color: #3b82f6;
+  /* Blue 500 Vivid */
   color: #ffffff;
 }
 
 * {
-  caret-color: #4f46e5;
+  caret-color: #3b82f6;
 }

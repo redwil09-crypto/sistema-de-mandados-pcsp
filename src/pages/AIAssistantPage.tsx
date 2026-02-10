@@ -580,7 +580,7 @@ const AIAssistantPage = () => {
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                     <button
                                         onClick={handleVoiceAssistant}
-                                        className="col-span-2 py-4 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-xl shadow-lg border border-white/20 flex items-center justify-center gap-3 active:scale-95 transition-all text-sm font-bold"
+                                        className="col-span-2 py-4 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-xl shadow-lg border border-white/20 flex items-center justify-center gap-3 active:scale-95 transition-all text-sm font-bold"
                                     >
                                         {isRecording ? <Mic className="animate-pulse" size={24} /> : <Mic size={24} />}
                                         {isRecording ? "OUVINDO..." : "CRIAR MANDADO POR VOZ"}
@@ -751,7 +751,7 @@ const AIAssistantPage = () => {
                                                 </div>
                                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                                     <div className="col-span-2">
-                                                        <label className="text-[10px] uppercase font-black text-amber-600 dark:text-amber-400/90">Nome Completo</label>
+                                                        <label className="text-[10px] uppercase font-black text-orange-600 dark:text-orange-400/90">Nome Completo</label>
                                                         <input
                                                             type="text"
                                                             value={extractedData.name}
@@ -760,7 +760,7 @@ const AIAssistantPage = () => {
                                                         />
                                                     </div>
                                                     <div>
-                                                        <label className="text-[10px] uppercase font-black text-amber-600 dark:text-amber-400/90">RG</label>
+                                                        <label className="text-[10px] uppercase font-black text-orange-600 dark:text-orange-400/90">RG</label>
                                                         <input
                                                             type="text"
                                                             value={extractedData.rg}
@@ -769,7 +769,7 @@ const AIAssistantPage = () => {
                                                         />
                                                     </div>
                                                     <div>
-                                                        <label className="text-[10px] uppercase font-black text-amber-600 dark:text-amber-400/90">CPF</label>
+                                                        <label className="text-[10px] uppercase font-black text-orange-600 dark:text-orange-400/90">CPF</label>
                                                         <input
                                                             type="text"
                                                             value={extractedData.cpf}
@@ -778,7 +778,7 @@ const AIAssistantPage = () => {
                                                         />
                                                     </div>
                                                     <div>
-                                                        <label className="text-[10px] uppercase font-black text-amber-600 dark:text-amber-400/90">Nascimento</label>
+                                                        <label className="text-[10px] uppercase font-black text-orange-600 dark:text-orange-400/90">Nascimento</label>
                                                         <input
                                                             type="text"
                                                             value={extractedData.birthDate || ''}
@@ -788,7 +788,7 @@ const AIAssistantPage = () => {
                                                         />
                                                     </div>
                                                     <div>
-                                                        <label className="text-[10px] uppercase font-black text-amber-600 dark:text-amber-400/90">Idade Atual</label>
+                                                        <label className="text-[10px] uppercase font-black text-orange-600 dark:text-orange-400/90">Idade Atual</label>
                                                         <input
                                                             type="text"
                                                             value={extractedData.age || ''}
@@ -808,7 +808,7 @@ const AIAssistantPage = () => {
                                                 </div>
                                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                                     <div className="col-span-2">
-                                                        <label className="text-[10px] uppercase font-black text-amber-600 dark:text-amber-400/90">Nº do Processo</label>
+                                                        <label className="text-[10px] uppercase font-black text-orange-600 dark:text-orange-400/90">Nº do Processo</label>
                                                         <input
                                                             type="text"
                                                             value={extractedData.processNumber}
@@ -817,7 +817,7 @@ const AIAssistantPage = () => {
                                                         />
                                                     </div>
                                                     <div className="col-span-2">
-                                                        <label className="text-[10px] uppercase font-black text-amber-600 dark:text-amber-400/90">Natureza Criminal</label>
+                                                        <label className="text-[10px] uppercase font-black text-orange-600 dark:text-orange-400/90">Natureza Criminal</label>
                                                         <input
                                                             type="text"
                                                             value={extractedData.crime}
@@ -826,7 +826,7 @@ const AIAssistantPage = () => {
                                                         />
                                                     </div>
                                                     <div className="col-span-2">
-                                                        <label className="text-[10px] uppercase font-black text-amber-600 dark:text-amber-400/90">Regime Prisional</label>
+                                                        <label className="text-[10px] uppercase font-black text-orange-600 dark:text-orange-400/90">Regime Prisional</label>
                                                         <input
                                                             type="text"
                                                             value={extractedData.regime}
@@ -835,7 +835,7 @@ const AIAssistantPage = () => {
                                                         />
                                                     </div>
                                                     <div className="col-span-2">
-                                                        <label className="text-[10px] uppercase font-black text-amber-600 dark:text-amber-400/90">Vara / Fórum</label>
+                                                        <label className="text-[10px] uppercase font-black text-orange-600 dark:text-orange-400/90">Vara / Fórum</label>
                                                         <input
                                                             type="text"
                                                             value={extractedData.issuingCourt || ''}
@@ -854,7 +854,7 @@ const AIAssistantPage = () => {
                                                 </div>
                                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                                     <div>
-                                                        <label className="text-[10px] uppercase font-black text-amber-600 dark:text-amber-400/90">Expedição</label>
+                                                        <label className="text-[10px] uppercase font-black text-orange-600 dark:text-orange-400/90">Expedição</label>
                                                         <input
                                                             type="text"
                                                             value={extractedData.issueDate || ''}
@@ -864,7 +864,7 @@ const AIAssistantPage = () => {
                                                         />
                                                     </div>
                                                     <div>
-                                                        <label className="text-[10px] uppercase font-black text-amber-600 dark:text-amber-400/90">Vencimento</label>
+                                                        <label className="text-[10px] uppercase font-black text-orange-600 dark:text-orange-400/90">Vencimento</label>
                                                         <input
                                                             type="text"
                                                             value={extractedData.expirationDate || ''}
@@ -991,7 +991,7 @@ const AIAssistantPage = () => {
                                                                     <div className="flex gap-2">
                                                                         <Link
                                                                             to={`/map?lat=${extractedData.latitude}&lng=${extractedData.longitude}`}
-                                                                            className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-3 rounded-xl text-[10px] font-black flex items-center justify-center gap-2 transition-all shadow-lg shadow-indigo-500/20 tracking-wider uppercase active:scale-95"
+                                                                            className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-xl text-[10px] font-black flex items-center justify-center gap-2 transition-all shadow-lg shadow-blue-500/20 tracking-wider uppercase active:scale-95"
                                                                         >
                                                                             <MapPin size={14} className="fill-white/20" /> MAPA OPS
                                                                         </Link>
@@ -999,7 +999,7 @@ const AIAssistantPage = () => {
                                                                             href={`https://www.google.com/maps?q=${extractedData.latitude},${extractedData.longitude}`}
                                                                             target="_blank"
                                                                             rel="noopener noreferrer"
-                                                                            className="bg-white dark:bg-white/5 text-slate-700 dark:text-white px-5 py-3 rounded-xl text-[10px] font-black flex items-center justify-center gap-2 transition-all shadow-sm tracking-wider uppercase border border-border-light dark:border-border-dark hover:bg-gray-50 dark:hover:bg-white/10 active:scale-95"
+                                                                            className="bg-zinc-100 dark:bg-black/40 text-slate-700 dark:text-white px-5 py-3 rounded-xl text-[10px] font-black flex items-center justify-center gap-2 transition-all shadow-sm tracking-wider uppercase border border-border-light dark:border-border-dark hover:bg-gray-50 dark:hover:bg-white/10 active:scale-95"
                                                                         >
                                                                             <ExternalLink size={14} className="text-green-500" /> GOOGLE MAPS
                                                                         </a>
@@ -1026,7 +1026,7 @@ const AIAssistantPage = () => {
                                                 <div className="space-y-4">
                                                     {/* Priority Selection */}
                                                     <div>
-                                                        <span className="text-[10px] uppercase font-bold text-amber-500 block mb-2">Classificação de Prioridade</span>
+                                                        <span className="text-[10px] uppercase font-bold text-orange-500 block mb-2">Classificação de Prioridade</span>
                                                         <div className="flex gap-2">
                                                             <button
                                                                 type="button"
@@ -1051,7 +1051,7 @@ const AIAssistantPage = () => {
                                                                     handleExtractedDataChange('tags', newTags);
                                                                 }}
                                                                 className={`flex-1 py-2 px-2 rounded-lg border font-bold text-[10px] transition-all flex items-center justify-center gap-1.5 ${extractedData.tags?.includes('Ofício de Cobrança')
-                                                                    ? 'bg-amber-500 border-amber-500 text-white'
+                                                                    ? 'bg-orange-500 border-orange-500 text-white'
                                                                     : 'bg-white dark:bg-surface-dark border-border-light dark:border-border-dark text-text-secondary-light'
                                                                     }`}
                                                             >
@@ -1100,7 +1100,7 @@ const AIAssistantPage = () => {
                                                     {/* Raw observations */}
                                                     <div>
                                                         <div className="flex justify-between items-center mb-1">
-                                                            <label className="text-[10px] uppercase font-bold text-amber-500">Observações / Texto bruto</label>
+                                                            <label className="text-[10px] uppercase font-bold text-orange-500">Observações / Texto bruto</label>
                                                             <button onClick={startRecording} className={`p-1.5 rounded-full ${isRecording ? 'bg-red-500 text-white animate-pulse' : 'text-primary'}`}>
                                                                 {isRecording ? <MicOff size={14} /> : <Mic size={14} />}
                                                             </button>
@@ -1314,7 +1314,7 @@ const AIAssistantPage = () => {
                             </button>
                             <button
                                 onClick={backToInput}
-                                className="flex-1 min-w-0 flex flex-col items-center justify-center gap-1 p-2 rounded-xl bg-amber-500/10 text-amber-600 transition-all active:scale-95 touch-manipulation hover:bg-amber-500/20"
+                                className="flex-1 min-w-0 flex flex-col items-center justify-center gap-1 p-2 rounded-xl bg-orange-500/10 text-orange-600 transition-all active:scale-95 touch-manipulation hover:bg-orange-500/20"
                             >
                                 <RefreshCw size={20} />
                                 <span className="text-[9px] font-bold uppercase truncate w-full text-center">Voltar</span>
@@ -1322,7 +1322,7 @@ const AIAssistantPage = () => {
                             <button
                                 onClick={handleSave}
                                 disabled={isSaving}
-                                className="flex-[2] min-w-0 flex flex-col items-center justify-center gap-1 p-2 rounded-xl bg-primary text-white shadow-lg shadow-indigo-500/20 transition-all active:scale-95 touch-manipulation hover:bg-primary/90"
+                                className="flex-[2] min-w-0 flex flex-col items-center justify-center gap-1 p-2 rounded-xl bg-primary text-white shadow-lg shadow-blue-500/20 transition-all active:scale-95 touch-manipulation hover:bg-primary/90"
                             >
                                 {isSaving ? <RefreshCw className="animate-spin" size={20} /> : <Save size={20} />}
                                 <span className="text-[9px] font-bold uppercase truncate w-full text-center">{currentIndex < batchResults.length - 1 ? 'Salvar' : 'Finalizar'}</span>
@@ -1341,7 +1341,7 @@ const AIAssistantPage = () => {
                             </button>
                             <button
                                 onClick={() => navigate('/warrant-list')}
-                                className="flex-[2] min-w-0 flex flex-col items-center justify-center gap-1 p-2 rounded-xl bg-indigo-600 text-white shadow-lg shadow-indigo-500/20 transition-all active:scale-95 touch-manipulation hover:bg-indigo-700"
+                                className="flex-[2] min-w-0 flex flex-col items-center justify-center gap-1 p-2 rounded-xl bg-blue-600 text-white shadow-lg shadow-blue-500/20 transition-all active:scale-95 touch-manipulation hover:bg-blue-700"
                             >
                                 <Database size={20} />
                                 <span className="text-[9px] font-bold uppercase truncate w-full text-center">Ver Banco</span>
@@ -1360,7 +1360,7 @@ const AIAssistantPage = () => {
                             </button>
                             <button
                                 onClick={handlePrintDatabaseSplit}
-                                className="flex-[2] min-w-0 flex flex-col items-center justify-center gap-1 p-2 rounded-xl bg-indigo-600 text-white shadow-lg shadow-indigo-500/20 transition-all active:scale-95 touch-manipulation hover:bg-indigo-700"
+                                className="flex-[2] min-w-0 flex flex-col items-center justify-center gap-1 p-2 rounded-xl bg-blue-600 text-white shadow-lg shadow-blue-500/20 transition-all active:scale-95 touch-manipulation hover:bg-blue-700"
                             >
                                 <Printer size={20} />
                                 <span className="text-[9px] font-bold uppercase truncate w-full text-center">Imprimir Tudo</span>
