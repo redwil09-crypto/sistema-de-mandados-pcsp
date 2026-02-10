@@ -22,7 +22,8 @@ import {
     Moon,
     Bell,
     Settings,
-    FileSearch
+    FileSearch,
+    Database
 } from 'lucide-react';
 import { supabase } from '../supabaseClient';
 import { toast } from 'sonner';
@@ -52,6 +53,7 @@ const Sidebar = ({ routeCount = 0, isCollapsed, toggleCollapse, isDark, toggleTh
     const mainNavItems = [
         { icon: Home, label: 'Dashboard', path: '/' },
         { icon: FileText, label: 'Mandados', path: '/warrant-list' },
+        { icon: Database, label: 'Banco de Dados', path: '/ai-assistant?tab=database' },
         { icon: FileSearch, label: 'Busca e Apreensão', path: '/minor-search' },
         { icon: PlusCircle, label: 'Novo Registro', path: '/new-warrant' },
         { icon: Search, label: 'Investigação', path: '/advanced-search' },

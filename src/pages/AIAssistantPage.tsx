@@ -1201,18 +1201,18 @@ const AIAssistantPage = () => {
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
                                         <div>
                                             <label className="block text-xs font-medium text-text-secondary-light mb-1">Crime</label>
-                                            <select value={filterCrime} onChange={e => setFilterCrime(e.target.value)} className="w-full rounded-lg border-gray-200 text-xs p-2">
-                                                <option value="">Todos</option>
-                                                {CRIME_OPTIONS.map(c => <option key={c} value={c}>{c}</option>)}
+                                            <select value={filterCrime} onChange={e => setFilterCrime(e.target.value)} className="w-full rounded-lg border border-border-light dark:border-border-dark bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white text-xs p-2 outline-none focus:ring-1 focus:ring-primary appearance-none">
+                                                <option value="" className="bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white">Todos os Crimes</option>
+                                                {CRIME_OPTIONS.map(c => <option key={c} value={c} className="bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white">{c}</option>)}
                                             </select>
                                         </div>
                                         <div>
                                             <label className="block text-xs font-medium text-text-secondary-light mb-1">Status</label>
-                                            <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className="w-full rounded-lg border-gray-200 text-xs p-2">
-                                                <option value="">Todos</option>
-                                                <option value="EM ABERTO">Em Aberto</option>
-                                                <option value="CUMPRIDO">Cumprido</option>
-                                                <option value="PRESO">Preso</option>
+                                            <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className="w-full rounded-lg border border-border-light dark:border-border-dark bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white text-xs p-2 outline-none focus:ring-1 focus:ring-primary appearance-none">
+                                                <option value="" className="bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white">Todos</option>
+                                                <option value="EM ABERTO" className="bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white">Em Aberto</option>
+                                                <option value="CUMPRIDO" className="bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white">Cumprido</option>
+                                                <option value="PRESO" className="bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white">Preso</option>
                                             </select>
                                         </div>
                                     </div>
@@ -1224,7 +1224,7 @@ const AIAssistantPage = () => {
                                                 value={dateStart}
                                                 onChange={(e) => setDateStart(maskDate(e.target.value))}
                                                 placeholder="DD/MM/YYYY"
-                                                className="w-full rounded-lg border-gray-200 text-xs p-2"
+                                                className="w-full rounded-lg border border-border-light dark:border-border-dark bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white text-xs p-2 outline-none focus:ring-1 focus:ring-primary"
                                             />
                                         </div>
                                         <div>
@@ -1234,7 +1234,7 @@ const AIAssistantPage = () => {
                                                 value={dateEnd}
                                                 onChange={(e) => setDateEnd(maskDate(e.target.value))}
                                                 placeholder="DD/MM/YYYY"
-                                                className="w-full rounded-lg border-gray-200 text-xs p-2"
+                                                className="w-full rounded-lg border border-border-light dark:border-border-dark bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white text-xs p-2 outline-none focus:ring-1 focus:ring-primary"
                                             />
                                         </div>
                                     </div>
@@ -1249,24 +1249,34 @@ const AIAssistantPage = () => {
                                     </div>
                                 ) : (
                                     filteredWarrants.map((w) => (
-                                        <div key={w.id} onClick={() => navigate(`/warrant-detail/${w.id}`)} className="bg-surface-light dark:bg-surface-dark p-2 rounded-lg border border-border-light dark:border-border-dark shadow-sm hover:border-primary transition-colors cursor-pointer group relative active:scale-[0.99]">
-                                            <div className="flex justify-between items-center mb-1.5">
-                                                <div className="flex-1 min-w-0 pr-2">
-                                                    <h3 className="font-bold text-xs text-text-light dark:text-text-dark truncate">{w.name}</h3>
-                                                    <p className="text-[10px] text-text-secondary-light dark:text-text-secondary-dark font-mono">{w.number}</p>
-                                                </div>
-                                                <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded shrink-0 ${w.status === 'EM ABERTO' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' :
-                                                    w.status === 'CUMPRIDO' || w.status === 'PRESO' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400'
-                                                    }`}>
-                                                    {w.status}
-                                                </span>
+                                        <div key={w.id} onClick={() => navigate(`/warrant-detail/${w.id}`)} className="bg-surface-light dark:bg-surface-dark p-3 rounded-xl border border-border-light dark:border-border-dark shadow-sm hover:border-primary transition-colors cursor-pointer group relative active:scale-[0.99] flex gap-4 items-start">
+                                            {/* Small Photo */}
+                                            <div className="w-14 h-14 shrink-0 rounded-lg overflow-hidden border border-border-light dark:border-white/10 bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center">
+                                                {w.img ? (
+                                                    <img src={w.img} alt={w.name} className="w-full h-full object-cover" />
+                                                ) : (
+                                                    <User size={24} className="text-zinc-400" />
+                                                )}
                                             </div>
 
-                                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[10px] text-text-secondary-light dark:text-text-secondary-dark mb-1.5">
-                                                <p className="truncate"><span className="font-bold">RG:</span> {w.rg || '-'}</p>
-                                                <p className="truncate"><span className="font-bold">CPF:</span> {w.cpf || '-'}</p>
-                                                <p className="truncate"><span className="font-bold">Crime:</span> {w.crime || '-'}</p>
-                                                <p className="truncate"><span className="font-bold">Regime:</span> {w.regime || '-'}</p>
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex justify-between items-start mb-1.5">
+                                                    <div className="flex-1 min-w-0 pr-2">
+                                                        <h3 className="font-bold text-sm text-text-light dark:text-white truncate uppercase tracking-tight">{w.name}</h3>
+                                                        <p className="text-[10px] text-text-secondary-light dark:text-text-secondary-dark font-mono font-medium">{w.number}</p>
+                                                    </div>
+                                                    <span className={`text-[9px] font-black px-2 py-0.5 rounded-full shrink-0 border ${w.status === 'EM ABERTO' ? 'bg-red-500/10 text-red-600 border-red-500/30 dark:bg-red-500/20 dark:text-red-400' :
+                                                        w.status === 'CUMPRIDO' || w.status === 'PRESO' ? 'bg-green-500/10 text-green-600 border-green-500/30 dark:bg-green-500/20 dark:text-green-400' : 'bg-orange-500/10 text-orange-600 border-orange-500/30'
+                                                        }`}>
+                                                        {w.status}
+                                                    </span>
+                                                </div>
+
+                                                <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-[10px] text-text-secondary-light dark:text-zinc-400">
+                                                    <p className="truncate"><span className="font-black text-primary/80 uppercase mr-1">RG:</span> {w.rg || '-'}</p>
+                                                    <p className="truncate"><span className="font-black text-primary/80 uppercase mr-1">CPF:</span> {w.cpf || '-'}</p>
+                                                    <p className="truncate col-span-2"><span className="font-black text-orange-500 uppercase mr-1">Crime:</span> {w.crime || '-'}</p>
+                                                </div>
                                             </div>
                                         </div>
                                     ))
