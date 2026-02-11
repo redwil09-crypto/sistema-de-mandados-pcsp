@@ -162,7 +162,10 @@ async function tryGenerateContent(prompt: string, options: any = {}): Promise<st
 
         const msg = error.message || "Erro desconhecido";
         if (msg.includes("403") || msg.includes("API_KEY") || msg.includes("not found")) {
-            throw new Error(`Erro de Acesso (${modelName}): Verifique se sua Chave API suporta este modelo. Detalhe: ${msg}`);
+            throw new Error(`Erro de Acesso (${modelName}): Chave API inválida ou sem permissão. Detalhe: ${msg}`);
+        }
+        if (msg.includes("503") || msg.includes("overloaded") || msg.includes("exhausted")) {
+            throw new Error(`IA Sobrecarregada (${modelName}): Tente novamente em alguns segundos. Detalhe: ${msg}`);
         }
         throw new Error(`Falha na IA (${modelName}): ${msg}`);
     }
@@ -280,9 +283,9 @@ export async function analyzeRawDiligence(warrantData: any, rawInfo: string) {
 
     try {
         return await tryGenerateContent(prompt);
-    } catch (error) {
+    } catch (error: any) {
         console.error("Erro no Gemini (Análise Bruta):", error);
-        return "Erro ao processar análise de inteligência. Verifique sua chave de API.";
+        return `Erro na Análise de Inteligência: ${error.message}`;
     }
 }
 
