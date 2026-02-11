@@ -140,14 +140,15 @@ const getBestAvailableModel = async (key: string): Promise<string> => {
     }
 };
 
-// Helper to attempt generation with fallback models
 async function tryGenerateContent(prompt: string, options: any = {}): Promise<string> {
     const key = await getGeminiKey();
     if (!key) throw new Error("Chave API não encontrada. Configure no Perfil.");
 
-    // 1. Descobre qual modelo funciona para esta chave
-    const modelName = await getBestAvailableModel(key);
-    console.log(`DEBUG GEMINI: Usando modelo detectado: ${modelName}`);
+    // APOIO À "FORÇA BRUTA" VIA CONSOLE
+    const forcedModel = localStorage.getItem('force_gemini_model');
+    const modelName = forcedModel || await getBestAvailableModel(key);
+
+    console.log(`DEBUG GEMINI: ${forcedModel ? 'MODELO FORÇADO' : 'Usando modelo detectado'}: ${modelName}`);
 
     // 2. Tenta gerar com o modelo descoberto
     try {
