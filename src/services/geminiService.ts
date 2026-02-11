@@ -34,16 +34,19 @@ const fetchGlobalKey = async () => {
 };
 
 const getGeminiKey = async () => {
-    // 1. Try Local Storage (User Profile)
+    // 1. Try Environment Variable FIRST (Priority for the correct/paid key)
+    const envKey = (import.meta.env.VITE_GEMINI_API_KEY || "").trim();
+    if (envKey && envKey.length > 20) return envKey;
+
+    // 2. Try Local Storage (User Profile)
     const localKey = localStorage.getItem('gemini_api_key');
     if (localKey && localKey.trim().length > 10) return localKey.trim();
 
-    // 2. Try Supabase Global Settings
+    // 3. Try Supabase Global Settings
     const globalKey = await fetchGlobalKey();
     if (globalKey) return globalKey.trim();
 
-    // 3. Try Environment Variable
-    return (import.meta.env.VITE_GEMINI_API_KEY || "").trim();
+    return "";
 };
 
 export const isGeminiEnabled = async () => {
