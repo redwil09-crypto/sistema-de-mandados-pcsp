@@ -18,7 +18,7 @@ import { uploadFile, getPublicUrl } from '../supabaseStorage';
 import ConfirmModal from '../components/ConfirmModal';
 import VoiceInput from '../components/VoiceInput';
 import WarrantAuditLog from '../components/WarrantAuditLog';
-import { formatDate, getStatusColor, maskDate, parseTacticalSummary } from '../utils/helpers';
+import { formatDate, getStatusColor, maskDate } from '../utils/helpers';
 import { Warrant } from '../types';
 import { geocodeAddress } from '../services/geocodingService';
 import { generateWarrantPDF } from '../services/pdfReportService';
@@ -654,7 +654,7 @@ const WarrantDetail = () => {
                     // Parse current state
                     let currentIntel = {};
                     try {
-                        currentIntel = parseTacticalSummary(updatedTacticalSummary);
+                        currentIntel = JSON.parse(updatedTacticalSummary);
                     } catch (e) { currentIntel = {}; }
 
                     // CALL THE AI MERGE SERVICE
@@ -1802,7 +1802,7 @@ Equipe de Capturas - DIG / PCSP
                                     {/* PROGRESS LEVEL */}
                                     {(() => {
                                         try {
-                                            const intel = parseTacticalSummary(data.tacticalSummary);
+                                            const intel = JSON.parse(data.tacticalSummary || '{}');
                                             const progress = intel.progressLevel || 0;
                                             return (
                                                 <div className="hidden md:flex flex-col items-end mr-4">
@@ -1838,7 +1838,7 @@ Equipe de Capturas - DIG / PCSP
                                     checklist: []
                                 };
                                 try {
-                                    intel = parseTacticalSummary(data.tacticalSummary);
+                                    intel = JSON.parse(data.tacticalSummary || '{}');
                                 } catch (e) {
                                     // Fallback if empty
                                 }

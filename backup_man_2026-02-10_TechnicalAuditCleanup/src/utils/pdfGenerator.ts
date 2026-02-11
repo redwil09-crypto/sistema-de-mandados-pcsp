@@ -1,9 +1,8 @@
-
 import { jsPDF } from 'jspdf';
 import { toast } from 'sonner';
 import { Warrant } from '../types';
 import { uploadFile, getPublicUrl } from '../supabaseStorage';
-import { formatDate, parseTacticalSummary } from '../utils/helpers';
+import { formatDate } from '../utils/helpers';
 
 export const generateWarrantPDF = async (
     data: Warrant,
@@ -83,26 +82,27 @@ export const generateWarrantPDF = async (
                 "SECRETARIA DA SEGURANÇA PÚBLICA",
                 "POLÍCIA CIVIL DO ESTADO DE SÃO PAULO",
                 "DEINTER 1 - SÃO JOSÉ DOS CAMPOS",
-                "SECCIONAL DE JACAREÍ - DIG (INVESTIGAÇÕES GERAIS)"
+                "DELEGACIA DE INVESTIGAÇÕES GERAIS DE JACAREÍ"
             ];
 
             headerLines.forEach((line, index) => {
                 doc.text(line, textX, y + 3 + (index * 4));
             });
 
-            // --- TITLE ON THE RIGHT (AS REQUESTED TO REVERT) ---
-            doc.setFontSize(16);
-            doc.setTextColor(...COLORS.PRIMARY);
-            doc.text("DOSSIÊ OPERACIONAL", pageWidth - margin, y + 10, { align: 'right' });
-
-            doc.setFontSize(9);
-            doc.setTextColor(...COLORS.SECONDARY);
-            doc.text(`REF: ${data.number}`, pageWidth - margin, y + 15, { align: 'right' });
-
             doc.setDrawColor(...COLORS.BORDER);
             doc.setLineWidth(0.1);
             doc.line(margin, y + badgeH + 5, pageWidth - margin, y + badgeH + 5);
             y += badgeH + 12;
+
+            doc.setFontSize(14);
+            doc.setTextColor(...COLORS.PRIMARY);
+            doc.text("DOSSIÊ OPERACIONAL", pageWidth / 2, y, { align: 'center' });
+
+            doc.setFontSize(7);
+            doc.setTextColor(100, 100, 100);
+            doc.text(`REFERÊNCIA: ${data.number || 'N/A'}`, pageWidth / 2, y + 4, { align: 'center' });
+
+            y += 10;
 
         } catch (e) {
             console.error("Header error", e);
@@ -141,7 +141,7 @@ export const generateWarrantPDF = async (
         doc.setTextColor(...COLORS.PRIMARY);
         const nameLines = doc.splitTextToSize(data.name.toUpperCase(), contentWidth - photoW - 15);
         doc.text(nameLines, infoX, infoY);
-        infoY += (nameLines.length * 8); // Adjust Y based on lines needed
+        infoY += (nameLines.length * 8);
 
         // Status & Risk Badges
         let badgeX = infoX;
@@ -159,11 +159,13 @@ export const generateWarrantPDF = async (
         let riskLevel = 'NORMAL';
         let riskColor = COLORS.RISK.NORMAL;
         try {
-            const intel = parseTacticalSummary(data.tacticalSummary);
-            riskLevel = (intel.risk || 'NORMAL').toUpperCase();
-            if (riskLevel.includes('ALTO')) riskColor = COLORS.RISK.HIGH;
-            else if (riskLevel.includes('MÉDIO') || riskLevel.includes('MEDIO')) riskColor = COLORS.RISK.MEDIUM;
-            else if (riskLevel.includes('BAIXO')) riskColor = COLORS.RISK.LOW;
+            if (data.tacticalSummary) {
+                const intel = JSON.parse(data.tacticalSummary);
+                riskLevel = (intel.risk || 'NORMAL').toUpperCase();
+                if (riskLevel.includes('ALTO')) riskColor = COLORS.RISK.HIGH;
+                else if (riskLevel.includes('MÉDIO') || riskLevel.includes('MEDIO')) riskColor = COLORS.RISK.MEDIUM;
+                else if (riskLevel.includes('BAIXO')) riskColor = COLORS.RISK.LOW;
+            }
         } catch (e) { }
 
         doc.setFillColor(...riskColor);
@@ -187,20 +189,13 @@ export const generateWarrantPDF = async (
             doc.setFont('helvetica', 'bold');
             doc.setTextColor(...COLORS.SECONDARY);
             doc.text(`${label}:`, infoX, infoY);
-
             doc.setFont('helvetica', 'bold');
             doc.setTextColor(...COLORS.PRIMARY);
-
-            // Fix: Wrap long text (especially ADDRESS/LOCATION)
-            const maxWidth = contentWidth - photoW - 45; // Calculate remaining width
-            const valStr = String(value).toUpperCase();
-            const valLines = doc.splitTextToSize(valStr, maxWidth);
-
-            doc.text(valLines, infoX + 30, infoY);
-            infoY += (valLines.length * 5) + 2; // Dynamic spacing based on lines
+            doc.text(String(value).toUpperCase(), infoX + 30, infoY);
+            infoY += 6;
         });
 
-        y += photoH + 5;
+        y += photoH + 15;
 
         // --- DATA SECTIONS ---
         const drawFields = (fields: [string, string][]) => {
@@ -239,7 +234,7 @@ export const generateWarrantPDF = async (
             ["Regime Prisional", data.regime || "N/A"],
             ["Data de Expedição", formatDate(data.issueDate)],
             ["Data de Validade", formatDate(data.expirationDate)],
-            ["Vara / Fórum", data.issuingCourt || "-"]
+            ["Órgão Expedidor", data.location || "-"]
         ]);
         y += 5;
 
@@ -255,36 +250,16 @@ export const generateWarrantPDF = async (
             intelRows.push(["Fundamentação IA", aiTimeSuggestion.reason]);
         }
 
-        // Tactical Summary Expansion (Full Data)
+        // Tactical Summary Expansion
         try {
-            const intel = parseTacticalSummary(data.tacticalSummary);
-
-            // 1. Resumo Estratégico
-            if (intel.summary) {
-                intelRows.push(["Resumo Estratégico", intel.summary]);
-            }
-
-            // 2. Hipóteses
-            if (intel.hypotheses?.length) {
-                const hypText = intel.hypotheses
-                    .map((h: any) => `[${h.confidence?.toUpperCase()}] ${h.description} ${h.status === 'Confirmada' ? '(CONFIRMADA)' : ''}`)
-                    .join('\n');
-                intelRows.push(["Hipóteses Ativas", hypText]);
-            }
-
-            // 3. Riscos
-            if (intel.risks?.length) {
-                intelRows.push(["Riscos Operacionais", intel.risks.join(', ')]);
-            }
-
-            // 4. Entidades
-            if (intel.entities?.length) {
-                intelRows.push(["Alvos Relacionados", intel.entities.map((e: any) => `${e.name} (${e.role})`).join('; ')]);
-            }
-
-            // 5. Locais
-            if (intel.locations?.length) {
-                intelRows.push(["Pontos de Interesse", intel.locations.map((l: any) => `${l.address}`).join(' | ')]);
+            if (data.tacticalSummary) {
+                const intel = JSON.parse(data.tacticalSummary);
+                if (intel.entities?.length) {
+                    intelRows.push(["Alvos Relacionados", intel.entities.map((e: any) => `${e.name} (${e.role})`).join('; ')]);
+                }
+                if (intel.locations?.length) {
+                    intelRows.push(["Pontos de Interesse", intel.locations.map((l: any) => `${l.address}`).join(' | ')]);
+                }
             }
         } catch (e) { }
 
@@ -293,26 +268,28 @@ export const generateWarrantPDF = async (
 
         // --- ACTION PLAN (Distinct Styling) ---
         try {
-            const intel = parseTacticalSummary(data.tacticalSummary);
-            if (intel.checklist?.length) {
-                drawSectionHeader("Plano de Ação e Diretrizes Operacionais");
-                intel.checklist.forEach((item: any) => {
-                    const taskText = `[${(item.priority || 'NORMAL').toUpperCase()}] ${item.task}`;
-                    const splitTask = doc.splitTextToSize(taskText, contentWidth - 10);
+            if (data.tacticalSummary) {
+                const intel = JSON.parse(data.tacticalSummary);
+                if (intel.checklist?.length) {
+                    drawSectionHeader("Plano de Ação e Diretrizes Operacionais");
+                    intel.checklist.forEach((item: any) => {
+                        const taskText = `[${(item.priority || 'NORMAL').toUpperCase()}] ${item.task}`;
+                        const splitTask = doc.splitTextToSize(taskText, contentWidth - 10);
 
-                    if (y + (splitTask.length * 5) > pageHeight - 20) {
-                        doc.addPage();
-                        y = 20;
-                    }
+                        if (y + (splitTask.length * 5) > pageHeight - 20) {
+                            doc.addPage();
+                            y = 20;
+                        }
 
-                    doc.setFont('helvetica', 'bold');
-                    doc.setFontSize(9);
-                    doc.text(">", margin + 2, y);
-                    doc.setFont('helvetica', 'normal');
-                    doc.text(splitTask, margin + 8, y);
-                    y += (splitTask.length * 5) + 2;
-                });
-                y += 5;
+                        doc.setFont('helvetica', 'bold');
+                        doc.setFontSize(9);
+                        doc.text(">", margin + 2, y);
+                        doc.setFont('helvetica', 'normal');
+                        doc.text(splitTask, margin + 8, y);
+                        y += (splitTask.length * 5) + 2;
+                    });
+                    y += 5;
+                }
             }
         } catch (e) { }
 
@@ -516,345 +493,5 @@ Ressalto que o descumprimento injustificado desta requisição poderá acarretar
     } catch (error) {
         console.error("Erro ao gerar Ofício iFood:", error);
         toast.error("Erro ao gerar ofício.");
-    }
-};
-// ...existing code...
-
-export const generateCapturasReportPDF = async (
-    data: Warrant,
-    capturasData: {
-        reportNumber: string;
-        court: string;
-        body: string;
-        signer: string;
-        delegate: string;
-    },
-    onUpdate?: (id: string, updates: Partial<Warrant>) => Promise<boolean>
-) => {
-    try {
-        const doc = new jsPDF();
-        const pageWidth = doc.internal.pageSize.getWidth();
-        const pageHeight = doc.internal.pageSize.getHeight();
-        const margin = 20; // A4 standard-ish
-        const contentWidth = pageWidth - (margin * 2);
-        let y = 20;
-
-        // --- HEADER (Oficial Padrão) ---
-        try {
-            const badgePC = new Image();
-            badgePC.src = './brasao_pcsp.png'; // Tenta usar o brasão padrão primeiro
-
-            // Fallback logic
-            await new Promise((resolve) => {
-                badgePC.onload = () => resolve(true);
-                badgePC.onerror = () => {
-                    badgePC.src = './brasao_pcsp_nova.png';
-                    badgePC.onload = () => resolve(true);
-                    badgePC.onerror = () => {
-                        badgePC.src = './brasao_pcsp_colorido.png'; // Last resort
-                        badgePC.onload = () => resolve(true);
-                        badgePC.onerror = () => resolve(false);
-                    }
-                };
-            });
-
-            // Left Header Image
-            const imgProps = doc.getImageProperties(badgePC);
-            const badgeH = 25;
-            const badgeW = (imgProps.width * badgeH) / imgProps.height;
-
-            doc.addImage(badgePC, 'PNG', margin, y, badgeW, badgeH);
-
-        } catch (e) {
-            console.error("Badge load error", e);
-            y += 20;
-        }
-
-        // Header Text (Right)
-        doc.setFont('helvetica', 'bold');
-        doc.setFontSize(9);
-        doc.setTextColor(0, 0, 0);
-
-        const textX = margin + 30; // Approx badge width + padding
-        const headerLines = [
-            "SECRETARIA DA SEGURANÇA PÚBLICA",
-            "POLÍCIA CIVIL DO ESTADO DE SÃO PAULO",
-            "DEPARTAMENTO DE POLÍCIA JUDICIÁRIA DE SÃO PAULO INTERIOR",
-            "DEINTER 1 - SÃO JOSÉ DOS CAMPOS",
-            "DELEGACIA SECCIONAL DE POLÍCIA DE JACAREÍ",
-            "DELEGACIA DE INVESTIGAÇÕES GERAIS DE JACAREÍ"
-        ];
-
-        headerLines.forEach((line, index) => {
-            doc.text(line, textX, y + 4 + (index * 4));
-        });
-        y += 32;
-
-        // Spacing reduced
-        y += 2;
-
-        // --- BLACK TITLE BAR ---
-        doc.setFillColor(0, 0, 0);
-        doc.rect(margin, y, contentWidth, 7, 'F');
-        doc.setTextColor(255, 255, 255);
-        doc.setFont('helvetica', 'bold');
-        doc.setFontSize(12);
-        doc.text("RELATÓRIO CAPTURAS", pageWidth / 2, y + 5, { align: 'center' });
-        doc.setTextColor(0, 0, 0);
-        y += 12;
-
-        // --- METADATA (Left Aligned, Formal) ---
-        doc.setFontSize(11); // Standard size matching the image
-
-        // Relatório + Data (Same Line)
-        const today = new Date();
-        const months = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
-        const dateStr = `Jacareí, ${today.getDate()} de ${months[today.getMonth()]} de ${today.getFullYear()}.`;
-
-        doc.setFont('helvetica', 'bolditalic');
-        doc.text(`Relatório: ${capturasData.reportNumber || 'N/A'}`, margin, y);
-
-        doc.setFont('helvetica', 'italic');
-        doc.text(dateStr, pageWidth - margin, y, { align: 'right' });
-        y += 6;
-
-        const isMinor = data?.type?.toLowerCase().includes('menores') || data?.type?.toLowerCase().includes('adolescente') || data?.type?.toLowerCase().includes('criança');
-
-        const metaFields = [
-            { label: "Natureza:", value: data?.type || "Cumprimento de Mandado" },
-            { label: "Referência:", value: `Processo nº. ${data?.number}` },
-            { label: "Juízo de Direito:", value: capturasData.court },
-            { label: isMinor ? "Adolescente:" : "Réu:", value: data?.name }
-        ];
-
-        metaFields.forEach(field => {
-            doc.setFont('helvetica', 'bolditalic');
-            const labelText = field.label + " ";
-            doc.text(labelText, margin, y);
-
-            const labelWidth = doc.getTextWidth(labelText);
-            doc.setFont('helvetica', 'bolditalic');
-            doc.text(field.value, margin + labelWidth, y);
-            y += 6;
-        });
-
-        // Addressee
-        // Addressee - Separated with more space
-        y += 10;
-        const addressee = "Excelentíssimo Sr. Delegado de Polícia:";
-        doc.setFont('helvetica', 'bold'); // Make it bold as per standard
-        doc.text(addressee, margin, y);
-        y += 12;
-
-        // --- BODY TEXT ---
-        doc.setFont('times', 'normal');
-        doc.setFontSize(11); // Reduced to fit A4
-
-        const drawRichText = (text: string, x: number, initialY: number, maxWidth: number, lineHeight: number) => {
-            let cursorX = x;
-            let cursorY = initialY;
-            let currentLine: any[] = [];
-            let currentLineWidth = 0;
-            let isFirstLine = true;
-
-            // Split by bold markers
-            // Example: "Texto **negrito** fim" -> ["Texto ", "**negrito**", " fim"]
-            const segments = text.split(/(\*\*.*?\*\*)/g);
-
-            segments.forEach(segment => {
-                const isBold = segment.startsWith('**') && segment.endsWith('**');
-                const cleanText = isBold ? segment.slice(2, -2) : segment;
-                if (!cleanText) return;
-
-                // Tokenize by whitespace to handle wrapping
-                const tokens = cleanText.split(/(\s+)/);
-
-                tokens.forEach(token => {
-                    if (token === '') return;
-
-                    doc.setFont('times', isBold ? 'bold' : 'normal');
-                    const tokenWidth = doc.getTextWidth(token);
-                    const isSpace = /^\s+$/.test(token);
-
-                    // If it's a space at the start of a wrapped line (not first line), skip it
-                    if (isSpace && currentLine.length === 0 && !isFirstLine) {
-                        return;
-                    }
-
-                    // Check limits
-                    if (currentLineWidth + tokenWidth > maxWidth && currentLine.length > 0) {
-                        // Print current line
-                        let printX = x;
-                        currentLine.forEach(item => {
-                            doc.setFont('times', item.isBold ? 'bold' : 'normal');
-                            doc.text(item.text, printX, cursorY);
-                            printX += item.width;
-                        });
-
-                        // New line
-                        cursorY += lineHeight;
-
-                        // Page Break Check
-                        if (cursorY > pageHeight - 50) {
-                            doc.addPage();
-                            cursorY = 30; // Increased top margin for continuation pages
-                        }
-
-                        currentLine = [];
-                        currentLineWidth = 0;
-                        isFirstLine = false;
-
-                        // If the token that caused the break was a space, skip it for the new line
-                        if (isSpace) return;
-                    }
-
-                    currentLine.push({ text: token, width: tokenWidth, isBold });
-                    currentLineWidth += tokenWidth;
-                });
-            });
-
-            // Flush remaining buffer
-            if (currentLine.length > 0) {
-                let printX = x;
-                currentLine.forEach(item => {
-                    doc.setFont('times', item.isBold ? 'bold' : 'normal');
-                    doc.text(item.text, printX, cursorY);
-                    printX += item.width;
-                });
-                cursorY += lineHeight;
-            }
-
-            return cursorY;
-        };
-
-        const paragraphs = capturasData.body.split('\n');
-
-        paragraphs.forEach(para => {
-            const trimmedPara = para.trim();
-
-            // Empty lines
-            if (!trimmedPara) {
-                y += 4;
-                return;
-            }
-
-            // Indent manually (18 spaces - 3 times more than previous 6)
-            const indent = "                  ";
-            const fullParaText = indent + trimmedPara;
-
-            y = drawRichText(fullParaText, margin, y, contentWidth, 6);
-            y += 2; // Reduced paragraph spacing (was 6)
-
-            // Safety check if the function itself added a page and returned a high Y? 
-            if (y > pageHeight - 50) {
-                doc.addPage();
-                y = 30;
-            }
-        });
-
-        // --- SIGNATURE BLOCK (Right Aligned) ---
-        if (y > pageHeight - 60) {
-            doc.addPage();
-            y = 40;
-        }
-
-        const signerName = capturasData.signer || "Investigador de Polícia";
-
-        // Position signature on the right 
-        const sigX = pageWidth - margin - 40;
-
-        doc.line(sigX - 40, y, sigX + 40, y); // Line
-        y += 5;
-        doc.setFont('times', 'bold');
-        doc.text(signerName.toUpperCase(), sigX, y, { align: 'center' });
-        y += 5;
-        doc.setFont('times', 'normal');
-        doc.text("Policia Civil do Estado de São Paulo", sigX, y, { align: 'center' });
-
-
-        // --- FOOTER DELEGATE + BOX ---
-        const boxHeight = 16;
-        const bottomMargin = 15;
-        const boxY = pageHeight - bottomMargin - boxHeight;
-
-        // Delegate Block - Flushed closer to the bottom box
-        const delegateBlockY = boxY - 22;
-        doc.setFontSize(11);
-        doc.setTextColor(0, 0, 0);
-        let dY = delegateBlockY;
-        doc.setFont('helvetica', 'bolditalic');
-        doc.text("Excelentíssimo Doutor", margin, dY);
-        dY += 5;
-        doc.text(capturasData.delegate || "Delegado Titular", margin, dY);
-        dY += 5;
-        doc.text("Delegado de Polícia Titular", margin, dY);
-        dY += 5;
-        doc.text("Delegacia de Investigações Gerais de Jacareí", margin, dY);
-
-        // Dashed Box
-        (doc as any).setLineDash([1, 1], 0);
-        doc.setLineWidth(0.1);
-        doc.setDrawColor(100);
-        doc.rect(margin, boxY, contentWidth, boxHeight);
-        (doc as any).setLineDash([], 0);
-
-        // Footer Text
-        doc.setFont('times', 'normal');
-        doc.setFontSize(8);
-        doc.setTextColor(100, 100, 100);
-
-        const addr1 = "Rua Moisés Ruston, 370, Parque Itamaraty - Jacareí-SP - CEP. 12.307-260";
-        const addr2 = "Telefone: (12) 3951-1000      E-mail: dig.jacarei@policiacivil.sp.gov.br";
-
-        const midX = pageWidth * 0.7;
-        const addrCenterX = margin + ((midX - margin) / 2);
-
-        doc.text(addr1, addrCenterX, boxY + 6, { align: 'center' });
-        doc.text(addr2, addrCenterX, boxY + 11, { align: 'center' });
-
-        doc.line(midX, boxY + 3, midX, boxY + boxHeight - 3);
-
-        const rightCenterX = midX + ((pageWidth - margin - midX) / 2);
-        doc.text(`Data (${new Date().toLocaleDateString('pt-BR')})`, rightCenterX, boxY + 6, { align: 'center' });
-        doc.text("Página 1 de 1", rightCenterX, boxY + 11, { align: 'center' });
-
-
-        // --- SAVE ---
-        const pdfBlob = doc.output('blob');
-        const pdfFile = new File([pdfBlob], `Relatorio_Oficial_${data.name}.pdf`, { type: 'application/pdf' });
-
-        const toastId = toast.loading("Registrando documento oficial...");
-
-        const path = `reports/${data.id}/${Date.now()}_Relatorio_Oficial.pdf`;
-        const uploadedPath = await uploadFile(pdfFile, path);
-
-        if (uploadedPath) {
-            const url = getPublicUrl(uploadedPath);
-            // We can't access data.reports directly if it's outdated, so we trust onUpdate logic or current list needed?
-            // Actually usually onUpdate will handle reading current state or merging.
-            // But here we need to append.
-            // Let's passed in current reports if possible OR assumes onUpdate handles it (usually it replaces).
-            // Better: Let the caller context handle the array merge if needed, OR we fetch current?
-            // Simple approach: The component passes the update function which calls context updateWarrant(id, changes).
-            // Context updateWarrant usually performs a merge at DB level or Client state?
-            // Looking at supabaseService updateWarrant, it just sends updates.
-            // So we need to send the FULL NEW ARRAY.
-            // BUT here we only have 'data' (which might be stale?).
-            // Let's assume 'data.reports' passed in is relatively fresh.
-            const currentReports = data.reports || [];
-            if (onUpdate) {
-                await onUpdate(data.id, { reports: [...currentReports, url] });
-                toast.success("Documento oficial gerado e anexado.", { id: toastId });
-                return true;
-            }
-        }
-
-        doc.save(`Relatorio_Oficial_${data.name}.pdf`);
-        return true;
-
-    } catch (error) {
-        console.error("Erro ao gerar PDF Capturas:", error);
-        toast.error("Erro ao gerar Relatório.");
-        return false;
     }
 };

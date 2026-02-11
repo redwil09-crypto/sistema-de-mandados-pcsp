@@ -15,7 +15,7 @@ import ConfirmModal from '../components/ConfirmModal';
 import { toast } from 'sonner';
 import { Warrant } from '../types';
 import { CRIME_OPTIONS } from '../data/constants';
-import { extractStructuredPdfData as extractPdfData, extractFromText } from '../services/pdfExtractionService';
+import { extractPdfData, extractFromText } from '../pdfExtractor';
 import { uploadFile, getPublicUrl } from '../supabaseStorage';
 import { analyzeWarrantData, isGeminiEnabled } from '../services/geminiService';
 import { geocodeAddress } from '../services/geocodingService';

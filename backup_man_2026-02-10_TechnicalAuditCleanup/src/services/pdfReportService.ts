@@ -3,7 +3,7 @@ import { jsPDF } from 'jspdf';
 import { toast } from 'sonner';
 import { Warrant } from '../types';
 import { uploadFile, getPublicUrl } from '../supabaseStorage';
-import { formatDate, parseTacticalSummary } from '../utils/helpers';
+import { formatDate } from '../utils/helpers';
 
 export const generateWarrantPDF = async (
     data: Warrant,
@@ -159,11 +159,13 @@ export const generateWarrantPDF = async (
         let riskLevel = 'NORMAL';
         let riskColor = COLORS.RISK.NORMAL;
         try {
-            const intel = parseTacticalSummary(data.tacticalSummary);
-            riskLevel = (intel.risk || 'NORMAL').toUpperCase();
-            if (riskLevel.includes('ALTO')) riskColor = COLORS.RISK.HIGH;
-            else if (riskLevel.includes('MÉDIO') || riskLevel.includes('MEDIO')) riskColor = COLORS.RISK.MEDIUM;
-            else if (riskLevel.includes('BAIXO')) riskColor = COLORS.RISK.LOW;
+            if (data.tacticalSummary) {
+                const intel = JSON.parse(data.tacticalSummary || '{}');
+                riskLevel = (intel.risk || 'NORMAL').toUpperCase();
+                if (riskLevel.includes('ALTO')) riskColor = COLORS.RISK.HIGH;
+                else if (riskLevel.includes('MÉDIO') || riskLevel.includes('MEDIO')) riskColor = COLORS.RISK.MEDIUM;
+                else if (riskLevel.includes('BAIXO')) riskColor = COLORS.RISK.LOW;
+            }
         } catch (e) { }
 
         doc.setFillColor(...riskColor);
@@ -257,34 +259,36 @@ export const generateWarrantPDF = async (
 
         // Tactical Summary Expansion (Full Data)
         try {
-            const intel = parseTacticalSummary(data.tacticalSummary);
+            if (data.tacticalSummary) {
+                const intel = JSON.parse(data.tacticalSummary || '{}');
 
-            // 1. Resumo Estratégico
-            if (intel.summary) {
-                intelRows.push(["Resumo Estratégico", intel.summary]);
-            }
+                // 1. Resumo Estratégico
+                if (intel.summary) {
+                    intelRows.push(["Resumo Estratégico", intel.summary]);
+                }
 
-            // 2. Hipóteses
-            if (intel.hypotheses?.length) {
-                const hypText = intel.hypotheses
-                    .map((h: any) => `[${h.confidence?.toUpperCase()}] ${h.description} ${h.status === 'Confirmada' ? '(CONFIRMADA)' : ''}`)
-                    .join('\n');
-                intelRows.push(["Hipóteses Ativas", hypText]);
-            }
+                // 2. Hipóteses
+                if (intel.hypotheses?.length) {
+                    const hypText = intel.hypotheses
+                        .map((h: any) => `[${h.confidence?.toUpperCase()}] ${h.description} ${h.status === 'Confirmada' ? '(CONFIRMADA)' : ''}`)
+                        .join('\n');
+                    intelRows.push(["Hipóteses Ativas", hypText]);
+                }
 
-            // 3. Riscos
-            if (intel.risks?.length) {
-                intelRows.push(["Riscos Operacionais", intel.risks.join(', ')]);
-            }
+                // 3. Riscos
+                if (intel.risks?.length) {
+                    intelRows.push(["Riscos Operacionais", intel.risks.join(', ')]);
+                }
 
-            // 4. Entidades
-            if (intel.entities?.length) {
-                intelRows.push(["Alvos Relacionados", intel.entities.map((e: any) => `${e.name} (${e.role})`).join('; ')]);
-            }
+                // 4. Entidades
+                if (intel.entities?.length) {
+                    intelRows.push(["Alvos Relacionados", intel.entities.map((e: any) => `${e.name} (${e.role})`).join('; ')]);
+                }
 
-            // 5. Locais
-            if (intel.locations?.length) {
-                intelRows.push(["Pontos de Interesse", intel.locations.map((l: any) => `${l.address}`).join(' | ')]);
+                // 5. Locais
+                if (intel.locations?.length) {
+                    intelRows.push(["Pontos de Interesse", intel.locations.map((l: any) => `${l.address}`).join(' | ')]);
+                }
             }
         } catch (e) { }
 
@@ -293,26 +297,28 @@ export const generateWarrantPDF = async (
 
         // --- ACTION PLAN (Distinct Styling) ---
         try {
-            const intel = parseTacticalSummary(data.tacticalSummary);
-            if (intel.checklist?.length) {
-                drawSectionHeader("Plano de Ação e Diretrizes Operacionais");
-                intel.checklist.forEach((item: any) => {
-                    const taskText = `[${(item.priority || 'NORMAL').toUpperCase()}] ${item.task}`;
-                    const splitTask = doc.splitTextToSize(taskText, contentWidth - 10);
+            if (data.tacticalSummary) {
+                const intel = JSON.parse(data.tacticalSummary || '{}');
+                if (intel.checklist?.length) {
+                    drawSectionHeader("Plano de Ação e Diretrizes Operacionais");
+                    intel.checklist.forEach((item: any) => {
+                        const taskText = `[${(item.priority || 'NORMAL').toUpperCase()}] ${item.task}`;
+                        const splitTask = doc.splitTextToSize(taskText, contentWidth - 10);
 
-                    if (y + (splitTask.length * 5) > pageHeight - 20) {
-                        doc.addPage();
-                        y = 20;
-                    }
+                        if (y + (splitTask.length * 5) > pageHeight - 20) {
+                            doc.addPage();
+                            y = 20;
+                        }
 
-                    doc.setFont('helvetica', 'bold');
-                    doc.setFontSize(9);
-                    doc.text(">", margin + 2, y);
-                    doc.setFont('helvetica', 'normal');
-                    doc.text(splitTask, margin + 8, y);
-                    y += (splitTask.length * 5) + 2;
-                });
-                y += 5;
+                        doc.setFont('helvetica', 'bold');
+                        doc.setFontSize(9);
+                        doc.text(">", margin + 2, y);
+                        doc.setFont('helvetica', 'normal');
+                        doc.text(splitTask, margin + 8, y);
+                        y += (splitTask.length * 5) + 2;
+                    });
+                    y += 5;
+                }
             }
         } catch (e) { }
 
