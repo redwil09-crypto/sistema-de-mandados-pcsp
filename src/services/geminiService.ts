@@ -112,13 +112,11 @@ const getBestAvailableModel = async (key: string): Promise<string> => {
 
         console.log("DEBUG GEMINI: Modelos disponíveis para esta chave:", availableParams);
 
-        // Ordem de preferência
+        // Ordem de preferência - Priorizando o 2.5 Flash conforme solicitado
         const preference = [
-            "gemini-2.0-flash-exp",
+            "gemini-2.5-flash",
             "gemini-2.0-flash",
-            "gemini-1.5-pro-latest",
             "gemini-1.5-pro",
-            "gemini-1.5-flash-latest",
             "gemini-1.5-flash",
             "gemini-pro"
         ];
@@ -128,12 +126,10 @@ const getBestAvailableModel = async (key: string): Promise<string> => {
             if (availableParams.includes(pref)) return pref;
         }
 
-        // Se nenhum da preferência estiver, pega o primeiro gemini que achar
         const anyGemini = availableParams.find((n: string) => n.includes("gemini"));
         return anyGemini || "gemini-1.5-flash";
 
     } catch (e) {
-        console.warn("DEBUG GEMINI: Falha ao listar modelos, usando fallback padrão.");
         return "gemini-1.5-flash";
     }
 };
@@ -142,18 +138,14 @@ async function tryGenerateContent(prompt: string, options: any = {}): Promise<st
     const key = await getGeminiKey();
     if (!key) throw new Error("Chave API não encontrada. Configure no Perfil.");
 
-    // APOIO À "FORÇA BRUTA" VIA CONSOLE
-    const forcedModel = localStorage.getItem('force_gemini_model');
-    const modelName = forcedModel || await getBestAvailableModel(key);
+    const modelName = await getBestAvailableModel(key);
+    console.log(`DEBUG GEMINI: Usando modelo: ${modelName}`);
 
-    console.log(`DEBUG GEMINI: ${forcedModel ? 'MODELO FORÇADO' : 'Usando modelo detectado'}: ${modelName}`);
-
-    // 2. Tenta gerar com o modelo descoberto
     try {
         const text = await generateContentViaFetch(modelName, prompt, key);
         if (text) return text;
     } catch (error: any) {
-        console.error(`DEBUG GEMINI: Falha com modelo ${modelName}:`, error);
+        console.error(`DEBUG GEMINI Error (${modelName}):`, error);
 
         // Se falhar (ex: sobrecarga), tenta um fallback hardcoded básico apenas por garantia
         if (modelName !== 'gemini-pro') {
