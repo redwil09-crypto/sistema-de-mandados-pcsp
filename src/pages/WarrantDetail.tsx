@@ -998,19 +998,19 @@ Equipe de Capturas - DIG / PCSP
         }
     };
 
-    const handleToggleInvestigationStep = async (idx: number) => {
+    const handleToggleInvestigationStep = async (taskName: string) => {
         if (!data) return;
         try {
             const intel = parseTacticalSummary(data.tacticalSummary);
             let finalChecklist = [...(intel.checklist || [])];
 
-            if (finalChecklist[idx]) {
-                finalChecklist[idx].checked = !finalChecklist[idx].checked;
-                finalChecklist[idx].status = finalChecklist[idx].checked ? 'Concluído' : 'Pendente';
+            const item = finalChecklist.find((t: any) => t.task === taskName);
+            if (item) {
+                item.checked = !item.checked;
+                item.status = item.checked ? 'Concluído' : 'Pendente';
             }
 
             const updatedIntel = { ...intel, checklist: finalChecklist };
-
 
             // Recalculate progress
             const total = finalChecklist.length;
@@ -1024,6 +1024,7 @@ Equipe de Capturas - DIG / PCSP
             toast.error("Erro ao atualizar status.");
         }
     };
+
 
 
     const handleAssistantChat = async () => {
