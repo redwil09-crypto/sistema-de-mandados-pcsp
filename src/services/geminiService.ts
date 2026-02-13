@@ -106,8 +106,14 @@ const getBestAvailableModel = async (key: string): Promise<string> => {
         if (!data.models) return "gemini-1.5-flash";
 
         // Filtra modelos que geram conteúdo e são da família Gemini 1.5 ou Pro
+        // BLACKLIST DE SEGURANÇA: Remove modelos 2.0/2.5/Experimentais que causam erro 429/403 (Limit 0)
         const availableParams = data.models
-            .filter((m: any) => m.supportedGenerationMethods.includes("generateContent"))
+            .filter((m: any) =>
+                m.supportedGenerationMethods.includes("generateContent") &&
+                !m.name.includes("2.0") &&
+                !m.name.includes("2.5") &&
+                !m.name.includes("exp")
+            )
             .map((m: any) => m.name.replace("models/", ""));
 
         console.log("DEBUG GEMINI: Modelos disponíveis para esta chave:", availableParams);
