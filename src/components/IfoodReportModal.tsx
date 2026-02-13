@@ -128,216 +128,129 @@ const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, wa
 
         // --- HEADER FUNCTION ---
         const addHeader = (pdf: jsPDF) => {
-            let y = 10;
+            let y = 15;
 
             // 1. Badge (Left)
+            let badgeW = 0;
             if (badgeImg) {
                 const imgProps = pdf.getImageProperties(badgeImg);
-                const badgeH = 26; // Approx
-                const badgeW = (imgProps.width * badgeH) / imgProps.height;
+                const badgeH = 22;
+                badgeW = (imgProps.width * badgeH) / imgProps.height;
                 pdf.addImage(badgeImg, 'PNG', margin, y, badgeW, badgeH);
             }
 
             // 2. Text (Right of badge)
-            const textX = margin + 32; // Skip badge width
+            const textX = margin + badgeW + 8;
             pdf.setFont('helvetica', 'normal');
             pdf.setFontSize(8);
-            pdf.setTextColor(0, 0, 0);
+            pdf.setTextColor(60, 60, 60);
 
             const headerLines = [
                 "SECRETARIA DA SEGURANÇA PÚBLICA",
                 "POLÍCIA CIVIL DO ESTADO DE SÃO PAULO",
                 "DEPARTAMENTO DE POLÍCIA JUDICIÁRIA DE SÃO PAULO INTERIOR",
                 "DEINTER 1 - SÃO JOSÉ DOS CAMPOS",
-                "DELEGACIA SECCIONAL DE POLÍCIA DE JACAREÍ –",
-                "“DELEGADO TALIS PRADO PINTO”",
-                "DELEGACIA DE INVESTIGAÇÕES GERAIS DE JACAREÍ – CARTÓRIO",
-                "CENTRAL"
+                "DELEGACIA SECCIONAL DE POLÍCIA DE JACAREÍ",
+                "DELEGACIA DE INVESTIGAÇÕES GERAIS DE JACAREÍ"
             ];
 
             let lineY = y + 3;
             headerLines.forEach(line => {
                 pdf.text(line, textX, lineY);
-                lineY += 4; // Increased from 3.5
+                lineY += 3.5;
             });
 
             // 3. Gray Bar "OFÍCIO"
-            const barY = lineY + 3;
-            pdf.setFillColor(230, 230, 230); // Slightly lighter Gray
-            pdf.rect(margin, barY, maxLineWidth, 7, 'F'); // Increased height from 6 to 7
-            pdf.setDrawColor(0);
-            pdf.setLineWidth(0.1);
-            pdf.rect(margin, barY, maxLineWidth, 7, 'S'); // Border
+            const barY = Math.max(lineY, y + 25) + 5;
+
+            pdf.setDrawColor(200, 200, 200);
+            pdf.setLineWidth(0.5);
+            pdf.line(margin, barY, pageWidth - margin, barY);
 
             pdf.setFont('helvetica', 'bold');
-            pdf.setFontSize(10);
-            pdf.text("OFÍCIO", pageWidth / 2, barY + 4.8, { align: 'center' });
+            pdf.setFontSize(12);
+            pdf.setTextColor(0, 0, 0);
+            pdf.text("OFÍCIO", pageWidth / 2, barY + 10, { align: 'center' });
 
-            return barY + 10; // Return Y where content starts
+            return barY + 20; // Return Y where content starts
         };
 
         // --- FOOTER FUNCTION ---
         const addFooter = (pdf: jsPDF, pageNum: number, totalPages: number) => {
             const footerY = pageHeight - 15;
 
-            // Separator Line
-            // Not spanning full width based on image, looks like left block and right block?
-            // Actually image 1 has no full line, Image 2 header has full line?
-            // The image shows text at bottom.
+            pdf.setDrawColor(200, 200, 200);
+            pdf.setLineWidth(0.1);
+            pdf.line(margin, footerY - 5, pageWidth - margin, footerY - 5);
 
-            // Address Block (Left)
             pdf.setFont('helvetica', 'normal');
-            pdf.setFontSize(8);
-            pdf.setTextColor(0, 0, 0);
+            pdf.setFontSize(7);
+            pdf.setTextColor(100, 100, 100);
 
-            const addr1 = "Rua Moisés Ruston, 370, Parque Itamaraty, Jacareí-SP, CEP-12.307-260";
-            const addr2 = "Tel-12-3951-1000 - E-mail - dig.jacarei@policiacivil.sp.gov.br";
+            const leftText = "Delegacia de Investigações Gerais de Jacareí - Rua Moisés Ruston, 370, Parque Itamaraty";
+            const rightText = `Página ${pageNum} de ${totalPages}`;
+            const centerText = "dig.jacarei@policiacivil.sp.gov.br | Tel: (12) 3951-1000";
 
-            // Right Block (Date | Page)
-            // The image shows this on the right side with a vertical separator?
-            // "Data (07/02/26) | Página 1 de 2" - roughly
-            // Let's position it at bottom right
-
-            const today = new Date();
-            const dateStr = `Data (${today.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' })})`;
-            const pageStr = `Página ${pageNum} de ${totalPages}`;
-
-            // Let's implement that split footer
-            const dividerX = pageWidth - margin - 35;
-            pdf.setDrawColor(0);
-            pdf.line(dividerX, footerY - 2, dividerX, footerY + 8);
-
-            // Left of divider (Address)
-            pdf.text(addr1, dividerX - 5, footerY, { align: 'right' });
-
-            // Left of divider (Contact)
-            const emailPart = "dig.jacarei@policiacivil.sp.gov.br";
-            const phonePart = "Tel-12-3951-1000 - E-mail - ";
-
-            // Render the phone part (black)
-            const fullContactWidth = pdf.getTextWidth(phonePart + emailPart);
-            const contactEndX = dividerX - 5;
-            const contactStartX = contactEndX - fullContactWidth;
-
-            pdf.text(phonePart, contactStartX, footerY + 4);
-
-            // Render the email part (blue) next to it
-            pdf.setTextColor(0, 0, 255);
-            pdf.text(emailPart, contactStartX + pdf.getTextWidth(phonePart), footerY + 4);
-            pdf.setTextColor(0, 0, 0); // Reset
-
-            // Right of divider
-            pdf.text(dateStr, dividerX + 5, footerY);
-            pdf.text(pageStr, dividerX + 5, footerY + 4);
+            pdf.text(leftText, margin, footerY);
+            pdf.text(centerText, pageWidth / 2, footerY, { align: 'center' });
+            pdf.text(rightText, pageWidth - margin, footerY, { align: 'right' });
         };
 
         // --- CONTENT GENERATION ---
-
-        // Setup Doc
-        doc.setFont('helvetica', 'normal');
-
+        doc.setFont('times', 'normal');
         let y = 10;
 
         // Add Header Page 1
         y = addHeader(doc);
-        y += 10; // Spacing after Gray Bar
 
-        // Process generatedText line by line to respect breaks
         const lines = generatedText.split('\n');
         doc.setFontSize(11);
         doc.setTextColor(0, 0, 0);
 
-        const indent = "          "; // ~10 spaces for paragraphs
-
         lines.forEach((line) => {
             const trimmedLine = line.trim();
             if (!trimmedLine) {
-                y += 6; // Paragraph gap
+                y += 5;
                 return;
             }
 
-            // Check for page break
-            if (y > pageHeight - 40) { // More margin at bottom
+            // Check page break
+            if (y > pageHeight - 35) {
                 doc.addPage();
-                y = addHeader(doc) + 12;
+                y = addHeader(doc);
             }
 
-            // Formatting logic based on line content
-            if (trimmedLine.startsWith('Ofício:') || trimmedLine.startsWith('Referência:') || trimmedLine.startsWith('Natureza:')) {
-                doc.setFont('helvetica', 'bold');
-                doc.text(trimmedLine, margin, y);
-                doc.setFont('helvetica', 'normal');
-                y += 7;
-            }
-            else if (trimmedLine.includes('Jacareí,') && (trimmedLine.includes('2025') || trimmedLine.includes('2026'))) {
-                doc.setFont('helvetica', 'bolditalic');
+            // Formatting Detection
+            const isBold = trimmedLine.startsWith('Ofício:') ||
+                trimmedLine.startsWith('Referência:') ||
+                trimmedLine.startsWith('Natureza:') ||
+                trimmedLine.startsWith('ILMO.') ||
+                trimmedLine.startsWith('Ao Ilustríssimo') ||
+                trimmedLine.startsWith('Empresa') ||
+                trimmedLine.includes('Delegado');
+
+            doc.setFont('times', isBold ? 'bold' : 'normal');
+
+            // Special Alignment for Date and Signature
+            if (trimmedLine.includes('Jacareí,') && /\d{4}/.test(trimmedLine)) {
                 doc.text(trimmedLine, pageWidth - margin, y, { align: 'right' });
-                doc.setFont('helvetica', 'normal');
-                y += 15; // More space after date
-            }
-            else if (trimmedLine.startsWith('ILMO.') || trimmedLine.startsWith('Ao Ilustríssimo') || trimmedLine.startsWith('Excelentíssimo')) {
-                y += 2;
-                doc.setFont('helvetica', 'bold');
+            } else if (trimmedLine === trimmedLine.toUpperCase() && trimmedLine.length < 50 && !trimmedLine.startsWith('OFÍCIO')) {
+                // Likely a name or title
                 doc.text(trimmedLine, margin, y);
-                doc.setFont('helvetica', 'normal');
-                y += 8;
-            }
-            else if (trimmedLine.startsWith('Empresa iFood') || trimmedLine.startsWith('Empresa Uber')) {
-                doc.setFont('helvetica', 'bold');
-                doc.text(trimmedLine, margin, y);
-                doc.setFont('helvetica', 'normal');
-                y += 8;
-            }
-            else if (trimmedLine.includes('william.castro@')) {
-                doc.setFont('helvetica', 'bold');
-                doc.text(trimmedLine, margin + 15, y);
-                doc.setFont('helvetica', 'normal');
-                y += 7;
-            }
-            else if (trimmedLine.startsWith('Pessoa de interesse') || trimmedLine.startsWith('Réu de interesse') || trimmedLine.startsWith('Investigado:')) {
-                y += 5;
-                doc.setFont('helvetica', 'bold'); // Make the target person bold
-                doc.text(trimmedLine, margin, y);
-                doc.setFont('helvetica', 'normal');
-                y += 8;
-            }
-            else if (trimmedLine === trimmedLine.toUpperCase() && trimmedLine.includes('CPF') && trimmedLine.length < 100) {
-                doc.setFont('helvetica', 'bold');
-                doc.text(trimmedLine, margin, y);
-                doc.setFont('helvetica', 'normal');
-                y += 10;
-            }
-            else if (trimmedLine === 'Atenciosamente,' || trimmedLine === 'Atenciosamente') {
-                y += 15;
-                doc.text(trimmedLine, margin, y);
-                y += 28; // Space for signature
-            }
-            else if (DELEGATES.some(d => d.name === trimmedLine) || trimmedLine === 'Delegado de Polícia') {
-                doc.setFont('helvetica', 'bold');
+            } else if (DELEGATES.some(d => trimmedLine.includes(d.name)) || trimmedLine.includes('Delegado de Polícia')) {
                 doc.text(trimmedLine, pageWidth / 2, y, { align: 'center' });
-                doc.setFont('helvetica', 'normal');
-                y += 7;
+            } else {
+                // Justified Body Text
+                const splitText = doc.splitTextToSize(trimmedLine, maxLineWidth);
+                doc.text(splitText, margin, y, { align: 'justify', maxWidth: maxLineWidth });
+                y += (splitText.length * 5) - 5; // Adjust for multiline
             }
-            else {
-                // Regular body paragraph - apply indent and justification
-                // Fix: Always indent if it looks like a paragraph (more than 40 chars)
-                const isParagraph = trimmedLine.length > 40;
-                const indentText = isParagraph ? indent + trimmedLine : trimmedLine;
 
-                doc.setFont('times', 'normal'); // Use Times for more formal look
-                doc.setFontSize(11);
-
-                const splitLines = doc.splitTextToSize(indentText, maxLineWidth);
-                doc.text(splitLines, margin, y, { align: 'justify', maxWidth: maxLineWidth });
-                y += (splitLines.length * 7); // Increased line height to 7
-
-                doc.setFont('helvetica', 'normal'); // Reset for next loop
-            }
+            y += 6;
         });
 
         // Add Footers
-        // Fix getNumberOfPages error by casting or using supported property
-        const totalPages = (doc as any).internal.pages.length - 1;
+        const totalPages = (doc as any).internal.getNumberOfPages();
         for (let i = 1; i <= totalPages; i++) {
             doc.setPage(i);
             addFooter(doc, i, totalPages);
@@ -346,23 +259,25 @@ const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, wa
         const pdfBlob = doc.output('blob');
         const pdfFile = new File([pdfBlob], `Oficio_${type.toUpperCase()}_${officeNumber}.pdf`, { type: 'application/pdf' });
 
-        // Save locally first
+        // Save locally
         doc.save(`Oficio_IFood_${officeNumber}_${warrant.name.replace(/\s+/g, '_')}.pdf`);
 
-        // Upload & Save to DB
+        // Upload
         const toastId = toast.loading("Salvando cópia no prontuário...");
         try {
+            // Ensure path uses 'attachments/ifood' as established
             const path = `attachments/ifood/${warrant.id}/${Date.now()}_Oficio_${officeNumber}.pdf`;
             const uploadedPath = await uploadFile(pdfFile, path);
 
             if (uploadedPath) {
                 const url = getPublicUrl(uploadedPath);
+                // Use the correct field 'ifoodDocs'
                 const currentDocs = warrant.ifoodDocs || [];
                 await updateWarrant(warrant.id, { ifoodDocs: [...currentDocs, url] });
                 toast.success("Cópia salva no histórico!", { id: toastId });
                 onClose();
             } else {
-                toast.dismiss(toastId);
+                toast.error("Erro no upload do arquivo.", { id: toastId });
             }
         } catch (err) {
             console.error(err);
