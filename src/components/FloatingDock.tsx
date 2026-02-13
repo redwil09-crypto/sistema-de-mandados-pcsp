@@ -14,9 +14,9 @@ interface FloatingDockProps {
 }
 
 const FloatingDock = ({ onBack, onHome, onSave, onPrint, onFinalize, onDelete, className, status }: FloatingDockProps) => {
-    const containerClasses = className || "fixed bottom-6 left-1/2 -translate-x-1/2 w-[95%] max-w-5xl z-50 rounded-2xl border border-slate-200 dark:border-white/10 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl shadow-2xl px-6 py-4 transition-all duration-300";
+    const containerClasses = className || "fixed bottom-0 left-0 w-full z-50 border-t border-slate-700 bg-slate-900/95 backdrop-blur-xl shadow-2xl px-6 py-4 transition-all duration-300";
 
-    return (
+    return createPortal(
         <div className={`${containerClasses} animate-in fade-in slide-in-from-bottom-5 duration-500`}>
             <div className="flex w-full items-center justify-between gap-2 md:gap-4">
                 {/* Botão VOLTAR (Histórico) */}
@@ -77,7 +77,8 @@ const FloatingDock = ({ onBack, onHome, onSave, onPrint, onFinalize, onDelete, c
                     />
                 )}
             </div>
-        </div>
+        </div>,
+        document.body
     );
 };
 
