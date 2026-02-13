@@ -226,122 +226,96 @@ const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, wa
         // --- CONTENT GENERATION ---
 
         // Setup Doc
-        doc.setFont('times', 'normal');
+        doc.setFont('helvetica', 'normal');
 
         let y = 10;
 
         // Add Header Page 1
         y = addHeader(doc);
-        y += 5; // Spacing after Gray Bar
+        y += 10; // Spacing after Gray Bar
 
-        // 1. Meta Fields
-        doc.setFontSize(10);
-        doc.setFont('helvetica', 'bold');
-        doc.text(`Ofício: nº.${officeNumber}/CAPT/2025`, margin, y);
-        y += 5;
+        // Process generatedText line by line to respect breaks
+        const lines = generatedText.split('\n');
+        doc.setFontSize(11);
+        doc.setTextColor(0, 0, 0);
 
-        doc.text("Referência: ", margin, y);
-        doc.setFont('helvetica', 'normal');
-        doc.text(`PROC. Nº ${warrant.number}`, margin + 22, y);
-        y += 5;
+        const indent = "          "; // ~10 spaces for paragraphs
 
-        doc.setFont('helvetica', 'bold');
-        doc.text("Natureza: ", margin, y);
-        doc.setFont('helvetica', 'normal');
-        doc.text("Solicitação de Dados.", margin + 18, y);
-        y += 15;
+        lines.forEach((line) => {
+            const trimmedLine = line.trim();
+            if (!trimmedLine) {
+                y += 5; // Paragraph gap
+                return;
+            }
 
-        // 2. Date (Right Aligned, Bold City)
-        const months = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
-        const today = new Date();
-        const dateLine = `Jacareí, ${today.getDate().toString().padStart(2, '0')} de ${months[today.getMonth()]} de ${today.getFullYear()}.`;
+            // Check for page break
+            if (y > pageHeight - 30) {
+                doc.addPage();
+                y = addHeader(doc) + 10;
+            }
 
-        doc.setFont('helvetica', 'bold'); // "Jacareí," is bold in image? No, looks all bold italic maybe? Or just bold.
-        doc.setFont('helvetica', 'bolditalic');
-        doc.text(dateLine, pageWidth - margin, y, { align: 'right' });
-        doc.setFont('helvetica', 'normal');
-        y += 15;
-
-        // 3. Vocative
-        doc.setFont('helvetica', 'bold');
-        doc.text("ILMO. SENHOR RESPONSÁVEL,", margin, y);
-        y += 15;
-
-        // 4. Body Paragraphs
-        doc.setFont('helvetica', 'normal');
-        doc.setFontSize(11); // Body font size
-
-        const indent = "          "; // ~10 spaces
-
-        const p1 = `${indent}Com a finalidade de instruir investigação policial em trâmite nesta unidade, solicito, respeitosamente, a gentileza de verificar se o indivíduo abaixo relacionado encontra-se cadastrado como usuário ou entregador da plataforma IFOOD.`;
-        const splitP1 = doc.splitTextToSize(p1, maxLineWidth);
-        doc.text(splitP1, margin, y, { align: 'justify', maxWidth: maxLineWidth });
-        y += (splitP1.length * 5) + 5;
-
-        const p2 = `${indent}Em caso positivo, requer-se o envio das informações cadastrais fornecidas para habilitação na plataforma, incluindo, se disponíveis, nome completo, endereço(s), número(s) de telefone, e-mail(s) e demais dados vinculados à respectiva conta.`;
-        const splitP2 = doc.splitTextToSize(p2, maxLineWidth);
-        doc.text(splitP2, margin, y, { align: 'justify', maxWidth: maxLineWidth });
-        y += (splitP2.length * 5) + 5;
-
-        const p3 = `${indent}As informações devem ser encaminhadas ao e-mail institucional do policial responsável pela investigação:`;
-        doc.text(p3, margin, y);
-        y += 8;
-
-        // Email Block
-        doc.setFont('helvetica', 'bold');
-        doc.text("william.castro@policiacivil.sp.gov.br", margin + 10, y);
-        y += 5;
-        doc.setFont('helvetica', 'normal');
-        doc.text("William Campos de Assis Castro – Polícia Civil do Estado de São Paulo", margin + 10, y);
-        y += 15;
-
-        // Person of Interest
-        doc.setFont('helvetica', 'normal');
-        doc.text("Pessoa de interesse para a investigação:", margin, y);
-        y += 6;
-
-        doc.setFont('helvetica', 'bold');
-        const personLine = `${warrant.name.toUpperCase()} – CPF ${warrant.cpf || warrant.rg || 'NÃO INFORMADO'}`;
-        doc.text(personLine, margin, y);
-        y += 15;
-
-        // Closing
-        doc.setFont('helvetica', 'normal');
-        const closing = `${indent}Aproveito a oportunidade para renovar meus votos de elevada estima e consideração.`;
-        doc.text(closing, margin, y);
-        y += 10;
-
-        doc.text("Atenciosamente,", margin, y);
-
-        // Signature
-        y += 20;
-        // Check if page break needed for signature
-        if (y > pageHeight - 40) {
-            doc.addPage();
-            addHeader(doc);
-            y = 50;
-        }
-
-        doc.setFont('helvetica', 'bold');
-        doc.text("Luiz Antônio Cunha dos Santos", pageWidth / 2, y, { align: 'center' });
-        y += 5;
-        doc.text("Delegado de Polícia", pageWidth / 2, y, { align: 'center' });
-
-        // Addressee Block (Bottom or Next Page)
-        y += 20;
-
-        // Ensure we have space, or move to next page
-        if (y > pageHeight - 40) {
-            doc.addPage();
-            y = 50;
-            addHeader(doc); // Header on page 2 too? Image 2 shows header.
-        }
-
-        doc.setFont('helvetica', 'normal');
-        doc.text("Ao Ilustríssimo Senhor Responsável", margin, y);
-        y += 5;
-        doc.setFont('helvetica', 'bold');
-        doc.text("Empresa iFood.", margin, y);
+            // Formatting logic based on line content
+            if (trimmedLine.startsWith('Ofício:') || trimmedLine.startsWith('Referência:') || trimmedLine.startsWith('Natureza:')) {
+                doc.setFont('helvetica', 'bold');
+                doc.text(trimmedLine, margin, y);
+                doc.setFont('helvetica', 'normal');
+                y += 6;
+            }
+            else if (trimmedLine.includes('Jacareí,') && (trimmedLine.includes('2025') || trimmedLine.includes('2026'))) {
+                doc.setFont('helvetica', 'bolditalic');
+                doc.text(trimmedLine, pageWidth - margin, y, { align: 'right' });
+                doc.setFont('helvetica', 'normal');
+                y += 12;
+            }
+            else if (trimmedLine.startsWith('ILMO.') || trimmedLine.startsWith('Ao Ilustríssimo')) {
+                doc.setFont('helvetica', 'bold');
+                doc.text(trimmedLine, margin, y);
+                doc.setFont('helvetica', 'normal');
+                y += 8;
+            }
+            else if (trimmedLine.startsWith('Empresa iFood') || trimmedLine.startsWith('Empresa Uber')) {
+                doc.setFont('helvetica', 'bold');
+                doc.text(trimmedLine, margin, y);
+                doc.setFont('helvetica', 'normal');
+                y += 6;
+            }
+            else if (trimmedLine.includes('william.castro@')) {
+                doc.setFont('helvetica', 'bold');
+                doc.text(trimmedLine, margin + 10, y);
+                doc.setFont('helvetica', 'normal');
+                y += 6;
+            }
+            else if (trimmedLine.startsWith('Pessoa de interesse') || trimmedLine.startsWith('Réu de interesse')) {
+                y += 5;
+                doc.setFont('helvetica', 'normal');
+                doc.text(trimmedLine, margin, y);
+                y += 6;
+            }
+            else if (trimmedLine === trimmedLine.toUpperCase() && trimmedLine.includes('CPF')) {
+                doc.setFont('helvetica', 'bold');
+                doc.text(trimmedLine, margin, y);
+                doc.setFont('helvetica', 'normal');
+                y += 8;
+            }
+            else if (trimmedLine === 'Atenciosamente,' || trimmedLine === 'Atenciosamente') {
+                y += 10;
+                doc.text(trimmedLine, margin, y);
+                y += 25; // Space for signature
+            }
+            else if (trimmedLine === 'Luiz Antônio Cunha dos Santos' || trimmedLine === 'Luiz Antonio Cunha dos Santos' || trimmedLine === 'Delegado de Polícia') {
+                doc.setFont('helvetica', 'bold');
+                doc.text(trimmedLine, pageWidth / 2, y, { align: 'center' });
+                doc.setFont('helvetica', 'normal');
+                y += 6;
+            }
+            else {
+                // Regular body paragraph - apply indent and justification
+                const indentText = trimmedLine.length > 50 ? indent + trimmedLine : trimmedLine;
+                const splitLines = doc.splitTextToSize(indentText, maxLineWidth);
+                doc.text(splitLines, margin, y, { align: 'justify', maxWidth: maxLineWidth });
+                y += (splitLines.length * 6);
+            }
+        });
 
         // Add Footers
         // Fix getNumberOfPages error by casting or using supported property
