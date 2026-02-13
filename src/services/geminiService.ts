@@ -202,31 +202,31 @@ export async function extractFullWarrantIntelligence(rawText: string): Promise<a
     if (!(await isGeminiEnabled())) return null;
 
     const prompt = `
-        [ROLE:EXTRACTOR_ELITE] [TASK:PARSE_WARRANT] [MODE:JSON_ONLY]
+        [ROLE:EXTRACTOR] [TASK:PARSE] [FMT:JSON]
 
-        <INPUT_OCR>
+        <OCR>
         "${rawText}"
-        </INPUT_OCR>
+        </OCR>
 
-        <EXTRACTION_RULES>
-        1. FIND_COURT(Header/FirstPara) -> FullName+Location (Ex: "1ª Vara Criminal de Jacareí").
-        2. MAP_CRIME(Articles) -> CommonName (Ex: "157"->"Roubo", "33"->"Tráfico", "Alimentos"->"Pensão").
-        3. EXTRACT_PERSON(Target) -> Name(UpperCase), RG/CPF(DigitsOnly), Birth(YYYY-MM-DD).
-        4. FIND_ADDRS(All) -> List[String].
-        5. DATES(Issue/Expire) -> YYYY-MM-DD.
-        </EXTRACTION_RULES>
+        <RULES>
+        1. COURT(Header) -> Name+City.
+        2. CRIME(Arts) -> CommonName (Ex:157->Roubo).
+        3. TARGET -> Name(UP), RG/CPF(Dig), Birth(ISO).
+        4. ADDR -> List.
+        5. DATES -> ISO.
+        </RULES>
 
-        <OUTPUT_FORMAT>
+        <JSON_SCHEMA>
         {
-            "name": "NAME", "rg": "000", "cpf": "000", "birthDate": "YYYY-MM-DD",
-            "processNumber": "...", "type": "MANDADO DE PRISÃO|BUSCA E APREENSÃO",
-            "crime": "MAPPED_NAME", "regime": "...",
-            "issuingCourt": "FULL_COURT_NAME",
-            "addresses": ["..."],
+            "name": "STR", "rg": "STR", "cpf": "STR", "birthDate": "YYYY-MM-DD",
+            "processNumber": "STR", "type": "PRISÃO|BUSCA",
+            "crime": "STR", "regime": "STR",
+            "issuingCourt": "STR",
+            "addresses": ["STR"],
             "issueDate": "YYYY-MM-DD", "expirationDate": "YYYY-MM-DD",
-            "observations": "...", "tags": ["..."]
+            "observations": "STR", "tags": ["STR"]
         }
-        </OUTPUT_FORMAT>
+        </JSON_SCHEMA>
     `;
 
     try {
@@ -242,39 +242,39 @@ export async function analyzeRawDiligence(warrantData: any, rawInfo: string) {
     if (!(await isGeminiEnabled())) return null;
 
     const prompt = `
-        [ROLE:INTEL_ELITE] [TASK:ANALYZE_RAW_DATA] [MODE:JSON_STRICT]
+        [ROLE:ANALYST] [TASK:DILIGENCE] [FMT:JSON]
         
-        <TARGET_DATA>
+        <TARGET>
         ${JSON.stringify({
         n: warrantData.name,
         c: warrantData.crime,
         l: warrantData.location,
-        h: (warrantData.diligentHistory || []).map((h: any) => h.substring(0, 100)).slice(-5)
+        h: (warrantData.diligentHistory || []).map((h: any) => h.substring(0, 50)).slice(-3)
     })}
-        </TARGET_DATA>
+        </TARGET>
 
-        <INPUT_RAW>
+        <INPUT>
         "${rawInfo}"
-        </INPUT_RAW>
+        </INPUT>
 
-        <RULES>
-        1. CHECK_CONFLICTS(Target vs Input)
-        2. ASSESS_RISK(Input) -> Level[Low|Med|High|Crit]
-        3. EXTRACT_ENTITIES(Input) -> [Name,Role,Ctx]
-        4. EXTRACT_LOCATIONS(Input) -> [Addr,Ctx]
-        5. GEN_CHECKLIST(Input) -> ActionItems
-        </RULES>
+        <OPS>
+        1. CONFLICT_CHECK(Target, Input).
+        2. RISK(Input) -> [L|M|H|C].
+        3. ENTITIES(Input) -> [Name,Role].
+        4. LOCS(Input) -> [Addr].
+        5. ACTIONS(Input) -> List.
+        </OPS>
 
-        <OUTPUT_FORMAT>
+        <JSON_SCHEMA>
         {
-            "summary": "Tactical summary (max 3 lines)",
+            "summary": "Max 3 lines",
             "riskLevel": "Low|Medium|High|Critical",
-            "riskReason": "Short reason",
-            "entities": [{"name": "...", "role": "...", "context": "..."}],
-            "locations": [{"address": "...", "context": "..."}],
-            "checklist": [{"task": "...", "priority": "Alta|Normal"}]
+            "riskReason": "Str",
+            "entities": [{"name": "Str", "role": "Str", "context": "Str"}],
+            "locations": [{"address": "Str", "context": "Str"}],
+            "checklist": [{"task": "Str", "priority": "Alta|Normal"}]
         }
-        </OUTPUT_FORMAT>
+        </JSON_SCHEMA>
     `;
 
     try {
@@ -376,33 +376,33 @@ export async function analyzeDocumentStrategy(warrantData: any, docText: string)
     if (!(await isGeminiEnabled())) return null;
 
     const prompt = `
-        [ROLE:INTEL_ANALYST] [TASK:DEEP_DIVE_DOC] [MODE:JSON]
+        [ROLE:ANALYST] [TASK:DEEP_DOC] [FMT:JSON]
 
-        <TARGET>
+        <TGT>
         ${JSON.stringify({ n: warrantData.name, c: warrantData.crime })}
-        </TARGET>
+        </TGT>
 
-        <DOC_TEXT>
+        <DOC>
         "${docText}"
-        </DOC_TEXT>
+        </DOC>
 
-        <STEPS>
-        1. SCAN_RELATIONSHIPS -> Entities(Name, Role).
-        2. EXTRACT_LOCATIONS -> Addrs.
-        3. ASSESS_THREAT -> RiskLevel.
-        4. ACTIONABLE_INTEL -> Checklist.
-        </STEPS>
+        <OPS>
+        1. RELATIONS -> Entities.
+        2. LOCS -> Addrs.
+        3. RISK -> Level.
+        4. ACTIONS -> Checklist.
+        </OPS>
 
-        <OUTPUT_FORMAT>
+        <JSON_SCHEMA>
         {
-            "summary": "2 lines max",
+            "summary": "Max 2 lines",
             "riskLevel": "Low|Medium|High|Critical",
-            "riskReason": "...",
-            "entities": [{"name": "...", "role": "...", "context": "..."}],
-            "checklist": [{"task": "...", "priority": "Alta|Normal"}],
-            "locations": [{"address": "...", "context": "..."}]
+            "riskReason": "Str",
+            "entities": [{"name": "Str", "role": "Str", "context": "Str"}],
+            "checklist": [{"task": "Str", "priority": "Alta|Normal"}],
+            "locations": [{"address": "Str", "context": "Str"}]
         }
-        </OUTPUT_FORMAT>
+        </JSON_SCHEMA>
     `;
 
     try {
