@@ -2051,7 +2051,8 @@ Equipe de Capturas - DIG / PCSP
                                     {/* PROGRESS LEVEL */}
                                     {(() => {
                                         try {
-                                            const intel = JSON.parse(data.tacticalSummary || '{}');
+                                            const parsed = JSON.parse(data.tacticalSummary || '{}');
+                                            const intel = (parsed && typeof parsed === 'object') ? parsed : {};
                                             const progress = intel.progressLevel || 0;
                                             return (
                                                 <div className="hidden md:flex flex-col items-end mr-4">
@@ -2087,7 +2088,10 @@ Equipe de Capturas - DIG / PCSP
                                     checklist: []
                                 };
                                 try {
-                                    intel = JSON.parse(data.tacticalSummary || '{}');
+                                    const parsed = JSON.parse(data.tacticalSummary || '{}');
+                                    if (parsed && typeof parsed === 'object') {
+                                        intel = { ...intel, ...parsed };
+                                    }
                                 } catch (e) {
                                     // Fallback if empty
                                 }
