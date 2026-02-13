@@ -36,7 +36,8 @@ Jacareí, 28 de novembro de 2025.
 ILMO. SENHOR RESPONSÁVEL,
 Com a finalidade de instruir investigação policial em trâmite nesta unidade, solicito, respeitosamente, a gentileza de verificar se o indivíduo abaixo relacionado encontra-se cadastrado como usuário ou entregador da plataforma IFOOD.
 Em caso positivo, requer-se o envio das informações cadastrais fornecidas para habilitação na plataforma, incluindo, se disponíveis, nome completo, endereço(s), número(s) de telefone, e-mail(s) e demais dados vinculados à respectiva conta.
-As informações devem ser encaminhadas ao e-mail institucional do policial responsável pela investigação:
+As informações devem ser encaminhadas ao e-mail institucional do policial responsável pela
+investigação:
 william.castro@policiacivil.sp.gov.br
 William Campos de Assis Castro – Polícia Civil do Estado de São Paulo
 Pessoa de interesse para a investigação: LUCILENE CORREIA DE AGUIAR / CPF: 803.750.733-53
