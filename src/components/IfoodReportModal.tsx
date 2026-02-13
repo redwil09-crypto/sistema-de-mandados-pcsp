@@ -144,8 +144,7 @@ const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, wa
                 "DEINTER 1 - SÃO JOSÉ DOS CAMPOS",
                 "DELEGACIA SECCIONAL DE POLÍCIA DE JACAREÍ –",
                 "“DELEGADO TALIS PRADO PINTO”",
-                "DELEGACIA DE INVESTIGAÇÕES GERAIS DE JACAREÍ – CARTÓRIO",
-                "CENTRAL"
+                "DELEGACIA DE INVESTIGAÇÕES GERAIS DE JACAREÍ"
             ];
 
             let lineY = y + 3;
