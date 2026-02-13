@@ -1002,25 +1002,54 @@ Equipe de Capturas - DIG / PCSP
         if (!data) return;
         try {
             const intel = parseTacticalSummary(data.tacticalSummary);
-            if (intel && intel.checklist && intel.checklist[idx]) {
-                const newChecklist = [...intel.checklist];
-                newChecklist[idx].checked = !newChecklist[idx].checked;
-                newChecklist[idx].status = newChecklist[idx].checked ? 'Concluído' : 'Pendente';
 
-                const updatedIntel = { ...intel, checklist: newChecklist };
+            // Determine if a virtual task was injected at index 0 in UI
+            const hasValidIfood = localData.ifoodResult && localData.ifoodResult.length > 20;
+            const ifoodTaskExists = intel.checklist?.some((t: any) => t.task.toLowerCase().includes('ifood') || t.task.toLowerCase().includes('iffo'));
+            const isVirtualAdded = !hasValidIfood && !ifoodTaskExists;
 
-                // Recalculate progress
-                const total = newChecklist.length;
-                const completed = newChecklist.filter((t: any) => t.checked || t.status === 'Concluído').length;
-                updatedIntel.progressLevel = Math.round((completed / total) * 100);
+            let finalChecklist = [...(intel.checklist || [])];
 
-                await updateWarrant(data.id, { tacticalSummary: JSON.stringify(updatedIntel) });
-                toast.success("Progresso atualizado!");
+            if (isVirtualAdded) {
+                if (idx === 0) {
+                    // Virtual task was clicked -> Insert it for real but as "Concluído"
+                    finalChecklist.unshift({
+                        task: "Solicitar quebra de sigilo iFood (IFFO)",
+                        priority: "Alta",
+                        status: "Concluído",
+                        checked: true
+                    });
+                } else {
+                    // Real task selected (after the virtual one)
+                    const actualIdx = idx - 1;
+                    if (finalChecklist[actualIdx]) {
+                        finalChecklist[actualIdx].checked = !finalChecklist[actualIdx].checked;
+                        finalChecklist[actualIdx].status = finalChecklist[actualIdx].checked ? 'Concluído' : 'Pendente';
+                    }
+                }
+            } else {
+                // Direct mapping
+                if (finalChecklist[idx]) {
+                    finalChecklist[idx].checked = !finalChecklist[idx].checked;
+                    finalChecklist[idx].status = finalChecklist[idx].checked ? 'Concluído' : 'Pendente';
+                }
             }
+
+            const updatedIntel = { ...intel, checklist: finalChecklist };
+
+            // Recalculate progress
+            const total = finalChecklist.length;
+            const completed = finalChecklist.filter((t: any) => t.checked || t.status === 'Concluído').length;
+            updatedIntel.progressLevel = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+            await updateWarrant(data.id, { tacticalSummary: JSON.stringify(updatedIntel) });
+            toast.success("Status atualizado!");
         } catch (e) {
             console.error("Erro ao alternar passo", e);
+            toast.error("Erro ao atualizar status.");
         }
     };
+
 
     const handleAssistantChat = async () => {
         if (!chatInput.trim() || !data) return;
@@ -2048,12 +2077,15 @@ Equipe de Capturas - DIG / PCSP
                                                 <div className="space-y-3">
                                                     {intel.checklist && intel.checklist.length > 0 ? (
                                                         intel.checklist.map((s: any, i: number) => (
-                                                            <label
+                                                            <div
                                                                 key={i}
-                                                                onClick={() => handleToggleInvestigationStep(i)}
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    handleToggleInvestigationStep(i);
+                                                                }}
                                                                 className="flex items-start gap-3 p-2 rounded-xl bg-slate-100 dark:bg-black/20 hover:bg-slate-200 dark:hover:bg-black/40 transition-colors cursor-pointer group"
                                                             >
-                                                                <div className={`mt-1 w-4 h-4 rounded border flex items-center justify-center ${s.status === 'Concluído' || s.checked ? 'bg-green-500 border-green-500' : 'border-slate-400 dark:border-gray-500 group-hover:border-indigo-500 dark:group-hover:border-white'
+                                                                <div className={`mt-1 w-4 h-4 rounded border flex items-center justify-center shrink-0 ${s.status === 'Concluído' || s.checked ? 'bg-green-500 border-green-500' : 'border-slate-400 dark:border-gray-500 group-hover:border-indigo-500 dark:group-hover:border-white'
                                                                     }`}>
                                                                     {(s.status === 'Concluído' || s.checked) && <CheckSquare size={10} className="text-white" />}
                                                                 </div>
@@ -2063,7 +2095,7 @@ Equipe de Capturas - DIG / PCSP
                                                                     </p>
                                                                     {s.priority === 'Alta' && <span className="text-[9px] text-red-600 dark:text-red-400 font-bold uppercase mt-1 inline-block">Prioridade Alta</span>}
                                                                 </div>
-                                                            </label>
+                                                            </div>
                                                         ))
                                                     ) : <p className="text-xs text-text-secondary-light dark:text-gray-500 text-center">Nenhuma ação pendente.</p>}
                                                 </div>
