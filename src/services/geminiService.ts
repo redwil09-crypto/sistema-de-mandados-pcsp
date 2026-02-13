@@ -113,14 +113,14 @@ const getBestAvailableModel = async (key: string): Promise<string> => {
         console.log("DEBUG GEMINI: Modelos disponíveis para esta chave:", availableParams);
 
         // Ordem de preferência - Priorizando ROBUSTEZ (Pro / 1.5 Pro) sobre Rapidez (Flash)
+        // REMOVIDO 2.0/2.5 pois estavam instáveis
         const preference = [
             "gemini-1.5-pro",
             "gemini-1.5-pro-001",
             "gemini-1.5-pro-002",
-            "gemini-2.0-pro-exp-02-05", // Experimental High Intel
             "gemini-1.5-flash",
-            "gemini-2.0-flash",
-            "gemini-2.5-flash",
+            "gemini-1.5-flash-001",
+            "gemini-1.5-flash-002",
             "gemini-pro"
         ];
 
