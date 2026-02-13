@@ -259,30 +259,57 @@ export async function analyzeRawDiligence(warrantData: any, rawInfo: string) {
     if (!(await isGeminiEnabled())) return null;
 
     const prompt = `
-        Você é um Especialista em Inteligência Policial de alto nível.
-        Sua missão é analisar informações brutas (diligências, observações, informes) colhidas por equipes de campo sobre um alvo de mandado judicial.
+        VOCÊ É UM ESPECIALISTA EM INTELIGÊNCIA POLICIAL DE ELITE.
+        SUA MISSÃO: Analisar informações brutas (diligências, observações, informes) colhidas por equipes de campo sobre um alvo.
 
         DADOS DO ALVO:
-        ${JSON.stringify(warrantData, null, 2)}
+        ${JSON.stringify({
+        name: warrantData.name,
+        crime: warrantData.crime,
+        location: warrantData.location,
+        history: (warrantData.diligentHistory || []).slice(-5) // Send only last 5 entries for context
+    }, null, 2)}
 
-        INFORMAÇÃO BRUTA COLETADA:
+        INFORMAÇÃO BRUTA COLETADA (O QUE ACABOU DE CHEGAR):
         "${rawInfo}"
 
-        Sua análise deve:
-        1. CONFRONTAR: Verifique se a informação nova contradiz ou confirma dados já existentes (endereço, rotina, contatos).
-        2. INSIGHTS: Identifique padrões ocultos (ex: horários de maior vulnerabilidade, possíveis refúgios, comportamento de fuga).
-        3. OPINIÃO TÁTICA: Sugira a melhor abordagem ou o próximo passo para a captura, avaliando o risco.
-        4. IDENTIFICAÇÃO: Extraia nomes, apelidos, veículos (placas) ou endereços mencionados.
+        DIRETRIZES DE ANÁLISE:
+        1. CONFRONTAR: A nova informação bate com os dados antigos?
+        2. RISCO: Nível de periculosidade ATUAL baseado no informe.
+        3. AÇÃO: O que deve ser feito IMEDIATAMENTE?
+        4. VÍNCULOS: Pessoas ou veículos citados.
 
-        Responda de forma profissional, direta e em formato Markdown estruturado para leitura rápida em dispositivos móveis.
-        Use emojis para sinalizar pontos críticos.
+        SAÍDA OBRIGATÓRIA EM JSON (SEM MARKDOWN, APENAS O JSON):
+        {
+            "summary": "Análise tática resumida (máx 3 linhas) focada no que fazer.",
+            "riskLevel": "Baixo" | "Médio" | "Alto" | "Crítico",
+            "riskReason": "Por que esse nível de risco?",
+            "entities": [
+                { "name": "Nome/Vulgo", "role": "Papel (Olheiro/Irmão/Vizinho)", "context": "Onde aparece" }
+            ],
+            "locations": [
+                { "address": "Endereço citado", "context": "Esconderijo/Trabalho/Família" }
+            ],
+            "checklist": [
+                { "task": "Ação operacional sugerida", "priority": "Alta" | "Normal" }
+            ]
+        }
     `;
 
     try {
-        return await tryGenerateContent(prompt);
+        const text = await tryGenerateContent(prompt);
+        return parseGeminiJSON(text, null);
     } catch (error: any) {
         console.error("Erro no Gemini (Análise Bruta):", error);
-        return `Erro na Análise de Inteligência: ${error.message}`;
+        // Return object structure even on error to prevent UI crash
+        return {
+            summary: `Erro na análise IA: ${error.message}.`,
+            riskLevel: "Desconhecido",
+            riskReason: "Falha de processamento.",
+            entities: [],
+            locations: [],
+            checklist: []
+        };
     }
 }
 
