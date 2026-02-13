@@ -1002,40 +1002,15 @@ Equipe de Capturas - DIG / PCSP
         if (!data) return;
         try {
             const intel = parseTacticalSummary(data.tacticalSummary);
-
-            // Determine if a virtual task was injected at index 0 in UI
-            const hasValidIfood = localData.ifoodResult && localData.ifoodResult.length > 20;
-            const ifoodTaskExists = intel.checklist?.some((t: any) => t.task.toLowerCase().includes('ifood') || t.task.toLowerCase().includes('iffo'));
-            const isVirtualAdded = !hasValidIfood && !ifoodTaskExists;
-
             let finalChecklist = [...(intel.checklist || [])];
 
-            if (isVirtualAdded) {
-                if (idx === 0) {
-                    // Virtual task was clicked -> Insert it for real but as "Concluído"
-                    finalChecklist.unshift({
-                        task: "Solicitar quebra de sigilo iFood (IFFO)",
-                        priority: "Alta",
-                        status: "Concluído",
-                        checked: true
-                    });
-                } else {
-                    // Real task selected (after the virtual one)
-                    const actualIdx = idx - 1;
-                    if (finalChecklist[actualIdx]) {
-                        finalChecklist[actualIdx].checked = !finalChecklist[actualIdx].checked;
-                        finalChecklist[actualIdx].status = finalChecklist[actualIdx].checked ? 'Concluído' : 'Pendente';
-                    }
-                }
-            } else {
-                // Direct mapping
-                if (finalChecklist[idx]) {
-                    finalChecklist[idx].checked = !finalChecklist[idx].checked;
-                    finalChecklist[idx].status = finalChecklist[idx].checked ? 'Concluído' : 'Pendente';
-                }
+            if (finalChecklist[idx]) {
+                finalChecklist[idx].checked = !finalChecklist[idx].checked;
+                finalChecklist[idx].status = finalChecklist[idx].checked ? 'Concluído' : 'Pendente';
             }
 
             const updatedIntel = { ...intel, checklist: finalChecklist };
+
 
             // Recalculate progress
             const total = finalChecklist.length;
@@ -1925,205 +1900,193 @@ Equipe de Capturas - DIG / PCSP
 
                                 const hasData = intel.summary && intel.summary !== 'Aguardando primeira análise...';
 
-                                // AUTOMATIC CHECKLIST INJECTION: Check iFood Status
-                                if (hasData) {
-                                    const hasValidIfood = localData.ifoodResult && localData.ifoodResult.length > 20;
-                                    const ifoodTaskExists = intel.checklist?.some((t: any) => t.task.toLowerCase().includes('ifood') || t.task.toLowerCase().includes('iffo'));
+                                // No automatic checklist injection here to avoid index mismatch
+                            }
 
-                                    if (!hasValidIfood && !ifoodTaskExists) {
-                                        if (!intel.checklist) intel.checklist = [];
-                                        intel.checklist.unshift({
-                                            task: "Solicitar quebra de sigilo iFood (IFFO)",
-                                            priority: "Alta",
-                                            status: "Pendente",
-                                            checked: false
-                                        });
-                                    }
-                                }
 
                                 if (!hasData) {
                                     return (
-                                        <div className="text-center py-20 opacity-50 border-2 border-dashed border-white/10 rounded-3xl">
-                                            <Bot size={48} className="mx-auto mb-4 text-white/30" />
-                                            <p className="text-white font-bold text-lg">Centro de Inteligência Vazio</p>
-                                            <p className="text-sm text-gray-400 mt-2 max-w-md mx-auto">
-                                                Para ativar, vá na aba <strong>RELATÓRIO ESTRATÉGICO</strong>, realize uma análise e clique em
-                                                <span className="text-indigo-400 font-bold mx-1">REGISTRAR NO PRONTUÁRIO</span>.
-                                            </p>
-                                        </div>
-                                    );
+                            <div className="text-center py-20 opacity-50 border-2 border-dashed border-white/10 rounded-3xl">
+                                <Bot size={48} className="mx-auto mb-4 text-white/30" />
+                                <p className="text-white font-bold text-lg">Centro de Inteligência Vazio</p>
+                                <p className="text-sm text-gray-400 mt-2 max-w-md mx-auto">
+                                    Para ativar, vá na aba <strong>RELATÓRIO ESTRATÉGICO</strong>, realize uma análise e clique em
+                                    <span className="text-indigo-400 font-bold mx-1">REGISTRAR NO PRONTUÁRIO</span>.
+                                </p>
+                            </div>
+                            );
                                 }
 
-                                return (
-                                    <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+                            return (
+                            <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
 
-                                        {/* LEFT COLUMN (STRATEGY & SUMMARY) - SPAN 8 */}
-                                        <div className="md:col-span-8 space-y-6">
+                                {/* LEFT COLUMN (STRATEGY & SUMMARY) - SPAN 8 */}
+                                <div className="md:col-span-8 space-y-6">
 
-                                            {/* 1. STRATEGIC SUMMARY CARD */}
-                                            <div className={`bg-surface-light dark:bg-surface-dark/90 backdrop-blur border ${tabTheme.border} rounded-2xl p-6 shadow-glass relative overflow-hidden group`}>
-                                                <div className="absolute top-0 right-0 p-6 opacity-5 pointer-events-none">
-                                                    <Lightbulb size={120} />
-                                                </div>
-                                                <h5 className={`text-sm font-black uppercase tracking-widest mb-3 flex items-center gap-2 ${tabTheme.text}`}>
-                                                    <Target size={14} /> Resumo Estratégico Consolidado
-                                                </h5>
-                                                <p className="text-text-light/90 dark:text-white/90 text-sm leading-relaxed whitespace-pre-wrap font-medium">
-                                                    {intel.summary || "Sem resumo disponível."}
-                                                </p>
-                                            </div>
+                                    {/* 1. STRATEGIC SUMMARY CARD */}
+                                    <div className={`bg-surface-light dark:bg-surface-dark/90 backdrop-blur border ${tabTheme.border} rounded-2xl p-6 shadow-glass relative overflow-hidden group`}>
+                                        <div className="absolute top-0 right-0 p-6 opacity-5 pointer-events-none">
+                                            <Lightbulb size={120} />
+                                        </div>
+                                        <h5 className={`text-sm font-black uppercase tracking-widest mb-3 flex items-center gap-2 ${tabTheme.text}`}>
+                                            <Target size={14} /> Resumo Estratégico Consolidado
+                                        </h5>
+                                        <p className="text-text-light/90 dark:text-white/90 text-sm leading-relaxed whitespace-pre-wrap font-medium">
+                                            {intel.summary || "Sem resumo disponível."}
+                                        </p>
+                                    </div>
 
-                                            {/* 2. HYPOTHESES & RISKS ROW */}
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                {/* HYPOTHESES */}
-                                                <div className={`bg-surface-light dark:bg-surface-dark/80 border ${tabTheme.border} rounded-2xl p-5 shadow-sm transition-colors`}>
-                                                    <h5 className={`text-[10px] font-black uppercase tracking-widest mb-3 flex items-center gap-2 ${tabTheme.text}`}>
-                                                        <Lightbulb size={12} /> Hipóteses Ativas
-                                                    </h5>
-                                                    <div className="space-y-3">
-                                                        {intel.hypotheses && intel.hypotheses.length > 0 ? (
-                                                            intel.hypotheses.map((h: any, i: number) => (
-                                                                <div key={i} className={`p-3 rounded-xl border border-border-light dark:border-white/5 ${h.status === 'Confirmada' ? 'bg-green-500/10 border-green-500/20' : 'bg-slate-50 dark:bg-white/5'}`}>
-                                                                    <div className="flex justify-between items-start mb-1">
-                                                                        <span className={`text-[9px] font-black px-1.5 py-0.5 rounded uppercase ${h.confidence === 'Alta' ? 'bg-indigo-500 text-white' : 'bg-slate-200 dark:bg-white/10 text-slate-500 dark:text-gray-400'
-                                                                            }`}>{h.confidence}</span>
-                                                                        {h.status === 'Confirmada' && <CheckCircle size={12} className="text-emerald-600 dark:text-green-400" />}
-                                                                    </div>
-                                                                    <p className="text-xs text-text-light dark:text-white leading-snug">{h.description}</p>
-                                                                </div>
-                                                            ))
-                                                        ) : <p className="text-xs text-text-secondary-light dark:text-gray-500 italic">Nenhuma hipótese formalizada.</p>}
-                                                    </div>
-                                                </div>
-
-                                                {/* RISKS */}
-                                                <div className={`bg-surface-light dark:bg-surface-dark/80 border ${tabTheme.border} rounded-2xl p-5 shadow-sm transition-colors`}>
-                                                    <h5 className={`text-[10px] font-black uppercase tracking-widest mb-3 flex items-center gap-2 ${tabTheme.text}`}>
-                                                        <ShieldAlert size={12} /> Riscos Operacionais
-                                                    </h5>
-                                                    <div className="flex flex-wrap gap-2">
-                                                        {intel.risks && intel.risks.length > 0 ? (
-                                                            intel.risks.map((r: string, i: number) => (
-                                                                <span key={i} className="px-3 py-1.5 rounded-lg bg-red-100 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 text-red-600 dark:text-red-400 text-xs font-bold flex items-center gap-2">
-                                                                    <AlertTriangle size={10} /> {r}
-                                                                </span>
-                                                            ))
-                                                        ) : <p className="text-xs text-text-secondary-light dark:text-gray-500 italic">Nenhum risco crítico identificado.</p>}
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            {/* 3. LOCATIONS & ENTITIES */}
-                                            <div className={`bg-surface-light dark:bg-surface-dark/80 border ${tabTheme.border} rounded-2xl p-5`}>
-                                                <div className={`flex gap-4 mb-4 border-b ${tabTheme.hdrBorder} pb-2`}>
-                                                    <div className="flex-1">
-                                                        <h5 className={`text-[10px] font-black uppercase tracking-widest flex items-center gap-2 ${tabTheme.text}`}>
-                                                            <MapIcon size={12} /> Endereços mapeados
-                                                        </h5>
-                                                    </div>
-                                                    <div className="flex-1">
-                                                        <h5 className={`text-[10px] font-black uppercase tracking-widest flex items-center gap-2 ${tabTheme.text}`}>
-                                                            <Users size={12} /> Vínculos / Rede
-                                                        </h5>
-                                                    </div>
-                                                </div>
-
-                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                    {/* Locations List */}
-                                                    <div className="space-y-2 max-h-48 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-white/10">
-                                                        {intel.locations && intel.locations.map((l: any, i: number) => (
-                                                            <div key={i} className="flex items-start gap-2 p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-white/5 transition-colors group">
-                                                                <MapPin size={14} className={`mt-0.5 shrink-0 ${l.priority === 'Alta' ? 'text-red-600 dark:text-red-400' : 'text-slate-400 dark:text-gray-400'}`} />
-                                                                <div className="flex-1 min-w-0">
-                                                                    {/* Fix: Allow text wrap instead of truncate */}
-                                                                    <p className="text-xs font-bold text-text-light dark:text-white break-words leading-tight">
-                                                                        {l.address}
-                                                                    </p>
-                                                                    <p className="text-[10px] text-text-secondary-light dark:text-gray-400 break-words mt-0.5 leading-snug">
-                                                                        {l.context}
-                                                                    </p>
-                                                                </div>
-                                                                <span className={`text-[9px] px-1.5 py-0.5 rounded font-bold shrink-0 ${l.status === 'Verificado' ? 'bg-green-100 dark:bg-green-500/20 text-green-600 dark:text-green-400' : 'bg-slate-200 dark:bg-white/10 text-slate-500 dark:text-gray-500'
-                                                                    }`}>{l.status || 'Pendente'}</span>
+                                    {/* 2. HYPOTHESES & RISKS ROW */}
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        {/* HYPOTHESES */}
+                                        <div className={`bg-surface-light dark:bg-surface-dark/80 border ${tabTheme.border} rounded-2xl p-5 shadow-sm transition-colors`}>
+                                            <h5 className={`text-[10px] font-black uppercase tracking-widest mb-3 flex items-center gap-2 ${tabTheme.text}`}>
+                                                <Lightbulb size={12} /> Hipóteses Ativas
+                                            </h5>
+                                            <div className="space-y-3">
+                                                {intel.hypotheses && intel.hypotheses.length > 0 ? (
+                                                    intel.hypotheses.map((h: any, i: number) => (
+                                                        <div key={i} className={`p-3 rounded-xl border border-border-light dark:border-white/5 ${h.status === 'Confirmada' ? 'bg-green-500/10 border-green-500/20' : 'bg-slate-50 dark:bg-white/5'}`}>
+                                                            <div className="flex justify-between items-start mb-1">
+                                                                <span className={`text-[9px] font-black px-1.5 py-0.5 rounded uppercase ${h.confidence === 'Alta' ? 'bg-indigo-500 text-white' : 'bg-slate-200 dark:bg-white/10 text-slate-500 dark:text-gray-400'
+                                                                    }`}>{h.confidence}</span>
+                                                                {h.status === 'Confirmada' && <CheckCircle size={12} className="text-emerald-600 dark:text-green-400" />}
                                                             </div>
-                                                        ))}
-                                                    </div>
-
-                                                    {/* Entities List */}
-                                                    <div className="space-y-2 max-h-48 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-white/10">
-                                                        {intel.entities && intel.entities.map((e: any, i: number) => (
-                                                            <div key={i} className="flex items-center gap-2 p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-white/5 transition-colors">
-                                                                <User size={14} className="text-indigo-600 dark:text-indigo-400" />
-                                                                <div className="flex-1 min-w-0">
-                                                                    <p className="text-xs font-bold text-text-light dark:text-white truncate">{e.name}</p>
-                                                                    <p className="text-[10px] text-text-secondary-light dark:text-gray-400">{e.role}</p>
-                                                                </div>
-                                                            </div>
-                                                        ))}
-                                                    </div>
-                                                </div>
+                                                            <p className="text-xs text-text-light dark:text-white leading-snug">{h.description}</p>
+                                                        </div>
+                                                    ))
+                                                ) : <p className="text-xs text-text-secondary-light dark:text-gray-500 italic">Nenhuma hipótese formalizada.</p>}
                                             </div>
-
                                         </div>
 
-                                        {/* RIGHT COLUMN (TIMELINE & NEXT STEPS) - SPAN 4 */}
-                                        <div className="md:col-span-4 space-y-6">
-
-                                            {/* NEXT STEPS (ACTIONABLE) */}
-                                            <div className="bg-gradient-to-br from-indigo-50 to-white dark:from-indigo-900/40 dark:to-surface-dark border border-indigo-200 dark:border-indigo-500/30 rounded-2xl p-5 shadow-lg">
-                                                <h5 className="text-[10px] font-black text-indigo-900 dark:text-white uppercase tracking-widest mb-4 flex items-center gap-2">
-                                                    <CheckSquare size={14} className="text-green-600 dark:text-green-400" /> Próximos Passos
-                                                </h5>
-                                                <div className="space-y-3">
-                                                    {intel.checklist && intel.checklist.length > 0 ? (
-                                                        intel.checklist.map((s: any, i: number) => (
-                                                            <div
-                                                                key={i}
-                                                                onClick={(e) => {
-                                                                    e.stopPropagation();
-                                                                    handleToggleInvestigationStep(i);
-                                                                }}
-                                                                className="flex items-start gap-3 p-2 rounded-xl bg-slate-100 dark:bg-black/20 hover:bg-slate-200 dark:hover:bg-black/40 transition-colors cursor-pointer group"
-                                                            >
-                                                                <div className={`mt-1 w-4 h-4 rounded border flex items-center justify-center shrink-0 ${s.status === 'Concluído' || s.checked ? 'bg-green-500 border-green-500' : 'border-slate-400 dark:border-gray-500 group-hover:border-indigo-500 dark:group-hover:border-white'
-                                                                    }`}>
-                                                                    {(s.status === 'Concluído' || s.checked) && <CheckSquare size={10} className="text-white" />}
-                                                                </div>
-                                                                <div className="flex-1">
-                                                                    <p className={`text-xs font-medium leading-relaxed ${(s.status === 'Concluído' || s.checked) ? 'text-slate-500 dark:text-gray-500 line-through' : 'text-text-light dark:text-white'}`}>
-                                                                        {s.task}
-                                                                    </p>
-                                                                    {s.priority === 'Alta' && <span className="text-[9px] text-red-600 dark:text-red-400 font-bold uppercase mt-1 inline-block">Prioridade Alta</span>}
-                                                                </div>
-                                                            </div>
-                                                        ))
-                                                    ) : <p className="text-xs text-text-secondary-light dark:text-gray-500 text-center">Nenhuma ação pendente.</p>}
-                                                </div>
+                                        {/* RISKS */}
+                                        <div className={`bg-surface-light dark:bg-surface-dark/80 border ${tabTheme.border} rounded-2xl p-5 shadow-sm transition-colors`}>
+                                            <h5 className={`text-[10px] font-black uppercase tracking-widest mb-3 flex items-center gap-2 ${tabTheme.text}`}>
+                                                <ShieldAlert size={12} /> Riscos Operacionais
+                                            </h5>
+                                            <div className="flex flex-wrap gap-2">
+                                                {intel.risks && intel.risks.length > 0 ? (
+                                                    intel.risks.map((r: string, i: number) => (
+                                                        <span key={i} className="px-3 py-1.5 rounded-lg bg-red-100 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 text-red-600 dark:text-red-400 text-xs font-bold flex items-center gap-2">
+                                                            <AlertTriangle size={10} /> {r}
+                                                        </span>
+                                                    ))
+                                                ) : <p className="text-xs text-text-secondary-light dark:text-gray-500 italic">Nenhum risco crítico identificado.</p>}
                                             </div>
-
-                                            {/* STRATEGIC TIMELINE (NOT THE RAW LOG) */}
-                                            <div className="bg-surface-light dark:bg-surface-dark border border-border-light dark:border-white/5 rounded-2xl p-5">
-                                                <h5 className="text-[10px] font-black text-text-secondary-light dark:text-gray-400 uppercase tracking-widest mb-4 flex items-center gap-2">
-                                                    <History size={14} /> Evolução da Investigação
-                                                </h5>
-                                                <div className="space-y-4 relative pl-2">
-                                                    {/* Timeline Line */}
-                                                    <div className="absolute left-[11px] top-2 bottom-2 w-px bg-slate-200 dark:bg-white/10"></div>
-
-                                                    {intel.timeline && intel.timeline.slice(0, 5).map((t: any, i: number) => (
-                                                        <div key={i} className="relative pl-6">
-                                                            <div className="absolute left-[7px] top-1.5 w-2 h-2 rounded-full bg-indigo-500 ring-4 ring-white dark:ring-surface-dark"></div>
-                                                            <p className="text-[10px] text-indigo-600 dark:text-indigo-300 font-bold mb-0.5">{t.date}</p>
-                                                            <p className="text-xs text-text-light dark:text-white leading-tight">{t.event}</p>
-                                                            <p className="text-[9px] text-text-secondary-light dark:text-gray-500 mt-0.5">{t.source}</p>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            </div>
-
                                         </div>
                                     </div>
-                                )
+
+                                    {/* 3. LOCATIONS & ENTITIES */}
+                                    <div className={`bg-surface-light dark:bg-surface-dark/80 border ${tabTheme.border} rounded-2xl p-5`}>
+                                        <div className={`flex gap-4 mb-4 border-b ${tabTheme.hdrBorder} pb-2`}>
+                                            <div className="flex-1">
+                                                <h5 className={`text-[10px] font-black uppercase tracking-widest flex items-center gap-2 ${tabTheme.text}`}>
+                                                    <MapIcon size={12} /> Endereços mapeados
+                                                </h5>
+                                            </div>
+                                            <div className="flex-1">
+                                                <h5 className={`text-[10px] font-black uppercase tracking-widest flex items-center gap-2 ${tabTheme.text}`}>
+                                                    <Users size={12} /> Vínculos / Rede
+                                                </h5>
+                                            </div>
+                                        </div>
+
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            {/* Locations List */}
+                                            <div className="space-y-2 max-h-48 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-white/10">
+                                                {intel.locations && intel.locations.map((l: any, i: number) => (
+                                                    <div key={i} className="flex items-start gap-2 p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-white/5 transition-colors group">
+                                                        <MapPin size={14} className={`mt-0.5 shrink-0 ${l.priority === 'Alta' ? 'text-red-600 dark:text-red-400' : 'text-slate-400 dark:text-gray-400'}`} />
+                                                        <div className="flex-1 min-w-0">
+                                                            {/* Fix: Allow text wrap instead of truncate */}
+                                                            <p className="text-xs font-bold text-text-light dark:text-white break-words leading-tight">
+                                                                {l.address}
+                                                            </p>
+                                                            <p className="text-[10px] text-text-secondary-light dark:text-gray-400 break-words mt-0.5 leading-snug">
+                                                                {l.context}
+                                                            </p>
+                                                        </div>
+                                                        <span className={`text-[9px] px-1.5 py-0.5 rounded font-bold shrink-0 ${l.status === 'Verificado' ? 'bg-green-100 dark:bg-green-500/20 text-green-600 dark:text-green-400' : 'bg-slate-200 dark:bg-white/10 text-slate-500 dark:text-gray-500'
+                                                            }`}>{l.status || 'Pendente'}</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+
+                                            {/* Entities List */}
+                                            <div className="space-y-2 max-h-48 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-white/10">
+                                                {intel.entities && intel.entities.map((e: any, i: number) => (
+                                                    <div key={i} className="flex items-center gap-2 p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-white/5 transition-colors">
+                                                        <User size={14} className="text-indigo-600 dark:text-indigo-400" />
+                                                        <div className="flex-1 min-w-0">
+                                                            <p className="text-xs font-bold text-text-light dark:text-white truncate">{e.name}</p>
+                                                            <p className="text-[10px] text-text-secondary-light dark:text-gray-400">{e.role}</p>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+
+                                {/* RIGHT COLUMN (TIMELINE & NEXT STEPS) - SPAN 4 */}
+                                <div className="md:col-span-4 space-y-6">
+
+                                    {/* NEXT STEPS (ACTIONABLE) */}
+                                    <div className="bg-gradient-to-br from-indigo-50 to-white dark:from-indigo-900/40 dark:to-surface-dark border border-indigo-200 dark:border-indigo-500/30 rounded-2xl p-5 shadow-lg">
+                                        <h5 className="text-[10px] font-black text-indigo-900 dark:text-white uppercase tracking-widest mb-4 flex items-center gap-2">
+                                            <CheckSquare size={14} className="text-green-600 dark:text-green-400" /> Próximos Passos
+                                        </h5>
+                                        <div className="space-y-3">
+                                            {intel.checklist && intel.checklist.length > 0 ? (
+                                                intel.checklist.map((s: any, i: number) => (
+                                                    <div
+                                                        key={i}
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleToggleInvestigationStep(i);
+                                                        }}
+                                                        className="flex items-start gap-3 p-2 rounded-xl bg-slate-100 dark:bg-black/20 hover:bg-slate-200 dark:hover:bg-black/40 transition-colors cursor-pointer group"
+                                                    >
+                                                        <div className={`mt-1 w-4 h-4 rounded border flex items-center justify-center shrink-0 ${s.status === 'Concluído' || s.checked ? 'bg-green-500 border-green-500' : 'border-slate-400 dark:border-gray-500 group-hover:border-indigo-500 dark:group-hover:border-white'
+                                                            }`}>
+                                                            {(s.status === 'Concluído' || s.checked) && <CheckSquare size={10} className="text-white" />}
+                                                        </div>
+                                                        <div className="flex-1">
+                                                            <p className={`text-xs font-medium leading-relaxed ${(s.status === 'Concluído' || s.checked) ? 'text-slate-500 dark:text-gray-500 line-through' : 'text-text-light dark:text-white'}`}>
+                                                                {s.task}
+                                                            </p>
+                                                            {s.priority === 'Alta' && <span className="text-[9px] text-red-600 dark:text-red-400 font-bold uppercase mt-1 inline-block">Prioridade Alta</span>}
+                                                        </div>
+                                                    </div>
+                                                ))
+                                            ) : <p className="text-xs text-text-secondary-light dark:text-gray-500 text-center">Nenhuma ação pendente.</p>}
+                                        </div>
+                                    </div>
+
+                                    {/* STRATEGIC TIMELINE (NOT THE RAW LOG) */}
+                                    <div className="bg-surface-light dark:bg-surface-dark border border-border-light dark:border-white/5 rounded-2xl p-5">
+                                        <h5 className="text-[10px] font-black text-text-secondary-light dark:text-gray-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                                            <History size={14} /> Evolução da Investigação
+                                        </h5>
+                                        <div className="space-y-4 relative pl-2">
+                                            {/* Timeline Line */}
+                                            <div className="absolute left-[11px] top-2 bottom-2 w-px bg-slate-200 dark:bg-white/10"></div>
+
+                                            {intel.timeline && intel.timeline.slice(0, 5).map((t: any, i: number) => (
+                                                <div key={i} className="relative pl-6">
+                                                    <div className="absolute left-[7px] top-1.5 w-2 h-2 rounded-full bg-indigo-500 ring-4 ring-white dark:ring-surface-dark"></div>
+                                                    <p className="text-[10px] text-indigo-600 dark:text-indigo-300 font-bold mb-0.5">{t.date}</p>
+                                                    <p className="text-xs text-text-light dark:text-white leading-tight">{t.event}</p>
+                                                    <p className="text-[9px] text-text-secondary-light dark:text-gray-500 mt-0.5">{t.source}</p>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                            )
                             })()}
 
 
