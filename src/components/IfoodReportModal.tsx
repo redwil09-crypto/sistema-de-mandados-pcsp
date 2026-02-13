@@ -273,44 +273,50 @@ const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, wa
         doc.setFontSize(11); // Body font size
 
         const indent = "          "; // ~10 spaces
+        const lineHeight = 6; // Altura da linha um pouco maior para leitura confortável
+        const paragraphSpacing = 8; // Espaço entre parágrafos
 
         const p1 = `${indent}Com a finalidade de instruir investigação policial em trâmite nesta unidade, solicito, respeitosamente, a gentileza de verificar se o indivíduo abaixo relacionado encontra-se cadastrado como usuário ou entregador da plataforma IFOOD.`;
         const splitP1 = doc.splitTextToSize(p1, maxLineWidth);
         doc.text(splitP1, margin, y, { align: 'justify', maxWidth: maxLineWidth });
-        y += (splitP1.length * 5) + 5;
+        y += (splitP1.length * lineHeight) + paragraphSpacing;
 
         const p2 = `${indent}Em caso positivo, requer-se o envio das informações cadastrais fornecidas para habilitação na plataforma, incluindo, se disponíveis, nome completo, endereço(s), número(s) de telefone, e-mail(s) e demais dados vinculados à respectiva conta.`;
         const splitP2 = doc.splitTextToSize(p2, maxLineWidth);
         doc.text(splitP2, margin, y, { align: 'justify', maxWidth: maxLineWidth });
-        y += (splitP2.length * 5) + 5;
+        y += (splitP2.length * lineHeight) + paragraphSpacing;
 
         const p3 = `${indent}As informações devem ser encaminhadas ao e-mail institucional do policial responsável pela investigação:`;
-        doc.text(p3, margin, y);
-        y += 8;
+        const splitP3 = doc.splitTextToSize(p3, maxLineWidth);
+        doc.text(splitP3, margin, y, { align: 'justify', maxWidth: maxLineWidth });
+        y += (splitP3.length * lineHeight) + 4; // Menos espaço antes do email para agrupar visualmente
 
         // Email Block
         doc.setFont('helvetica', 'bold');
-        doc.text("william.castro@policiacivil.sp.gov.br", margin + 10, y);
-        y += 5;
+        doc.text("william.castro@policiacivil.sp.gov.br", margin + 15, y);
+        y += 6;
         doc.setFont('helvetica', 'normal');
-        doc.text("William Campos de Assis Castro – Polícia Civil do Estado de São Paulo", margin + 10, y);
+        doc.text("William Campos de Assis Castro – Polícia Civil do Estado de São Paulo", margin + 15, y);
         y += 15;
 
         // Person of Interest
         doc.setFont('helvetica', 'normal');
         doc.text("Pessoa de interesse para a investigação:", margin, y);
-        y += 6;
+        y += 7;
 
         doc.setFont('helvetica', 'bold');
         const personLine = `${warrant.name.toUpperCase()} – CPF ${warrant.cpf || warrant.rg || 'NÃO INFORMADO'}`;
-        doc.text(personLine, margin, y);
-        y += 15;
+        // Check if person name is too long
+        const splitPerson = doc.splitTextToSize(personLine, maxLineWidth);
+        doc.text(splitPerson, margin, y);
+        y += (splitPerson.length * lineHeight) + 12;
 
         // Closing
         doc.setFont('helvetica', 'normal');
         const closing = `${indent}Aproveito a oportunidade para renovar meus votos de elevada estima e consideração.`;
-        doc.text(closing, margin, y);
-        y += 10;
+        const splitClosing = doc.splitTextToSize(closing, maxLineWidth);
+        doc.text(splitClosing, margin, y, { align: 'justify', maxWidth: maxLineWidth });
+        y += (splitClosing.length * lineHeight) + 15;
 
         doc.text("Atenciosamente,", margin, y);
 
