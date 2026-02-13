@@ -13,11 +13,11 @@ interface FloatingDockProps {
 }
 
 const FloatingDock = ({ onBack, onHome, onSave, onPrint, onFinalize, onDelete, className }: FloatingDockProps) => {
-    const containerClasses = className || "w-full z-10 rounded-3xl border border-border-light dark:border-white/10 bg-slate-100/95 dark:bg-zinc-900/95 backdrop-blur-xl shadow-glass transition-all duration-300 px-4 py-4 mt-8 mb-2";
+    const containerClasses = className || "fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-3xl z-50 rounded-2xl border border-border-light dark:border-white/10 bg-surface-light/95 dark:bg-surface-dark/95 backdrop-blur-xl shadow-2xl px-6 py-4 transition-all duration-300";
 
     return (
         <div className={`${containerClasses} animate-in fade-in slide-in-from-bottom-5 duration-500`}>
-            <div className="flex w-full items-center justify-center gap-2 sm:gap-6 md:gap-10">
+            <div className="flex w-full items-center justify-between gap-2 md:gap-4">
                 {/* Botão VOLTAR (Histórico) */}
                 <DockItem
                     onClick={onBack}

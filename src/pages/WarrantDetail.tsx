@@ -23,6 +23,7 @@ import { Warrant } from '../types';
 import { geocodeAddress } from '../services/geocodingService';
 import { generateWarrantPDF, generateIfoodOfficePDF } from '../services/pdfReportService';
 import IfoodReportModal from '../components/IfoodReportModal';
+import FloatingDock from '../components/FloatingDock';
 import { analyzeRawDiligence, generateReportBody, analyzeDocumentStrategy, askAssistantStrategy, mergeIntelligence } from '../services/geminiService';
 import { extractRawTextFromPdf, extractFromText } from '../pdfExtractor';
 import { CRIME_OPTIONS, REGIME_OPTIONS } from '../data/constants';
@@ -2843,6 +2844,14 @@ Equipe de Capturas - DIG / PCSP
                     updateWarrant={updateWarrant}
                 />
             )}
+            <FloatingDock
+                onBack={handleBack}
+                onHome={() => navigate('/')}
+                onSave={() => navigate(`/new-warrant?edit=${id}`)}
+                onPrint={handleDownloadPDF}
+                onFinalize={handleFinalize}
+                onDelete={isAdmin ? () => setIsDeleteConfirmOpen(true) : undefined}
+            />
         </div >
     );
 };
