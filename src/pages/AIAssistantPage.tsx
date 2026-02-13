@@ -1485,6 +1485,14 @@ const AIAssistantPage = () => {
 
                 <BottomNav />
             </div>
+
+            {/* Tactical Grouping Modal */}
+            <TacticalOperationModal
+                isOpen={isGroupingModalOpen}
+                onClose={() => setIsGroupingModalOpen(false)}
+                groups={operationGroups}
+                isAnalyzing={isAnalyzingGroups}
+            />
         </div>
     );
 };
