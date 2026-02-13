@@ -10,9 +10,10 @@ interface FloatingDockProps {
     onFinalize: () => void;
     onDelete?: () => void;
     className?: string;
+    status?: string;
 }
 
-const FloatingDock = ({ onBack, onHome, onSave, onPrint, onFinalize, onDelete, className }: FloatingDockProps) => {
+const FloatingDock = ({ onBack, onHome, onSave, onPrint, onFinalize, onDelete, className, status }: FloatingDockProps) => {
     const containerClasses = className || "fixed bottom-0 left-0 w-full z-50 border-t border-slate-700 bg-slate-900/95 backdrop-blur-xl shadow-2xl px-6 py-4 transition-all duration-300";
 
     return (
@@ -56,13 +57,13 @@ const FloatingDock = ({ onBack, onHome, onSave, onPrint, onFinalize, onDelete, c
                     label="Imprimir"
                 />
 
-                {/* CONCLUIR */}
+                {/* CONCLUIR / REABRIR */}
                 <DockItem
                     onClick={onFinalize}
-                    icon={<CheckCircle size={24} />}
-                    color="text-text-secondary-light dark:text-text-secondary-dark hover:text-green-500"
-                    bg="hover:bg-green-500/10"
-                    label="Baixar"
+                    icon={status === 'CUMPRIDO' ? <RefreshCw size={24} /> : <CheckCircle size={24} />}
+                    color={status === 'CUMPRIDO' ? "text-text-secondary-light dark:text-text-secondary-dark hover:text-cyan-500" : "text-text-secondary-light dark:text-text-secondary-dark hover:text-green-500"}
+                    bg={status === 'CUMPRIDO' ? "hover:bg-cyan-500/10" : "hover:bg-green-500/10"}
+                    label={status === 'CUMPRIDO' ? "Reabrir" : "Baixar"}
                 />
 
                 {/* EXCLUIR */}
