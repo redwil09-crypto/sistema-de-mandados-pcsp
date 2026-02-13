@@ -1988,31 +1988,36 @@ Equipe de Capturas - DIG / PCSP
                                     </div>
                                 </div>
 
-                                {data.attachments && data.attachments.length > 0 ? (
+                                {data.attachments && Array.isArray(data.attachments) && data.attachments.length > 0 ? (
                                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                                        {data.attachments.map((file: string, idx: number) => (
-                                            <div key={idx} className="bg-background-light dark:bg-white/5 border border-border-light dark:border-white/5 rounded-xl p-3 flex items-center justify-between group hover:bg-black/5 dark:hover:bg-white/10 transition-all">
-                                                <div className="flex items-center gap-3 min-w-0">
-                                                    <div className="p-2 bg-primary/20 rounded-lg text-primary">
-                                                        <FileText size={16} />
+                                        {data.attachments.map((file: string, idx: number) => {
+                                            if (!file || typeof file !== 'string') return null;
+                                            return (
+                                                <div key={idx} className="bg-background-light dark:bg-white/5 border border-border-light dark:border-white/5 rounded-xl p-3 flex items-center justify-between group hover:bg-black/5 dark:hover:bg-white/10 transition-all">
+                                                    <div className="flex items-center gap-3 min-w-0">
+                                                        <div className="p-2 bg-primary/20 rounded-lg text-primary">
+                                                            <FileText size={16} />
+                                                        </div>
+                                                        <span className="text-[11px] font-bold text-text-light dark:text-white truncate max-w-[120px]">
+                                                            {(() => {
+                                                                try {
+                                                                    const parts = file.split('/').pop()?.split('_') || [];
+                                                                    if (parts.length >= 4 && (parts[0] === 'Mandado' || parts[0] === 'IFFO' || parts[0] === 'Oficio')) {
+                                                                        return `${parts[0]} ${parts[2] || ''}`;
+                                                                    }
+                                                                    return file.split('/').pop()?.replace(/^\d+_/, '') || 'Documento';
+                                                                } catch (e) { return 'Documento'; }
+                                                            })()}
+                                                        </span>
                                                     </div>
-                                                    <span className="text-[11px] font-bold text-text-light dark:text-white truncate max-w-[120px]">
-                                                        {(() => {
-                                                            const parts = file.split('/').pop()?.split('_') || [];
-                                                            if (parts.length >= 4 && (parts[0] === 'Mandado' || parts[0] === 'IFFO' || parts[0] === 'Oficio')) {
-                                                                return `${parts[0]} ${parts[2] || ''}`;
-                                                            }
-                                                            return file.split('/').pop()?.replace(/^\d+_/, '')
-                                                        })()}
-                                                    </span>
+                                                    <div className="flex items-center gap-1">
+                                                        <a href={getPublicUrl(file)} target="_blank" rel="noopener noreferrer" className="p-2 text-text-muted hover:text-white" title="Visualizar"><Eye size={14} /></a>
+                                                        <a href={getPublicUrl(file)} target="_blank" rel="noopener noreferrer" className="p-2 text-text-muted hover:text-white hidden" title="Abrir Link"><ExternalLink size={14} /></a>
+                                                        <button onClick={() => handleDeleteAttachment(file)} className="p-2 text-red-500 hover:text-red-400" title="Excluir"><Trash2 size={14} /></button>
+                                                    </div>
                                                 </div>
-                                                <div className="flex items-center gap-1">
-                                                    <a href={getPublicUrl(file)} target="_blank" rel="noopener noreferrer" className="p-2 text-text-muted hover:text-white" title="Visualizar"><Eye size={14} /></a>
-                                                    <a href={getPublicUrl(file)} target="_blank" rel="noopener noreferrer" className="p-2 text-text-muted hover:text-white hidden" title="Abrir Link"><ExternalLink size={14} /></a>
-                                                    <button onClick={() => handleDeleteAttachment(file)} className="p-2 text-red-500 hover:text-red-400" title="Excluir"><Trash2 size={14} /></button>
-                                                </div>
-                                            </div>
-                                        ))}
+                                            );
+                                        })}
                                     </div>
                                 ) : (
                                     <div className="text-center py-10 opacity-30">
