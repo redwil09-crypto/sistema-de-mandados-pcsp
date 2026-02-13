@@ -394,6 +394,13 @@ export const generateIfoodOfficePDF = async (
         const margin = 20;
         let y = 20;
 
+        // --- THEME COLORS ---
+        const COLORS = {
+            PRIMARY: [15, 23, 42] as [number, number, number],
+            SECONDARY: [51, 65, 85] as [number, number, number],
+            BORDER: [226, 232, 240] as [number, number, number],
+        };
+
         // --- HEADER ---
         try {
             const badgePC = new Image();
@@ -414,33 +421,37 @@ export const generateIfoodOfficePDF = async (
 
             doc.addImage(badgePC, 'PNG', margin, y, badgeW, badgeH);
 
+            const textX = margin + badgeW + 8; // Define textX
+
             doc.setFont('helvetica', 'bold');
-            doc.setFontSize(9);
-            const textX = margin + badgeW + 5;
+            doc.setFontSize(8);
+            doc.setTextColor(...COLORS.SECONDARY);
+
             const headerLines = [
+                "GOVERNO DO ESTADO DE SÃO PAULO",
                 "SECRETARIA DA SEGURANÇA PÚBLICA",
                 "POLÍCIA CIVIL DO ESTADO DE SÃO PAULO",
-                "DEPARTAMENTO DE POLÍCIA JUDICIÁRIA DE SÃO PAULO INTERIOR",
                 "DEINTER 1 - SÃO JOSÉ DOS CAMPOS",
-                "DELEGACIA SECCIONAL DE POLÍCIA DE JACAREÍ",
-                "DELEGACIA DE INVESTIGAÇÕES GERAIS DE JACAREÍ"
+                "SECCIONAL DE JACAREÍ - DIG (INVESTIGAÇÕES GERAIS)"
             ];
 
             headerLines.forEach((line, index) => {
-                doc.text(line, textX, y + 4 + (index * 4));
+                doc.text(line, textX, y + 3 + (index * 4));
             });
 
-            doc.setLineWidth(0.5);
+            doc.setDrawColor(...COLORS.BORDER);
+            doc.setLineWidth(0.1);
             doc.line(margin, y + badgeH + 5, pageWidth - margin, y + badgeH + 5);
-            y += badgeH + 20;
+            y += badgeH + 12;
 
         } catch (e) {
-            console.error("Badge load error", e);
+            console.error("Header error", e);
             y += 30;
         }
 
         // --- TITLE ---
-        doc.setFontSize(14);
+        doc.setFontSize(12);
+        doc.setTextColor(...COLORS.PRIMARY);
         doc.setFont('helvetica', 'bold');
         doc.text("OFÍCIO DE REQUISIÇÃO DE DADOS", pageWidth / 2, y, { align: 'center' });
         y += 15;
@@ -455,55 +466,49 @@ export const generateIfoodOfficePDF = async (
         y += 20;
 
         // --- BODY ---
-        doc.setFontSize(11);
-        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(10);
         doc.text("Assunto: Requisição de Dados Cadastrais e Registros de Acesso", margin, y);
         y += 10;
 
         const bodyText = `Pelo presente, com fundamento na Lei 12.830/2013 e no interesse do Inquérito Policial em epígrafe, REQUISITO a Vossa Senhoria o fornecimento, no prazo improrrogável de 05 (cinco) dias, dos dados cadastrais completos (nome, CPF, telefones, e-mails, endereços de entrega cadastrados e histórico de pedidos com geolocalização se houver) vinculados ao investigado abaixo qualificado:`;
         const splitBody = doc.splitTextToSize(bodyText, pageWidth - (margin * 2));
-        doc.setFont('times', 'normal');
-        doc.text(splitBody, margin, y, { align: 'justify', maxWidth: pageWidth - (margin * 2) });
-        y += (splitBody.length * 6) + 12;
+        doc.text(splitBody, margin, y);
+        y += (splitBody.length * 5) + 10;
 
         // --- SUBJECT DETAILS ---
-        // Removed gray box styling to revert to classic format
+        doc.setFillColor(240, 240, 240);
+        doc.rect(margin, y, pageWidth - (margin * 2), 35, 'F');
         doc.setFont('helvetica', 'bold');
-        doc.setFontSize(10);
 
-        let detailY = y + 5;
-        doc.text(`NOME: ${data.name.toUpperCase()}`, margin, detailY);
+        let detailY = y + 7;
+        doc.text(`NOME: ${data.name.toUpperCase()}`, margin + 5, detailY);
         detailY += 7;
-        doc.text(`RG: ${data.rg || "NÃO INFORMADO"}`, margin, detailY);
+        doc.text(`RG: ${data.rg || "NÃO INFORMADO"}`, margin + 5, detailY);
         detailY += 7;
-        doc.text(`CPF: ${data.cpf || "NÃO INFORMADO"}`, margin, detailY);
+        doc.text(`CPF: ${data.cpf || "NÃO INFORMADO"}`, margin + 5, detailY);
 
-        y += 35;
+        y += 45;
 
 
         // --- CLOSING ---
         const closingText = `As informações deverão ser encaminhadas para o e-mail oficial desta unidade (dig.jacarei@policiacivil.sp.gov.br) em formato PDF ou planilha eletrônica. 
-
+        
 Ressalto que o descumprimento injustificado desta requisição poderá acarretar a responsabilidade penal por Crime de Desobediência (art. 330 do CP), sem prejuízo de outras sanções cabíveis.`;
         const splitClosing = doc.splitTextToSize(closingText, pageWidth - (margin * 2));
-        doc.setFont('times', 'normal');
-        doc.setFontSize(11);
-        doc.text(splitClosing, margin, y, { align: 'justify', maxWidth: pageWidth - (margin * 2) });
-        y += (splitClosing.length * 6) + 20;
+        doc.setFont('helvetica', 'normal');
+        doc.text(splitClosing, margin, y);
+        y += 40;
 
         // --- DATE AND SIGNATURE ---
         const today = new Date().toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' });
-        doc.setFont('helvetica', 'normal');
         doc.text(`Jacareí, ${today}.`, margin, y);
-        y += 25;
+        y += 20;
 
-        doc.line(pageWidth / 2 - 45, y, pageWidth / 2 + 45, y);
+        doc.line(pageWidth / 2 - 40, y, pageWidth / 2 + 40, y);
         doc.setFont('helvetica', 'bold');
-        doc.setFontSize(11);
-        doc.text("Autoridade Policial", pageWidth / 2, y + 6, { align: 'center' });
+        doc.text("Autoridade Policial", pageWidth / 2, y + 5, { align: 'center' });
         doc.setFont('helvetica', 'normal');
-        doc.setFontSize(10);
-        doc.text("Delegacia de Investigações Gerais de Jacareí", pageWidth / 2, y + 11, { align: 'center' });
+        doc.text("Delegacia de Investigações Gerais de Jacareí", pageWidth / 2, y + 10, { align: 'center' });
 
         // Save
         const fileName = `Oficio_iFood_${data.name.replace(/\s+/g, '_')}.pdf`;
