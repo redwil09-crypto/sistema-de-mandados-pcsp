@@ -2845,12 +2845,13 @@ Equipe de Capturas - DIG / PCSP
                 />
             )}
             <FloatingDock
-                onBack={handleBack}
+                onBack={() => navigate(-1)}
                 onHome={() => navigate('/')}
                 onSave={() => navigate(`/new-warrant?edit=${id}`)}
                 onPrint={handleDownloadPDF}
-                onFinalize={handleFinalize}
+                onFinalize={data.status === 'CUMPRIDO' ? handleReopen : handleFinalize}
                 onDelete={isAdmin ? () => setIsDeleteConfirmOpen(true) : undefined}
+                status={data.status}
             />
         </div >
     );

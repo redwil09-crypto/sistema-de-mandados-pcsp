@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Home, Printer, CheckCircle, Trash2, RefreshCw, ChevronLeft } from 'lucide-react';
+import { Home, Printer, CheckCircle, Trash2, RefreshCw, ChevronLeft, RotateCcw } from 'lucide-react';
 
 interface FloatingDockProps {
     onBack: () => void;
@@ -60,7 +60,7 @@ const FloatingDock = ({ onBack, onHome, onSave, onPrint, onFinalize, onDelete, c
                 {/* CONCLUIR / REABRIR */}
                 <DockItem
                     onClick={onFinalize}
-                    icon={status === 'CUMPRIDO' ? <RefreshCw size={24} /> : <CheckCircle size={24} />}
+                    icon={status === 'CUMPRIDO' ? <RotateCcw size={24} /> : <CheckCircle size={24} />}
                     color={status === 'CUMPRIDO' ? "text-text-secondary-light dark:text-text-secondary-dark hover:text-cyan-500" : "text-text-secondary-light dark:text-text-secondary-dark hover:text-green-500"}
                     bg={status === 'CUMPRIDO' ? "hover:bg-cyan-500/10" : "hover:bg-green-500/10"}
                     label={status === 'CUMPRIDO' ? "Reabrir" : "Baixar"}
