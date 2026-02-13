@@ -2044,7 +2044,7 @@ Equipe de Capturas - DIG / PCSP
                                                                 key={i}
                                                                 onClick={(e) => {
                                                                     e.stopPropagation();
-                                                                    handleToggleInvestigationStep(i);
+                                                                    handleToggleInvestigationStep(s.task);
                                                                 }}
                                                                 className="flex items-start gap-3 p-2 rounded-xl bg-slate-100 dark:bg-black/20 hover:bg-slate-200 dark:hover:bg-black/40 transition-colors cursor-pointer group"
                                                             >
