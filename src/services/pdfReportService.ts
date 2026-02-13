@@ -652,6 +652,7 @@ export const generateCapturasReportPDF = async (
         // Addressee - Separated with more space
         y += 10;
         const addressee = "Excelentíssimo Sr. Delegado de Polícia:";
+        doc.setFont('helvetica', 'bold');
         doc.text(addressee, margin, y);
         y += 8;
 
