@@ -271,41 +271,39 @@ export async function analyzeRawDiligence(warrantData: any, rawInfo: string) {
     if (!(await isGeminiEnabled())) return null;
 
     const prompt = `
-        VOCÊ É UM ESPECIALISTA EM INTELIGÊNCIA POLICIAL DE ELITE.
-        SUA MISSÃO: Analisar informações brutas (diligências, observações, informes) colhidas por equipes de campo sobre um alvo.
-
-        DADOS DO ALVO:
+        [ROLE:INTEL_ELITE] [TASK:ANALYZE_RAW_DATA] [MODE:JSON_STRICT]
+        
+        <TARGET_DATA>
         ${JSON.stringify({
-        name: warrantData.name,
-        crime: warrantData.crime,
-        location: warrantData.location,
-        history: (warrantData.diligentHistory || []).slice(-5) // Send only last 5 entries for context
-    }, null, 2)}
+        n: warrantData.name,
+        c: warrantData.crime,
+        l: warrantData.location,
+        h: (warrantData.diligentHistory || []).map((h: any) => h.substring(0, 100)).slice(-5)
+    })}
+        </TARGET_DATA>
 
-        INFORMAÇÃO BRUTA COLETADA (O QUE ACABOU DE CHEGAR):
+        <INPUT_RAW>
         "${rawInfo}"
+        </INPUT_RAW>
 
-        DIRETRIZES DE ANÁLISE:
-        1. CONFRONTAR: A nova informação bate com os dados antigos?
-        2. RISCO: Nível de periculosidade ATUAL baseado no informe.
-        3. AÇÃO: O que deve ser feito IMEDIATAMENTE?
-        4. VÍNCULOS: Pessoas ou veículos citados.
+        <RULES>
+        1. CHECK_CONFLICTS(Target vs Input)
+        2. ASSESS_RISK(Input) -> Level[Low|Med|High|Crit]
+        3. EXTRACT_ENTITIES(Input) -> [Name,Role,Ctx]
+        4. EXTRACT_LOCATIONS(Input) -> [Addr,Ctx]
+        5. GEN_CHECKLIST(Input) -> ActionItems
+        </RULES>
 
-        SAÍDA OBRIGATÓRIA EM JSON (SEM MARKDOWN, APENAS O JSON):
+        <OUTPUT_FORMAT>
         {
-            "summary": "Análise tática resumida (máx 3 linhas) focada no que fazer.",
-            "riskLevel": "Baixo" | "Médio" | "Alto" | "Crítico",
-            "riskReason": "Por que esse nível de risco?",
-            "entities": [
-                { "name": "Nome/Vulgo", "role": "Papel (Olheiro/Irmão/Vizinho)", "context": "Onde aparece" }
-            ],
-            "locations": [
-                { "address": "Endereço citado", "context": "Esconderijo/Trabalho/Família" }
-            ],
-            "checklist": [
-                { "task": "Ação operacional sugerida", "priority": "Alta" | "Normal" }
-            ]
+            "summary": "Tactical summary (max 3 lines)",
+            "riskLevel": "Low|Medium|High|Critical",
+            "riskReason": "Short reason",
+            "entities": [{"name": "...", "role": "...", "context": "..."}],
+            "locations": [{"address": "...", "context": "..."}],
+            "checklist": [{"task": "...", "priority": "Alta|Normal"}]
         }
+        </OUTPUT_FORMAT>
     `;
 
     try {
