@@ -513,21 +513,20 @@ export async function adaptDocumentToTarget(warrantData: any, templateText: stri
     if (!(await isGeminiEnabled())) return "Erro: IA não habilitada ou sem chave.";
 
     const prompt = `
-    const prompt = `
-    [ROLE: CLERK_ELITE][TASK: FILL_TEMPLATE] [STRICT_VARS]
+        [ROLE:CLERK_ELITE] [TASK:FILL_TEMPLATE] [STRICT_VARS]
 
-    <TARGET_DATA>
-        N:${ warrantData.name }, RG:${ warrantData.rg }, CPF:${ warrantData.cpf }
-    ADDR:${ warrantData.location }, C:${ warrantData.crime }, P:${ warrantData.number }
-    CT:${ warrantData.issuingCourt }, M:${ warrantData.motherName }
-    </TARGET_DATA>
+        <TARGET_DATA>
+        N:${warrantData.name}, RG:${warrantData.rg}, CPF:${warrantData.cpf}
+        ADDR:${warrantData.location}, C:${warrantData.crime}, P:${warrantData.number}
+        CT:${warrantData.issuingCourt}, M:${warrantData.motherName}
+        </TARGET_DATA>
 
         <TEMPLATE>
-    "${templateText}"
+        "${templateText}"
         </TEMPLATE>
 
         <RULES>
-    1. REPLACE_ALL_VARS(Template) WITH(TargetData).
+        1. REPLACE_ALL_VARS(Template) WITH (TargetData).
         2. IF_MISSING -> Use "NÃO INFORMADO" or OMIT.
         3. KEEP_FORMAL_TONE.
         </RULES>
@@ -535,13 +534,63 @@ export async function adaptDocumentToTarget(warrantData: any, templateText: stri
         <OUTPUT>
         Final document text only.
         </OUTPUT>
-            `;
+    `;
 
     try {
         const text = await tryGenerateContent(prompt);
         return text.trim();
     } catch (error: any) {
         console.error("Erro na Adaptação de Documento:", error);
-        return `Erro ao processar documento: ${ error.message } `;
+        return `Erro ao processar documento: ${error.message}`;
+    }
+}
+
+export async function batchSmartGrouping(warrants: any[]) {
+    if (!(await isGeminiEnabled())) return null;
+
+    // Minimize input data to save tokens
+    const minimizedWarrants = warrants.map(w => ({
+        id: w.id,
+        n: w.name,
+        c: w.crime,
+        l: w.location,
+        o: (w.observation || '').substring(0, 100)
+    }));
+
+    const prompt = `
+        [ROLE:INTEL_COMMANDER] [TASK:CLUSTER_OPERATIONS] [MODE:JSON_GROUPS]
+
+        <DATASET>
+        ${JSON.stringify(minimizedWarrants)}
+        </DATASET>
+
+        <STRATEGY>
+        1. CLUSTER_BY_GEO(Proximity/Neighborhood).
+        2. CLUSTER_BY_MODUS(Same Crime/Gang).
+        3. LINK_ENTITIES(Co-defendants/Family).
+        4. IGNORE_SINGLES(Unless High Value).
+        </STRATEGY>
+
+        <OUTPUT_FORMAT>
+        {
+            "groups": [
+                {
+                    "operationName": "Creative Tactical Name (Ex: 'Op. Norte', 'Rede Tráfico')",
+                    "reason": "Why these are grouped",
+                    "targetIds": ["id1", "id2"],
+                    "suggestedAction": "Simultaneous Raid / Surveillance",
+                    "priority": "High/Medium/Low"
+                }
+            ]
+        }
+        </OUTPUT_FORMAT>
+    `;
+
+    try {
+        const text = await tryGenerateContent(prompt);
+        return parseGeminiJSON(text, { groups: [] });
+    } catch (error) {
+        console.error("Erro no Agrupamento Inteligente:", error);
+        return { groups: [] };
     }
 }
