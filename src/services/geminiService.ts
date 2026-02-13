@@ -513,37 +513,35 @@ export async function adaptDocumentToTarget(warrantData: any, templateText: stri
     if (!(await isGeminiEnabled())) return "Erro: IA não habilitada ou sem chave.";
 
     const prompt = `
-        VOCÊ É UM ESCRIVÃO DE POLÍCIA DE ELITE (AGENTE ESPECIALISTA IFOOD).
-        
-        SUA MISSÃO:
-        1. Ler o "MODELO/TEXTO BASE" abaixo (que pode conter dados de OUTRA pessoa ou lugares genéricos).
-        2. REESCREVER o documento INTEIRO, substituindo TODAS as informações variáveis pelos DADOS DO NOVO ALVO informado abaixo.
-        3. Preservar estritamente o tom formal, jurídico e institucional.
-        4. Onde não houver dado no sistema para preencher um campo do modelo (ex: nome da mãe, telefone), OMITE O CAMPO ou use "NÃO INFORMADO" de forma discreta, MAS NÃO INVENTE DADOS.
+    const prompt = `
+    [ROLE: CLERK_ELITE][TASK: FILL_TEMPLATE] [STRICT_VARS]
 
-        DADOS DO NOVO ALVO (USAR ESTES):
-         Nome: ${warrantData.name}
-         RG: ${warrantData.rg || 'Não informado'}
-         CPF: ${warrantData.cpf || 'Não informado'}
-         Endereço: ${warrantData.location || 'Não informado'}
-         Crime: ${warrantData.crime || 'Não informado'}
-         Processo: ${warrantData.number || 'Não informado'}
-         Vara/Fórum: ${warrantData.issuingCourt || 'Não informado'}
-         Filiação: ${warrantData.motherName || 'Não informado'}
+    <TARGET_DATA>
+        N:${ warrantData.name }, RG:${ warrantData.rg }, CPF:${ warrantData.cpf }
+    ADDR:${ warrantData.location }, C:${ warrantData.crime }, P:${ warrantData.number }
+    CT:${ warrantData.issuingCourt }, M:${ warrantData.motherName }
+    </TARGET_DATA>
 
-        MODELO/TEXTO BASE (IGNORAR OS DADOS PESSOAIS DAQUI, USAR APENAS A ESTRUTURA):
-        """
-        ${templateText}
-        """
+        <TEMPLATE>
+    "${templateText}"
+        </TEMPLATE>
 
-        RESPOSTA (APENAS O TEXTO DO DOCUMENTO REVISADO, SEM COMENTÁRIOS):
-    `;
+        <RULES>
+    1. REPLACE_ALL_VARS(Template) WITH(TargetData).
+        2. IF_MISSING -> Use "NÃO INFORMADO" or OMIT.
+        3. KEEP_FORMAL_TONE.
+        </RULES>
+
+        <OUTPUT>
+        Final document text only.
+        </OUTPUT>
+            `;
 
     try {
         const text = await tryGenerateContent(prompt);
         return text.trim();
     } catch (error: any) {
         console.error("Erro na Adaptação de Documento:", error);
-        return `Erro ao processar documento: ${error.message}`;
+        return `Erro ao processar documento: ${ error.message } `;
     }
 }
