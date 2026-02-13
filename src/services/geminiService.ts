@@ -300,39 +300,32 @@ export async function generateReportBody(warrantData: any, rawContent: string, i
     }
 
     const prompt = `
-        [ROLE:WRITER_POLICE] [TASK:GENERATE_REPORT] [CTX:PCSP_ELITE_STD]
+        [ROLE:WRITER] [TASK:REPORT] [TONE:FORMAL_POLICE]
 
-        <CASE_DATA>
-        TARGET: ${warrantData.name}
-        CRIME: ${warrantData.crime} (CRITICAL: If 'Pensão/Alimentos'->Civil; Else->Criminal)
-        PROC: ${warrantData.number}
-        ADDR: ${warrantData.location}
-        </CASE_DATA>
+        <DATA>
+        TGT:${warrantData.name}, CRM:${warrantData.crime} (Civil if Pensão), PRC:${warrantData.number}, ADDR:${warrantData.location}
+        </DATA>
 
-        <USER_INPUT>
+        <INPUT>
         "${rawContent}"
-        INST: "${instructions || 'Follow standard'}"
-        </USER_INPUT>
+        INST:"${instructions || 'Std'}"
+        </INPUT>
 
         <SCENARIOS>
-        1. NOT_FOUND_CITY -> Suggest transfer.
-        2. MOVED_AWAY -> Family confirmed.
-        3. UNKNOWN_AT_ADDR -> Resident denies knowledge.
-        4. EMPTY_HOUSE -> For rent/sale.
-        5. LONG_TIME_GONE -> Neighbors confirm.
-        6. ADDR_NOT_EXIST -> Number not found.
-        7. CAPTURED -> Success.
+        1. NO_CITY -> Sug. transf.
+        2. MOVED -> Fam. confirmed.
+        3. UNKNOWN -> Denied knowlg.
+        4. EMPTY -> Rent/Sale.
+        5. GONE -> Neighbors conf.
+        6. NO_ADDR -> Num not found.
+        7. CAPTURE -> Success.
         </SCENARIOS>
 
-        <INSTRUCTIONS>
-        1. IDENTIFY_SCENARIO(UserInput).
-        2. ADAPT_TEMPLATE(Scenario) -> Replace placeholders ([ALVO], [CRIME], etc).
-        3. ADJUST_TONE(Formal, Institutional).
-        </INSTRUCTIONS>
-
-        <OUTPUT>
-        Direct report text only. No markdown.
-        </OUTPUT>
+        <RULES>
+        1. ID_SCENARIO(Input).
+        2. FILL_TEMPLATE(Scenario) -> Subs [ALVO],[CRIME].
+        3. OUTPUT -> Text only, No Markdown, Pt-BR Formal.
+        </RULES>
     `;
 
     try {
@@ -348,18 +341,14 @@ export async function analyzeWarrantData(text: string) {
     if (!(await isGeminiEnabled())) return null;
 
     const prompt = `
-        [ROLE:INTEL_ANALYST] [TASK:SUMMARIZE_THREAT] [MODE:JSON]
-
-        <TEXT>
-        "${text}"
-        </TEXT>
-
-        <OUTPUT_FORMAT>
+        [ROLE:ANALYST] [TASK:QUICK_THREAT] [FMT:JSON]
+        <TXT>"${text}"</TXT>
+        <JSON_SCHEMA>
         {
-            "summary": "Short danger/MO summary (max 2 lines)",
-            "warnings": ["Dangerous", "Flight Risk", "Armed", "Domestic Violence", "Drug Trafficking"]
+            "summary": "Max 2 lines",
+            "warnings": ["Dangerous", "FlightRisk", "Armed", "DomViolence", "Trafficking"]
         }
-        </OUTPUT_FORMAT>
+        </JSON_SCHEMA>
     `;
 
     try {
@@ -421,28 +410,17 @@ export async function askAssistantStrategy(warrantData: any, docContext: string,
     const historyText = history.map(h => `${h.role === 'user' ? 'PERGUNTA' : 'RESPOSTA'}: ${h.content}`).join('\n');
 
     const prompt = `
-        [ROLE:POLICE_ASSISTANT] [TASK:ANSWER_QUERY] [CTX:TACTICAL]
-
-        <CTX_TARGET>
-        ${JSON.stringify({ n: warrantData.name, c: warrantData.crime })}
-        </CTX_TARGET>
-
-        <CTX_DOC>
-        "${docContext || 'N/A'}"
-        </CTX_DOC>
-
-        <HISTORY>
-        ${historyText}
-        </HISTORY>
-
-        <QUERY>
-        "${question}"
-        </QUERY>
+        [ROLE:AIDE] [TASK:QA] [CTX:TACTICAL]
+        
+        <TGT>${JSON.stringify({ n: warrantData.name, c: warrantData.crime })}</TGT>
+        <DOC>"${docContext || 'N/A'}"</DOC>
+        <HIST>${historyText}</HIST>
+        <Q>"${question}"</Q>
 
         <RULES>
-        1. ANSWER_SHORT_DIRECT.
-        2. USE_CONTEXT_IF_RELEVANT.
-        3. STYLE_MILITARY_PROFESSIONAL.
+        1. ANS_DIRECT.
+        2. USE_CTX.
+        3. TONE_MILITARY.
         </RULES>
     `;
 
@@ -462,35 +440,27 @@ export async function mergeIntelligence(
     if (!(await isGeminiEnabled())) return currentIntel;
 
     const prompt = `
-        [ROLE:INTEL_HANDLER] [TASK:MERGE_INTEL] [MODE:JSON_UPDATE]
+        [ROLE:HANDLER] [TASK:MERGE] [FMT:JSON]
 
-        <TARGET_INFO>
-        ${JSON.stringify({ n: warrantData.name })}
-        </TARGET_INFO>
+        <TGT>${JSON.stringify({ n: warrantData.name })}</TGT>
+        <CUR>${JSON.stringify(currentIntel)}</CUR>
+        <NEW>${JSON.stringify(newAnalysis)}</NEW>
 
-        <CURRENT_STATE>
-        ${JSON.stringify(currentIntel)}
-        </CURRENT_STATE>
+        <OPS>
+        1. DEDUP_LOCS_ENTITIES.
+        2. MAX_RISK.
+        3. UPD_HYPOTHESIS.
+        4. CLEAN_CHECKLIST.
+        5. CALC_PROGRESS(0-100).
+        </OPS>
 
-        <NEW_INPUT>
-        ${JSON.stringify(newAnalysis)}
-        </NEW_INPUT>
-
-        <MERGE_RULES>
-        1. DEDUPLICATE(Locations, Entities) -> FuzzyMatch.
-        2. UPDATE_RISK -> Max(Current, New).
-        3. REFINE_HYPOTHESES -> Update Status(Active/Refuted).
-        4. CLEAN_CHECKLIST -> Remove Completed.
-        5. CALC_PROGRESS -> 0-100.
-        </MERGE_RULES>
-
-        <OUTPUT_FORMAT>
+        <JSON_SCHEMA>
         {
-            "summary": "...", "timeline": [...], "locations": [...],
-            "entities": [...], "risks": [...], "hypotheses": [...],
-            "suggestions": [...], "checklist": [...], "progressLevel": 0-100
+            "summary": "...", "timeline": [], "locations": [],
+            "entities": [], "risks": [], "hypotheses": [],
+            "suggestions": [], "checklist": [], "progressLevel": 0-100
         }
-        </OUTPUT_FORMAT>
+        </JSON_SCHEMA>
     `;
 
     try {
@@ -558,32 +528,32 @@ export async function batchSmartGrouping(warrants: any[]) {
     }));
 
     const prompt = `
-        [ROLE:INTEL_COMMANDER] [TASK:CLUSTER_OPERATIONS] [MODE:JSON_GROUPS]
+        [ROLE:COMMANDER] [TASK:CLUSTER] [FMT:JSON]
 
-        <DATASET>
+        <DATA>
         ${JSON.stringify(minimizedWarrants)}
-        </DATASET>
+        </DATA>
 
-        <STRATEGY>
-        1. CLUSTER_BY_GEO(Proximity/Neighborhood).
-        2. CLUSTER_BY_MODUS(Same Crime/Gang).
-        3. LINK_ENTITIES(Co-defendants/Family).
-        4. IGNORE_SINGLES(Unless High Value).
-        </STRATEGY>
+        <RULES>
+        1. CLUSTER(Geo/Neighborhood).
+        2. CLUSTER(Modus/Crime).
+        3. LINK(Entities/Family).
+        4. IGNORE_SINGLES.
+        </RULES>
 
-        <OUTPUT_FORMAT>
+        <JSON_SCHEMA>
         {
             "groups": [
                 {
-                    "operationName": "Creative Tactical Name (Ex: 'Op. Norte', 'Rede Tráfico')",
-                    "reason": "Why these are grouped",
-                    "targetIds": ["id1", "id2"],
-                    "suggestedAction": "Simultaneous Raid / Surveillance",
-                    "priority": "High/Medium/Low"
+                    "operationName": "Str (Ex: 'Op. Norte')",
+                    "reason": "Str",
+                    "targetIds": ["Str"],
+                    "suggestedAction": "Str",
+                    "priority": "High|Medium|Low"
                 }
             ]
         }
-        </OUTPUT_FORMAT>
+        </JSON_SCHEMA>
     `;
 
     try {
