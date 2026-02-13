@@ -438,36 +438,40 @@ export const generateIfoodOfficePDF = async (
         }
 
         // --- TITLE ---
-        doc.setFontSize(12);
+        doc.setFontSize(14);
         doc.setFont('helvetica', 'bold');
         doc.text("OFÍCIO DE REQUISIÇÃO DE DADOS", pageWidth / 2, y, { align: 'center' });
-        y += 10;
-
-        // --- DESTINATÁRIO ---
-        doc.setFontSize(10);
-        doc.setFont('helvetica', 'bold');
-        doc.text("Ao: IFOOD.COM AGÊNCIA DE RESTAURANTES ONLINE S.A.", margin, y);
-        y += 5;
-        doc.setFont('helvetica', 'normal');
-        doc.text("Departamento Jurídico / Compliance", margin, y);
         y += 15;
 
+        // --- DESTINATÁRIO ---
+        doc.setFontSize(11);
+        doc.setFont('helvetica', 'bold');
+        doc.text("Ao: IFOOD.COM AGÊNCIA DE RESTAURANTES ONLINE S.A.", margin, y);
+        y += 6;
+        doc.setFont('helvetica', 'normal');
+        doc.text("Departamento Jurídico / Compliance", margin, y);
+        y += 20;
+
         // --- BODY ---
-        doc.setFontSize(10);
+        doc.setFontSize(11);
+        doc.setFont('helvetica', 'bold');
         doc.text("Assunto: Requisição de Dados Cadastrais e Registros de Acesso", margin, y);
         y += 10;
 
         const bodyText = `Pelo presente, com fundamento na Lei 12.830/2013 e no interesse do Inquérito Policial em epígrafe, REQUISITO a Vossa Senhoria o fornecimento, no prazo improrrogável de 05 (cinco) dias, dos dados cadastrais completos (nome, CPF, telefones, e-mails, endereços de entrega cadastrados e histórico de pedidos com geolocalização se houver) vinculados ao investigado abaixo qualificado:`;
         const splitBody = doc.splitTextToSize(bodyText, pageWidth - (margin * 2));
-        doc.text(splitBody, margin, y);
-        y += (splitBody.length * 5) + 10;
+        doc.setFont('times', 'normal');
+        doc.text(splitBody, margin, y, { align: 'justify', maxWidth: pageWidth - (margin * 2) });
+        y += (splitBody.length * 6) + 12;
 
         // --- SUBJECT DETAILS ---
-        doc.setFillColor(240, 240, 240);
-        doc.rect(margin, y, pageWidth - (margin * 2), 35, 'F');
+        doc.setFillColor(245, 245, 245);
+        doc.setDrawColor(200, 200, 200);
+        doc.rect(margin, y, pageWidth - (margin * 2), 30, 'FD');
         doc.setFont('helvetica', 'bold');
+        doc.setFontSize(10);
 
-        let detailY = y + 7;
+        let detailY = y + 8;
         doc.text(`NOME: ${data.name.toUpperCase()}`, margin + 5, detailY);
         detailY += 7;
         doc.text(`RG: ${data.rg || "NÃO INFORMADO"}`, margin + 5, detailY);
@@ -478,23 +482,27 @@ export const generateIfoodOfficePDF = async (
 
         // --- CLOSING ---
         const closingText = `As informações deverão ser encaminhadas para o e-mail oficial desta unidade (dig.jacarei@policiacivil.sp.gov.br) em formato PDF ou planilha eletrônica. 
-        
+
 Ressalto que o descumprimento injustificado desta requisição poderá acarretar a responsabilidade penal por Crime de Desobediência (art. 330 do CP), sem prejuízo de outras sanções cabíveis.`;
         const splitClosing = doc.splitTextToSize(closingText, pageWidth - (margin * 2));
-        doc.setFont('helvetica', 'normal');
-        doc.text(splitClosing, margin, y);
-        y += 40;
+        doc.setFont('times', 'normal');
+        doc.setFontSize(11);
+        doc.text(splitClosing, margin, y, { align: 'justify', maxWidth: pageWidth - (margin * 2) });
+        y += (splitClosing.length * 6) + 20;
 
         // --- DATE AND SIGNATURE ---
         const today = new Date().toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' });
-        doc.text(`Jacareí, ${today}.`, margin, y);
-        y += 20;
-
-        doc.line(pageWidth / 2 - 40, y, pageWidth / 2 + 40, y);
-        doc.setFont('helvetica', 'bold');
-        doc.text("Autoridade Policial", pageWidth / 2, y + 5, { align: 'center' });
         doc.setFont('helvetica', 'normal');
-        doc.text("Delegacia de Investigações Gerais de Jacareí", pageWidth / 2, y + 10, { align: 'center' });
+        doc.text(`Jacareí, ${today}.`, margin, y);
+        y += 25;
+
+        doc.line(pageWidth / 2 - 45, y, pageWidth / 2 + 45, y);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(11);
+        doc.text("Autoridade Policial", pageWidth / 2, y + 6, { align: 'center' });
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(10);
+        doc.text("Delegacia de Investigações Gerais de Jacareí", pageWidth / 2, y + 11, { align: 'center' });
 
         // Save
         const fileName = `Oficio_iFood_${data.name.replace(/\s+/g, '_')}.pdf`;

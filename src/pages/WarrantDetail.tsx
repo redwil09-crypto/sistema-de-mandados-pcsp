@@ -82,37 +82,6 @@ const WarrantDetail = () => {
     const [aiAnalysisSaved, setAiAnalysisSaved] = useState(false);
     const [isAiReportModalOpen, setIsAiReportModalOpen] = useState(false);
 
-    // Load Draft from LocalStorage
-    useEffect(() => {
-        if (id) {
-            const savedDraft = localStorage.getItem(`warrant_draft_${id}`);
-            if (savedDraft) {
-                try {
-                    const parsed = JSON.parse(savedDraft);
-                    if (parsed.diligence) setNewDiligence(parsed.diligence);
-                    if (parsed.aiDiligenceResult) setAiDiligenceResult(parsed.aiDiligenceResult);
-                    if (parsed.analyzedDocumentText) setAnalyzedDocumentText(parsed.analyzedDocumentText);
-                    if (parsed.chatHistory) setChatHistory(parsed.chatHistory);
-                } catch (e) {
-                    console.error("Failed to load draft");
-                }
-            }
-        }
-    }, [id]);
-
-    // Save Draft to LocalStorage
-    useEffect(() => {
-        if (id) {
-            const draft = {
-                diligence: newDiligence,
-                aiDiligenceResult,
-                analyzedDocumentText,
-                chatHistory
-            };
-            localStorage.setItem(`warrant_draft_${id}`, JSON.stringify(draft));
-        }
-    }, [id, newDiligence, aiDiligenceResult, analyzedDocumentText, chatHistory]);
-
     const [isCapturasModalOpen, setIsCapturasModalOpen] = useState(false);
     const [capturasData, setCapturasData] = useState({
         reportNumber: '',
@@ -124,10 +93,55 @@ const WarrantDetail = () => {
     });
     const [isGeneratingAiReport, setIsGeneratingAiReport] = useState(false);
     const [isIfoodReportModalOpen, setIsIfoodReportModalOpen] = useState(false);
+    const [localData, setLocalData] = useState<Partial<Warrant>>({});
+
+    const [isInitialLoadDone, setIsInitialLoadDone] = useState(false);
+
+    // Consolidated Load from LocalStorage
+    useEffect(() => {
+        if (id) {
+            const savedDraft = localStorage.getItem(`warrant_draft_${id}`);
+            if (savedDraft) {
+                try {
+                    const parsed = JSON.parse(savedDraft);
+                    if (parsed.diligence) setNewDiligence(parsed.diligence);
+                    if (parsed.aiDiligenceResult) setAiDiligenceResult(parsed.aiDiligenceResult);
+                    if (parsed.analyzedDocumentText) setAnalyzedDocumentText(parsed.analyzedDocumentText);
+                    if (parsed.chatHistory) setChatHistory(parsed.chatHistory);
+                    if (parsed.capturasData) setCapturasData(parsed.capturasData);
+                    if (parsed.localData) setLocalData(parsed.localData);
+
+                    setIsInitialLoadDone(true);
+                } catch (e) {
+                    console.error("Failed to load draft");
+                    setIsInitialLoadDone(true);
+                }
+            } else {
+                setIsInitialLoadDone(true);
+            }
+        }
+    }, [id]);
+
+    // Consolidated Save to LocalStorage
+    useEffect(() => {
+        if (id && isInitialLoadDone) {
+            const draft = {
+                diligence: newDiligence,
+                aiDiligenceResult,
+                analyzedDocumentText,
+                chatHistory,
+                capturasData,
+                localData
+            };
+            localStorage.setItem(`warrant_draft_${id}`, JSON.stringify(draft));
+        }
+    }, [id, newDiligence, aiDiligenceResult, analyzedDocumentText, chatHistory, capturasData, localData, isInitialLoadDone]);
+
+
 
     const data = useMemo(() => warrants.find(w => w.id === id), [warrants, id]);
 
-    const [localData, setLocalData] = useState<Partial<Warrant>>({});
+
     const [isConfirmSaveOpen, setIsConfirmSaveOpen] = useState(false);
     const [userId, setUserId] = useState<string | undefined>(undefined);
     const [isAdmin, setIsAdmin] = useState(false);
@@ -148,7 +162,7 @@ const WarrantDetail = () => {
     const ifoodFileInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
-        if (data) {
+        if (data && !isInitialLoadDone) {
             setLocalData({
                 ...data,
                 birthDate: formatDate(data.birthDate),
@@ -158,7 +172,7 @@ const WarrantDetail = () => {
                 dischargeDate: formatDate(data.dischargeDate),
             });
         }
-    }, [data]);
+    }, [data, isInitialLoadDone]);
 
     const hasChanges = useMemo(() => {
         if (!data) return false;
@@ -412,6 +426,13 @@ const WarrantDetail = () => {
         if (success) {
             toast.success("Alterações salvas com sucesso!", { id: toastId });
             setIsConfirmSaveOpen(false);
+            // Clear localData from draft after successful sync to DB
+            const savedDraft = localStorage.getItem(`warrant_draft_${id}`);
+            if (savedDraft) {
+                const parsed = JSON.parse(savedDraft);
+                delete parsed.localData;
+                localStorage.setItem(`warrant_draft_${id}`, JSON.stringify(parsed));
+            }
         } else {
             toast.error("Erro ao salvar alterações.", { id: toastId });
         }
@@ -704,7 +725,8 @@ const WarrantDetail = () => {
 
                 toast.success("Prontuário atualizado!", { id: toastId });
 
-                // CLEAR THE "RELATÓRIO ESTRATÉGICO" (TIMELINE INPUTS)
+                // CLEAR THE DRAFT
+                localStorage.removeItem(`warrant_draft_${id}`);
                 setTimeout(() => {
                     setAiAnalysisSaved(false);
                     setAiDiligenceResult(null);
@@ -973,6 +995,30 @@ Equipe de Capturas - DIG / PCSP
             const newResult = { ...aiDiligenceResult };
             newResult.checklist[idx].checked = !newResult.checklist[idx].checked;
             setAiDiligenceResult(newResult);
+        }
+    };
+
+    const handleToggleInvestigationStep = async (idx: number) => {
+        if (!data) return;
+        try {
+            const intel = parseTacticalSummary(data.tacticalSummary);
+            if (intel && intel.checklist && intel.checklist[idx]) {
+                const newChecklist = [...intel.checklist];
+                newChecklist[idx].checked = !newChecklist[idx].checked;
+                newChecklist[idx].status = newChecklist[idx].checked ? 'Concluído' : 'Pendente';
+
+                const updatedIntel = { ...intel, checklist: newChecklist };
+
+                // Recalculate progress
+                const total = newChecklist.length;
+                const completed = newChecklist.filter((t: any) => t.checked || t.status === 'Concluído').length;
+                updatedIntel.progressLevel = Math.round((completed / total) * 100);
+
+                await updateWarrant(data.id, { tacticalSummary: JSON.stringify(updatedIntel) });
+                toast.success("Progresso atualizado!");
+            }
+        } catch (e) {
+            console.error("Erro ao alternar passo", e);
         }
     };
 
@@ -2002,7 +2048,11 @@ Equipe de Capturas - DIG / PCSP
                                                 <div className="space-y-3">
                                                     {intel.checklist && intel.checklist.length > 0 ? (
                                                         intel.checklist.map((s: any, i: number) => (
-                                                            <label key={i} className="flex items-start gap-3 p-2 rounded-xl bg-slate-100 dark:bg-black/20 hover:bg-slate-200 dark:hover:bg-black/40 transition-colors cursor-pointer group">
+                                                            <label
+                                                                key={i}
+                                                                onClick={() => handleToggleInvestigationStep(i)}
+                                                                className="flex items-start gap-3 p-2 rounded-xl bg-slate-100 dark:bg-black/20 hover:bg-slate-200 dark:hover:bg-black/40 transition-colors cursor-pointer group"
+                                                            >
                                                                 <div className={`mt-1 w-4 h-4 rounded border flex items-center justify-center ${s.status === 'Concluído' || s.checked ? 'bg-green-500 border-green-500' : 'border-slate-400 dark:border-gray-500 group-hover:border-indigo-500 dark:group-hover:border-white'
                                                                     }`}>
                                                                     {(s.status === 'Concluído' || s.checked) && <CheckSquare size={10} className="text-white" />}

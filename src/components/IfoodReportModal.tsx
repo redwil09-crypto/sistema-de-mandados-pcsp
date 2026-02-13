@@ -158,20 +158,20 @@ const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, wa
             let lineY = y + 3;
             headerLines.forEach(line => {
                 pdf.text(line, textX, lineY);
-                lineY += 3.5;
+                lineY += 4; // Increased from 3.5
             });
 
             // 3. Gray Bar "OFÍCIO"
-            const barY = lineY + 2;
-            pdf.setFillColor(200, 200, 200); // Light Gray
-            pdf.rect(margin, barY, maxLineWidth, 6, 'F');
+            const barY = lineY + 3;
+            pdf.setFillColor(230, 230, 230); // Slightly lighter Gray
+            pdf.rect(margin, barY, maxLineWidth, 7, 'F'); // Increased height from 6 to 7
             pdf.setDrawColor(0);
             pdf.setLineWidth(0.1);
-            pdf.rect(margin, barY, maxLineWidth, 6, 'S'); // Border
+            pdf.rect(margin, barY, maxLineWidth, 7, 'S'); // Border
 
             pdf.setFont('helvetica', 'bold');
             pdf.setFontSize(10);
-            pdf.text("OFÍCIO", pageWidth / 2, barY + 4.2, { align: 'center' });
+            pdf.text("OFÍCIO", pageWidth / 2, barY + 4.8, { align: 'center' });
 
             return barY + 10; // Return Y where content starts
         };
@@ -252,14 +252,14 @@ const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, wa
         lines.forEach((line) => {
             const trimmedLine = line.trim();
             if (!trimmedLine) {
-                y += 5; // Paragraph gap
+                y += 6; // Paragraph gap
                 return;
             }
 
             // Check for page break
-            if (y > pageHeight - 30) {
+            if (y > pageHeight - 40) { // More margin at bottom
                 doc.addPage();
-                y = addHeader(doc) + 10;
+                y = addHeader(doc) + 12;
             }
 
             // Formatting logic based on line content
@@ -267,15 +267,16 @@ const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, wa
                 doc.setFont('helvetica', 'bold');
                 doc.text(trimmedLine, margin, y);
                 doc.setFont('helvetica', 'normal');
-                y += 6;
+                y += 7;
             }
             else if (trimmedLine.includes('Jacareí,') && (trimmedLine.includes('2025') || trimmedLine.includes('2026'))) {
                 doc.setFont('helvetica', 'bolditalic');
                 doc.text(trimmedLine, pageWidth - margin, y, { align: 'right' });
                 doc.setFont('helvetica', 'normal');
-                y += 12;
+                y += 15; // More space after date
             }
-            else if (trimmedLine.startsWith('ILMO.') || trimmedLine.startsWith('Ao Ilustríssimo')) {
+            else if (trimmedLine.startsWith('ILMO.') || trimmedLine.startsWith('Ao Ilustríssimo') || trimmedLine.startsWith('Excelentíssimo')) {
+                y += 2;
                 doc.setFont('helvetica', 'bold');
                 doc.text(trimmedLine, margin, y);
                 doc.setFont('helvetica', 'normal');
@@ -285,43 +286,52 @@ const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, wa
                 doc.setFont('helvetica', 'bold');
                 doc.text(trimmedLine, margin, y);
                 doc.setFont('helvetica', 'normal');
-                y += 6;
+                y += 8;
             }
             else if (trimmedLine.includes('william.castro@')) {
                 doc.setFont('helvetica', 'bold');
-                doc.text(trimmedLine, margin + 10, y);
+                doc.text(trimmedLine, margin + 15, y);
                 doc.setFont('helvetica', 'normal');
-                y += 6;
+                y += 7;
             }
-            else if (trimmedLine.startsWith('Pessoa de interesse') || trimmedLine.startsWith('Réu de interesse')) {
+            else if (trimmedLine.startsWith('Pessoa de interesse') || trimmedLine.startsWith('Réu de interesse') || trimmedLine.startsWith('Investigado:')) {
                 y += 5;
-                doc.setFont('helvetica', 'normal');
-                doc.text(trimmedLine, margin, y);
-                y += 6;
-            }
-            else if (trimmedLine === trimmedLine.toUpperCase() && trimmedLine.includes('CPF')) {
-                doc.setFont('helvetica', 'bold');
+                doc.setFont('helvetica', 'bold'); // Make the target person bold
                 doc.text(trimmedLine, margin, y);
                 doc.setFont('helvetica', 'normal');
                 y += 8;
             }
-            else if (trimmedLine === 'Atenciosamente,' || trimmedLine === 'Atenciosamente') {
-                y += 10;
+            else if (trimmedLine === trimmedLine.toUpperCase() && trimmedLine.includes('CPF') && trimmedLine.length < 100) {
+                doc.setFont('helvetica', 'bold');
                 doc.text(trimmedLine, margin, y);
-                y += 25; // Space for signature
+                doc.setFont('helvetica', 'normal');
+                y += 10;
+            }
+            else if (trimmedLine === 'Atenciosamente,' || trimmedLine === 'Atenciosamente') {
+                y += 15;
+                doc.text(trimmedLine, margin, y);
+                y += 28; // Space for signature
             }
             else if (DELEGATES.some(d => d.name === trimmedLine) || trimmedLine === 'Delegado de Polícia') {
                 doc.setFont('helvetica', 'bold');
                 doc.text(trimmedLine, pageWidth / 2, y, { align: 'center' });
                 doc.setFont('helvetica', 'normal');
-                y += 6;
+                y += 7;
             }
             else {
                 // Regular body paragraph - apply indent and justification
-                const indentText = trimmedLine.length > 50 ? indent + trimmedLine : trimmedLine;
+                // Fix: Always indent if it looks like a paragraph (more than 40 chars)
+                const isParagraph = trimmedLine.length > 40;
+                const indentText = isParagraph ? indent + trimmedLine : trimmedLine;
+
+                doc.setFont('times', 'normal'); // Use Times for more formal look
+                doc.setFontSize(11);
+
                 const splitLines = doc.splitTextToSize(indentText, maxLineWidth);
                 doc.text(splitLines, margin, y, { align: 'justify', maxWidth: maxLineWidth });
-                y += (splitLines.length * 6);
+                y += (splitLines.length * 7); // Increased line height to 7
+
+                doc.setFont('helvetica', 'normal'); // Reset for next loop
             }
         });
 
