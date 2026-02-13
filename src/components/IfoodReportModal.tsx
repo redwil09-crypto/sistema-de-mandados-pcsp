@@ -296,19 +296,19 @@ const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, wa
 
         // Email Block
         doc.setFont('helvetica', 'bold');
-        doc.text("william.castro@policiacivil.sp.gov.br", margin + 15, y);
+        doc.text(`${indent}william.castro@policiacivil.sp.gov.br`, margin, y);
         y += 6;
         doc.setFont('helvetica', 'normal');
-        doc.text("William Campos de Assis Castro – Polícia Civil do Estado de São Paulo", margin + 15, y);
+        doc.text(`${indent}William Campos de Assis Castro – Polícia Civil do Estado de São Paulo`, margin, y);
         y += 15;
 
         // Person of Interest
         doc.setFont('helvetica', 'normal');
-        doc.text("Pessoa de interesse para a investigação:", margin, y);
+        doc.text(`${indent}Pessoa de interesse para a investigação:`, margin, y);
         y += 7;
 
         doc.setFont('helvetica', 'bold');
-        const personLine = `${warrant.name.toUpperCase()} – CPF ${warrant.cpf || warrant.rg || 'NÃO INFORMADO'}`;
+        const personLine = `${indent}${warrant.name.toUpperCase()} – CPF ${warrant.cpf || warrant.rg || 'NÃO INFORMADO'}`;
         const splitPerson = doc.splitTextToSize(personLine, maxLineWidth);
         doc.text(splitPerson, margin, y);
         y += (splitPerson.length * lineHeight) + paragraphSpacing;
@@ -320,7 +320,7 @@ const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, wa
         doc.text(splitClosing, margin, y, { align: 'justify', maxWidth: maxLineWidth });
         y += (splitClosing.length * lineHeight) + 15;
 
-        doc.text("Atenciosamente,", margin, y);
+        doc.text(`${indent}Atenciosamente,`, margin, y);
 
 
         // AREA DE ASSINATURA E DESTINATÁRIO (Position Fixed at Bottom)
