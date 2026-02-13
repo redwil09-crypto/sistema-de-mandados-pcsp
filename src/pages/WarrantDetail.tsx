@@ -18,7 +18,7 @@ import { uploadFile, getPublicUrl } from '../supabaseStorage';
 import ConfirmModal from '../components/ConfirmModal';
 import VoiceInput from '../components/VoiceInput';
 import WarrantAuditLog from '../components/WarrantAuditLog';
-import { formatDate, getStatusColor, maskDate, parseTacticalSummary } from '../utils/helpers';
+import { formatDate, getStatusColor, maskDate } from '../utils/helpers';
 import { Warrant } from '../types';
 import { geocodeAddress } from '../services/geocodingService';
 import { generateWarrantPDF } from '../services/pdfReportService';
@@ -27,11 +27,6 @@ import { analyzeRawDiligence, generateReportBody, analyzeDocumentStrategy, askAs
 import { extractPdfData } from '../services/pdfExtractionService'; // RESTORED
 import { CRIME_OPTIONS, REGIME_OPTIONS } from '../data/constants';
 import { useWarrants } from '../contexts/WarrantContext';
-
-const DELEGATES = [
-    { name: 'Luiz Antônio Cunha dos Santos', title: 'Delegado de Polícia' },
-    { name: 'Dr. Rodrigo Mambeli de Mendonça', title: 'Delegado de Polícia' }
-];
 
 const WarrantDetail = () => {
     const { warrants, updateWarrant, deleteWarrant, routeWarrants, toggleRouteWarrant, refreshWarrants } = useWarrants();
@@ -82,22 +77,7 @@ const WarrantDetail = () => {
     const [aiAnalysisSaved, setAiAnalysisSaved] = useState(false);
     const [isAiReportModalOpen, setIsAiReportModalOpen] = useState(false);
 
-    const [isCapturasModalOpen, setIsCapturasModalOpen] = useState(false);
-    const [capturasData, setCapturasData] = useState({
-        reportNumber: '',
-        court: '',
-        body: '',
-        signer: 'William Campos A. Castro',
-        delegate: DELEGATES[0].name,
-        aiInstructions: ''
-    });
-    const [isGeneratingAiReport, setIsGeneratingAiReport] = useState(false);
-    const [isIfoodReportModalOpen, setIsIfoodReportModalOpen] = useState(false);
-    const [localData, setLocalData] = useState<Partial<Warrant>>({});
-
-    const [isInitialLoadDone, setIsInitialLoadDone] = useState(false);
-
-    // Consolidated Load from LocalStorage
+    // Load Draft from LocalStorage
     useEffect(() => {
         if (id) {
             const savedDraft = localStorage.getItem(`warrant_draft_${id}`);
@@ -108,40 +88,41 @@ const WarrantDetail = () => {
                     if (parsed.aiDiligenceResult) setAiDiligenceResult(parsed.aiDiligenceResult);
                     if (parsed.analyzedDocumentText) setAnalyzedDocumentText(parsed.analyzedDocumentText);
                     if (parsed.chatHistory) setChatHistory(parsed.chatHistory);
-                    if (parsed.capturasData) setCapturasData(parsed.capturasData);
-                    if (parsed.localData) setLocalData(parsed.localData);
-
-                    setIsInitialLoadDone(true);
                 } catch (e) {
                     console.error("Failed to load draft");
-                    setIsInitialLoadDone(true);
                 }
-            } else {
-                setIsInitialLoadDone(true);
             }
         }
     }, [id]);
 
-    // Consolidated Save to LocalStorage
+    // Save Draft to LocalStorage
     useEffect(() => {
-        if (id && isInitialLoadDone) {
+        if (id) {
             const draft = {
                 diligence: newDiligence,
                 aiDiligenceResult,
                 analyzedDocumentText,
-                chatHistory,
-                capturasData,
-                localData
+                chatHistory
             };
             localStorage.setItem(`warrant_draft_${id}`, JSON.stringify(draft));
         }
-    }, [id, newDiligence, aiDiligenceResult, analyzedDocumentText, chatHistory, capturasData, localData, isInitialLoadDone]);
+    }, [id, newDiligence, aiDiligenceResult, analyzedDocumentText, chatHistory]);
 
-
+    const [isCapturasModalOpen, setIsCapturasModalOpen] = useState(false);
+    const [capturasData, setCapturasData] = useState({
+        reportNumber: '',
+        court: '',
+        body: '',
+        signer: 'William Campos A. Castro',
+        delegate: 'Luiz Antônio Cunha dos Santos',
+        aiInstructions: ''
+    });
+    const [isGeneratingAiReport, setIsGeneratingAiReport] = useState(false);
+    const [isIfoodReportModalOpen, setIsIfoodReportModalOpen] = useState(false);
 
     const data = useMemo(() => warrants.find(w => w.id === id), [warrants, id]);
 
-
+    const [localData, setLocalData] = useState<Partial<Warrant>>({});
     const [isConfirmSaveOpen, setIsConfirmSaveOpen] = useState(false);
     const [userId, setUserId] = useState<string | undefined>(undefined);
     const [isAdmin, setIsAdmin] = useState(false);
@@ -162,7 +143,7 @@ const WarrantDetail = () => {
     const ifoodFileInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
-        if (data && !isInitialLoadDone) {
+        if (data) {
             setLocalData({
                 ...data,
                 birthDate: formatDate(data.birthDate),
@@ -172,7 +153,7 @@ const WarrantDetail = () => {
                 dischargeDate: formatDate(data.dischargeDate),
             });
         }
-    }, [data, isInitialLoadDone]);
+    }, [data]);
 
     const hasChanges = useMemo(() => {
         if (!data) return false;
@@ -426,13 +407,6 @@ const WarrantDetail = () => {
         if (success) {
             toast.success("Alterações salvas com sucesso!", { id: toastId });
             setIsConfirmSaveOpen(false);
-            // Clear localData from draft after successful sync to DB
-            const savedDraft = localStorage.getItem(`warrant_draft_${id}`);
-            if (savedDraft) {
-                const parsed = JSON.parse(savedDraft);
-                delete parsed.localData;
-                localStorage.setItem(`warrant_draft_${id}`, JSON.stringify(parsed));
-            }
         } else {
             toast.error("Erro ao salvar alterações.", { id: toastId });
         }
@@ -680,7 +654,7 @@ const WarrantDetail = () => {
                     // Parse current state
                     let currentIntel = {};
                     try {
-                        currentIntel = parseTacticalSummary(updatedTacticalSummary);
+                        currentIntel = JSON.parse(updatedTacticalSummary);
                     } catch (e) { currentIntel = {}; }
 
                     // CALL THE AI MERGE SERVICE
@@ -725,8 +699,7 @@ const WarrantDetail = () => {
 
                 toast.success("Prontuário atualizado!", { id: toastId });
 
-                // CLEAR THE DRAFT
-                localStorage.removeItem(`warrant_draft_${id}`);
+                // CLEAR THE "RELATÓRIO ESTRATÉGICO" (TIMELINE INPUTS)
                 setTimeout(() => {
                     setAiAnalysisSaved(false);
                     setAiDiligenceResult(null);
@@ -997,35 +970,6 @@ Equipe de Capturas - DIG / PCSP
             setAiDiligenceResult(newResult);
         }
     };
-
-    const handleToggleInvestigationStep = async (taskName: string) => {
-        if (!data) return;
-        try {
-            const intel = parseTacticalSummary(data.tacticalSummary);
-            let finalChecklist = [...(intel.checklist || [])];
-
-            const item = finalChecklist.find((t: any) => t.task === taskName);
-            if (item) {
-                item.checked = !item.checked;
-                item.status = item.checked ? 'Concluído' : 'Pendente';
-            }
-
-            const updatedIntel = { ...intel, checklist: finalChecklist };
-
-            // Recalculate progress
-            const total = finalChecklist.length;
-            const completed = finalChecklist.filter((t: any) => t.checked || t.status === 'Concluído').length;
-            updatedIntel.progressLevel = total > 0 ? Math.round((completed / total) * 100) : 0;
-
-            await updateWarrant(data.id, { tacticalSummary: JSON.stringify(updatedIntel) });
-            toast.success("Status atualizado!");
-        } catch (e) {
-            console.error("Erro ao alternar passo", e);
-            toast.error("Erro ao atualizar status.");
-        }
-    };
-
-
 
     const handleAssistantChat = async () => {
         if (!chatInput.trim() || !data) return;
@@ -1858,7 +1802,7 @@ Equipe de Capturas - DIG / PCSP
                                     {/* PROGRESS LEVEL */}
                                     {(() => {
                                         try {
-                                            const intel = parseTacticalSummary(data.tacticalSummary);
+                                            const intel = JSON.parse(data.tacticalSummary || '{}');
                                             const progress = intel.progressLevel || 0;
                                             return (
                                                 <div className="hidden md:flex flex-col items-end mr-4">
@@ -1894,12 +1838,29 @@ Equipe de Capturas - DIG / PCSP
                                     checklist: []
                                 };
                                 try {
-                                    intel = parseTacticalSummary(data.tacticalSummary);
+                                    intel = JSON.parse(data.tacticalSummary || '{}');
                                 } catch (e) {
                                     // Fallback if empty
                                 }
 
                                 const hasData = intel.summary && intel.summary !== 'Aguardando primeira análise...';
+
+                                // AUTOMATIC CHECKLIST INJECTION: Check iFood Status
+                                if (hasData) {
+                                    const hasValidIfood = localData.ifoodResult && localData.ifoodResult.length > 20;
+                                    const ifoodTaskExists = intel.checklist?.some((t: any) => t.task.toLowerCase().includes('ifood') || t.task.toLowerCase().includes('iffo'));
+
+                                    if (!hasValidIfood && !ifoodTaskExists) {
+                                        if (!intel.checklist) intel.checklist = [];
+                                        intel.checklist.unshift({
+                                            task: "Solicitar quebra de sigilo iFood (IFFO)",
+                                            priority: "Alta",
+                                            status: "Pendente",
+                                            checked: false
+                                        });
+                                    }
+                                }
+
                                 if (!hasData) {
                                     return (
                                         <div className="text-center py-20 opacity-50 border-2 border-dashed border-white/10 rounded-3xl">
@@ -2036,15 +1997,8 @@ Equipe de Capturas - DIG / PCSP
                                                 <div className="space-y-3">
                                                     {intel.checklist && intel.checklist.length > 0 ? (
                                                         intel.checklist.map((s: any, i: number) => (
-                                                            <div
-                                                                key={i}
-                                                                onClick={(e) => {
-                                                                    e.stopPropagation();
-                                                                    handleToggleInvestigationStep(s.task);
-                                                                }}
-                                                                className="flex items-start gap-3 p-2 rounded-xl bg-slate-100 dark:bg-black/20 hover:bg-slate-200 dark:hover:bg-black/40 transition-colors cursor-pointer group"
-                                                            >
-                                                                <div className={`mt-1 w-4 h-4 rounded border flex items-center justify-center shrink-0 ${s.status === 'Concluído' || s.checked ? 'bg-green-500 border-green-500' : 'border-slate-400 dark:border-gray-500 group-hover:border-indigo-500 dark:group-hover:border-white'
+                                                            <label key={i} className="flex items-start gap-3 p-2 rounded-xl bg-slate-100 dark:bg-black/20 hover:bg-slate-200 dark:hover:bg-black/40 transition-colors cursor-pointer group">
+                                                                <div className={`mt-1 w-4 h-4 rounded border flex items-center justify-center ${s.status === 'Concluído' || s.checked ? 'bg-green-500 border-green-500' : 'border-slate-400 dark:border-gray-500 group-hover:border-indigo-500 dark:group-hover:border-white'
                                                                     }`}>
                                                                     {(s.status === 'Concluído' || s.checked) && <CheckSquare size={10} className="text-white" />}
                                                                 </div>
@@ -2054,7 +2008,7 @@ Equipe de Capturas - DIG / PCSP
                                                                     </p>
                                                                     {s.priority === 'Alta' && <span className="text-[9px] text-red-600 dark:text-red-400 font-bold uppercase mt-1 inline-block">Prioridade Alta</span>}
                                                                 </div>
-                                                            </div>
+                                                            </label>
                                                         ))
                                                     ) : <p className="text-xs text-text-secondary-light dark:text-gray-500 text-center">Nenhuma ação pendente.</p>}
                                                 </div>
@@ -2577,18 +2531,6 @@ Equipe de Capturas - DIG / PCSP
                                     <div className="grid grid-cols-2 gap-4">
                                         <div className="space-y-1"><label className="text-[10px] font-black text-primary uppercase tracking-widest">Identificador Relatório</label><input className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm text-white" value={capturasData.reportNumber} onChange={e => setCapturasData({ ...capturasData, reportNumber: e.target.value })} /></div>
                                         <div className="space-y-1"><label className="text-[10px] font-black text-primary uppercase tracking-widest">Comarca Judiciária</label><input className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm text-white" value={capturasData.court} onChange={e => setCapturasData({ ...capturasData, court: e.target.value })} /></div>
-                                    </div>
-                                    <div className="space-y-1">
-                                        <label className="text-[10px] font-black text-primary uppercase tracking-widest">Delegado Titular</label>
-                                        <select
-                                            className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm text-white appearance-none cursor-pointer"
-                                            value={capturasData.delegate}
-                                            onChange={e => setCapturasData({ ...capturasData, delegate: e.target.value })}
-                                        >
-                                            {DELEGATES.map(d => (
-                                                <option key={d.name} value={d.name} className="bg-surface-dark">{d.name}</option>
-                                            ))}
-                                        </select>
                                     </div>
                                     <div className="bg-indigo-500/5 border border-indigo-500/20 rounded-2xl p-5 space-y-4">
                                         <div className="flex items-center gap-2"><Cpu size={16} className="text-indigo-400" /><span className="text-[10px] font-black uppercase tracking-widest text-indigo-400">Prompt de Refinamento IA</span></div>

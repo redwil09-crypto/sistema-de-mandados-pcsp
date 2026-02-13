@@ -15,13 +15,12 @@ import ConfirmModal from '../components/ConfirmModal';
 import { toast } from 'sonner';
 import { Warrant } from '../types';
 import { CRIME_OPTIONS } from '../data/constants';
-import { extractStructuredPdfData as extractPdfData, extractFromText } from '../services/pdfExtractionService';
+import { extractPdfData, extractFromText } from '../pdfExtractor';
 import { uploadFile, getPublicUrl } from '../supabaseStorage';
-import { analyzeWarrantData, isGeminiEnabled, batchSmartGrouping } from '../services/geminiService';
+import { analyzeWarrantData, isGeminiEnabled } from '../services/geminiService';
 import { geocodeAddress } from '../services/geocodingService';
 import { useWarrants } from '../contexts/WarrantContext';
 import BottomNav from '../components/BottomNav';
-import TacticalOperationModal from '../components/TacticalOperationModal';
 
 
 const AIAssistantPage = () => {
@@ -51,11 +50,6 @@ const AIAssistantPage = () => {
     const [observationKeyword, setObservationKeyword] = useState('');
     const [isSaveConfirmOpen, setIsSaveConfirmOpen] = useState(false);
     const [hasAi, setHasAi] = useState(false);
-
-    // Grouping Intelligence State
-    const [isGroupingModalOpen, setIsGroupingModalOpen] = useState(false);
-    const [operationGroups, setOperationGroups] = useState<any[]>([]);
-    const [isAnalyzingGroups, setIsAnalyzingGroups] = useState(false);
 
     useEffect(() => {
         isGeminiEnabled().then(setHasAi);
@@ -798,31 +792,6 @@ const AIAssistantPage = () => {
                                                     <Sparkles size={12} /> IA Pro
                                                 </button>
                                             )}
-
-                                            {hasAi && batchResults.length > 1 && (
-                                                <button
-                                                    onClick={async () => {
-                                                        setIsGroupingModalOpen(true);
-                                                        setIsAnalyzingGroups(true);
-                                                        try {
-                                                            const result = await batchSmartGrouping(batchResults);
-                                                            if (result && result.groups) {
-                                                                setOperationGroups(result.groups);
-                                                                toast.success("Análise tática concluída!");
-                                                            } else {
-                                                                toast.info("Nenhum padrão tático relevante encontrado.");
-                                                            }
-                                                        } catch (error) {
-                                                            toast.error("Erro na análise de grupo.");
-                                                        } finally {
-                                                            setIsAnalyzingGroups(false);
-                                                        }
-                                                    }}
-                                                    className="text-[10px] font-black uppercase text-indigo-600 flex items-center gap-1 bg-indigo-50 dark:bg-indigo-950 px-2 py-1 rounded-lg border border-indigo-200"
-                                                >
-                                                    <Layers size={12} /> Agrugar (IA)
-                                                </button>
-                                            )}
                                         </div>
 
 
@@ -1485,14 +1454,6 @@ const AIAssistantPage = () => {
 
                 <BottomNav />
             </div>
-
-            {/* Tactical Grouping Modal */}
-            <TacticalOperationModal
-                isOpen={isGroupingModalOpen}
-                onClose={() => setIsGroupingModalOpen(false)}
-                groups={operationGroups}
-                isAnalyzing={isAnalyzingGroups}
-            />
         </div>
     );
 };

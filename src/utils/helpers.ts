@@ -19,7 +19,7 @@ export const getStatusColor = (status: string) => {
 
 export const formatDate = (dateString: string | undefined | null) => {
     if (!dateString || dateString === '-' || dateString.trim() === '' || dateString === 'null') return '';
-
+    
     // If it's already DD/MM/YYYY
     if (/^\d{2}\/\d{2}\/\d{4}$/.test(dateString)) return dateString;
 
@@ -53,16 +53,15 @@ export const formatDate = (dateString: string | undefined | null) => {
 export const maskDate = (value: string): string => {
     // Remove all non-digits
     const digits = value.replace(/\D/g, '');
-
+    
     // Limit to 8 digits
     const limited = digits.substring(0, 8);
-
+    
     // Apply mask DD/MM/YYYY
     if (limited.length <= 2) return limited;
     if (limited.length <= 4) return `${limited.substring(0, 2)}/${limited.substring(2)}`;
     return `${limited.substring(0, 2)}/${limited.substring(2, 4)}/${limited.substring(4)}`;
 };
-
 
 export const addDays = (dateStr: string, days: number): string => {
     if (!dateStr) return '';
@@ -80,30 +79,3 @@ export const addDays = (dateStr: string, days: number): string => {
         return '';
     }
 };
-
-/**
- * Safely parses tacticalSummary which can be a JSON string or an array of markers
- */
-export const parseTacticalSummary = (summary: string | string[] | undefined | null): any => {
-    if (!summary) return { risk: 'NORMAL', markers: [] };
-
-    // If it's already an array (Legacy)
-    if (Array.isArray(summary)) {
-        return { risk: 'NORMAL', markers: summary };
-    }
-
-    // If it's a string
-    try {
-        const parsed = JSON.parse(summary);
-        // If it was a stringified array
-        if (Array.isArray(parsed)) {
-            return { risk: 'NORMAL', markers: parsed };
-        }
-        // If it's the new intelligence object
-        return parsed || { risk: 'NORMAL', markers: [] };
-    } catch (e) {
-        // Fallback for raw string if not JSON
-        return { risk: 'NORMAL', markers: [summary] };
-    }
-};
-

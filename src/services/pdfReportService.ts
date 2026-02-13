@@ -3,7 +3,7 @@ import { jsPDF } from 'jspdf';
 import { toast } from 'sonner';
 import { Warrant } from '../types';
 import { uploadFile, getPublicUrl } from '../supabaseStorage';
-import { formatDate, parseTacticalSummary } from '../utils/helpers';
+import { formatDate } from '../utils/helpers';
 
 export const generateWarrantPDF = async (
     data: Warrant,
@@ -104,8 +104,6 @@ export const generateWarrantPDF = async (
             doc.line(margin, y + badgeH + 5, pageWidth - margin, y + badgeH + 5);
             y += badgeH + 12;
 
-
-
         } catch (e) {
             console.error("Header error", e);
             y += 30;
@@ -161,11 +159,13 @@ export const generateWarrantPDF = async (
         let riskLevel = 'NORMAL';
         let riskColor = COLORS.RISK.NORMAL;
         try {
-            const intel = parseTacticalSummary(data.tacticalSummary);
-            riskLevel = (intel.risk || 'NORMAL').toUpperCase();
-            if (riskLevel.includes('ALTO')) riskColor = COLORS.RISK.HIGH;
-            else if (riskLevel.includes('MÉDIO') || riskLevel.includes('MEDIO')) riskColor = COLORS.RISK.MEDIUM;
-            else if (riskLevel.includes('BAIXO')) riskColor = COLORS.RISK.LOW;
+            if (data.tacticalSummary) {
+                const intel = JSON.parse(data.tacticalSummary || '{}');
+                riskLevel = (intel.risk || 'NORMAL').toUpperCase();
+                if (riskLevel.includes('ALTO')) riskColor = COLORS.RISK.HIGH;
+                else if (riskLevel.includes('MÉDIO') || riskLevel.includes('MEDIO')) riskColor = COLORS.RISK.MEDIUM;
+                else if (riskLevel.includes('BAIXO')) riskColor = COLORS.RISK.LOW;
+            }
         } catch (e) { }
 
         doc.setFillColor(...riskColor);
@@ -259,34 +259,36 @@ export const generateWarrantPDF = async (
 
         // Tactical Summary Expansion (Full Data)
         try {
-            const intel = parseTacticalSummary(data.tacticalSummary);
+            if (data.tacticalSummary) {
+                const intel = JSON.parse(data.tacticalSummary || '{}');
 
-            // 1. Resumo Estratégico
-            if (intel.summary) {
-                intelRows.push(["Resumo Estratégico", intel.summary]);
-            }
+                // 1. Resumo Estratégico
+                if (intel.summary) {
+                    intelRows.push(["Resumo Estratégico", intel.summary]);
+                }
 
-            // 2. Hipóteses
-            if (intel.hypotheses?.length) {
-                const hypText = intel.hypotheses
-                    .map((h: any) => `[${h.confidence?.toUpperCase()}] ${h.description} ${h.status === 'Confirmada' ? '(CONFIRMADA)' : ''}`)
-                    .join('\n');
-                intelRows.push(["Hipóteses Ativas", hypText]);
-            }
+                // 2. Hipóteses
+                if (intel.hypotheses?.length) {
+                    const hypText = intel.hypotheses
+                        .map((h: any) => `[${h.confidence?.toUpperCase()}] ${h.description} ${h.status === 'Confirmada' ? '(CONFIRMADA)' : ''}`)
+                        .join('\n');
+                    intelRows.push(["Hipóteses Ativas", hypText]);
+                }
 
-            // 3. Riscos
-            if (intel.risks?.length) {
-                intelRows.push(["Riscos Operacionais", intel.risks.join(', ')]);
-            }
+                // 3. Riscos
+                if (intel.risks?.length) {
+                    intelRows.push(["Riscos Operacionais", intel.risks.join(', ')]);
+                }
 
-            // 4. Entidades
-            if (intel.entities?.length) {
-                intelRows.push(["Alvos Relacionados", intel.entities.map((e: any) => `${e.name} (${e.role})`).join('; ')]);
-            }
+                // 4. Entidades
+                if (intel.entities?.length) {
+                    intelRows.push(["Alvos Relacionados", intel.entities.map((e: any) => `${e.name} (${e.role})`).join('; ')]);
+                }
 
-            // 5. Locais
-            if (intel.locations?.length) {
-                intelRows.push(["Pontos de Interesse", intel.locations.map((l: any) => `${l.address}`).join(' | ')]);
+                // 5. Locais
+                if (intel.locations?.length) {
+                    intelRows.push(["Pontos de Interesse", intel.locations.map((l: any) => `${l.address}`).join(' | ')]);
+                }
             }
         } catch (e) { }
 
@@ -295,26 +297,28 @@ export const generateWarrantPDF = async (
 
         // --- ACTION PLAN (Distinct Styling) ---
         try {
-            const intel = parseTacticalSummary(data.tacticalSummary);
-            if (intel.checklist?.length) {
-                drawSectionHeader("Plano de Ação e Diretrizes Operacionais");
-                intel.checklist.forEach((item: any) => {
-                    const taskText = `[${(item.priority || 'NORMAL').toUpperCase()}] ${item.task}`;
-                    const splitTask = doc.splitTextToSize(taskText, contentWidth - 10);
+            if (data.tacticalSummary) {
+                const intel = JSON.parse(data.tacticalSummary || '{}');
+                if (intel.checklist?.length) {
+                    drawSectionHeader("Plano de Ação e Diretrizes Operacionais");
+                    intel.checklist.forEach((item: any) => {
+                        const taskText = `[${(item.priority || 'NORMAL').toUpperCase()}] ${item.task}`;
+                        const splitTask = doc.splitTextToSize(taskText, contentWidth - 10);
 
-                    if (y + (splitTask.length * 5) > pageHeight - 20) {
-                        doc.addPage();
-                        y = 20;
-                    }
+                        if (y + (splitTask.length * 5) > pageHeight - 20) {
+                            doc.addPage();
+                            y = 20;
+                        }
 
-                    doc.setFont('helvetica', 'bold');
-                    doc.setFontSize(9);
-                    doc.text(">", margin + 2, y);
-                    doc.setFont('helvetica', 'normal');
-                    doc.text(splitTask, margin + 8, y);
-                    y += (splitTask.length * 5) + 2;
-                });
-                y += 5;
+                        doc.setFont('helvetica', 'bold');
+                        doc.setFontSize(9);
+                        doc.text(">", margin + 2, y);
+                        doc.setFont('helvetica', 'normal');
+                        doc.text(splitTask, margin + 8, y);
+                        y += (splitTask.length * 5) + 2;
+                    });
+                    y += 5;
+                }
             }
         } catch (e) { }
 
@@ -394,13 +398,6 @@ export const generateIfoodOfficePDF = async (
         const margin = 20;
         let y = 20;
 
-        // --- THEME COLORS ---
-        const COLORS = {
-            PRIMARY: [15, 23, 42] as [number, number, number],
-            SECONDARY: [51, 65, 85] as [number, number, number],
-            BORDER: [226, 232, 240] as [number, number, number],
-        };
-
         // --- HEADER ---
         try {
             const badgePC = new Image();
@@ -421,49 +418,45 @@ export const generateIfoodOfficePDF = async (
 
             doc.addImage(badgePC, 'PNG', margin, y, badgeW, badgeH);
 
-            const textX = margin + badgeW + 8; // Define textX
-
             doc.setFont('helvetica', 'bold');
-            doc.setFontSize(8);
-            doc.setTextColor(...COLORS.SECONDARY);
-
+            doc.setFontSize(9);
+            const textX = margin + badgeW + 5;
             const headerLines = [
-                "GOVERNO DO ESTADO DE SÃO PAULO",
                 "SECRETARIA DA SEGURANÇA PÚBLICA",
                 "POLÍCIA CIVIL DO ESTADO DE SÃO PAULO",
+                "DEPARTAMENTO DE POLÍCIA JUDICIÁRIA DE SÃO PAULO INTERIOR",
                 "DEINTER 1 - SÃO JOSÉ DOS CAMPOS",
-                "SECCIONAL DE JACAREÍ - DIG (INVESTIGAÇÕES GERAIS)"
+                "DELEGACIA SECCIONAL DE POLÍCIA DE JACAREÍ",
+                "DELEGACIA DE INVESTIGAÇÕES GERAIS DE JACAREÍ"
             ];
 
             headerLines.forEach((line, index) => {
-                doc.text(line, textX, y + 3 + (index * 4));
+                doc.text(line, textX, y + 4 + (index * 4));
             });
 
-            doc.setDrawColor(...COLORS.BORDER);
-            doc.setLineWidth(0.1);
+            doc.setLineWidth(0.5);
             doc.line(margin, y + badgeH + 5, pageWidth - margin, y + badgeH + 5);
-            y += badgeH + 12;
+            y += badgeH + 20;
 
         } catch (e) {
-            console.error("Header error", e);
+            console.error("Badge load error", e);
             y += 30;
         }
 
         // --- TITLE ---
         doc.setFontSize(12);
-        doc.setTextColor(...COLORS.PRIMARY);
         doc.setFont('helvetica', 'bold');
         doc.text("OFÍCIO DE REQUISIÇÃO DE DADOS", pageWidth / 2, y, { align: 'center' });
-        y += 15;
+        y += 10;
 
         // --- DESTINATÁRIO ---
-        doc.setFontSize(11);
+        doc.setFontSize(10);
         doc.setFont('helvetica', 'bold');
         doc.text("Ao: IFOOD.COM AGÊNCIA DE RESTAURANTES ONLINE S.A.", margin, y);
-        y += 6;
+        y += 5;
         doc.setFont('helvetica', 'normal');
         doc.text("Departamento Jurídico / Compliance", margin, y);
-        y += 20;
+        y += 15;
 
         // --- BODY ---
         doc.setFontSize(10);
@@ -488,7 +481,6 @@ export const generateIfoodOfficePDF = async (
         doc.text(`CPF: ${data.cpf || "NÃO INFORMADO"}`, margin + 5, detailY);
 
         y += 45;
-
 
         // --- CLOSING ---
         const closingText = `As informações deverão ser encaminhadas para o e-mail oficial desta unidade (dig.jacarei@policiacivil.sp.gov.br) em formato PDF ou planilha eletrônica. 
@@ -656,10 +648,9 @@ export const generateCapturasReportPDF = async (
         // Addressee - Separated with more space
         y += 10;
         const addressee = "Excelentíssimo Sr. Delegado de Polícia:";
-        doc.setFont('helvetica', 'bold');
+        doc.setFont('helvetica', 'bold'); // Make it bold as per standard
         doc.text(addressee, margin, y);
         y += 12;
-
 
         // --- BODY TEXT ---
         doc.setFont('times', 'normal');
@@ -767,7 +758,6 @@ export const generateCapturasReportPDF = async (
             }
         });
 
-
         // --- SIGNATURE BLOCK (Right Aligned) ---
         if (y > pageHeight - 60) {
             doc.addPage();
@@ -786,7 +776,6 @@ export const generateCapturasReportPDF = async (
         y += 5;
         doc.setFont('times', 'normal');
         doc.text("Policia Civil do Estado de São Paulo", sigX, y, { align: 'center' });
-
 
 
         // --- FOOTER DELEGATE + BOX ---

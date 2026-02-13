@@ -16,11 +16,6 @@ interface IfoodReportModalProps {
     updateWarrant: (id: string, data: Partial<Warrant>) => Promise<boolean>;
 }
 
-const DELEGATES = [
-    { name: 'Luiz Antônio Cunha dos Santos', title: 'Delegado de Polícia' },
-    { name: 'Dr. Rodrigo Mambeli de Mendonça', title: 'Delegado de Polícia' }
-];
-
 const UBER_TEMPLATE = `OFÍCIO
 Ofício: nº.{{OFFICE_NUMBER}}/CAPT/2025
 Referência: PROC. Nº 0006701-81.2017.8.26.0292
@@ -29,7 +24,7 @@ Jacareí, 4 de JUNHO de 2025.
 ILMO. SENHOR RESPONSÁVEL:
 Com a finalidade de instruir investigação policial referente ao crime tipificado no artigo 121 do Código Penal, solicito a gentileza de verificar se o indivíduo abaixo relacionado encontram-se cadastrado como usuário ou prestador de serviços da plataforma UBER. Em caso positivo, requer-se o envio das informações cadastrais fornecidas para habilitação na plataforma, incluindo, se disponíveis, nome de usuário, endereço(s), número(s) de telefone, e demais dados vinculados à respectiva conta. E também ENDEREÇO(S) DAS CORRIDAS COM DATAS E HORÁRIOS DE 01/01/2025 HÁ 04/06/2025. As informações devem ser encaminhadas ao e-mail institucional do policial responsável pela investigação: william.castro@policiacivil.sp.gov.br William Campos de Assis Castro – Polícia Civil do Estado de São Paulo Réu de interesse para a investigação: ADRIANA PARANHOS ARICE – CPF 362.590.148-05 Aproveito a oportunidade para renovar meus votos de elevada estima e consideração.
 Atenciosamente
-{{DELEGATE_NAME}}
+Luiz Antonio Cunha dos Santos
 Delegado de Polícia
 Ao Ilustríssimo Senhor Responsável
 Empresa UBER.`;
@@ -47,7 +42,7 @@ William Campos de Assis Castro – Polícia Civil do Estado de São Paulo
 Pessoa de interesse para a investigação: LUCILENE CORREIA DE AGUIAR / CPF: 803.750.733-53
 Aproveito a oportunidade para renovar meus votos de elevada estima e consideração.
 Atenciosamente,
-{{DELEGATE_NAME}}
+Luiz Antônio Cunha dos Santos
 Delegado de Polícia
 Ao Ilustríssimo Senhor Responsável
 Empresa iFood.`;
@@ -56,7 +51,6 @@ const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, wa
     const [generatedText, setGeneratedText] = useState('');
     const [isProcessing, setIsProcessing] = useState(false);
     const [officeNumber, setOfficeNumber] = useState('');
-    const [selectedDelegateIndex, setSelectedDelegateIndex] = useState(0);
     const [step, setStep] = useState<'input' | 'processing' | 'result'>('input');
 
     useEffect(() => {
@@ -73,10 +67,8 @@ const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, wa
             return;
         }
 
-        const delegateName = DELEGATES[selectedDelegateIndex].name;
         const baseTemplate = (type === 'ifood' ? IFOOD_TEMPLATE : UBER_TEMPLATE)
-            .replace('{{OFFICE_NUMBER}}', officeNumber)
-            .replace('{{DELEGATE_NAME}}', delegateName);
+            .replace('{{OFFICE_NUMBER}}', officeNumber);
 
         setStep('processing');
         setIsProcessing(true);
@@ -128,30 +120,31 @@ const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, wa
 
         // --- HEADER FUNCTION ---
         const addHeader = (pdf: jsPDF) => {
-            let y = 15;
+            let y = 10;
 
             // 1. Badge (Left)
-            let badgeW = 0;
             if (badgeImg) {
                 const imgProps = pdf.getImageProperties(badgeImg);
-                const badgeH = 22;
-                badgeW = (imgProps.width * badgeH) / imgProps.height;
+                const badgeH = 26; // Approx
+                const badgeW = (imgProps.width * badgeH) / imgProps.height;
                 pdf.addImage(badgeImg, 'PNG', margin, y, badgeW, badgeH);
             }
 
             // 2. Text (Right of badge)
-            const textX = margin + badgeW + 8;
+            const textX = margin + 32; // Skip badge width
             pdf.setFont('helvetica', 'normal');
             pdf.setFontSize(8);
-            pdf.setTextColor(60, 60, 60);
+            pdf.setTextColor(0, 0, 0);
 
             const headerLines = [
                 "SECRETARIA DA SEGURANÇA PÚBLICA",
                 "POLÍCIA CIVIL DO ESTADO DE SÃO PAULO",
                 "DEPARTAMENTO DE POLÍCIA JUDICIÁRIA DE SÃO PAULO INTERIOR",
                 "DEINTER 1 - SÃO JOSÉ DOS CAMPOS",
-                "DELEGACIA SECCIONAL DE POLÍCIA DE JACAREÍ",
-                "DELEGACIA DE INVESTIGAÇÕES GERAIS DE JACAREÍ"
+                "DELEGACIA SECCIONAL DE POLÍCIA DE JACAREÍ –",
+                "“DELEGADO TALIS PRADO PINTO”",
+                "DELEGACIA DE INVESTIGAÇÕES GERAIS DE JACAREÍ – CARTÓRIO",
+                "CENTRAL"
             ];
 
             let lineY = y + 3;
@@ -161,96 +154,198 @@ const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, wa
             });
 
             // 3. Gray Bar "OFÍCIO"
-            const barY = Math.max(lineY, y + 25) + 5;
-
-            pdf.setDrawColor(200, 200, 200);
-            pdf.setLineWidth(0.5);
-            pdf.line(margin, barY, pageWidth - margin, barY);
+            const barY = lineY + 2;
+            pdf.setFillColor(200, 200, 200); // Light Gray
+            pdf.rect(margin, barY, maxLineWidth, 6, 'F');
+            pdf.setDrawColor(0);
+            pdf.setLineWidth(0.1);
+            pdf.rect(margin, barY, maxLineWidth, 6, 'S'); // Border
 
             pdf.setFont('helvetica', 'bold');
-            pdf.setFontSize(12);
-            pdf.setTextColor(0, 0, 0);
-            pdf.text("OFÍCIO", pageWidth / 2, barY + 10, { align: 'center' });
+            pdf.setFontSize(10);
+            pdf.text("OFÍCIO", pageWidth / 2, barY + 4.2, { align: 'center' });
 
-            return barY + 20; // Return Y where content starts
+            return barY + 10; // Return Y where content starts
         };
 
         // --- FOOTER FUNCTION ---
         const addFooter = (pdf: jsPDF, pageNum: number, totalPages: number) => {
             const footerY = pageHeight - 15;
 
-            pdf.setDrawColor(200, 200, 200);
-            pdf.setLineWidth(0.1);
-            pdf.line(margin, footerY - 5, pageWidth - margin, footerY - 5);
+            // Separator Line
+            // Not spanning full width based on image, looks like left block and right block?
+            // Actually image 1 has no full line, Image 2 header has full line?
+            // The image shows text at bottom.
 
+            // Address Block (Left)
             pdf.setFont('helvetica', 'normal');
-            pdf.setFontSize(7);
-            pdf.setTextColor(100, 100, 100);
+            pdf.setFontSize(8);
+            pdf.setTextColor(0, 0, 0);
 
-            const leftText = "Delegacia de Investigações Gerais de Jacareí - Rua Moisés Ruston, 370, Parque Itamaraty";
-            const rightText = `Página ${pageNum} de ${totalPages}`;
-            const centerText = "dig.jacarei@policiacivil.sp.gov.br | Tel: (12) 3951-1000";
+            const addr1 = "Rua Moisés Ruston, 370, Parque Itamaraty, Jacareí-SP, CEP-12.307-260";
+            const addr2 = "Tel-12-3951-1000 - E-mail - dig.jacarei@policiacivil.sp.gov.br";
 
-            pdf.text(leftText, margin, footerY);
-            pdf.text(centerText, pageWidth / 2, footerY, { align: 'center' });
-            pdf.text(rightText, pageWidth - margin, footerY, { align: 'right' });
+            // Right Block (Date | Page)
+            // The image shows this on the right side with a vertical separator?
+            // "Data (07/02/26) | Página 1 de 2" - roughly
+            // Let's position it at bottom right
+
+            const today = new Date();
+            const dateStr = `Data (${today.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' })})`;
+            const pageStr = `Página ${pageNum} de ${totalPages}`;
+
+            // Let's implement that split footer
+            const dividerX = pageWidth - margin - 35;
+            pdf.setDrawColor(0);
+            pdf.line(dividerX, footerY - 2, dividerX, footerY + 8);
+
+            // Left of divider (Address)
+            pdf.text(addr1, dividerX - 5, footerY, { align: 'right' });
+
+            // Left of divider (Contact)
+            const emailPart = "dig.jacarei@policiacivil.sp.gov.br";
+            const phonePart = "Tel-12-3951-1000 - E-mail - ";
+
+            // Render the phone part (black)
+            const fullContactWidth = pdf.getTextWidth(phonePart + emailPart);
+            const contactEndX = dividerX - 5;
+            const contactStartX = contactEndX - fullContactWidth;
+
+            pdf.text(phonePart, contactStartX, footerY + 4);
+
+            // Render the email part (blue) next to it
+            pdf.setTextColor(0, 0, 255);
+            pdf.text(emailPart, contactStartX + pdf.getTextWidth(phonePart), footerY + 4);
+            pdf.setTextColor(0, 0, 0); // Reset
+
+            // Right of divider
+            pdf.text(dateStr, dividerX + 5, footerY);
+            pdf.text(pageStr, dividerX + 5, footerY + 4);
         };
 
         // --- CONTENT GENERATION ---
+
+        // Setup Doc
         doc.setFont('times', 'normal');
+
         let y = 10;
 
         // Add Header Page 1
         y = addHeader(doc);
+        y += 5; // Spacing after Gray Bar
 
-        const lines = generatedText.split('\n');
-        doc.setFontSize(11);
-        doc.setTextColor(0, 0, 0);
+        // 1. Meta Fields
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'bold');
+        doc.text(`Ofício: nº.${officeNumber}/CAPT/2025`, margin, y);
+        y += 5;
 
-        lines.forEach((line) => {
-            const trimmedLine = line.trim();
-            if (!trimmedLine) {
-                y += 5;
-                return;
-            }
+        doc.text("Referência: ", margin, y);
+        doc.setFont('helvetica', 'normal');
+        doc.text(`PROC. Nº ${warrant.number}`, margin + 22, y);
+        y += 5;
 
-            // Check page break
-            if (y > pageHeight - 35) {
-                doc.addPage();
-                y = addHeader(doc);
-            }
+        doc.setFont('helvetica', 'bold');
+        doc.text("Natureza: ", margin, y);
+        doc.setFont('helvetica', 'normal');
+        doc.text("Solicitação de Dados.", margin + 18, y);
+        y += 15;
 
-            // Formatting Detection
-            const isBold = trimmedLine.startsWith('Ofício:') ||
-                trimmedLine.startsWith('Referência:') ||
-                trimmedLine.startsWith('Natureza:') ||
-                trimmedLine.startsWith('ILMO.') ||
-                trimmedLine.startsWith('Ao Ilustríssimo') ||
-                trimmedLine.startsWith('Empresa') ||
-                trimmedLine.includes('Delegado');
+        // 2. Date (Right Aligned, Bold City)
+        const months = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+        const today = new Date();
+        const dateLine = `Jacareí, ${today.getDate().toString().padStart(2, '0')} de ${months[today.getMonth()]} de ${today.getFullYear()}.`;
 
-            doc.setFont('times', isBold ? 'bold' : 'normal');
+        doc.setFont('helvetica', 'bold'); // "Jacareí," is bold in image? No, looks all bold italic maybe? Or just bold.
+        doc.setFont('helvetica', 'bolditalic');
+        doc.text(dateLine, pageWidth - margin, y, { align: 'right' });
+        doc.setFont('helvetica', 'normal');
+        y += 15;
 
-            // Special Alignment for Date and Signature
-            if (trimmedLine.includes('Jacareí,') && /\d{4}/.test(trimmedLine)) {
-                doc.text(trimmedLine, pageWidth - margin, y, { align: 'right' });
-            } else if (trimmedLine === trimmedLine.toUpperCase() && trimmedLine.length < 50 && !trimmedLine.startsWith('OFÍCIO')) {
-                // Likely a name or title
-                doc.text(trimmedLine, margin, y);
-            } else if (DELEGATES.some(d => trimmedLine.includes(d.name)) || trimmedLine.includes('Delegado de Polícia')) {
-                doc.text(trimmedLine, pageWidth / 2, y, { align: 'center' });
-            } else {
-                // Justified Body Text
-                const splitText = doc.splitTextToSize(trimmedLine, maxLineWidth);
-                doc.text(splitText, margin, y, { align: 'justify', maxWidth: maxLineWidth });
-                y += (splitText.length * 5) - 5; // Adjust for multiline
-            }
+        // 3. Vocative
+        doc.setFont('helvetica', 'bold');
+        doc.text("ILMO. SENHOR RESPONSÁVEL,", margin, y);
+        y += 15;
 
-            y += 6;
-        });
+        // 4. Body Paragraphs
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(11); // Body font size
+
+        const indent = "          "; // ~10 spaces
+
+        const p1 = `${indent}Com a finalidade de instruir investigação policial em trâmite nesta unidade, solicito, respeitosamente, a gentileza de verificar se o indivíduo abaixo relacionado encontra-se cadastrado como usuário ou entregador da plataforma IFOOD.`;
+        const splitP1 = doc.splitTextToSize(p1, maxLineWidth);
+        doc.text(splitP1, margin, y, { align: 'justify', maxWidth: maxLineWidth });
+        y += (splitP1.length * 5) + 5;
+
+        const p2 = `${indent}Em caso positivo, requer-se o envio das informações cadastrais fornecidas para habilitação na plataforma, incluindo, se disponíveis, nome completo, endereço(s), número(s) de telefone, e-mail(s) e demais dados vinculados à respectiva conta.`;
+        const splitP2 = doc.splitTextToSize(p2, maxLineWidth);
+        doc.text(splitP2, margin, y, { align: 'justify', maxWidth: maxLineWidth });
+        y += (splitP2.length * 5) + 5;
+
+        const p3 = `${indent}As informações devem ser encaminhadas ao e-mail institucional do policial responsável pela investigação:`;
+        doc.text(p3, margin, y);
+        y += 8;
+
+        // Email Block
+        doc.setFont('helvetica', 'bold');
+        doc.text("william.castro@policiacivil.sp.gov.br", margin + 10, y);
+        y += 5;
+        doc.setFont('helvetica', 'normal');
+        doc.text("William Campos de Assis Castro – Polícia Civil do Estado de São Paulo", margin + 10, y);
+        y += 15;
+
+        // Person of Interest
+        doc.setFont('helvetica', 'normal');
+        doc.text("Pessoa de interesse para a investigação:", margin, y);
+        y += 6;
+
+        doc.setFont('helvetica', 'bold');
+        const personLine = `${warrant.name.toUpperCase()} – CPF ${warrant.cpf || warrant.rg || 'NÃO INFORMADO'}`;
+        doc.text(personLine, margin, y);
+        y += 15;
+
+        // Closing
+        doc.setFont('helvetica', 'normal');
+        const closing = `${indent}Aproveito a oportunidade para renovar meus votos de elevada estima e consideração.`;
+        doc.text(closing, margin, y);
+        y += 10;
+
+        doc.text("Atenciosamente,", margin, y);
+
+        // Signature
+        y += 20;
+        // Check if page break needed for signature
+        if (y > pageHeight - 40) {
+            doc.addPage();
+            addHeader(doc);
+            y = 50;
+        }
+
+        doc.setFont('helvetica', 'bold');
+        doc.text("Luiz Antônio Cunha dos Santos", pageWidth / 2, y, { align: 'center' });
+        y += 5;
+        doc.text("Delegado de Polícia", pageWidth / 2, y, { align: 'center' });
+
+        // Addressee Block (Bottom or Next Page)
+        y += 20;
+
+        // Ensure we have space, or move to next page
+        if (y > pageHeight - 40) {
+            doc.addPage();
+            y = 50;
+            addHeader(doc); // Header on page 2 too? Image 2 shows header.
+        }
+
+        doc.setFont('helvetica', 'normal');
+        doc.text("Ao Ilustríssimo Senhor Responsável", margin, y);
+        y += 5;
+        doc.setFont('helvetica', 'bold');
+        doc.text("Empresa iFood.", margin, y);
 
         // Add Footers
-        const totalPages = (doc as any).internal.getNumberOfPages();
+        // Fix getNumberOfPages error by casting or using supported property
+        const totalPages = (doc as any).internal.pages.length - 1;
         for (let i = 1; i <= totalPages; i++) {
             doc.setPage(i);
             addFooter(doc, i, totalPages);
@@ -259,25 +354,23 @@ const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, wa
         const pdfBlob = doc.output('blob');
         const pdfFile = new File([pdfBlob], `Oficio_${type.toUpperCase()}_${officeNumber}.pdf`, { type: 'application/pdf' });
 
-        // Save locally
+        // Save locally first
         doc.save(`Oficio_IFood_${officeNumber}_${warrant.name.replace(/\s+/g, '_')}.pdf`);
 
-        // Upload
+        // Upload & Save to DB
         const toastId = toast.loading("Salvando cópia no prontuário...");
         try {
-            // Ensure path uses 'attachments/ifood' as established
             const path = `attachments/ifood/${warrant.id}/${Date.now()}_Oficio_${officeNumber}.pdf`;
             const uploadedPath = await uploadFile(pdfFile, path);
 
             if (uploadedPath) {
                 const url = getPublicUrl(uploadedPath);
-                // Use the correct field 'ifoodDocs'
                 const currentDocs = warrant.ifoodDocs || [];
                 await updateWarrant(warrant.id, { ifoodDocs: [...currentDocs, url] });
                 toast.success("Cópia salva no histórico!", { id: toastId });
                 onClose();
             } else {
-                toast.error("Erro no upload do arquivo.", { id: toastId });
+                toast.dismiss(toastId);
             }
         } catch (err) {
             console.error(err);
@@ -319,31 +412,16 @@ const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, wa
                                 <h3 className="text-xl font-bold text-white mb-2">Número do Ofício</h3>
                                 <p className="text-slate-400 text-sm">Informe o número sequencial para o documento.</p>
                             </div>
-                            <div className="w-full max-w-xs space-y-4">
-                                <div className="space-y-1">
-                                    <label className="text-[10px] font-black text-indigo-400 uppercase tracking-widest block text-left">Nº Ofício</label>
-                                    <input
-                                        type="text"
-                                        autoFocus
-                                        className="w-full bg-slate-800 border-2 border-slate-700 rounded-xl px-4 py-3 text-center text-2xl font-black text-white outline-none focus:border-indigo-500 transition-all placeholder:text-slate-600"
-                                        placeholder="Ex: 026"
-                                        value={officeNumber}
-                                        onChange={(e) => setOfficeNumber(e.target.value)}
-                                        onKeyDown={(e) => e.key === 'Enter' && handleGenerate()}
-                                    />
-                                </div>
-                                <div className="space-y-1">
-                                    <label className="text-[10px] font-black text-indigo-400 uppercase tracking-widest block text-left">Delegado Signatário</label>
-                                    <select
-                                        className="w-full bg-slate-800 border-2 border-slate-700 rounded-xl px-4 py-3 text-white outline-none focus:border-indigo-500 transition-all appearance-none cursor-pointer text-sm font-bold"
-                                        value={selectedDelegateIndex}
-                                        onChange={(e) => setSelectedDelegateIndex(parseInt(e.target.value))}
-                                    >
-                                        {DELEGATES.map((delegate, idx) => (
-                                            <option key={idx} value={idx}>{delegate.name}</option>
-                                        ))}
-                                    </select>
-                                </div>
+                            <div className="w-full max-w-xs scale-110">
+                                <input
+                                    type="text"
+                                    autoFocus
+                                    className="w-full bg-slate-800 border-2 border-slate-700 rounded-xl px-4 py-3 text-center text-2xl font-black text-white outline-none focus:border-indigo-500 transition-all placeholder:text-slate-600"
+                                    placeholder="Ex: 026"
+                                    value={officeNumber}
+                                    onChange={(e) => setOfficeNumber(e.target.value)}
+                                    onKeyDown={(e) => e.key === 'Enter' && handleGenerate()}
+                                />
                             </div>
                             <button
                                 onClick={handleGenerate}

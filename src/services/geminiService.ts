@@ -106,27 +106,18 @@ const getBestAvailableModel = async (key: string): Promise<string> => {
         if (!data.models) return "gemini-1.5-flash";
 
         // Filtra modelos que geram conteúdo e são da família Gemini 1.5 ou Pro
-        // BLACKLIST DE SEGURANÇA: Remove modelos 2.0/2.5/Experimentais que causam erro 429/403 (Limit 0)
         const availableParams = data.models
-            .filter((m: any) =>
-                m.supportedGenerationMethods.includes("generateContent") &&
-                !m.name.includes("2.0") &&
-                !m.name.includes("2.5") &&
-                !m.name.includes("exp")
-            )
+            .filter((m: any) => m.supportedGenerationMethods.includes("generateContent"))
             .map((m: any) => m.name.replace("models/", ""));
 
         console.log("DEBUG GEMINI: Modelos disponíveis para esta chave:", availableParams);
 
-        // Ordem de preferência - Priorizando ROBUSTEZ (Pro / 1.5 Pro) sobre Rapidez (Flash)
-        // REMOVIDO 2.0/2.5 pois estavam instáveis
+        // Ordem de preferência - Priorizando o 2.5 Flash conforme solicitado
         const preference = [
+            "gemini-2.5-flash",
+            "gemini-2.0-flash",
             "gemini-1.5-pro",
-            "gemini-1.5-pro-001",
-            "gemini-1.5-pro-002",
             "gemini-1.5-flash",
-            "gemini-1.5-flash-001",
-            "gemini-1.5-flash-002",
             "gemini-pro"
         ];
 
@@ -154,29 +145,26 @@ async function tryGenerateContent(prompt: string, options: any = {}): Promise<st
         const text = await generateContentViaFetch(modelName, prompt, key);
         if (text) return text;
     } catch (error: any) {
-        console.error(`DEBUG GEMINI Error (Primary ${modelName}):`, error.message);
+        console.error(`DEBUG GEMINI Error (${modelName}):`, error);
 
-        // FALLBACK WATERFALL: Se a robusta falhar, vai descendo o nível
-        // Evita testar o mesmo modelo que já falhou
-        const fallbacks = ["gemini-1.5-flash", "gemini-pro", "gemini-1.0-pro"];
-
-        for (const fallbackModel of fallbacks) {
-            if (fallbackModel === modelName) continue; // Skip failed primary
-
+        // Se falhar (ex: sobrecarga), tenta um fallback hardcoded básico apenas por garantia
+        if (modelName !== 'gemini-pro') {
             try {
-                console.log(`DEBUG GEMINI: Tentando fallback para MAIS LEVE: ${fallbackModel}...`);
-                const fallbackText = await generateContentViaFetch(fallbackModel, prompt, key);
-                if (fallbackText) return fallbackText;
-            } catch (fallbackError: any) {
-                console.warn(`DEBUG GEMINI: Fallback ${fallbackModel} falhou.`);
+                console.log("DEBUG GEMINI: Tentando fallback para gemini-pro...");
+                return await generateContentViaFetch("gemini-pro", prompt, key);
+            } catch (e) {
+                // ignora e lanca o erro original
             }
         }
 
         const msg = error.message || "Erro desconhecido";
-        if (msg.includes("403") || msg.includes("API_KEY")) {
-            throw new Error(`Erro de Acesso: Chave API inválida.`);
+        if (msg.includes("403") || msg.includes("API_KEY") || msg.includes("not found")) {
+            throw new Error(`Erro de Acesso (${modelName}): Chave API inválida ou sem permissão. Detalhe: ${msg}`);
         }
-        throw new Error(`Falha na IA e nos fallbacks: ${msg}`);
+        if (msg.includes("503") || msg.includes("overloaded") || msg.includes("exhausted")) {
+            throw new Error(`IA Sobrecarregada (${modelName}): Tente novamente em alguns segundos. Detalhe: ${msg}`);
+        }
+        throw new Error(`Falha na IA (${modelName}): ${msg}`);
     }
 
     throw new Error("Falha ao gerar resposta.");
@@ -202,31 +190,60 @@ export async function extractFullWarrantIntelligence(rawText: string): Promise<a
     if (!(await isGeminiEnabled())) return null;
 
     const prompt = `
-        [ROLE:EXTRACTOR] [TASK:PARSE] [FMT:JSON]
+        VOCÊ É UM ANALISTA DE INTELIGÊNCIA DA POLÍCIA CIVIL DE ELITE.
+        SUA MISSÃO: Extrair dados estruturados de um MANDADO JUDICIAL com 100% de precisão tática.
 
-        <OCR>
-        "${rawText}"
-        </OCR>
+        REGRAS DE OURO (NÃO IGNORE NENHUMA):
+        
+        1. 🏛️ VARA / FÓRUM (ISSUING COURT): 
+           - Procure no primeiríssimo parágrafo ou no cabeçalho.
+           - Formatos comuns: "Vara Criminal da Comarca de...", "2ª Vara Criminal de...", "Juízo de Direito da Vara...", "Foro Central Criminal Barra Funda".
+           - Se houver "TRIBUNAL DE JUSTIÇA DO ESTADO DE SÃO PAULO", a Vara geralmente vem logo abaixo. 
+           - EXTRAIA O NOME COMPLETO DA VARA E A COMARCA.
 
-        <RULES>
-        1. COURT(Header) -> Name+City.
-        2. CRIME(Arts) -> CommonName (Ex:157->Roubo).
-        3. TARGET -> Name(UP), RG/CPF(Dig), Birth(ISO).
-        4. ADDR -> List.
-        5. DATES -> ISO.
-        </RULES>
+        2. ⚖️ ARTIGO E CRIME:
+           - Localize a "Capitulação", "Incidência Penal" ou "Artigo".
+           - SE ENCONTRAR UM ARTIGO, VOCÊ DEVE ESCREVER O NOME DO CRIME.
+           - Exemplos de mapeamento obrigatório: 
+             - Art. 121 -> Homicídio
+             - Art. 157 -> Roubo
+             - Art. 155 -> Furto
+             - Art. 33 ou 35 -> Tráfico de Drogas
+             - Art. 213 ou 217 -> Estupro
+             - Art. 147 -> Ameaça
+             - Art. 129 -> Lesão Corporal
+             - Art. 171 -> Estelionato
+             - Art. 180 -> Receptação
+             - Art. 14 ou 16 (Lei 10826) -> Porte/Posse de Arma
+             - Art. 331 -> Desacato
+             - Pensão / Alimentos -> Pensão Alimentícia
 
-        <JSON_SCHEMA>
+        3. 📍 ENDEREÇOS: Capture todos os endereços residenciais ou comerciais citados para o alvo.
+
+        4. 📅 DATAS: Formate estritamente no padrão AAAA-MM-DD.
+
+        TEXTO BRUTO DO MANDADO (OCR):
+        """
+        ${rawText}
+        """
+
+        SAÍDA OBRIGATÓRIA EM JSON (SEM COMENTÁRIOS):
         {
-            "name": "STR", "rg": "STR", "cpf": "STR", "birthDate": "YYYY-MM-DD",
-            "processNumber": "STR", "type": "PRISÃO|BUSCA",
-            "crime": "STR", "regime": "STR",
-            "issuingCourt": "STR",
-            "addresses": ["STR"],
-            "issueDate": "YYYY-MM-DD", "expirationDate": "YYYY-MM-DD",
-            "observations": "STR", "tags": ["STR"]
+            "name": "NOME COMPLETO EM MAIÚSCULAS",
+            "rg": "Apenas números",
+            "cpf": "Apenas números",
+            "birthDate": "AAAA-MM-DD",
+            "processNumber": "Número do processo unificado",
+            "type": "MANDADO DE PRISÃO" ou "BUSCA E APREENSÃO",
+            "crime": "NOME DO CRIME TRADUZIDO (Ex: Roubo)",
+            "regime": "Fechado / Semiaberto / Aberto / Preventiva / Temporária / Civil",
+            "issuingCourt": "VARA E COMARCA POR EXTENSO (Ex: 1ª VARA CRIMINAL DE JACAREÍ)",
+            "addresses": ["Endereço 1", "Endereço 2"],
+            "issueDate": "AAAA-MM-DD",
+            "expirationDate": "AAAA-MM-DD",
+            "observations": "Resumo tático das observações",
+            "tags": ["Urgente", "Risco de Fuga", etc]
         }
-        </JSON_SCHEMA>
     `;
 
     try {
@@ -242,55 +259,30 @@ export async function analyzeRawDiligence(warrantData: any, rawInfo: string) {
     if (!(await isGeminiEnabled())) return null;
 
     const prompt = `
-        [ROLE:ANALYST] [TASK:DILIGENCE] [FMT:JSON]
-        
-        <TARGET>
-        ${JSON.stringify({
-        n: warrantData.name,
-        c: warrantData.crime,
-        l: warrantData.location,
-        h: (warrantData.diligentHistory || []).map((h: any) => h.substring(0, 50)).slice(-3)
-    })}
-        </TARGET>
+        Você é um Especialista em Inteligência Policial de alto nível.
+        Sua missão é analisar informações brutas (diligências, observações, informes) colhidas por equipes de campo sobre um alvo de mandado judicial.
 
-        <INPUT>
+        DADOS DO ALVO:
+        ${JSON.stringify(warrantData, null, 2)}
+
+        INFORMAÇÃO BRUTA COLETADA:
         "${rawInfo}"
-        </INPUT>
 
-        <OPS>
-        1. CONFLICT_CHECK(Target, Input).
-        2. RISK(Input) -> [L|M|H|C].
-        3. ENTITIES(Input) -> [Name,Role].
-        4. LOCS(Input) -> [Addr].
-        5. ACTIONS(Input) -> List.
-        </OPS>
+        Sua análise deve:
+        1. CONFRONTAR: Verifique se a informação nova contradiz ou confirma dados já existentes (endereço, rotina, contatos).
+        2. INSIGHTS: Identifique padrões ocultos (ex: horários de maior vulnerabilidade, possíveis refúgios, comportamento de fuga).
+        3. OPINIÃO TÁTICA: Sugira a melhor abordagem ou o próximo passo para a captura, avaliando o risco.
+        4. IDENTIFICAÇÃO: Extraia nomes, apelidos, veículos (placas) ou endereços mencionados.
 
-        <JSON_SCHEMA>
-        {
-            "summary": "Max 3 lines",
-            "riskLevel": "Low|Medium|High|Critical",
-            "riskReason": "Str",
-            "entities": [{"name": "Str", "role": "Str", "context": "Str"}],
-            "locations": [{"address": "Str", "context": "Str"}],
-            "checklist": [{"task": "Str", "priority": "Alta|Normal"}]
-        }
-        </JSON_SCHEMA>
+        Responda de forma profissional, direta e em formato Markdown estruturado para leitura rápida em dispositivos móveis.
+        Use emojis para sinalizar pontos críticos.
     `;
 
     try {
-        const text = await tryGenerateContent(prompt);
-        return parseGeminiJSON(text, null);
+        return await tryGenerateContent(prompt);
     } catch (error: any) {
         console.error("Erro no Gemini (Análise Bruta):", error);
-        // Return object structure even on error to prevent UI crash
-        return {
-            summary: `Erro na análise IA: ${error.message}.`,
-            riskLevel: "Desconhecido",
-            riskReason: "Falha de processamento.",
-            entities: [],
-            locations: [],
-            checklist: []
-        };
+        return `Erro na Análise de Inteligência: ${error.message}`;
     }
 }
 
@@ -300,32 +292,62 @@ export async function generateReportBody(warrantData: any, rawContent: string, i
     }
 
     const prompt = `
-        [ROLE:WRITER] [TASK:REPORT] [TONE:FORMAL_POLICE]
+        # MANUAL DE REDAÇÃO DE RELATÓRIOS POLICIAIS (PADRÃO ELITE PCSP)
 
-        <DATA>
-        TGT:${warrantData.name}, CRM:${warrantData.crime} (Civil if Pensão), PRC:${warrantData.number}, ADDR:${warrantData.location}
-        </DATA>
+        VOCÊ É UM "MOTOR DE CÓPIA INTELIGENTE E ADAPTATIVO".
+        SUA MISSÃO: Ler os dados do caso, o CRIME envolvido, e escolher o modelo adequado abaixo.
+        
+        🟥 REGRA CRÍTICA DE ADAPTAÇÃO (NÃO ERRE ISSO):
+        1. OLHE O CAMPO "CRIME" NOS DADOS ABAIXO.
+        2. SE FOR 'PENSÃO ALIMENTÍCIA' ou 'ALAMENTOS':
+           - Use termos: "Mandado de Prisão Civil", "inadimplemento de pensão", "obrigação alimentar".
+        3. SE FOR OUTRO CRIME (Ex: Roubo, Tráfico, Cárcere Privado):
+           - Use termos: "Mandado de Prisão", "crime de [CRIME]", "processo criminal".
+           - JAMAIS cite "pensão" ou "civil" se for crime comum.
+        
+        ---
+        ## 📂 BANCO DE CENÁRIOS (Escolha um e adapte o crime)
 
-        <INPUT>
+        [CENÁRIO 1: ENDEREÇO EM OUTRA COMARCA]
+        "Em cumprimento ao [TIPO_DE_MANDADO], expedido nos autos do processo nº [NÚMERO_DO_PROCESSO], referente a [CRIME_OU_NATUREZA], foram realizadas consultas e diligências preliminares visando à localização do executado [NOME_DO_ALVO] nesta Comarca de Jacareí/SP.\n\nInicialmente foram efetuadas pesquisas atualizadas nos sistemas policiais e de cadastro, não sendo localizado qualquer endereço ativo vinculado ao réu no município de Jacareí/SP, inexistindo registros recentes de residência, vínculos profissionais ou outras informações que possibilitassem sua localização nesta circunscrição.\n\nConsiderando a ausência de dados nesta comarca e observando-se que, no próprio mandado judicial, consta o endereço:\n[ENDEREÇO_DO_MANDADO],\nsugere-se o envio do presente expediente à autoridade policial daquele município, a fim de que a equipe local possa prosseguir com as diligências e tentar o cumprimento da ordem judicial no endereço indicado.\n\nDiante do exposto, até o presente momento não houve êxito na localização do executado nesta Comarca, restando as diligências negativas."
+
+        [CENÁRIO 2: CONTATO COM MÃE/FAMILIAR - NÃO MORA MAIS]
+        "Em cumprimento ao [TIPO_DE_MANDADO] referente ao Processo nº [NÚMERO_DO_PROCESSO], expedido pela [VARA] da Comarca de Jacareí/SP, foram realizadas diligências no endereço indicado como possível residência do réu [NOME_DO_ALVO], situado na [ENDEREÇO_DILIGENCIADO].\n\nAo chegar ao local, os policiais foram atendidos pela Sra. [NOME_DA_PESSOA_ATENDIDA] (RG [RG_SE_HOUVER]), [GRAU_PARENTESCO] do procurado, a qual relatou que [ELE/ELA] não reside mais no endereço e que saiu de casa há muito tempo, não mantendo contato e não possuindo informações que possam contribuir para sua localização. Após apresentação do mandado judicial, foi franqueado o acesso ao imóvel, sendo realizada busca em todos os cômodos da residência, sem êxito.\n\nPor fim, foram realizadas consultas atualizadas nos sistemas policiais, as quais, até o presente momento, não apontaram novos endereços, vínculos ou informações úteis que possam levar à localização de [NOME_DO_ALVO] nesta cidade.\n\nDiante do exposto, as diligências foram encerradas sem êxito na localização do procurado."
+
+        [CENÁRIO 3: COMERCIAL / DESCONHECIDO NO LOCAL]
+        "Em cumprimento ao [TIPO_DE_MANDADO] expedido nos autos do processo nº [NÚMERO_DO_PROCESSO], referente a [CRIME_OU_NATUREZA], esta equipe dirigiu-se inicialmente ao endereço indicado no ofício, situado na [ENDEREÇO].\n\nNo local, esta equipe foi recebida pelo proprietário, Sr. [NOME_QUEM_ATENDEU], o qual declarou não conhecer [NOME_DO_ALVO], bem como afirmou jamais ter contratado pessoa com nome ou características semelhantes às do executado.\n\nAssim, até o presente momento, não houve êxito no cumprimento do mandado, permanecendo negativas as diligências empreendidas por esta equipe."
+
+        [CENÁRIO 4: IMÓVEL ALUGA-SE / VENDE-SE / VAZIO]
+        "Em cumprimento ao [TIPO_DE_MANDADO] expedido nos autos do processo nº [NÚMERO_DO_PROCESSO], oriundo da [VARA] da Comarca de Jacareí/SP, em desfavor de [NOME_DO_ALVO], referente ao delito de [CRIME], esta equipe realizou diligências no endereço indicado — [ENDEREÇO].\n\nForam efetuadas visitas em dias e horários distintos, constatando-se que o imóvel encontra-se com placas de “aluga-se” e “vende-se”, sem qualquer movimentação que indicasse a presença de moradores ou ocupação regular da residência.\n\nAté o momento, não foram obtidos elementos que indiquem o paradeiro do procurado, permanecendo negativas as diligências."
+
+        [CENÁRIO 5: VIZINHOS DIZEM QUE NÃO VÊEM HÁ TEMPOS]
+        "Em cumprimento ao mandado expedido nos autos do processo nº [NÚMERO_DO_PROCESSO], oriundo da [VARA] da Comarca de Jacareí/SP, em desfavor de [NOME_DO_ALVO], esta equipe diligenciou no endereço indicado — [ENDEREÇO].\n\nForam realizadas verificações in loco em dias e horários diversos, ocasião em que se constatou ausência de sinais de habitação ou qualquer indício de presença recente do procurado no imóvel.\n\nProcedeu-se à entrevista com moradores lindeiros, os quais informaram que há considerável lapso temporal não visualizam o requerido naquela localidade, bem como desconhecem seu atual paradeiro.\n\nDiante do exposto, as diligências restaram infrutíferas, não sendo obtidos elementos que permitam, até o presente momento, a localização do procurado."
+
+        [CENÁRIO 6: NUMERAL NÃO LOCALIZADO / TELEFONE SEM RESPOSTA]
+        "Em cumprimento à determinação para localização de [NOME_DO_ALVO], esta equipe diligenciou ao endereço informado: [ENDEREÇO].\n\nNo local, não foi possível identificar o numeral informado, inexistindo a numeração indicada na referida via.\n\nAlém disso, foram realizadas diversas tentativas de contato telefônico, contudo, as chamadas foram sistematicamente encerradas ou não atendidas.\n\nDessa forma, [O/A] alvo não foi localizado(a) até o presente momento, permanecendo as diligências em andamento."
+
+        [CENÁRIO 7: PRISÃO EFETUADA (SUCESSO)]
+        "Em cumprimento ao mandado de prisão em desfavor de [NOME_DO_ALVO], diligenciamos ao endereço [ENDEREÇO]. No local, logramos êxito em localizar o alvo. Após confirmação da identidade, foi dada voz de prisão, sendo o capturado conduzido a esta Unidade Policial para as providências cabíveis. O uso de algemas foi necessário para garantir a integridade física da equipe e do detido, conforme Súmula Vinculante 11."
+
+        ---
+        ## DADOS REAIS DO CASO (LEIA O CRIME COM ATENÇÃO):
+        ALVO: ${warrantData.name}
+        CRIME: ${warrantData.crime} (ATENÇÃO: Este é o crime real do mandado)
+        PROCESSO: ${warrantData.number}
+        ENDEREÇO: ${warrantData.location}
+        
+        RELATO DO AGENTE:
         "${rawContent}"
-        INST:"${instructions || 'Std'}"
-        </INPUT>
 
-        <SCENARIOS>
-        1. NO_CITY -> Sug. transf.
-        2. MOVED -> Fam. confirmed.
-        3. UNKNOWN -> Denied knowlg.
-        4. EMPTY -> Rent/Sale.
-        5. GONE -> Neighbors conf.
-        6. NO_ADDR -> Num not found.
-        7. CAPTURE -> Success.
-        </SCENARIOS>
+        INSTRUÇÃO: "${instructions || 'Seguir manual e adaptar crime.'}"
 
-        <RULES>
-        1. ID_SCENARIO(Input).
-        2. FILL_TEMPLATE(Scenario) -> Subs [ALVO],[CRIME].
-        3. OUTPUT -> Text only, No Markdown, Pt-BR Formal.
-        </RULES>
+        ## TAREFA:
+        1. Identifique o CENÁRIO correto base nos fatos.
+        2. Substitua [TIPO_DE_MANDADO] por "Mandado de Prisão" (Criminal) ou "Mandado de Prisão Civil" (Pensão), conforme o campo CRIME.
+        3. Substitua [CRIME_OU_NATUREZA] pelo nome do crime real.
+        4. Gere o texto final.
+        
+        RESPOSTA:
     `;
 
     try {
@@ -341,14 +363,19 @@ export async function analyzeWarrantData(text: string) {
     if (!(await isGeminiEnabled())) return null;
 
     const prompt = `
-        [ROLE:ANALYST] [TASK:QUICK_THREAT] [FMT:JSON]
-        <TXT>"${text}"</TXT>
-        <JSON_SCHEMA>
+        Você é um analista de inteligência policial. 
+        Analise o seguinte texto extraído de um mandado judicial ou histórico policial e extraia:
+        1. Um resumo curto (máximo 2 linhas) do perigo ou modus operandi do alvo.
+        2. Tags de alerta (objetivas, ex: "Perigoso", "Risco de Fuga", "Armado", "Violência Doméstica").
+
+        TEXTO:
+        "${text}"
+
+        Responda APENAS em formato JSON:
         {
-            "summary": "Max 2 lines",
-            "warnings": ["Dangerous", "FlightRisk", "Armed", "DomViolence", "Trafficking"]
+            "summary": "string",
+            "warnings": ["tag1", "tag2"]
         }
-        </JSON_SCHEMA>
     `;
 
     try {
@@ -365,33 +392,36 @@ export async function analyzeDocumentStrategy(warrantData: any, docText: string)
     if (!(await isGeminiEnabled())) return null;
 
     const prompt = `
-        [ROLE:ANALYST] [TASK:DEEP_DOC] [FMT:JSON]
+        VOCÊ É UM ANALISTA DE INTELIGÊNCIA CRIMINAL DE ELITE.
+        SUA MISSÃO: Realizar uma varredura profunda ("Deep Dive") no documento fornecido, cruzando-o com os dados do alvo.
 
-        <TGT>
-        ${JSON.stringify({ n: warrantData.name, c: warrantData.crime })}
-        </TGT>
+        DADOS CONHECIDOS DO ALVO:
+        ${JSON.stringify(warrantData, null, 2)}
 
-        <DOC>
+        CONTEÚDO DO NOVO DOCUMENTO (OCR/EXTRAÇÃO):
         "${docText}"
-        </DOC>
 
-        <OPS>
-        1. RELATIONS -> Entities.
-        2. LOCS -> Addrs.
-        3. RISK -> Level.
-        4. ACTIONS -> Checklist.
-        </OPS>
+        DIRETRIZES DE PENSAMENTO (CHAIN OF THOUGHT):
+        1. PARENTESCOS E VÍNCULOS: Quem são as pessoas citadas? (Mãe, Advogado, Comparsa).
+        2. CHECKLIST TÁTICO: O que o policial deve fazer AGORA com essa informação? (Ex: "Verificar endereço tal", "Pesquisar placa tal").
+        3. RISCO: Qual o tom do documento? (Ameaça, Porte de Arma, Violência).
+        4. RESUMO: O que esse documento traz de novo?
 
-        <JSON_SCHEMA>
+        SAÍDA OBRIGATÓRIA EM JSON (SEM MARKDOWN):
         {
-            "summary": "Max 2 lines",
-            "riskLevel": "Low|Medium|High|Critical",
-            "riskReason": "Str",
-            "entities": [{"name": "Str", "role": "Str", "context": "Str"}],
-            "checklist": [{"task": "Str", "priority": "Alta|Normal"}],
-            "locations": [{"address": "Str", "context": "Str"}]
+            "summary": "Resumo executivo de 2 linhas.",
+            "riskLevel": "Baixo" | "Médio" | "Alto" | "Crítico",
+            "riskReason": "Justificativa curta do risco.",
+            "entities": [
+                { "name": "Nome da Pessoa", "role": "Mãe/Advogado/Comparsa", "context": "Citado como residente no endereço X" }
+            ],
+            "checklist": [
+                { "task": "Ação sugerida curta", "priority": "Alta" | "Normal" }
+            ],
+            "locations": [
+                { "address": "Endereço encontrado", "context": "Local de trabalho antigo" }
+            ]
         }
-        </JSON_SCHEMA>
     `;
 
     try {
@@ -410,18 +440,27 @@ export async function askAssistantStrategy(warrantData: any, docContext: string,
     const historyText = history.map(h => `${h.role === 'user' ? 'PERGUNTA' : 'RESPOSTA'}: ${h.content}`).join('\n');
 
     const prompt = `
-        [ROLE:AIDE] [TASK:QA] [CTX:TACTICAL]
+        VOCÊ É UM ASSISTENTE DE ELITE DA POLÍCIA CIVIL.
         
-        <TGT>${JSON.stringify({ n: warrantData.name, c: warrantData.crime })}</TGT>
-        <DOC>"${docContext || 'N/A'}"</DOC>
-        <HIST>${historyText}</HIST>
-        <Q>"${question}"</Q>
+        CONTEXTO DO ALVO:
+        ${JSON.stringify(warrantData, null, 2)}
 
-        <RULES>
-        1. ANS_DIRECT.
-        2. USE_CTX.
-        3. TONE_MILITARY.
-        </RULES>
+        CONTEXTO DO DOCUMENTO ANALISADO (SE HOUVER):
+        "${docContext || 'Nenhum documento específico carregado agora. Use apenas os dados do alvo.'}"
+
+        HISTÓRICO DA CONVERSA:
+        ${historyText}
+
+        PERGUNTA ATUAL DO AGENTE:
+        "${question}"
+
+        SUA MISSÃO:
+        Responder com precisão tática, usando os dados fornecidos. 
+        Se a pergunta for sobre o documento, cite onde está a informação.
+        Se for sobre o alvo, use o contexto geral.
+        
+        ESTILO:
+        Curto, direto, militar, profissional. Sem enrolação.
     `;
 
     try {
@@ -440,27 +479,47 @@ export async function mergeIntelligence(
     if (!(await isGeminiEnabled())) return currentIntel;
 
     const prompt = `
-        [ROLE:HANDLER] [TASK:MERGE] [FMT:JSON]
+        VOCÊ É UM GERENTE DE INTELIGÊNCIA POLICIAL. (MINDSET: "HANDLER")
+        SUA MISSÃO: Fundir uma nova análise tática com o dossiê de inteligência existente de um alvo.
 
-        <TGT>${JSON.stringify({ n: warrantData.name })}</TGT>
-        <CUR>${JSON.stringify(currentIntel)}</CUR>
-        <NEW>${JSON.stringify(newAnalysis)}</NEW>
+        DADOS DO ALVO:
+        ${JSON.stringify({ name: warrantData.name, crime: warrantData.crime }, null, 2)}
 
-        <OPS>
-        1. DEDUP_LOCS_ENTITIES.
-        2. MAX_RISK.
-        3. UPD_HYPOTHESIS.
-        4. CLEAN_CHECKLIST.
-        5. CALC_PROGRESS(0-100).
-        </OPS>
+        🧠 INTELIGÊNCIA ATUAL (O QUE JÁ SABEMOS):
+        ${JSON.stringify(currentIntel, null, 2)}
 
-        <JSON_SCHEMA>
+        📝 NOVA ANÁLISE (O QUE ACABOU DE CHEGAR):
+        ${JSON.stringify(newAnalysis, null, 2)}
+
+        DIRETRIZES DE FUSÃO (CRÍTICO):
+        1. CONTRADIÇÕES: Se a nova informação desmente a antiga, ATUALIZE e explique na hipótese.
+        2. DEDUPLICAÇÃO: Não repita endereços ou nomes (use match difuso). Se for o mesmo, enriqueça o contexto.
+        3. EVOLUÇÃO: Se uma hipótese antiga foi reforçada, aumente a confiança. Se foi refutada, mude status.
+        4. LIMPEZA: Remova "Próximos Passos" que já foram implicitamente feitos ou ficaram obsoletos.
+        5. PROGRESSO: Estime o quanto avançamos na localização (0-100%).
+
+        SAÍDA OBRIGATÓRIA EM JSON (ESTRUTURA RÍGIDA - TacticalIntelligence):
         {
-            "summary": "...", "timeline": [], "locations": [],
-            "entities": [], "risks": [], "hypotheses": [],
-            "suggestions": [], "checklist": [], "progressLevel": 0-100
+            "summary": "Resumo consolidado em texto corrido (máx 5 linhas).",
+            "timeline": [ // Mantenha os eventos antigos relevantes e adicione o novo evento da análise
+                { "date": "YYYY-MM-DD", "event": "Descrição curta do fato", "source": "Origem (ex: Ifood, Relatório)" }
+            ],
+            "locations": [ // Lista atualizada e mergeada
+                { "address": "Endereço", "context": "Contexto detalhado", "priority": "Alta/Média/Baixa", "status": "Pendente/Verificado/Descartado" }
+            ],
+            "entities": [ // Lista atualizada e mergeada
+                { "name": "Nome", "role": "Mãe/Advogado", "context": "Detalhe do vínculo" }
+            ],
+            "risks": ["Risco 1", "Risco 2"], // Lista atualizada
+            "hypotheses": [ // Hipóteses ativas sobre onde o alvo está
+                { "description": "Hipótese de localização", "confidence": "Alta/Média/Baixa", "status": "Ativa/Refutada" }
+            ],
+            "suggestions": ["Sugestão tática 1", "Sugestão 2"],
+            "checklist": [ // O que fazer AGORA
+                { "task": "Ação concreta", "priority": "Alta/Normal", "status": "Pendente", "checked": false }
+            ],
+            "progressLevel": 50 // Número 0 a 100
         }
-        </JSON_SCHEMA>
     `;
 
     try {
@@ -483,27 +542,30 @@ export async function adaptDocumentToTarget(warrantData: any, templateText: stri
     if (!(await isGeminiEnabled())) return "Erro: IA não habilitada ou sem chave.";
 
     const prompt = `
-        [ROLE:CLERK_ELITE] [TASK:FILL_TEMPLATE] [STRICT_VARS]
+        VOCÊ É UM ESCRIVÃO DE POLÍCIA DE ELITE (AGENTE ESPECIALISTA IFOOD).
+        
+        SUA MISSÃO:
+        1. Ler o "MODELO/TEXTO BASE" abaixo (que pode conter dados de OUTRA pessoa ou lugares genéricos).
+        2. REESCREVER o documento INTEIRO, substituindo TODAS as informações variáveis pelos DADOS DO NOVO ALVO informado abaixo.
+        3. Preservar estritamente o tom formal, jurídico e institucional.
+        4. Onde não houver dado no sistema para preencher um campo do modelo (ex: nome da mãe, telefone), OMITE O CAMPO ou use "NÃO INFORMADO" de forma discreta, MAS NÃO INVENTE DADOS.
 
-        <TARGET_DATA>
-        N:${warrantData.name}, RG:${warrantData.rg}, CPF:${warrantData.cpf}
-        ADDR:${warrantData.location}, C:${warrantData.crime}, P:${warrantData.number}
-        CT:${warrantData.issuingCourt}, M:${warrantData.motherName}
-        </TARGET_DATA>
+        DADOS DO NOVO ALVO (USAR ESTES):
+         Nome: ${warrantData.name}
+         RG: ${warrantData.rg || 'Não informado'}
+         CPF: ${warrantData.cpf || 'Não informado'}
+         Endereço: ${warrantData.location || 'Não informado'}
+         Crime: ${warrantData.crime || 'Não informado'}
+         Processo: ${warrantData.number || 'Não informado'}
+         Vara/Fórum: ${warrantData.issuingCourt || 'Não informado'}
+         Filiação: ${warrantData.motherName || 'Não informado'}
 
-        <TEMPLATE>
-        "${templateText}"
-        </TEMPLATE>
+        MODELO/TEXTO BASE (IGNORAR OS DADOS PESSOAIS DAQUI, USAR APENAS A ESTRUTURA):
+        """
+        ${templateText}
+        """
 
-        <RULES>
-        1. REPLACE_ALL_VARS(Template) WITH (TargetData).
-        2. IF_MISSING -> Use "NÃO INFORMADO" or OMIT.
-        3. KEEP_FORMAL_TONE.
-        </RULES>
-
-        <OUTPUT>
-        Final document text only.
-        </OUTPUT>
+        RESPOSTA (APENAS O TEXTO DO DOCUMENTO REVISADO, SEM COMENTÁRIOS):
     `;
 
     try {
@@ -512,55 +574,5 @@ export async function adaptDocumentToTarget(warrantData: any, templateText: stri
     } catch (error: any) {
         console.error("Erro na Adaptação de Documento:", error);
         return `Erro ao processar documento: ${error.message}`;
-    }
-}
-
-export async function batchSmartGrouping(warrants: any[]) {
-    if (!(await isGeminiEnabled())) return null;
-
-    // Minimize input data to save tokens
-    const minimizedWarrants = warrants.map(w => ({
-        id: w.id,
-        n: w.name,
-        c: w.crime,
-        l: w.location,
-        o: (w.observation || '').substring(0, 100)
-    }));
-
-    const prompt = `
-        [ROLE:COMMANDER] [TASK:CLUSTER] [FMT:JSON]
-
-        <DATA>
-        ${JSON.stringify(minimizedWarrants)}
-        </DATA>
-
-        <RULES>
-        1. CLUSTER(Geo/Neighborhood).
-        2. CLUSTER(Modus/Crime).
-        3. LINK(Entities/Family).
-        4. IGNORE_SINGLES.
-        </RULES>
-
-        <JSON_SCHEMA>
-        {
-            "groups": [
-                {
-                    "operationName": "Str (Ex: 'Op. Norte')",
-                    "reason": "Str",
-                    "targetIds": ["Str"],
-                    "suggestedAction": "Str",
-                    "priority": "High|Medium|Low"
-                }
-            ]
-        }
-        </JSON_SCHEMA>
-    `;
-
-    try {
-        const text = await tryGenerateContent(prompt);
-        return parseGeminiJSON(text, { groups: [] });
-    } catch (error) {
-        console.error("Erro no Agrupamento Inteligente:", error);
-        return { groups: [] };
     }
 }
