@@ -112,12 +112,15 @@ const getBestAvailableModel = async (key: string): Promise<string> => {
 
         console.log("DEBUG GEMINI: Modelos disponíveis para esta chave:", availableParams);
 
-        // Ordem de preferência - Priorizando o 2.5 Flash conforme solicitado
+        // Ordem de preferência - Priorizando ROBUSTEZ (Pro / 1.5 Pro) sobre Rapidez (Flash)
         const preference = [
-            "gemini-2.5-flash",
-            "gemini-2.0-flash",
             "gemini-1.5-pro",
+            "gemini-1.5-pro-001",
+            "gemini-1.5-pro-002",
+            "gemini-2.0-pro-exp-02-05", // Experimental High Intel
             "gemini-1.5-flash",
+            "gemini-2.0-flash",
+            "gemini-2.5-flash",
             "gemini-pro"
         ];
 
@@ -145,26 +148,29 @@ async function tryGenerateContent(prompt: string, options: any = {}): Promise<st
         const text = await generateContentViaFetch(modelName, prompt, key);
         if (text) return text;
     } catch (error: any) {
-        console.error(`DEBUG GEMINI Error (${modelName}):`, error);
+        console.error(`DEBUG GEMINI Error (Primary ${modelName}):`, error.message);
 
-        // Se falhar (ex: sobrecarga), tenta um fallback hardcoded básico apenas por garantia
-        if (modelName !== 'gemini-pro') {
+        // FALLBACK WATERFALL: Se a robusta falhar, vai descendo o nível
+        // Evita testar o mesmo modelo que já falhou
+        const fallbacks = ["gemini-1.5-flash", "gemini-pro", "gemini-1.0-pro"];
+
+        for (const fallbackModel of fallbacks) {
+            if (fallbackModel === modelName) continue; // Skip failed primary
+
             try {
-                console.log("DEBUG GEMINI: Tentando fallback para gemini-pro...");
-                return await generateContentViaFetch("gemini-pro", prompt, key);
-            } catch (e) {
-                // ignora e lanca o erro original
+                console.log(`DEBUG GEMINI: Tentando fallback para MAIS LEVE: ${fallbackModel}...`);
+                const fallbackText = await generateContentViaFetch(fallbackModel, prompt, key);
+                if (fallbackText) return fallbackText;
+            } catch (fallbackError: any) {
+                console.warn(`DEBUG GEMINI: Fallback ${fallbackModel} falhou.`);
             }
         }
 
         const msg = error.message || "Erro desconhecido";
-        if (msg.includes("403") || msg.includes("API_KEY") || msg.includes("not found")) {
-            throw new Error(`Erro de Acesso (${modelName}): Chave API inválida ou sem permissão. Detalhe: ${msg}`);
+        if (msg.includes("403") || msg.includes("API_KEY")) {
+            throw new Error(`Erro de Acesso: Chave API inválida.`);
         }
-        if (msg.includes("503") || msg.includes("overloaded") || msg.includes("exhausted")) {
-            throw new Error(`IA Sobrecarregada (${modelName}): Tente novamente em alguns segundos. Detalhe: ${msg}`);
-        }
-        throw new Error(`Falha na IA (${modelName}): ${msg}`);
+        throw new Error(`Falha na IA e nos fallbacks: ${msg}`);
     }
 
     throw new Error("Falha ao gerar resposta.");
