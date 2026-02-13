@@ -467,20 +467,19 @@ export const generateIfoodOfficePDF = async (
         y += (splitBody.length * 6) + 12;
 
         // --- SUBJECT DETAILS ---
-        doc.setFillColor(245, 245, 245);
-        doc.setDrawColor(200, 200, 200);
-        doc.rect(margin, y, pageWidth - (margin * 2), 30, 'FD');
+        // Removed gray box styling to revert to classic format
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(10);
 
-        let detailY = y + 8;
-        doc.text(`NOME: ${data.name.toUpperCase()}`, margin + 5, detailY);
+        let detailY = y + 5;
+        doc.text(`NOME: ${data.name.toUpperCase()}`, margin, detailY);
         detailY += 7;
-        doc.text(`RG: ${data.rg || "NÃO INFORMADO"}`, margin + 5, detailY);
+        doc.text(`RG: ${data.rg || "NÃO INFORMADO"}`, margin, detailY);
         detailY += 7;
-        doc.text(`CPF: ${data.cpf || "NÃO INFORMADO"}`, margin + 5, detailY);
+        doc.text(`CPF: ${data.cpf || "NÃO INFORMADO"}`, margin, detailY);
 
-        y += 45;
+        y += 35;
+
 
         // --- CLOSING ---
         const closingText = `As informações deverão ser encaminhadas para o e-mail oficial desta unidade (dig.jacarei@policiacivil.sp.gov.br) em formato PDF ou planilha eletrônica. 
