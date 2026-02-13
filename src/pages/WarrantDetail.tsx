@@ -1900,10 +1900,6 @@ Equipe de Capturas - DIG / PCSP
                                 }
 
                                 const hasData = intel.summary && intel.summary !== 'Aguardando primeira análise...';
-
-
-
-
                                 if (!hasData) {
                                     return (
                                         <div className="text-center py-20 opacity-50 border-2 border-dashed border-white/10 rounded-3xl">
