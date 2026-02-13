@@ -28,6 +28,11 @@ import { extractPdfData } from '../services/pdfExtractionService'; // RESTORED
 import { CRIME_OPTIONS, REGIME_OPTIONS } from '../data/constants';
 import { useWarrants } from '../contexts/WarrantContext';
 
+const DELEGATES = [
+    { name: 'Luiz Antônio Cunha dos Santos', title: 'Delegado de Polícia' },
+    { name: 'Dr. Rodrigo Mambeli de Mendonça', title: 'Delegado de Polícia' }
+];
+
 const WarrantDetail = () => {
     const { warrants, updateWarrant, deleteWarrant, routeWarrants, toggleRouteWarrant, refreshWarrants } = useWarrants();
     const { id } = useParams<{ id: string }>();
@@ -114,7 +119,7 @@ const WarrantDetail = () => {
         court: '',
         body: '',
         signer: 'William Campos A. Castro',
-        delegate: 'Luiz Antônio Cunha dos Santos',
+        delegate: DELEGATES[0].name,
         aiInstructions: ''
     });
     const [isGeneratingAiReport, setIsGeneratingAiReport] = useState(false);
@@ -2531,6 +2536,18 @@ Equipe de Capturas - DIG / PCSP
                                     <div className="grid grid-cols-2 gap-4">
                                         <div className="space-y-1"><label className="text-[10px] font-black text-primary uppercase tracking-widest">Identificador Relatório</label><input className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm text-white" value={capturasData.reportNumber} onChange={e => setCapturasData({ ...capturasData, reportNumber: e.target.value })} /></div>
                                         <div className="space-y-1"><label className="text-[10px] font-black text-primary uppercase tracking-widest">Comarca Judiciária</label><input className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm text-white" value={capturasData.court} onChange={e => setCapturasData({ ...capturasData, court: e.target.value })} /></div>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] font-black text-primary uppercase tracking-widest">Delegado Titular</label>
+                                        <select
+                                            className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm text-white appearance-none cursor-pointer"
+                                            value={capturasData.delegate}
+                                            onChange={e => setCapturasData({ ...capturasData, delegate: e.target.value })}
+                                        >
+                                            {DELEGATES.map(d => (
+                                                <option key={d.name} value={d.name} className="bg-surface-dark">{d.name}</option>
+                                            ))}
+                                        </select>
                                     </div>
                                     <div className="bg-indigo-500/5 border border-indigo-500/20 rounded-2xl p-5 space-y-4">
                                         <div className="flex items-center gap-2"><Cpu size={16} className="text-indigo-400" /><span className="text-[10px] font-black uppercase tracking-widest text-indigo-400">Prompt de Refinamento IA</span></div>

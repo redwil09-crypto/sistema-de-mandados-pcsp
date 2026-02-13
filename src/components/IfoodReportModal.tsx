@@ -16,6 +16,11 @@ interface IfoodReportModalProps {
     updateWarrant: (id: string, data: Partial<Warrant>) => Promise<boolean>;
 }
 
+const DELEGATES = [
+    { name: 'Luiz Antônio Cunha dos Santos', title: 'Delegado de Polícia' },
+    { name: 'Dr. Rodrigo Mambeli de Mendonça', title: 'Delegado de Polícia' }
+];
+
 const UBER_TEMPLATE = `OFÍCIO
 Ofício: nº.{{OFFICE_NUMBER}}/CAPT/2025
 Referência: PROC. Nº 0006701-81.2017.8.26.0292
@@ -24,7 +29,7 @@ Jacareí, 4 de JUNHO de 2025.
 ILMO. SENHOR RESPONSÁVEL:
 Com a finalidade de instruir investigação policial referente ao crime tipificado no artigo 121 do Código Penal, solicito a gentileza de verificar se o indivíduo abaixo relacionado encontram-se cadastrado como usuário ou prestador de serviços da plataforma UBER. Em caso positivo, requer-se o envio das informações cadastrais fornecidas para habilitação na plataforma, incluindo, se disponíveis, nome de usuário, endereço(s), número(s) de telefone, e demais dados vinculados à respectiva conta. E também ENDEREÇO(S) DAS CORRIDAS COM DATAS E HORÁRIOS DE 01/01/2025 HÁ 04/06/2025. As informações devem ser encaminhadas ao e-mail institucional do policial responsável pela investigação: william.castro@policiacivil.sp.gov.br William Campos de Assis Castro – Polícia Civil do Estado de São Paulo Réu de interesse para a investigação: ADRIANA PARANHOS ARICE – CPF 362.590.148-05 Aproveito a oportunidade para renovar meus votos de elevada estima e consideração.
 Atenciosamente
-Luiz Antonio Cunha dos Santos
+{{DELEGATE_NAME}}
 Delegado de Polícia
 Ao Ilustríssimo Senhor Responsável
 Empresa UBER.`;
@@ -42,7 +47,7 @@ William Campos de Assis Castro – Polícia Civil do Estado de São Paulo
 Pessoa de interesse para a investigação: LUCILENE CORREIA DE AGUIAR / CPF: 803.750.733-53
 Aproveito a oportunidade para renovar meus votos de elevada estima e consideração.
 Atenciosamente,
-Luiz Antônio Cunha dos Santos
+{{DELEGATE_NAME}}
 Delegado de Polícia
 Ao Ilustríssimo Senhor Responsável
 Empresa iFood.`;
@@ -51,6 +56,7 @@ const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, wa
     const [generatedText, setGeneratedText] = useState('');
     const [isProcessing, setIsProcessing] = useState(false);
     const [officeNumber, setOfficeNumber] = useState('');
+    const [selectedDelegateIndex, setSelectedDelegateIndex] = useState(0);
     const [step, setStep] = useState<'input' | 'processing' | 'result'>('input');
 
     useEffect(() => {
@@ -67,8 +73,10 @@ const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, wa
             return;
         }
 
+        const delegateName = DELEGATES[selectedDelegateIndex].name;
         const baseTemplate = (type === 'ifood' ? IFOOD_TEMPLATE : UBER_TEMPLATE)
-            .replace('{{OFFICE_NUMBER}}', officeNumber);
+            .replace('{{OFFICE_NUMBER}}', officeNumber)
+            .replace('{{DELEGATE_NAME}}', delegateName);
 
         setStep('processing');
         setIsProcessing(true);
@@ -302,7 +310,7 @@ const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, wa
                 doc.text(trimmedLine, margin, y);
                 y += 25; // Space for signature
             }
-            else if (trimmedLine === 'Luiz Antônio Cunha dos Santos' || trimmedLine === 'Luiz Antonio Cunha dos Santos' || trimmedLine === 'Delegado de Polícia') {
+            else if (DELEGATES.some(d => d.name === trimmedLine) || trimmedLine === 'Delegado de Polícia') {
                 doc.setFont('helvetica', 'bold');
                 doc.text(trimmedLine, pageWidth / 2, y, { align: 'center' });
                 doc.setFont('helvetica', 'normal');
@@ -386,16 +394,31 @@ const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, wa
                                 <h3 className="text-xl font-bold text-white mb-2">Número do Ofício</h3>
                                 <p className="text-slate-400 text-sm">Informe o número sequencial para o documento.</p>
                             </div>
-                            <div className="w-full max-w-xs scale-110">
-                                <input
-                                    type="text"
-                                    autoFocus
-                                    className="w-full bg-slate-800 border-2 border-slate-700 rounded-xl px-4 py-3 text-center text-2xl font-black text-white outline-none focus:border-indigo-500 transition-all placeholder:text-slate-600"
-                                    placeholder="Ex: 026"
-                                    value={officeNumber}
-                                    onChange={(e) => setOfficeNumber(e.target.value)}
-                                    onKeyDown={(e) => e.key === 'Enter' && handleGenerate()}
-                                />
+                            <div className="w-full max-w-xs space-y-4">
+                                <div className="space-y-1">
+                                    <label className="text-[10px] font-black text-indigo-400 uppercase tracking-widest block text-left">Nº Ofício</label>
+                                    <input
+                                        type="text"
+                                        autoFocus
+                                        className="w-full bg-slate-800 border-2 border-slate-700 rounded-xl px-4 py-3 text-center text-2xl font-black text-white outline-none focus:border-indigo-500 transition-all placeholder:text-slate-600"
+                                        placeholder="Ex: 026"
+                                        value={officeNumber}
+                                        onChange={(e) => setOfficeNumber(e.target.value)}
+                                        onKeyDown={(e) => e.key === 'Enter' && handleGenerate()}
+                                    />
+                                </div>
+                                <div className="space-y-1">
+                                    <label className="text-[10px] font-black text-indigo-400 uppercase tracking-widest block text-left">Delegado Signatário</label>
+                                    <select
+                                        className="w-full bg-slate-800 border-2 border-slate-700 rounded-xl px-4 py-3 text-white outline-none focus:border-indigo-500 transition-all appearance-none cursor-pointer text-sm font-bold"
+                                        value={selectedDelegateIndex}
+                                        onChange={(e) => setSelectedDelegateIndex(parseInt(e.target.value))}
+                                    >
+                                        {DELEGATES.map((delegate, idx) => (
+                                            <option key={idx} value={idx}>{delegate.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
                             </div>
                             <button
                                 onClick={handleGenerate}
