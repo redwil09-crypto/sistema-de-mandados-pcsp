@@ -272,8 +272,8 @@ const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, wa
         doc.setFontSize(11); // Body font size
 
         const indent = "          "; // ~10 spaces
-        const lineHeight = 6; // Altura da linha um pouco maior para leitura confortável
-        const paragraphSpacing = 8; // Espaço entre parágrafos
+        const lineHeight = 5; // Padrão
+        const paragraphSpacing = 5; // Padrão
 
         const p1 = `${indent}Com a finalidade de instruir investigação policial em trâmite nesta unidade, solicito, respeitosamente, a gentileza de verificar se o indivíduo abaixo relacionado encontra-se cadastrado como usuário ou entregador da plataforma IFOOD.`;
         const splitP1 = doc.splitTextToSize(p1, maxLineWidth);
