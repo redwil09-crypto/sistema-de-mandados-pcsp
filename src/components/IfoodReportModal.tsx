@@ -228,52 +228,53 @@ const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, wa
         // Setup Doc
         doc.setFont('times', 'normal');
 
+        // setup
+        doc.setFont('times', 'normal');
         let y = 10;
 
         // Add Header Page 1
         y = addHeader(doc);
-        y += 5; // Spacing after Gray Bar
+        y += 3; // Reduced Header Spacing
 
         // 1. Meta Fields
         doc.setFontSize(10);
         doc.setFont('helvetica', 'bold');
         doc.text(`Ofício: nº.${officeNumber}/CAPT/2025`, margin, y);
-        y += 5;
+        y += 4; // Reduced
 
         doc.text("Referência: ", margin, y);
         doc.setFont('helvetica', 'normal');
         doc.text(`PROC. Nº ${warrant.number}`, margin + 22, y);
-        y += 5;
+        y += 4; // Reduced
 
         doc.setFont('helvetica', 'bold');
         doc.text("Natureza: ", margin, y);
         doc.setFont('helvetica', 'normal');
         doc.text("Solicitação de Dados.", margin + 18, y);
-        y += 15;
+        y += 8; // Reduced section gap
 
-        // 2. Date (Right Aligned, Bold City)
+        // 2. Date
         const months = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
         const today = new Date();
         const dateLine = `Jacareí, ${today.getDate().toString().padStart(2, '0')} de ${months[today.getMonth()]} de ${today.getFullYear()}.`;
 
-        doc.setFont('helvetica', 'bold'); // "Jacareí," is bold in image? No, looks all bold italic maybe? Or just bold.
         doc.setFont('helvetica', 'bolditalic');
         doc.text(dateLine, pageWidth - margin, y, { align: 'right' });
         doc.setFont('helvetica', 'normal');
-        y += 15;
+        y += 10; // Reduced
 
         // 3. Vocative
         doc.setFont('helvetica', 'bold');
         doc.text("ILMO. SENHOR RESPONSÁVEL,", margin, y);
-        y += 15;
+        y += 8; // Reduced
 
         // 4. Body Paragraphs
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(11); // Body font size
 
         const indent = "          "; // ~10 spaces
-        const lineHeight = 5; // Padrão
-        const paragraphSpacing = 5; // Padrão
+        const lineHeight = 5; // Compact line height
+        const paragraphSpacing = 4; // Compact paragraph spacing
 
         const p1 = `${indent}Com a finalidade de instruir investigação policial em trâmite nesta unidade, solicito, respeitosamente, a gentileza de verificar se o indivíduo abaixo relacionado encontra-se cadastrado como usuário ou entregador da plataforma IFOOD.`;
         const splitP1 = doc.splitTextToSize(p1, maxLineWidth);
@@ -288,44 +289,45 @@ const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, wa
         const p3 = `${indent}As informações devem ser encaminhadas ao e-mail institucional do policial responsável pela investigação:`;
         const splitP3 = doc.splitTextToSize(p3, maxLineWidth);
         doc.text(splitP3, margin, y, { align: 'justify', maxWidth: maxLineWidth });
-        y += (splitP3.length * lineHeight) + 4; // Menos espaço antes do email para agrupar visualmente
+        y += (splitP3.length * lineHeight) + 2; // Minimal gaps
 
         // Email Block
         doc.setFont('helvetica', 'bold');
         doc.text("william.castro@policiacivil.sp.gov.br", margin + 15, y);
-        y += 6;
+        y += 5;
         doc.setFont('helvetica', 'normal');
         doc.text("William Campos de Assis Castro – Polícia Civil do Estado de São Paulo", margin + 15, y);
-        y += 15;
+        y += 10; // Reduced
 
         // Person of Interest
         doc.setFont('helvetica', 'normal');
         doc.text("Pessoa de interesse para a investigação:", margin, y);
-        y += 7;
+        y += 5; // Reduced
 
         doc.setFont('helvetica', 'bold');
         const personLine = `${warrant.name.toUpperCase()} – CPF ${warrant.cpf || warrant.rg || 'NÃO INFORMADO'}`;
-        // Check if person name is too long
         const splitPerson = doc.splitTextToSize(personLine, maxLineWidth);
         doc.text(splitPerson, margin, y);
-        y += (splitPerson.length * lineHeight) + 12;
+        y += (splitPerson.length * lineHeight) + 8; // Reduced
 
         // Closing
         doc.setFont('helvetica', 'normal');
         const closing = `${indent}Aproveito a oportunidade para renovar meus votos de elevada estima e consideração.`;
         const splitClosing = doc.splitTextToSize(closing, maxLineWidth);
         doc.text(splitClosing, margin, y, { align: 'justify', maxWidth: maxLineWidth });
-        y += (splitClosing.length * lineHeight) + 15;
+        y += (splitClosing.length * lineHeight) + 8; // Reduced
 
         doc.text("Atenciosamente,", margin, y);
 
         // Signature
-        y += 20;
-        // Check if page break needed for signature
-        if (y > pageHeight - 40) {
+        // Check remaining space. If low, force page break, otherwise minimal gap
+        // We need about 40-50 units for signature + addressee
+        if (y > pageHeight - 65) {
             doc.addPage();
             addHeader(doc);
-            y = 50;
+            y = 40;
+        } else {
+            y += 15; // Gap before signature
         }
 
         doc.setFont('helvetica', 'bold');
@@ -333,14 +335,14 @@ const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, wa
         y += 5;
         doc.text("Delegado de Polícia", pageWidth / 2, y, { align: 'center' });
 
-        // Addressee Block (Bottom or Next Page)
-        y += 20;
+        // Addressee Block
+        y += 12; // Gap before Addressee
 
-        // Ensure we have space, or move to next page
-        if (y > pageHeight - 40) {
+        // Check again for safety
+        if (y > pageHeight - 30) {
             doc.addPage();
-            y = 50;
-            addHeader(doc); // Header on page 2 too? Image 2 shows header.
+            y = 40;
+            addHeader(doc);
         }
 
         doc.setFont('helvetica', 'normal');
