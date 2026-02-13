@@ -273,8 +273,11 @@ const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, wa
         doc.setFontSize(11); // Body font size
 
         const indent = "          "; // ~10 spaces
-        const lineHeight = 5; // Compact line height
-        const paragraphSpacing = 4; // Compact paragraph spacing
+        const lineHeight = 5; // Padrão
+        const paragraphSpacing = 5; // Padrão restore
+
+        // CORPO DO TEXTO
+        // --------------------------------------------------------------------------------
 
         const p1 = `${indent}Com a finalidade de instruir investigação policial em trâmite nesta unidade, solicito, respeitosamente, a gentileza de verificar se o indivíduo abaixo relacionado encontra-se cadastrado como usuário ou entregador da plataforma IFOOD.`;
         const splitP1 = doc.splitTextToSize(p1, maxLineWidth);
@@ -289,67 +292,67 @@ const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, wa
         const p3 = `${indent}As informações devem ser encaminhadas ao e-mail institucional do policial responsável pela investigação:`;
         const splitP3 = doc.splitTextToSize(p3, maxLineWidth);
         doc.text(splitP3, margin, y, { align: 'justify', maxWidth: maxLineWidth });
-        y += (splitP3.length * lineHeight) + 2; // Minimal gaps
+        y += (splitP3.length * lineHeight) + 2;
 
         // Email Block
         doc.setFont('helvetica', 'bold');
         doc.text("william.castro@policiacivil.sp.gov.br", margin + 15, y);
-        y += 5;
+        y += 6;
         doc.setFont('helvetica', 'normal');
         doc.text("William Campos de Assis Castro – Polícia Civil do Estado de São Paulo", margin + 15, y);
-        y += 10; // Reduced
+        y += 15;
 
         // Person of Interest
         doc.setFont('helvetica', 'normal');
         doc.text("Pessoa de interesse para a investigação:", margin, y);
-        y += 5; // Reduced
+        y += 7;
 
         doc.setFont('helvetica', 'bold');
         const personLine = `${warrant.name.toUpperCase()} – CPF ${warrant.cpf || warrant.rg || 'NÃO INFORMADO'}`;
         const splitPerson = doc.splitTextToSize(personLine, maxLineWidth);
         doc.text(splitPerson, margin, y);
-        y += (splitPerson.length * lineHeight) + 8; // Reduced
+        y += (splitPerson.length * lineHeight) + paragraphSpacing;
 
         // Closing
         doc.setFont('helvetica', 'normal');
         const closing = `${indent}Aproveito a oportunidade para renovar meus votos de elevada estima e consideração.`;
         const splitClosing = doc.splitTextToSize(closing, maxLineWidth);
         doc.text(splitClosing, margin, y, { align: 'justify', maxWidth: maxLineWidth });
-        y += (splitClosing.length * lineHeight) + 8; // Reduced
+        y += (splitClosing.length * lineHeight) + 15;
 
         doc.text("Atenciosamente,", margin, y);
 
-        // Signature
-        // Check remaining space. If low, force page break, otherwise minimal gap
-        // We need about 40-50 units for signature + addressee
-        if (y > pageHeight - 65) {
+
+        // AREA DE ASSINATURA E DESTINATÁRIO (Position Fixed at Bottom)
+        // --------------------------------------------------------------------------------
+        // Define anchor based on page height (A4 ~297mm)
+        // Footer (addresses) starts at ~282mm (pageHeight - 15)
+        // We need space above that for Addressee and Signature
+
+        const footerStart = pageHeight - 15;
+        const addresseeY = footerStart - 15; // "Ao Ilustríssimo..." line
+        const signatureNameY = addresseeY - 25; // "Luiz Antônio..." line
+        const signatureTitleY = signatureNameY + 5; // "Delegado..." line
+
+        // Se o texto invadir a área da assinatura, cria nova página
+        if (y > signatureNameY - 10) {
             doc.addPage();
             addHeader(doc);
-            y = 40;
-        } else {
-            y += 15; // Gap before signature
+            // Na nova página, usamos as mesmas posições fixas no rodapé
         }
 
+        // Render Signature Block (Fixed Position)
         doc.setFont('helvetica', 'bold');
-        doc.text("Luiz Antônio Cunha dos Santos", pageWidth / 2, y, { align: 'center' });
-        y += 5;
-        doc.text("Delegado de Polícia", pageWidth / 2, y, { align: 'center' });
+        doc.text("Luiz Antônio Cunha dos Santos", pageWidth / 2, signatureNameY, { align: 'center' });
+        doc.text("Delegado de Polícia", pageWidth / 2, signatureTitleY, { align: 'center' });
 
-        // Addressee Block
-        y += 12; // Gap before Addressee
-
-        // Check again for safety
-        if (y > pageHeight - 30) {
-            doc.addPage();
-            y = 40;
-            addHeader(doc);
-        }
-
+        // Render Addressee Block (Fixed Position)
         doc.setFont('helvetica', 'normal');
-        doc.text("Ao Ilustríssimo Senhor Responsável", margin, y);
-        y += 5;
+        doc.text("Ao Ilustríssimo Senhor Responsável", margin, addresseeY);
         doc.setFont('helvetica', 'bold');
-        doc.text("Empresa iFood.", margin, y);
+        doc.text("Empresa iFood.", margin, addresseeY + 5);
+
+        // Add Footers loop logic handles the very bottom address lines
 
         // Add Footers
         // Fix getNumberOfPages error by casting or using supported property
