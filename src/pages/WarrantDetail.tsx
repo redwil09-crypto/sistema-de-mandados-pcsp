@@ -1636,14 +1636,14 @@ Equipe de Capturas - DIG / PCSP
                         </Link>
 
                         <button
-                            onClick={data.status === 'CUMPRIDO' ? handleReopen : handleFinalize}
-                            className={`relative flex flex-col items-center justify-center gap-1 w-12 h-12 rounded-xl transition-all border active:scale-95 ${data.status === 'CUMPRIDO'
+                            onClick={data.status && data.status.toUpperCase() !== 'EM ABERTO' ? handleReopen : handleFinalize}
+                            className={`relative flex flex-col items-center justify-center gap-1 w-12 h-12 rounded-xl transition-all border active:scale-95 ${data.status && data.status.toUpperCase() !== 'EM ABERTO'
                                 ? 'bg-amber-500/10 text-amber-500 border-amber-500/20 hover:bg-amber-500/20 shadow-[0_0_15px_rgba(245,158,11,0.15)]'
                                 : 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20 hover:bg-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.15)]'
                                 }`}
                         >
-                            {data.status === 'CUMPRIDO' ? <RotateCcw size={18} strokeWidth={2} /> : <CheckCircle size={18} strokeWidth={2} />}
-                            <span className="text-[8px] font-bold relative z-10 font-display">{data.status === 'CUMPRIDO' ? 'Reabrir' : 'Fechar'}</span>
+                            {data.status && data.status.toUpperCase() !== 'EM ABERTO' ? <RotateCcw size={18} strokeWidth={2} /> : <CheckCircle size={18} strokeWidth={2} />}
+                            <span className="text-[8px] font-bold relative z-10 font-display">{data.status && data.status.toUpperCase() !== 'EM ABERTO' ? 'Reabrir' : 'Dar Baixa'}</span>
                         </button>
 
                         <button onClick={handleDownloadPDF} className="relative flex flex-col items-center justify-center gap-1 w-12 h-12 rounded-xl transition-all bg-white text-slate-900 shadow-xl hover:bg-slate-100 active:scale-95">
