@@ -83,26 +83,28 @@ export const generateWarrantPDF = async (
                 "SECRETARIA DA SEGURANÇA PÚBLICA",
                 "POLÍCIA CIVIL DO ESTADO DE SÃO PAULO",
                 "DEINTER 1 - SÃO JOSÉ DOS CAMPOS",
-                "SECCIONAL DE JACAREÍ - DIG (INVESTIGAÇÕES GERAIS)"
+                "DELEGACIA DE INVESTIGAÇÕES GERAIS DE JACAREÍ"
             ];
 
             headerLines.forEach((line, index) => {
                 doc.text(line, textX, y + 3 + (index * 4));
             });
 
-            // --- TITLE ON THE RIGHT (AS REQUESTED TO REVERT) ---
-            doc.setFontSize(16);
-            doc.setTextColor(...COLORS.PRIMARY);
-            doc.text("DOSSIÊ OPERACIONAL", pageWidth - margin, y + 10, { align: 'right' });
-
-            doc.setFontSize(9);
-            doc.setTextColor(...COLORS.SECONDARY);
-            doc.text(`REF: ${data.number}`, pageWidth - margin, y + 15, { align: 'right' });
-
             doc.setDrawColor(...COLORS.BORDER);
             doc.setLineWidth(0.1);
             doc.line(margin, y + badgeH + 5, pageWidth - margin, y + badgeH + 5);
             y += badgeH + 12;
+
+            doc.setFontSize(14);
+            doc.setTextColor(...COLORS.PRIMARY);
+            doc.text("DOSSIÊ OPERACIONAL", pageWidth / 2, y, { align: 'center' });
+
+            doc.setFontSize(7);
+            doc.setTextColor(100, 100, 100);
+            doc.text(`REFERÊNCIA: ${data.number || 'N/A'}`, pageWidth / 2, y + 4, { align: 'center' });
+
+            y += 10;
+
 
         } catch (e) {
             console.error("Header error", e);
@@ -598,8 +600,8 @@ export const generateCapturasReportPDF = async (
         });
         y += 32;
 
-        // Spacing reduced
-        y += 2;
+        y += 10;
+
 
         // --- BLACK TITLE BAR ---
         doc.setFillColor(0, 0, 0);
@@ -650,9 +652,9 @@ export const generateCapturasReportPDF = async (
         // Addressee - Separated with more space
         y += 10;
         const addressee = "Excelentíssimo Sr. Delegado de Polícia:";
-        doc.setFont('helvetica', 'bold'); // Make it bold as per standard
         doc.text(addressee, margin, y);
-        y += 12;
+        y += 8;
+
 
         // --- BODY TEXT ---
         doc.setFont('times', 'normal');
@@ -742,23 +744,24 @@ export const generateCapturasReportPDF = async (
 
             // Empty lines
             if (!trimmedPara) {
-                y += 4;
+                y += 6;
                 return;
             }
 
-            // Indent manually (18 spaces - 3 times more than previous 6)
-            const indent = "                  ";
+            // Indent manually (Standard 6 spaces)
+            const indent = "      ";
             const fullParaText = indent + trimmedPara;
 
             y = drawRichText(fullParaText, margin, y, contentWidth, 6);
-            y += 2; // Reduced paragraph spacing (was 6)
+            y += 6;
 
-            // Safety check if the function itself added a page and returned a high Y? 
+            // Page Break Check
             if (y > pageHeight - 50) {
                 doc.addPage();
                 y = 30;
             }
         });
+
 
         // --- SIGNATURE BLOCK (Right Aligned) ---
         if (y > pageHeight - 60) {
@@ -768,16 +771,17 @@ export const generateCapturasReportPDF = async (
 
         const signerName = capturasData.signer || "Investigador de Polícia";
 
-        // Position signature on the right 
-        const sigX = pageWidth - margin - 40;
+        // Position signature on center
+        const sigX = pageWidth / 2;
 
-        doc.line(sigX - 40, y, sigX + 40, y); // Line
+        doc.line(sigX - 45, y, sigX + 45, y); // Line
         y += 5;
         doc.setFont('times', 'bold');
         doc.text(signerName.toUpperCase(), sigX, y, { align: 'center' });
         y += 5;
         doc.setFont('times', 'normal');
         doc.text("Policia Civil do Estado de São Paulo", sigX, y, { align: 'center' });
+
 
 
         // --- FOOTER DELEGATE + BOX ---
