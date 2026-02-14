@@ -1622,46 +1622,7 @@ Equipe de Capturas - DIG / PCSP
 
             <Header title="Dossiê Tático" back onBack={handleBack} showHome />
 
-            {/* Tactical Action Dock (Floating - Matching Home Styles - Compact) */}
-            {createPortal(
-                <div className="fixed bottom-4 left-4 right-4 max-w-xl mx-auto z-[1000] rounded-2xl border border-white/5 bg-surface-dark/80 backdrop-blur-lg shadow-glass pb-safe">
-                    <div className="flex h-14 w-full items-center justify-center gap-8 px-2">
-                        <Link to="/" className="relative flex flex-col items-center justify-center gap-1 w-12 h-12 rounded-xl transition-all text-text-secondary-dark hover:text-text-dark hover:bg-white/5">
-                            <Home size={18} strokeWidth={2} className="relative z-10" />
-                            <span className="text-[8px] font-bold relative z-10 font-display">Início</span>
-                        </Link>
 
-                        <Link to={`/new-warrant?edit=${data.id}`} className="relative flex flex-col items-center justify-center gap-1 w-12 h-12 rounded-xl transition-all bg-blue-500/10 text-blue-400 border border-blue-500/20 hover:bg-blue-500/20 active:scale-95 shadow-[0_0_15px_rgba(59,130,246,0.15)]">
-                            <Edit size={18} strokeWidth={2} className="relative z-10" />
-                            <span className="text-[8px] font-bold relative z-10 font-display">Ajustar</span>
-                        </Link>
-
-                        <button
-                            onClick={data.status && data.status.toUpperCase() !== 'EM ABERTO' ? handleReopen : handleFinalize}
-                            className={`relative flex flex-col items-center justify-center gap-1 w-12 h-12 rounded-xl transition-all border active:scale-95 ${data.status && data.status.toUpperCase() !== 'EM ABERTO'
-                                ? 'bg-amber-500/10 text-amber-500 border-amber-500/20 hover:bg-amber-500/20 shadow-[0_0_15px_rgba(245,158,11,0.15)]'
-                                : 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20 hover:bg-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.15)]'
-                                }`}
-                        >
-                            {data.status && data.status.toUpperCase() !== 'EM ABERTO' ? <RotateCcw size={18} strokeWidth={2} /> : <CheckCircle size={18} strokeWidth={2} />}
-                            <span className="text-[8px] font-bold relative z-10 font-display">{data.status && data.status.toUpperCase() !== 'EM ABERTO' ? 'Reabrir' : 'Dar Baixa'}</span>
-                        </button>
-
-                        <button onClick={handleDownloadPDF} className="relative flex flex-col items-center justify-center gap-1 w-12 h-12 rounded-xl transition-all bg-white text-slate-900 shadow-xl hover:bg-slate-100 active:scale-95">
-                            <Printer size={18} strokeWidth={2.5} className="relative z-10" />
-                            <span className="text-[8px] font-bold relative z-10 font-display">Dossiê</span>
-                        </button>
-
-                        {isAdmin && (
-                            <button onClick={handleDelete} className="relative flex flex-col items-center justify-center gap-1 w-12 h-12 rounded-xl transition-all bg-rose-500/10 text-rose-500 border border-rose-500/20 hover:bg-rose-500/20 active:scale-95 shadow-[0_0_15px_rgba(244,63,94,0.15)]">
-                                <Trash2 size={18} strokeWidth={2} className="relative z-10" />
-                                <span className="text-[8px] font-bold relative z-10 font-display">Deletar</span>
-                            </button>
-                        )}
-                    </div>
-                </div>,
-                document.body
-            )}
 
             {/* Main Content Layout */}
             <div className="relative z-10 p-4 space-y-4 max-w-[1600px] mx-auto">
