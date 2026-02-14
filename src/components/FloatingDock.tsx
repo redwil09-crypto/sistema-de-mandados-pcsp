@@ -20,76 +20,73 @@ const FloatingDock = ({
 }: FloatingDockProps) => {
 
     return (
-        <nav className="fixed bottom-10 left-0 right-0 z-[999] px-4 animate-in slide-in-from-bottom duration-500">
-            {/* max-w-1568px matches 1600px - 32px padding to align perfectly with content boxes */}
-            <div className="max-w-[1568px] mx-auto bg-[#161618] border border-white/10 rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.5)] overflow-hidden">
-                <div className="flex h-20 w-full items-center justify-center gap-8 sm:gap-12 md:gap-20">
+        <div className="w-full bg-surface-dark/95 backdrop-blur-xl border border-white/5 rounded-2xl shadow-glass overflow-hidden">
+            <div className="flex h-20 w-full items-center justify-center gap-6 sm:gap-10 md:gap-16">
 
-                    {onBack && (
-                        <button
-                            onClick={onBack}
-                            className="relative flex flex-col items-center justify-center gap-1.5 transition-all text-zinc-500 hover:text-white group"
-                        >
-                            <ChevronLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
-                            <span className="text-[10px] font-black tracking-widest uppercase font-display">Voltar</span>
-                        </button>
-                    )}
+                {onBack && (
+                    <button
+                        onClick={onBack}
+                        className="relative flex flex-col items-center justify-center gap-1.5 transition-all text-zinc-500 hover:text-white group"
+                    >
+                        <ChevronLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
+                        <span className="text-[10px] font-black tracking-widest uppercase font-display">Voltar</span>
+                    </button>
+                )}
 
-                    {onHome && (
-                        <button
-                            onClick={onHome}
-                            className="relative flex flex-col items-center justify-center gap-1.5 transition-all text-blue-500 group"
-                        >
-                            <Home size={22} className="drop-shadow-[0_0_8px_rgba(59,130,246,0.5)]" />
-                            <span className="text-[10px] font-black tracking-widest uppercase font-display">Home</span>
-                            <div className="absolute -bottom-3 inset-x-0 h-1 bg-blue-500 shadow-[0_0_15px_rgba(59,130,246,1)] rounded-full"></div>
-                        </button>
-                    )}
+                {onHome && (
+                    <button
+                        onClick={onHome}
+                        className="relative flex flex-col items-center justify-center gap-1.5 transition-all text-blue-500 group"
+                    >
+                        <Home size={22} className="drop-shadow-[0_0_8px_rgba(59,130,246,0.5)]" />
+                        <span className="text-[10px] font-black tracking-widest uppercase font-display">Home</span>
+                        <div className="absolute -bottom-3 inset-x-0 h-1 bg-blue-500 shadow-[0_0_15px_rgba(59,130,246,1)] rounded-full"></div>
+                    </button>
+                )}
 
-                    {onSave && (
-                        <button
-                            onClick={onSave}
-                            className="relative flex flex-col items-center justify-center gap-1.5 transition-all text-zinc-500 hover:text-white group"
-                        >
-                            <RefreshCw size={20} className="group-hover:rotate-180 transition-transform duration-700" />
-                            <span className="text-[10px] font-black tracking-widest uppercase font-display">Editar</span>
-                        </button>
-                    )}
+                {onSave && (
+                    <button
+                        onClick={onSave}
+                        className="relative flex flex-col items-center justify-center gap-1.5 transition-all text-zinc-500 hover:text-white group"
+                    >
+                        <RefreshCw size={20} className="group-hover:rotate-180 transition-transform duration-700" />
+                        <span className="text-[10px] font-black tracking-widest uppercase font-display">Editar</span>
+                    </button>
+                )}
 
-                    {onPrint && (
-                        <button
-                            onClick={onPrint}
-                            className="relative flex flex-col items-center justify-center gap-1.5 transition-all text-zinc-500 hover:text-white group"
-                        >
-                            <Printer size={20} className="group-hover:scale-110 transition-transform" />
-                            <span className="text-[10px] font-black tracking-widest uppercase font-display">Imprimir</span>
-                        </button>
-                    )}
+                {onPrint && (
+                    <button
+                        onClick={onPrint}
+                        className="relative flex flex-col items-center justify-center gap-1.5 transition-all text-zinc-500 hover:text-white group"
+                    >
+                        <Printer size={20} className="group-hover:scale-110 transition-transform" />
+                        <span className="text-[10px] font-black tracking-widest uppercase font-display">Imprimir</span>
+                    </button>
+                )}
 
-                    {onFinalize && (
-                        <button
-                            onClick={onFinalize}
-                            className="relative flex flex-col items-center justify-center gap-1.5 transition-all text-zinc-500 hover:text-white group"
-                        >
-                            {status === 'CUMPRIDO' ? <RotateCcw size={20} /> : <CheckCircle size={20} />}
-                            <span className="text-[10px] font-black tracking-widest uppercase font-display">
-                                {status === 'CUMPRIDO' ? 'Reabrir' : 'Baixar'}
-                            </span>
-                        </button>
-                    )}
+                {onFinalize && (
+                    <button
+                        onClick={onFinalize}
+                        className="relative flex flex-col items-center justify-center gap-1.5 transition-all text-zinc-500 hover:text-white group"
+                    >
+                        {status === 'CUMPRIDO' ? <RotateCcw size={20} /> : <CheckCircle size={20} />}
+                        <span className="text-[10px] font-black tracking-widest uppercase font-display">
+                            {status === 'CUMPRIDO' ? 'Reabrir' : 'Baixar'}
+                        </span>
+                    </button>
+                )}
 
-                    {onDelete && (
-                        <button
-                            onClick={onDelete}
-                            className="relative flex flex-col items-center justify-center gap-1.5 transition-all text-zinc-500 hover:text-red-500 group"
-                        >
-                            <Trash2 size={20} className="group-hover:scale-110 transition-transform" />
-                            <span className="text-[10px] font-black tracking-widest uppercase font-display">Apagar</span>
-                        </button>
-                    )}
-                </div>
+                {onDelete && (
+                    <button
+                        onClick={onDelete}
+                        className="relative flex flex-col items-center justify-center gap-1.5 transition-all text-zinc-500 hover:text-red-500 group"
+                    >
+                        <Trash2 size={20} className="group-hover:scale-110 transition-transform" />
+                        <span className="text-[10px] font-black tracking-widest uppercase font-display">Apagar</span>
+                    </button>
+                )}
             </div>
-        </nav>
+        </div>
     );
 };
 

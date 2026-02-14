@@ -1645,7 +1645,7 @@ Equipe de Capturas - DIG / PCSP
     };
 
     return (
-        <div className="min-h-screen bg-background-dark text-text-dark font-display relative overflow-x-hidden pb-32">
+        <div className="min-h-screen bg-background-dark text-text-dark font-display relative overflow-x-hidden pb-12">
             {/* Tactical Grid Background Layer */}
             <div className="fixed inset-0 pointer-events-none opacity-20 z-0">
                 <div className="absolute inset-0 tactical-grid"></div>
@@ -2769,6 +2769,19 @@ Equipe de Capturas - DIG / PCSP
                         </div>,
                         document.body
                     )}
+
+                    {/* Integrated Tool Bar (Former FloatingDock) */}
+                    <div className="pt-4">
+                        <FloatingDock
+                            onBack={() => navigate(-1)}
+                            onHome={() => navigate('/')}
+                            onSave={() => navigate(`/new-warrant?edit=${id}`)}
+                            onPrint={handleDownloadPDF}
+                            onFinalize={data.status === 'CUMPRIDO' ? handleReopen : handleFinalize}
+                            onDelete={isAdmin ? () => setIsDeleteConfirmOpen(true) : undefined}
+                            status={data.status}
+                        />
+                    </div>
                 </div>
             </div>
 
@@ -2836,15 +2849,7 @@ Equipe de Capturas - DIG / PCSP
                 />
             )}
 
-            <FloatingDock
-                onBack={() => navigate(-1)}
-                onHome={() => navigate('/')}
-                onSave={() => navigate(`/new-warrant?edit=${id}`)}
-                onPrint={handleDownloadPDF}
-                onFinalize={data.status === 'CUMPRIDO' ? handleReopen : handleFinalize}
-                onDelete={isAdmin ? () => setIsDeleteConfirmOpen(true) : undefined}
-                status={data.status}
-            />
+
         </div>
     );
 };
