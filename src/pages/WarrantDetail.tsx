@@ -158,7 +158,7 @@ const WarrantDetail = () => {
         if (!data) return false;
         const fields: (keyof Warrant)[] = [
             'name', 'type', 'rg', 'cpf', 'number', 'crime', 'regime', 'location',
-            'ifoodNumber', 'ifoodResult', 'digOffice', 'observation', 'age', 'issuingCourt'
+            'ifoodNumber', 'ifoodResult', 'digOffice', 'observation', 'age', 'issuingCourt', 'tacticalSummary'
         ];
 
         const basicChanges = fields.some(key => localData[key] !== data[key]);
@@ -885,6 +885,38 @@ Equipe de Capturas - DIG / PCSP
             const newResult = { ...aiDiligenceResult };
             newResult.checklist[idx].checked = !newResult.checklist[idx].checked;
             setAiDiligenceResult(newResult);
+        }
+    };
+
+    const handleToggleTacticalChecklist = (idx: number) => {
+        if (!data) return;
+        try {
+            const currentSummary = localData.tacticalSummary || data.tacticalSummary || '{}';
+            const parsed = JSON.parse(currentSummary);
+            if (parsed && parsed.checklist) {
+                const newChecklist = [...parsed.checklist];
+                const item = { ...newChecklist[idx] };
+
+                const isDone = item.status === 'Concluído' || item.checked;
+                if (isDone) {
+                    item.status = 'Pendente';
+                    item.checked = false;
+                } else {
+                    item.status = 'Concluído';
+                    item.checked = true;
+                }
+
+                newChecklist[idx] = item;
+                parsed.checklist = newChecklist;
+
+                // Progress recalculation
+                const completedCount = newChecklist.filter((c: any) => c.status === 'Concluído' || c.checked).length;
+                parsed.progressLevel = Math.round((completedCount / newChecklist.length) * 100);
+
+                handleFieldChange('tacticalSummary', JSON.stringify(parsed));
+            }
+        } catch (e) {
+            console.error("Erro ao alternar checklist tático", e);
         }
     };
 
@@ -2013,7 +2045,7 @@ Equipe de Capturas - DIG / PCSP
                                     {/* PROGRESS LEVEL */}
                                     {(() => {
                                         try {
-                                            const parsed = JSON.parse(data.tacticalSummary || '{}');
+                                            const parsed = JSON.parse(localData.tacticalSummary || data?.tacticalSummary || '{}');
                                             const intel = (parsed && typeof parsed === 'object') ? parsed : {};
                                             const progress = intel.progressLevel || 0;
                                             return (
@@ -2050,7 +2082,7 @@ Equipe de Capturas - DIG / PCSP
                                     checklist: []
                                 };
                                 try {
-                                    const parsed = JSON.parse(data.tacticalSummary || '{}');
+                                    const parsed = JSON.parse(localData.tacticalSummary || data?.tacticalSummary || '{}');
                                     if (parsed && typeof parsed === 'object') {
                                         intel = { ...intel, ...parsed };
                                     }
@@ -2191,18 +2223,22 @@ Equipe de Capturas - DIG / PCSP
                                                 <div className="space-y-3">
                                                     {intel.checklist && intel.checklist.length > 0 ? (
                                                         intel.checklist.map((s: any, i: number) => (
-                                                            <label key={i} className="flex items-start gap-3 p-2 rounded-xl bg-black/20 hover:bg-black/40 transition-colors cursor-pointer group">
-                                                                <div className={`mt-1 w-4 h-4 rounded border flex items-center justify-center ${s.status === 'Concluído' || s.checked ? 'bg-green-500 border-green-500' : 'border-gray-500 group-hover:border-white'
+                                                            <div
+                                                                key={i}
+                                                                onClick={() => handleToggleTacticalChecklist(i)}
+                                                                className="flex items-start gap-3 p-2 rounded-xl bg-black/20 hover:bg-black/40 transition-colors cursor-pointer group select-none"
+                                                            >
+                                                                <div className={`mt-1 w-4 h-4 rounded border flex items-center justify-center transition-all ${s.status === 'Concluído' || s.checked ? 'bg-green-500 border-green-500 shadow-[0_0_8px_rgba(34,197,94,0.4)]' : 'border-gray-500 group-hover:border-white'
                                                                     }`}>
                                                                     {(s.status === 'Concluído' || s.checked) && <CheckSquare size={10} className="text-white" />}
                                                                 </div>
                                                                 <div className="flex-1">
-                                                                    <p className={`text-xs font-medium leading-relaxed ${(s.status === 'Concluído' || s.checked) ? 'text-gray-500 line-through' : 'text-white'}`}>
+                                                                    <p className={`text-xs font-medium leading-relaxed transition-all ${(s.status === 'Concluído' || s.checked) ? 'text-gray-500 line-through' : 'text-white'}`}>
                                                                         {s.task}
                                                                     </p>
                                                                     {s.priority === 'Alta' && <span className="text-[9px] text-red-400 font-bold uppercase mt-1 inline-block">Prioridade Alta</span>}
                                                                 </div>
-                                                            </label>
+                                                            </div>
                                                         ))
                                                     ) : <p className="text-xs text-gray-500 text-center">Nenhuma ação pendente.</p>}
                                                 </div>
