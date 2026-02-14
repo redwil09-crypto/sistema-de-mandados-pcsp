@@ -467,13 +467,11 @@ export const generateIfoodOfficePDF = async (
 
         const splitBody = doc.splitTextToSize(bodyText, pageWidth - (margin * 2));
 
-        doc.setCharSpace(0.1); // Add slight space between characters to help word spacing
         splitBody.forEach((line: string, index: number) => {
-            doc.text(line, margin, y + (index * 6));
+            doc.text(line, margin, y + (index * 7.5));
         });
-        doc.setCharSpace(0); // Reset
 
-        y += (splitBody.length * 6) + 10;
+        y += (splitBody.length * 7.5) + 10;
 
         // --- SUBJECT DETAILS ---
         doc.setFillColor(240, 240, 240);
@@ -496,13 +494,11 @@ Ressalto que o descumprimento injustificado desta requisição poderá acarretar
         const splitClosing = doc.splitTextToSize(closingText, pageWidth - (margin * 2));
         doc.setFont('helvetica', 'normal');
 
-        doc.setCharSpace(0.1);
         splitClosing.forEach((line: string, index: number) => {
-            doc.text(line, margin, y + (index * 6));
+            doc.text(line, margin, y + (index * 7.5));
         });
-        doc.setCharSpace(0); // Reset
 
-        y += (splitClosing.length * 6) + 20;
+        y += (splitClosing.length * 7.5) + 20;
 
         // --- DATE AND SIGNATURE ---
         const today = new Date().toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' });
