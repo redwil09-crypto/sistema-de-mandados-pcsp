@@ -20,7 +20,7 @@ const FloatingDock = ({
 }: FloatingDockProps) => {
 
     return (
-        <div className="w-full bg-surface-dark/95 backdrop-blur-xl border border-white/5 rounded-2xl shadow-glass overflow-hidden">
+        <div className="w-full bg-[#0d0d0f] backdrop-blur-xl border border-white/5 rounded-2xl shadow-glass overflow-hidden">
             <div className="flex h-20 w-full items-center justify-center gap-6 sm:gap-10 md:gap-16">
 
                 {onBack && (

@@ -1657,7 +1657,7 @@ Equipe de Capturas - DIG / PCSP
 
 
             {/* Main Content Layout */}
-            <div className="relative z-10 p-4 space-y-4 max-w-[1600px] mx-auto">
+            <div className="relative z-10 p-4 space-y-3 max-w-[1600px] mx-auto">
 
                 {/* 1. Tactical Profile Header */}
                 <div className="bg-surface-light dark:bg-surface-dark/60 backdrop-blur-xl border border-border-light dark:border-white/10 rounded-2xl p-4 shadow-glass overflow-hidden relative group">
@@ -2771,7 +2771,7 @@ Equipe de Capturas - DIG / PCSP
                     )}
 
                     {/* Integrated Tool Bar (Former FloatingDock) */}
-                    <div className="pt-4">
+                    <div>
                         <FloatingDock
                             onBack={() => navigate(-1)}
                             onHome={() => navigate('/')}
