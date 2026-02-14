@@ -464,9 +464,16 @@ export const generateIfoodOfficePDF = async (
         y += 10;
 
         const bodyText = `Pelo presente, com fundamento na Lei 12.830/2013 e no interesse do Inquérito Policial em epígrafe, REQUISITO a Vossa Senhoria o fornecimento, no prazo improrrogável de 05 (cinco) dias, dos dados cadastrais completos (nome, CPF, telefones, e-mails, endereços de entrega cadastrados e histórico de pedidos com geolocalização se houver) vinculados ao investigado abaixo qualificado:`;
+
         const splitBody = doc.splitTextToSize(bodyText, pageWidth - (margin * 2));
-        doc.text(splitBody, margin, y);
-        y += (splitBody.length * 5) + 10;
+
+        doc.setCharSpace(0.1); // Add slight space between characters to help word spacing
+        splitBody.forEach((line: string, index: number) => {
+            doc.text(line, margin, y + (index * 6));
+        });
+        doc.setCharSpace(0); // Reset
+
+        y += (splitBody.length * 6) + 10;
 
         // --- SUBJECT DETAILS ---
         doc.setFillColor(240, 240, 240);
@@ -484,12 +491,18 @@ export const generateIfoodOfficePDF = async (
 
         // --- CLOSING ---
         const closingText = `As informações deverão ser encaminhadas para o e-mail oficial desta unidade (dig.jacarei@policiacivil.sp.gov.br) em formato PDF ou planilha eletrônica. 
-        
+
 Ressalto que o descumprimento injustificado desta requisição poderá acarretar a responsabilidade penal por Crime de Desobediência (art. 330 do CP), sem prejuízo de outras sanções cabíveis.`;
         const splitClosing = doc.splitTextToSize(closingText, pageWidth - (margin * 2));
         doc.setFont('helvetica', 'normal');
-        doc.text(splitClosing, margin, y);
-        y += 40;
+
+        doc.setCharSpace(0.1);
+        splitClosing.forEach((line: string, index: number) => {
+            doc.text(line, margin, y + (index * 6));
+        });
+        doc.setCharSpace(0); // Reset
+
+        y += (splitClosing.length * 6) + 20;
 
         // --- DATE AND SIGNATURE ---
         const today = new Date().toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' });
