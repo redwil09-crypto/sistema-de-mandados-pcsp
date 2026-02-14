@@ -1,8 +1,8 @@
 
 import React from 'react';
-import { 
-    ChevronLeft, Home, RefreshCw, Printer, 
-    CheckCircle, Trash2, RotateCcw 
+import {
+    ChevronLeft, Home, RefreshCw, Printer,
+    CheckCircle, Trash2, RotateCcw
 } from 'lucide-react';
 
 interface FloatingDockProps {
@@ -15,17 +15,18 @@ interface FloatingDockProps {
     status?: string;
 }
 
-const FloatingDock = ({ 
-    onBack, onHome, onSave, onPrint, onFinalize, onDelete, status 
+const FloatingDock = ({
+    onBack, onHome, onSave, onPrint, onFinalize, onDelete, status
 }: FloatingDockProps) => {
-    
+
     return (
-        <nav className="fixed bottom-6 left-0 right-0 z-[999] px-4 animate-in slide-in-from-bottom duration-500">
-            <div className="max-w-[1600px] mx-auto bg-[#161618] border border-white/5 rounded-[2rem] shadow-glass overflow-hidden">
-                <div className="flex h-20 w-full items-center justify-center gap-10 md:gap-16">
-                    
+        <nav className="fixed bottom-10 left-0 right-0 z-[999] px-4 animate-in slide-in-from-bottom duration-500">
+            {/* max-w-1568px matches 1600px - 32px padding to align perfectly with content boxes */}
+            <div className="max-w-[1568px] mx-auto bg-[#161618] border border-white/10 rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.5)] overflow-hidden">
+                <div className="flex h-20 w-full items-center justify-center gap-8 sm:gap-12 md:gap-20">
+
                     {onBack && (
-                        <button 
+                        <button
                             onClick={onBack}
                             className="relative flex flex-col items-center justify-center gap-1.5 transition-all text-zinc-500 hover:text-white group"
                         >
@@ -35,7 +36,7 @@ const FloatingDock = ({
                     )}
 
                     {onHome && (
-                        <button 
+                        <button
                             onClick={onHome}
                             className="relative flex flex-col items-center justify-center gap-1.5 transition-all text-blue-500 group"
                         >
@@ -46,7 +47,7 @@ const FloatingDock = ({
                     )}
 
                     {onSave && (
-                        <button 
+                        <button
                             onClick={onSave}
                             className="relative flex flex-col items-center justify-center gap-1.5 transition-all text-zinc-500 hover:text-white group"
                         >
@@ -56,7 +57,7 @@ const FloatingDock = ({
                     )}
 
                     {onPrint && (
-                        <button 
+                        <button
                             onClick={onPrint}
                             className="relative flex flex-col items-center justify-center gap-1.5 transition-all text-zinc-500 hover:text-white group"
                         >
@@ -66,7 +67,7 @@ const FloatingDock = ({
                     )}
 
                     {onFinalize && (
-                        <button 
+                        <button
                             onClick={onFinalize}
                             className="relative flex flex-col items-center justify-center gap-1.5 transition-all text-zinc-500 hover:text-white group"
                         >
@@ -78,7 +79,7 @@ const FloatingDock = ({
                     )}
 
                     {onDelete && (
-                        <button 
+                        <button
                             onClick={onDelete}
                             className="relative flex flex-col items-center justify-center gap-1.5 transition-all text-zinc-500 hover:text-red-500 group"
                         >
