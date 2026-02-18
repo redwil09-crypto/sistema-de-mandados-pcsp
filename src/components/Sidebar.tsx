@@ -51,7 +51,7 @@ const Sidebar = ({ routeCount = 0, isCollapsed, toggleCollapse, isDark, toggleTh
     };
 
     const mainNavItems = [
-        { icon: Home, label: 'Dashboard', path: '/' },
+        { icon: Home, label: 'Início', path: '/' },
         { icon: FileText, label: 'Mandados', path: '/warrant-list' },
         { icon: FileSearch, label: 'Busca e Apreensão', path: '/minor-search' },
         { icon: PlusCircle, label: 'Novo Registro', path: '/new-warrant' },
