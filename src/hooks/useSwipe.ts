@@ -16,9 +16,19 @@ export const useSwipe = ({ onSwipeLeft, onSwipeRight, onSwipeUp, onSwipeDown }: 
     const minSwipeDistance = 50;
 
     const onTouchStart = (e: React.TouchEvent) => {
+        // Ignore swipes starting from the very edge (allow OS Back Gesture)
+        const startX = e.targetTouches[0].clientX;
+        const screenWidth = window.innerWidth;
+
+        // Edge Guard: 30px from left or right
+        if (startX < 30 || startX > screenWidth - 30) {
+            touchStart.current = null;
+            return;
+        }
+
         touchEnd.current = null; // Reset
         touchStart.current = {
-            x: e.targetTouches[0].clientX,
+            x: startX,
             y: e.targetTouches[0].clientY
         };
     };

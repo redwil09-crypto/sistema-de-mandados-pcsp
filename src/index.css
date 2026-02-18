@@ -3,6 +3,13 @@
 @tailwind utilities;
 
 @layer base {
+  html {
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: none; /* Prevent bounce at top/bottom which feels weird */
+    overscroll-behavior-x: auto; /* Allow side swipe */
+  }
+
   body {
     @apply bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark antialiased;
     background-color: #d4d4d8;
