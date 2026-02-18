@@ -279,7 +279,8 @@ const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, wa
         // CORPO DO TEXTO
         // --------------------------------------------------------------------------------
 
-        const p1 = `${indent}Com a finalidade de instruir investigação policial em trâmite nesta unidade, solicito, respeitosamente, a gentileza de verificar se o indivíduo abaixo relacionado encontra-se cadastrado como usuário ou entregador da plataforma IFOOD.`;
+        const platformName = type === 'uber' ? 'UBER' : 'IFOOD';
+        const p1 = `${indent}Com a finalidade de instruir investigação policial em trâmite nesta unidade, solicito, respeitosamente, a gentileza de verificar se o indivíduo abaixo relacionado encontra-se cadastrado como usuário ou entregador da plataforma ${platformName}.`;
         const splitP1 = doc.splitTextToSize(p1, maxLineWidth);
         doc.text(splitP1, margin, y, { align: 'justify', maxWidth: maxLineWidth });
         y += (splitP1.length * lineHeight) + paragraphSpacing;
@@ -350,7 +351,7 @@ const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, wa
         doc.setFont('helvetica', 'normal');
         doc.text("Ao Ilustríssimo Senhor Responsável", margin, addresseeY);
         doc.setFont('helvetica', 'bold');
-        doc.text("Empresa iFood.", margin, addresseeY + 5);
+        doc.text(`Empresa ${type === 'uber' ? 'UBER' : 'iFood'}.`, margin, addresseeY + 5);
 
         // Add Footers loop logic handles the very bottom address lines
 
@@ -366,7 +367,7 @@ const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, wa
         const pdfFile = new File([pdfBlob], `Oficio_${type.toUpperCase()}_${officeNumber}.pdf`, { type: 'application/pdf' });
 
         // Save locally first
-        doc.save(`Oficio_IFood_${officeNumber}_${warrant.name.replace(/\s+/g, '_')}.pdf`);
+        doc.save(`Oficio_${type === 'uber' ? 'Uber' : 'IFood'}_${officeNumber}_${warrant.name.replace(/\s+/g, '_')}.pdf`);
 
         // Upload & Save to DB
         const toastId = toast.loading("Salvando cópia no prontuário...");
