@@ -13,7 +13,7 @@ import { toast } from 'sonner';
 interface WarrantContextType {
     warrants: Warrant[];
     loading: boolean;
-    refreshWarrants: () => Promise<void>;
+    refreshWarrants: (silent?: boolean) => Promise<void>;
     addWarrant: (w: Partial<Warrant>) => Promise<boolean>;
     updateWarrant: (id: string, updates: Partial<Warrant>) => Promise<boolean>;
     deleteWarrant: (id: string) => Promise<boolean>;
@@ -73,10 +73,10 @@ export const WarrantProvider = ({ children }: { children: ReactNode }) => {
         load();
 
         // Listen for auth changes to reload/clear
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-            if (session) {
-                refreshWarrants();
-            } else {
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+            if (session && (event === 'SIGNED_IN' || event === 'INITIAL_SESSION' || event === 'TOKEN_REFRESHED')) {
+                refreshWarrants(true);
+            } else if (!session) {
                 setWarrants([]);
                 setLoading(false);
             }
@@ -90,8 +90,8 @@ export const WarrantProvider = ({ children }: { children: ReactNode }) => {
         localStorage.setItem('routeWarrants', JSON.stringify(routeWarrants));
     }, [routeWarrants]);
 
-    const refreshWarrants = async () => {
-        setLoading(true);
+    const refreshWarrants = async (silent = false) => {
+        if (!silent) setLoading(true);
         try {
             const data = await getWarrants();
             setWarrants(data || []);
@@ -99,7 +99,7 @@ export const WarrantProvider = ({ children }: { children: ReactNode }) => {
             console.error("Error loading warrants:", err);
             toast.error("Erro ao carregar dados do banco.");
         } finally {
-            setLoading(false);
+            if (!silent) setLoading(false);
         }
     };
 

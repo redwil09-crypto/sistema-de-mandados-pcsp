@@ -603,8 +603,14 @@ const WarrantDetail = () => {
                 // Parse current state
                 let currentIntel = {};
                 try {
-                    currentIntel = JSON.parse(updatedTacticalSummary);
-                } catch (e) { currentIntel = {}; }
+                    currentIntel = typeof updatedTacticalSummary === 'string'
+                        ? JSON.parse(updatedTacticalSummary)
+                        : updatedTacticalSummary;
+                } catch (e) {
+                    currentIntel = (typeof updatedTacticalSummary === 'object' && updatedTacticalSummary !== null)
+                        ? updatedTacticalSummary
+                        : {};
+                }
 
                 // CALL THE AI MERGE SERVICE
                 const mergedIntel = await mergeIntelligence(data, currentIntel, aiDiligenceResult);
@@ -642,7 +648,7 @@ const WarrantDetail = () => {
             setAnalyzedDocumentText('');
 
             // Critical: Update parent state immediately if handler provided
-            await refreshWarrants();
+            await refreshWarrants(true);
 
             toast.success("Informações Transferidas para o Centro de Inteligência!", { id: toastId });
 
@@ -988,7 +994,7 @@ Equipe de Capturas - DIG / PCSP
     const handleDownloadPDF = async () => {
         if (!data) return;
         // Refresh data to ensure history is included
-        await refreshWarrants();
+        await refreshWarrants(true);
         await generateWarrantPDF(data, updateWarrant, aiTimeSuggestion);
     };
 
