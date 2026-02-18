@@ -2341,24 +2341,27 @@ Equipe de Capturas - DIG / PCSP
                                     >
                                         <FileText size={14} /> Gerar Ofício Padrão (Modelo Antigo)
                                     </button>
-                                    <div className="flex gap-2">
+                                    <div className="flex flex-wrap gap-2 justify-end w-full sm:w-auto">
                                         <button
                                             onClick={() => setActiveReportType('ifood')}
-                                            className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-red-900/20 flex items-center gap-2 transition-all active:scale-95 border border-red-500/30"
+                                            className="bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wide shadow-lg shadow-red-900/20 flex items-center gap-1.5 transition-all active:scale-95 border border-red-500/30"
+                                            title="Gerar Ofício iFood"
                                         >
-                                            <Bike size={14} /> GERAR OFÍCIO IFOOD
+                                            <Bike size={12} /> <span className="hidden sm:inline">OFÍCIO IFOOD</span>
                                         </button>
                                         <button
                                             onClick={() => setActiveReportType('uber')}
-                                            className="bg-cyan-600 hover:bg-cyan-700 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-cyan-900/20 flex items-center gap-2 transition-all active:scale-95 border border-cyan-500/30"
+                                            className="bg-cyan-600 hover:bg-cyan-700 text-white px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wide shadow-lg shadow-cyan-900/20 flex items-center gap-1.5 transition-all active:scale-95 border border-cyan-500/30"
+                                            title="Gerar Ofício Uber"
                                         >
-                                            <Car size={14} /> GERAR OFÍCIO UBER
+                                            <Car size={12} /> <span className="hidden sm:inline">OFÍCIO UBER</span>
                                         </button>
                                         <button
                                             onClick={() => setActiveReportType('99')}
-                                            className="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-yellow-900/20 flex items-center gap-2 transition-all active:scale-95 border border-yellow-500/30"
+                                            className="bg-yellow-600 hover:bg-yellow-700 text-white px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wide shadow-lg shadow-yellow-900/20 flex items-center gap-1.5 transition-all active:scale-95 border border-yellow-500/30"
+                                            title="Gerar Ofício 99"
                                         >
-                                            <Car size={14} /> GERAR OFÍCIO 99
+                                            <Car size={12} /> <span className="hidden sm:inline">OFÍCIO 99</span>
                                         </button>
                                     </div>
 
