@@ -2676,17 +2676,7 @@ Equipe de Capturas - DIG / PCSP
                                     )}
 
                                     <button
-                                        onClick={() => {
-                                            handleAddDiligence();
-                                            toast.success("INTELIGÊNCIA COMPUTADA E FUNDIDA COM SUCESSO!", {
-                                                icon: '🧠',
-                                                style: {
-                                                    background: '#1e1b4b',
-                                                    color: '#fff',
-                                                    border: '1px solid #6366f1'
-                                                }
-                                            });
-                                        }}
+                                        onClick={handleAddDiligence}
                                         disabled={(!newDiligence.trim() && !aiDiligenceResult) || isSavingDiligence}
                                         className="w-full mt-4 bg-primary hover:bg-primary-dark text-white py-3.5 rounded-xl font-black text-xs uppercase tracking-widest shadow-tactic transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                                     >
