@@ -1733,21 +1733,14 @@ Equipe de Capturas - DIG / PCSP
                                 </div>
                             </div>
 
-                            {/* Edit Button - Triggers Upload */}
+                            {/* Edit Button - Triggers Upload (Smaller) */}
                             <label
                                 htmlFor="photo-upload-input"
-                                className="absolute -bottom-3 -right-3 bg-primary hover:bg-primary-dark p-2.5 rounded-xl shadow-lg border border-white/20 cursor-pointer transition-transform hover:scale-110 active:scale-95 group/edit"
+                                className="absolute -bottom-2 -right-2 bg-primary hover:bg-primary-dark p-1.5 rounded-lg shadow-lg border border-white/20 cursor-pointer transition-transform hover:scale-105 active:scale-95 group/edit z-10"
                                 title="Trocar Foto"
                             >
-                                <RefreshCw size={16} className="text-white group-hover/edit:rotate-180 transition-transform duration-700" />
+                                <RefreshCw size={12} className="text-white group-hover/edit:rotate-180 transition-transform duration-700" />
                             </label>
-
-                            {/* Status Indicator (Biometric) */}
-                            <div className="absolute -top-3 -left-3">
-                                <span className="flex items-center gap-1 bg-amber-500/90 text-white text-[9px] font-black uppercase px-2 py-1 rounded-md shadow-lg border border-white/20 backdrop-blur-md">
-                                    <Eye className="w-3 h-3" /> IDENTIFICAÇÃO BIOMÉTRICA
-                                </span>
-                            </div>
                         </div>
 
                         <div className="flex-1 space-y-4 text-center sm:text-left">
