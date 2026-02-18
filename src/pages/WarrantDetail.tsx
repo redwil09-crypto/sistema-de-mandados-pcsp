@@ -120,7 +120,7 @@ const WarrantDetail = () => {
         aiInstructions: ''
     });
     const [isGeneratingAiReport, setIsGeneratingAiReport] = useState(false);
-    const [activeReportType, setActiveReportType] = useState<'ifood' | 'uber' | null>(null);
+    const [activeReportType, setActiveReportType] = useState<'ifood' | 'uber' | '99' | null>(null);
 
     const data = useMemo(() => warrants.find(w => w.id === id), [warrants, id]);
 
@@ -2353,6 +2353,12 @@ Equipe de Capturas - DIG / PCSP
                                             className="bg-cyan-600 hover:bg-cyan-700 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-cyan-900/20 flex items-center gap-2 transition-all active:scale-95 border border-cyan-500/30"
                                         >
                                             <Car size={14} /> GERAR OFÍCIO UBER
+                                        </button>
+                                        <button
+                                            onClick={() => setActiveReportType('99')}
+                                            className="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-yellow-900/20 flex items-center gap-2 transition-all active:scale-95 border border-yellow-500/30"
+                                        >
+                                            <Car size={14} /> GERAR OFÍCIO 99
                                         </button>
                                     </div>
 

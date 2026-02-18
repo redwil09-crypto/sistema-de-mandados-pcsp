@@ -12,7 +12,7 @@ interface IfoodReportModalProps {
     isOpen: boolean;
     onClose: () => void;
     warrant: Warrant;
-    type: 'ifood' | 'uber';
+    type: 'ifood' | 'uber' | '99';
     updateWarrant: (id: string, data: Partial<Warrant>) => Promise<boolean>;
 }
 
@@ -172,11 +172,6 @@ const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, wa
         const addFooter = (pdf: jsPDF, pageNum: number, totalPages: number) => {
             const footerY = pageHeight - 15;
 
-            // Separator Line
-            // Not spanning full width based on image, looks like left block and right block?
-            // Actually image 1 has no full line, Image 2 header has full line?
-            // The image shows text at bottom.
-
             // Address Block (Left)
             pdf.setFont('helvetica', 'normal');
             pdf.setFontSize(8);
@@ -185,16 +180,10 @@ const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, wa
             const addr1 = "Rua Moisés Ruston, 370, Parque Itamaraty, Jacareí-SP, CEP-12.307-260";
             const addr2 = "Tel-12-3951-1000 - E-mail - dig.jacarei@policiacivil.sp.gov.br";
 
-            // Right Block (Date | Page)
-            // The image shows this on the right side with a vertical separator?
-            // "Data (07/02/26) | Página 1 de 2" - roughly
-            // Let's position it at bottom right
-
             const today = new Date();
             const dateStr = `Data (${today.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' })})`;
             const pageStr = `Página ${pageNum} de ${totalPages}`;
 
-            // Let's implement that split footer
             const dividerX = pageWidth - margin - 35;
             pdf.setDrawColor(0);
             pdf.line(dividerX, footerY - 2, dividerX, footerY + 8);
@@ -279,7 +268,10 @@ const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, wa
         // CORPO DO TEXTO
         // --------------------------------------------------------------------------------
 
-        const platformName = type === 'uber' ? 'UBER' : 'IFOOD';
+        let platformName = 'IFOOD';
+        if (type === 'uber') platformName = 'UBER';
+        if (type === '99') platformName = '99';
+
         const p1 = `${indent}Com a finalidade de instruir investigação policial em trâmite nesta unidade, solicito, respeitosamente, a gentileza de verificar se o indivíduo abaixo relacionado encontra-se cadastrado como usuário ou entregador da plataforma ${platformName}.`;
         const splitP1 = doc.splitTextToSize(p1, maxLineWidth);
         doc.text(splitP1, margin, y, { align: 'justify', maxWidth: maxLineWidth });
@@ -326,9 +318,6 @@ const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, wa
 
         // AREA DE ASSINATURA E DESTINATÁRIO (Position Fixed at Bottom)
         // --------------------------------------------------------------------------------
-        // Define anchor based on page height (A4 ~297mm)
-        // Footer (addresses) starts at ~282mm (pageHeight - 15)
-        // We need space above that for Addressee and Signature
 
         const footerStart = pageHeight - 15;
         const addresseeY = footerStart - 15; // "Ao Ilustríssimo..." line
@@ -351,9 +340,12 @@ const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, wa
         doc.setFont('helvetica', 'normal');
         doc.text("Ao Ilustríssimo Senhor Responsável", margin, addresseeY);
         doc.setFont('helvetica', 'bold');
-        doc.text(`Empresa ${type === 'uber' ? 'UBER' : 'iFood'}.`, margin, addresseeY + 5);
 
-        // Add Footers loop logic handles the very bottom address lines
+        // Dynamic Company Name Footer
+        let companyName = 'iFood';
+        if (type === 'uber') companyName = 'UBER';
+        if (type === '99') companyName = '99';
+        doc.text(`Empresa ${companyName}.`, margin, addresseeY + 5);
 
         // Add Footers
         // Fix getNumberOfPages error by casting or using supported property
@@ -367,7 +359,10 @@ const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, wa
         const pdfFile = new File([pdfBlob], `Oficio_${type.toUpperCase()}_${officeNumber}.pdf`, { type: 'application/pdf' });
 
         // Save locally first
-        doc.save(`Oficio_${type === 'uber' ? 'Uber' : 'IFood'}_${officeNumber}_${warrant.name.replace(/\s+/g, '_')}.pdf`);
+        let filenameType = 'IFood';
+        if (type === 'uber') filenameType = 'Uber';
+        if (type === '99') filenameType = '99';
+        doc.save(`Oficio_${filenameType}_${officeNumber}_${warrant.name.replace(/\s+/g, '_')}.pdf`);
 
         // Upload & Save to DB
         const toastId = toast.loading("Salvando cópia no prontuário...");
@@ -378,6 +373,8 @@ const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, wa
             if (uploadedPath) {
                 const url = getPublicUrl(uploadedPath);
                 const currentDocs = warrant.ifoodDocs || [];
+                // Note: We are saving to 'ifoodDocs' field in DB even for Uber/99 for compatibility, 
+                // or we might want to rename this field later. For now, it works as a generic 'platformDocs'.
                 await updateWarrant(warrant.id, { ifoodDocs: [...currentDocs, url] });
                 toast.success("Cópia salva no histórico!", { id: toastId });
                 onClose();
@@ -399,8 +396,11 @@ const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, wa
                 {/* Header */}
                 <div className="flex items-center justify-between p-4 border-b border-slate-700 bg-slate-800/50">
                     <div className="flex items-center gap-3">
-                        <div className={`p-2 rounded-lg border ${type === 'uber' ? 'bg-cyan-500/10 border-cyan-500/20 text-cyan-500' : 'bg-red-500/10 border-red-500/20 text-red-500'}`}>
-                            {type === 'uber' ? <Car className="w-6 h-6" /> : <Bike className="w-6 h-6" />}
+                        <div className={`p-2 rounded-lg border ${type === 'uber' ? 'bg-cyan-500/10 border-cyan-500/20 text-cyan-500' :
+                                type === '99' ? 'bg-yellow-500/10 border-yellow-500/20 text-yellow-500' :
+                                    'bg-red-500/10 border-red-500/20 text-red-500'
+                            }`}>
+                            {type === 'uber' ? <Car className="w-6 h-6" /> : type === '99' ? <Car className="w-6 h-6" /> : <Bike className="w-6 h-6" />}
                         </div>
                         <div>
                             <h2 className="text-lg font-bold text-slate-100 uppercase">Ofício {type.toUpperCase()}</h2>
