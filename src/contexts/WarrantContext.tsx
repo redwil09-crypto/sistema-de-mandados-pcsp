@@ -58,9 +58,14 @@ export const WarrantProvider = ({ children }: { children: ReactNode }) => {
     const lastAlertedIds = React.useRef<Set<string>>(new Set());
     const lastAnnouncedIds = React.useRef<Set<string>>(new Set());
 
+    const initialized = React.useRef(false);
+
     // Initial Load
     useEffect(() => {
         const load = async () => {
+            if (initialized.current) return;
+            initialized.current = true;
+
             const { data: { session } } = await supabase.auth.getSession();
             if (session) {
                 await refreshWarrants();
@@ -74,11 +79,16 @@ export const WarrantProvider = ({ children }: { children: ReactNode }) => {
 
         // Listen for auth changes to reload/clear
         const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-            if (session && (event === 'SIGNED_IN' || event === 'INITIAL_SESSION' || event === 'TOKEN_REFRESHED')) {
+            // Avoid reacting to INITIAL_SESSION if we are already handling it manually above
+            if (event === 'INITIAL_SESSION' && initialized.current) return;
+
+            if (session && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED')) {
+                // If token refreshed, just update silently. DO NOT set loading true.
                 refreshWarrants(true);
             } else if (!session) {
                 setWarrants([]);
                 setLoading(false);
+                initialized.current = false;
             }
         });
 
