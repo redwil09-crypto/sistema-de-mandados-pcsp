@@ -1,6 +1,7 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
+import { useSwipe } from '../hooks/useSwipe';
 import {
     Home,
     Search,
@@ -37,9 +38,24 @@ interface SidebarProps {
     hasNotifications?: boolean;
 }
 
+
+
+// ... imports
+
 const Sidebar = ({ routeCount = 0, isCollapsed, toggleCollapse, isDark, toggleTheme, hasNotifications = false }: SidebarProps) => {
     const [isOpen, setIsOpen] = useState(false); // Mobile state
     const location = useLocation();
+
+    // Swipe to Open/Close Sidebar (Mobile)
+    const { onTouchStart, onTouchMove, onTouchEnd } = useSwipe({
+        onSwipeLeft: () => setIsOpen(false),
+        onSwipeRight: () => setIsOpen(true),
+    });
+
+    useEffect(() => {
+        // Add global touch listeners only for edge Swipe Right to open (optional, but let's keep it simple first)
+        // For now, we attach to container.
+    }, []);
 
     // Fecha a sidebar ao navegar em mobile
     React.useEffect(() => {
@@ -164,15 +180,20 @@ const Sidebar = ({ routeCount = 0, isCollapsed, toggleCollapse, isDark, toggleTh
             )}
 
             {/* Sidebar Container */}
-            <aside className={`
-                fixed top-0 bottom-0 left-0 z-50
-                bg-surface-light dark:bg-surface-dark border-r border-border-light dark:border-white/5
-                flex flex-col
-                transform transition-all duration-300 cubic-bezier(0.4, 0, 0.2, 1)
-                pt-16 md:pt-0
-                ${isCollapsed ? 'w-20' : 'w-56'}
-                ${isOpen ? 'translate-x-0 shadow-2xl shadow-black w-56' : '-translate-x-full md:translate-x-0'}
-            `}>
+            <aside
+                className={`
+                    fixed top-0 bottom-0 left-0 z-50
+                    bg-surface-light dark:bg-surface-dark border-r border-border-light dark:border-white/5
+                    flex flex-col
+                    transform transition-all duration-300 cubic-bezier(0.4, 0, 0.2, 1)
+                    pt-16 md:pt-0
+                    ${isCollapsed ? 'w-20' : 'w-56'}
+                    ${isOpen ? 'translate-x-0 shadow-2xl shadow-black w-56' : '-translate-x-full md:translate-x-0'}
+                `}
+                onTouchStart={onTouchStart}
+                onTouchMove={onTouchMove}
+                onTouchEnd={onTouchEnd}
+            >
                 {/* Desktop Header */}
                 <div className={`hidden md:flex items-center ${isCollapsed ? 'justify-center' : 'justify-between px-6'} h-20 border-b border-white/5 relative`}>
                     <div className="flex items-center gap-3">

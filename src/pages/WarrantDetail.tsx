@@ -1,5 +1,6 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
+import { useSwipe } from '../hooks/useSwipe';
 import { createPortal } from 'react-dom';
 import { useParams, useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { jsPDF } from 'jspdf';
@@ -127,6 +128,25 @@ const WarrantDetail = () => {
     const [isConfirmSaveOpen, setIsConfirmSaveOpen] = useState(false);
     const [userId, setUserId] = useState<string | undefined>(undefined);
     const [isAdmin, setIsAdmin] = useState(false);
+
+    // Swipe Navigation
+    // -------------------------------------------------------------------------------- //
+    // NEW: Add swipe gestures to switch tabs
+    const { onTouchStart, onTouchMove, onTouchEnd } = useSwipe({
+        onSwipeLeft: () => {
+            if (activeDetailTab === 'documents') setActiveDetailTab('investigation');
+            else if (activeDetailTab === 'investigation') setActiveDetailTab('timeline');
+            else if (activeDetailTab === 'timeline') setActiveDetailTab('reports');
+            else if (activeDetailTab === 'reports') setActiveDetailTab('ifood');
+        },
+        onSwipeRight: () => {
+            if (activeDetailTab === 'ifood') setActiveDetailTab('reports');
+            else if (activeDetailTab === 'reports') setActiveDetailTab('timeline');
+            else if (activeDetailTab === 'timeline') setActiveDetailTab('investigation');
+            else if (activeDetailTab === 'investigation') setActiveDetailTab('documents');
+        }
+    });
+    // -------------------------------------------------------------------------------- //
 
     useEffect(() => {
         const checkAdmin = async () => {
@@ -1812,7 +1832,12 @@ Equipe de Capturas - DIG / PCSP
                 </div>
 
                 {/* 3. Tab Content Area */}
-                <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-400">
+                <div
+                    className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-400 touch-pan-y"
+                    onTouchStart={onTouchStart}
+                    onTouchMove={onTouchMove}
+                    onTouchEnd={onTouchEnd}
+                >
 
                     {activeDetailTab === 'documents' && (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
