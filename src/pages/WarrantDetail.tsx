@@ -2090,6 +2090,14 @@ Equipe de Capturas - DIG / PCSP
                                     // Fallback if empty
                                 }
 
+                                // GUARANTES ARRAYS TO PREVENT CRASH (Fix for white screen on specific warrants)
+                                if (!Array.isArray(intel.risks)) intel.risks = [];
+                                if (!Array.isArray(intel.locations)) intel.locations = [];
+                                if (!Array.isArray(intel.entities)) intel.entities = [];
+                                if (!Array.isArray(intel.hypotheses)) intel.hypotheses = [];
+                                if (!Array.isArray(intel.timeline)) intel.timeline = [];
+                                if (!Array.isArray(intel.checklist)) intel.checklist = [];
+
                                 const hasData = intel.summary && intel.summary !== 'Aguardando primeira análise...';
 
                                 if (!hasData) {
