@@ -395,6 +395,7 @@ export const generateIfoodOfficePDF = async (
     try {
         const doc = new jsPDF();
         const pageWidth = doc.internal.pageSize.getWidth();
+        const pageHeight = doc.internal.pageSize.getHeight();
         const margin = 20;
         let y = 20;
 
@@ -501,6 +502,39 @@ Ressalto que o descumprimento injustificado desta requisição poderá acarretar
         doc.text("Luiz Antônio Cunha dos Santos", pageWidth / 2, y + 5, { align: 'center' });
         doc.setFont('helvetica', 'normal');
         doc.text("Delegado de Polícia", pageWidth / 2, y + 10, { align: 'center' });
+
+        // --- FOOTER (New Model Style) ---
+        const footerY = pageHeight - 15;
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(8);
+        doc.setTextColor(0, 0, 0);
+
+        const addr1 = "Rua Moisés Ruston, 370, Parque Itamaraty, Jacareí-SP, CEP-12.307-260";
+        const dividerX = pageWidth - margin - 35;
+
+        doc.setDrawColor(0);
+        doc.setLineWidth(0.1);
+        doc.line(dividerX, footerY - 2, dividerX, footerY + 8);
+
+        doc.text(addr1, dividerX - 5, footerY, { align: 'right' });
+
+        const phonePart = "Tel-12-3951-1000 - E-mail - ";
+        const emailPart = "dig.jacarei@policiacivil.sp.gov.br";
+
+        const contactWidth = doc.getTextWidth(phonePart + emailPart);
+        const contactX = dividerX - 5 - contactWidth;
+
+        doc.text(phonePart, contactX, footerY + 4);
+        doc.setTextColor(0, 0, 255);
+        doc.text(emailPart, contactX + doc.getTextWidth(phonePart), footerY + 4);
+        doc.setTextColor(0, 0, 0);
+
+        const todayObj = new Date();
+        const dateStrFooter = `Data (${todayObj.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' })})`;
+        const pageStr = `Página 1 de 1`;
+
+        doc.text(dateStrFooter, dividerX + 5, footerY);
+        doc.text(pageStr, dividerX + 5, footerY + 4);
 
         // Save
         const fileName = `Oficio_iFood_${data.name.replace(/\s+/g, '_')}.pdf`;
