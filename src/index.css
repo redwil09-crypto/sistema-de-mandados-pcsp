@@ -12,20 +12,19 @@
     /* Allow side swipe */
   }
 
-  @apply bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark antialiased;
-  background-color: #e4e4e7;
-  /* Zinc 200 - Visible Gray */
-  /* Subtle grid pattern for texture, no washing out */
-  background-image: linear-gradient(rgba(0, 0, 0, 0.03) 1px, transparent 1px),
-  linear-gradient(90deg, rgba(0, 0, 0, 0.03) 1px, transparent 1px);
-  background-size: 20px 20px;
-  background-attachment: fixed;
-}
+  body {
+    @apply bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark antialiased;
+    background-color: #f4f4f5;
+    /* Zinc 100 - Very Light Gray */
+    background-image: none;
+    /* Clean look */
+  }
 
-.dark body {
-  @apply bg-background-dark;
-  background-image: none;
-}
+  /* Force dark mode override */
+  .dark body {
+    @apply bg-background-dark;
+    background-image: none;
+  }
 }
 
 @layer utilities {

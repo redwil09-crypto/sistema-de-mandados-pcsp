@@ -1722,9 +1722,9 @@ Equipe de Capturas - DIG / PCSP
     };
 
     return (
-        <div className="min-h-screen bg-background-dark text-text-dark font-display relative overflow-x-hidden pb-12">
+        <div className="min-h-screen bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark font-display relative overflow-x-hidden pb-12">
             {/* Tactical Grid Background Layer */}
-            <div className="fixed inset-0 pointer-events-none opacity-20 z-0">
+            <div className="hidden dark:block fixed inset-0 pointer-events-none opacity-20 z-0">
                 <div className="absolute inset-0 tactical-grid"></div>
                 <div className="absolute inset-0 tactical-glow"></div>
             </div>
