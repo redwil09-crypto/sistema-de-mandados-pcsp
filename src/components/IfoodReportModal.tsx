@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Copy, Download, Loader2, Bike, Car, Hash, FileText } from 'lucide-react';
 import { toast } from 'sonner';
@@ -20,6 +20,30 @@ const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, wa
     const [isProcessing, setIsProcessing] = useState(false);
     const [officeNumber, setOfficeNumber] = useState('');
     const [step, setStep] = useState<'input' | 'processing' | 'result'>('input');
+    const [badgeImg, setBadgeImg] = useState<HTMLImageElement | null>(null);
+
+    // Preload badge image to speed up PDF generation
+    useEffect(() => {
+        const loadBadge = async () => {
+            try {
+                const img = new Image();
+                img.src = './brasao_pcsp_nova.png';
+                await new Promise((resolve) => {
+                    img.onload = () => resolve(true);
+                    img.onerror = () => {
+                        // Fallback
+                        img.src = './brasao_pcsp_colorido.png';
+                        img.onload = () => resolve(true);
+                        img.onerror = () => resolve(false);
+                    };
+                });
+                setBadgeImg(img);
+            } catch (e) {
+                console.error("Erro ao pré-carregar brasão", e);
+            }
+        };
+        loadBadge();
+    }, []);
 
     useEffect(() => {
         if (!isOpen) {
@@ -38,7 +62,7 @@ const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, wa
         setStep('processing');
         setIsProcessing(true);
 
-        // Simulate short delay for UX
+        // Reduced delay
         setTimeout(() => {
             const months = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
             const today = new Date();
@@ -48,7 +72,6 @@ const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, wa
             if (type === 'uber') platformName = 'UBER';
             if (type === '99') platformName = '99';
 
-            // Indentação (simulada com espaços, pois é plain text na textarea)
             const indent = "          ";
 
             const text = `Ofício: nº.${officeNumber}/CAPT/2025
@@ -79,7 +102,7 @@ ${indent}Atenciosamente,`;
             setGeneratedText(text);
             setStep('result');
             setIsProcessing(false);
-        }, 600);
+        }, 300); // Faster transition
     };
 
     const handleCopy = () => {
@@ -90,29 +113,13 @@ ${indent}Atenciosamente,`;
     const handleDownloadPDF = async () => {
         if (!generatedText) return;
 
+        // Use cached image or try to load if missing (fallback logic inside component state removed for speed, assumed loaded by useEffect)
+
         const doc = new jsPDF();
         const pageWidth = doc.internal.pageSize.getWidth();
         const pageHeight = doc.internal.pageSize.getHeight();
         const margin = 20;
         const maxLineWidth = pageWidth - (margin * 2);
-
-        // --- LOAD BADGE IMAGE ---
-        let badgeImg: HTMLImageElement | null = null;
-        try {
-            const badgePC = new Image();
-            badgePC.src = './brasao_pcsp_nova.png';
-            await new Promise((resolve) => {
-                badgePC.onload = () => resolve(true);
-                badgePC.onerror = () => {
-                    badgePC.src = './brasao_pcsp_colorido.png';
-                    badgePC.onload = () => resolve(true);
-                    badgePC.onerror = () => resolve(false);
-                };
-            });
-            badgeImg = badgePC;
-        } catch (e) {
-            console.error("Erro brasão", e);
-        }
 
         // --- HEADER FUNCTION ---
         const addHeader = (pdf: jsPDF) => {
@@ -187,8 +194,8 @@ ${indent}Atenciosamente,`;
             pdf.text(addr1, dividerX - 5, footerY, { align: 'right' });
 
             // Left of divider (Contact)
-            const emailPart = "dig.jacarei@policiacivil.sp.gov.br";
             const phonePart = "Tel-12-3951-1000 - E-mail - ";
+            const emailPart = "dig.jacarei@policiacivil.sp.gov.br";
 
             // Render the phone part (black)
             const fullContactWidth = pdf.getTextWidth(phonePart + emailPart);
@@ -221,22 +228,22 @@ ${indent}Atenciosamente,`;
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(11);
 
-        // Split text by newlines first to respect user paragraphs
+        // Split text by newlines carefully
         const lines = generatedText.split('\n');
 
         lines.forEach((line) => {
             // Check for page break
-            if (y > pageHeight - 65) { // Leave space for footer/signature
+            if (y > pageHeight - 65) {
                 doc.addPage();
                 y = addHeader(doc) + 8;
             }
 
             if (line.trim() === '') {
-                y += 5; // Empty line spacing
+                y += 5;
             } else {
                 const splitLine = doc.splitTextToSize(line, maxLineWidth);
                 doc.text(splitLine, margin, y);
-                y += (splitLine.length * 5) + 2; // Line height
+                y += (splitLine.length * 5) + 2;
             }
         });
 
@@ -245,15 +252,14 @@ ${indent}Atenciosamente,`;
         // --------------------------------------------------------------------------------
 
         const footerStart = pageHeight - 15;
-        const addresseeY = footerStart - 15; // "Ao Ilustríssimo..." line
-        const signatureNameY = addresseeY - 25; // "Luiz Antônio..." line
-        const signatureTitleY = signatureNameY + 5; // "Delegado..." line
+        const addresseeY = footerStart - 15;
+        const signatureNameY = addresseeY - 25;
+        const signatureTitleY = signatureNameY + 5;
 
         // Se o texto invadir a área da assinatura, cria nova página
         if (y > signatureNameY - 10) {
             doc.addPage();
             addHeader(doc);
-            // Na nova página, usamos as mesmas posições fixas no rodapé
         }
 
         // Render Signature Block (Fixed Position)
@@ -273,7 +279,6 @@ ${indent}Atenciosamente,`;
         doc.text(`Empresa ${companyName}.`, margin, addresseeY + 5);
 
         // Add Footers
-        // Fix getNumberOfPages error by casting or using supported property
         const totalPages = (doc as any).internal.pages.length - 1;
         for (let i = 1; i <= totalPages; i++) {
             doc.setPage(i);
