@@ -121,7 +121,7 @@ const logAudit = async (warrantId: string, action: 'CREATE' | 'UPDATE' | 'DELETE
 };
 
 // Create a new warrant
-export const createWarrant = async (warrant: Partial<Warrant>): Promise<Warrant | null> => {
+export const createWarrant = async (warrant: Partial<Warrant>): Promise<{ data: Warrant | null, error: any }> => {
     try {
         const { data: { user } } = await supabase.auth.getUser();
 
@@ -142,10 +142,10 @@ export const createWarrant = async (warrant: Partial<Warrant>): Promise<Warrant 
         // Log audit
         await logAudit(data.id, 'CREATE', `Warrant created by ${user.email}`, warrant);
 
-        return dbToWarrant(data);
+        return { data: dbToWarrant(data), error: null };
     } catch (error: any) {
         console.error('Error creating warrant details:', error.message || error, error);
-        return null;
+        return { data: null, error };
     }
 };
 

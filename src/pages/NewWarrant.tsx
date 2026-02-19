@@ -359,12 +359,12 @@ const NewWarrant = () => {
                     id: warrantId,
                     status: 'EM ABERTO'
                 };
-                const result = await addWarrant(newWarrant);
-                if (result) {
+                const { success, error } = await addWarrant(newWarrant);
+                if (success) {
                     toast.success("Mandado salvo com sucesso!");
                     navigate('/');
                 } else {
-                    toast.error("Falha ao salvar no servidor.");
+                    toast.error(`Falha ao salvar no servidor: ${error}`);
                 }
             }
         } catch (error) {
