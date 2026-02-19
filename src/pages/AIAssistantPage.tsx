@@ -410,8 +410,8 @@ const AIAssistantPage = () => {
                 longitude: extractedData.longitude
             };
 
-            const result = await onAdd(newWarrant);
-            if (result) {
+            const { success, error } = await onAdd(newWarrant);
+            if (success) {
                 toast.success(`${extractedData.name} salvo com sucesso!`);
 
                 if (currentIndex < batchResults.length - 1) {
@@ -423,11 +423,11 @@ const AIAssistantPage = () => {
                     localStorage.removeItem('ai_assist_session'); // Limpa sessão ao concluir
                 }
             } else {
-                toast.error("Erro ao salvar no banco de dados. Verifique a conexão.");
+                toast.error(`Erro ao salvar no banco de dados: ${error || "Verifique a conexão."}`);
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error("Erro ao salvar via Assistente IA:", error);
-            toast.error("Erro inesperado ao salvar mandado.");
+            toast.error(`Erro inesperado ao salvar mandado: ${error.message || error}`);
         } finally {
             setIsSaving(false);
             setIsSaveConfirmOpen(false);
