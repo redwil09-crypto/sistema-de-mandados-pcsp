@@ -2604,7 +2604,7 @@ Equipe de Capturas - DIG / PCSP
                                                     </div>
 
                                                     {typeof aiDiligenceResult === 'string' ? (
-                                                        <p className="text-sm text-gray-200 leading-relaxed whitespace-pre-wrap">{aiDiligenceResult}</p>
+                                                        <p className="text-sm text-slate-700 dark:text-gray-200 leading-relaxed whitespace-pre-wrap">{aiDiligenceResult}</p>
                                                     ) : (
                                                         <div className="space-y-5 animate-in slide-in-from-bottom-2">
                                                             {/* Risk Meter */}
@@ -2614,7 +2614,7 @@ Equipe de Capturas - DIG / PCSP
                                                                 const safeRiskLevel = (typeof r === 'string' ? r : (r?.level || r?.value || 'EM ANÁLISE')).toUpperCase();
 
                                                                 return (
-                                                                    <div className="bg-black/20 rounded-xl p-3 border border-white/5">
+                                                                    <div className="bg-slate-100 dark:bg-black/20 rounded-xl p-3 border border-border-light dark:border-white/5">
                                                                         <div className="flex justify-between items-center mb-2">
                                                                             <div className="flex items-center gap-2">
                                                                                 <Siren size={14} className={
@@ -2635,7 +2635,7 @@ Equipe de Capturas - DIG / PCSP
                                                                                                 safeRiskLevel) || 'EM ANÁLISE'}
                                                                             </span>
                                                                         </div>
-                                                                        <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
+                                                                        <div className="w-full h-1.5 bg-background-light dark:bg-white/5 rounded-full overflow-hidden">
                                                                             <div className={`h-full transition-all duration-1000 ${(safeRiskLevel.includes('CRÍTICO') || safeRiskLevel.includes('CRITICAL')) ? 'w-full bg-red-500' :
                                                                                 (safeRiskLevel.includes('ALTO') || safeRiskLevel.includes('HIGH')) ? 'w-3/4 bg-orange-500' :
                                                                                     (safeRiskLevel.includes('MÉDIO') || safeRiskLevel.includes('MEDIUM')) ? 'w-1/2 bg-yellow-500' : 'w-1/4 bg-green-500'
