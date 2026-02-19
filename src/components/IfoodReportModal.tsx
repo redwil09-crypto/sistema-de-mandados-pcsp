@@ -302,8 +302,10 @@ ${indent}Atenciosamente,`;
             <div className="bg-slate-900 border border-slate-700 w-full max-w-4xl h-[90vh] rounded-xl shadow-2xl flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
 
                 {/* Header */}
-                <div className="flex items-center justify-between p-4 border-b border-slate-700 bg-slate-800/50">
-                    <div className="flex items-center gap-3">
+                <div className="relative flex items-center justify-between p-4 border-b border-slate-700 bg-slate-800/50">
+
+                    {/* Left: Title */}
+                    <div className="flex items-center gap-3 z-10 w-1/3">
                         <div className={`p-2 rounded-lg border ${selectedType === 'uber' ? 'bg-cyan-500/10 border-cyan-500/20 text-cyan-500' :
                             selectedType === '99' ? 'bg-yellow-500/10 border-yellow-500/20 text-yellow-500' :
                                 'bg-red-500/10 border-red-500/20 text-red-500'
@@ -315,16 +317,35 @@ ${indent}Atenciosamente,`;
                             <p className="text-xs text-slate-400">Geração de Documento Oficial</p>
                         </div>
                     </div>
-                    {/* Platform Switcher Buttons - Only show in Result step or Top Bar */}
-                    <div className="flex gap-3 mr-4">
-                        <button onClick={() => handleTypeSwitch('ifood')} className={`p-3 rounded-xl border transition-all ${selectedType === 'ifood' ? 'bg-red-500 text-white border-red-400 scale-110 shadow-lg shadow-red-500/20' : 'bg-white/5 text-slate-400 border-white/10 hover:bg-white/10 hover:scale-105'}`} title="iFood"><Bike size={24} /></button>
-                        <button onClick={() => handleTypeSwitch('uber')} className={`p-3 rounded-xl border transition-all ${selectedType === 'uber' ? 'bg-cyan-500 text-white border-cyan-400 scale-110 shadow-lg shadow-cyan-500/20' : 'bg-white/5 text-slate-400 border-white/10 hover:bg-white/10 hover:scale-105'}`} title="Uber"><Car size={24} /></button>
-                        <button onClick={() => handleTypeSwitch('99')} className={`p-3 rounded-xl border transition-all ${selectedType === '99' ? 'bg-yellow-500 text-white border-yellow-400 scale-110 shadow-lg shadow-yellow-500/20' : 'bg-white/5 text-slate-400 border-white/10 hover:bg-white/10 hover:scale-105'}`} title="99"><Car size={24} /></button>
+
+                    {/* Center: Platform Switcher Buttons (Text Based) */}
+                    <div className="absolute left-1/2 -translate-x-1/2 flex gap-2 z-0">
+                        <button
+                            onClick={() => handleTypeSwitch('ifood')}
+                            className={`px-6 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${selectedType === 'ifood' ? 'bg-red-600 text-white shadow-lg shadow-red-600/20 scale-105' : 'bg-slate-700/50 text-slate-400 hover:bg-slate-700 hover:text-white'}`}
+                        >
+                            iFood
+                        </button>
+                        <button
+                            onClick={() => handleTypeSwitch('uber')}
+                            className={`px-6 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${selectedType === 'uber' ? 'bg-cyan-600 text-white shadow-lg shadow-cyan-600/20 scale-105' : 'bg-slate-700/50 text-slate-400 hover:bg-slate-700 hover:text-white'}`}
+                        >
+                            Uber
+                        </button>
+                        <button
+                            onClick={() => handleTypeSwitch('99')}
+                            className={`px-6 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${selectedType === '99' ? 'bg-yellow-500 text-white shadow-lg shadow-yellow-500/20 scale-105' : 'bg-slate-700/50 text-slate-400 hover:bg-slate-700 hover:text-white'}`}
+                        >
+                            99
+                        </button>
                     </div>
 
-                    <button onClick={onClose} className="p-2 hover:bg-slate-700 rounded-full transition-colors ml-auto">
-                        <X className="w-5 h-5 text-slate-400" />
-                    </button>
+                    {/* Right: Close */}
+                    <div className="z-10 w-1/3 flex justify-end">
+                        <button onClick={onClose} className="p-2 hover:bg-slate-700 rounded-full transition-colors">
+                            <X className="w-5 h-5 text-slate-400" />
+                        </button>
+                    </div>
                 </div>
 
                 {/* Content */}
