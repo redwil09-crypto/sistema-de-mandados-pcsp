@@ -96,6 +96,56 @@ const generateContentViaFetch = async (model: string, prompt: string, key: strin
     throw new Error("Resposta da IA vazia ou inválida.");
 };
 
+const generateContentWithImageViaFetch = async (model: string, prompt: string, base64Image: string, mimeType: string, key: string) => {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
+
+    const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            contents: [{
+                parts: [
+                    { text: prompt },
+                    {
+                        inlineData: {
+                            mimeType: mimeType,
+                            data: base64Image
+                        }
+                    }
+                ]
+            }],
+            safetySettings: [
+                { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
+                { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
+                { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" },
+                { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" }
+            ]
+        })
+    });
+
+    if (!response.ok) {
+        let errorBody = await response.text();
+        try {
+            const jsonError = JSON.parse(errorBody);
+            if (jsonError.error) {
+                errorBody = `${jsonError.error.status || response.status} - ${jsonError.error.message}`;
+            }
+        } catch (e) {
+            // Raw text
+        }
+        throw new Error(errorBody);
+    }
+
+    const data = await response.json();
+    if (data.candidates && data.candidates.length > 0 && data.candidates[0].content) {
+        return data.candidates[0].content.parts[0].text;
+    }
+
+    throw new Error("Resposta da IA (Imagem) vazia ou inválida.");
+};
+
 // Função para descobrir dinamicamente qual modelo está disponível para esta chave
 const getBestAvailableModel = async (key: string): Promise<string> => {
     try {
@@ -251,6 +301,52 @@ export async function extractFullWarrantIntelligence(rawText: string): Promise<a
         return parseGeminiJSON(resultText, null);
     } catch (error) {
         console.error("Erro no Especialista de Extração:", error);
+        return null;
+    }
+}
+
+export async function extractWarrantFromImage(base64Image: string, mimeType: string): Promise<any> {
+    if (!(await isGeminiEnabled())) return null;
+
+    const key = await getGeminiKey();
+    if (!key) return null;
+
+    // Priorize models usually good with vision
+    const modelName = "gemini-1.5-flash"; // Flash is good and fast for vision
+
+    const prompt = `
+        VOCÊ É UM ANALISTA DE INTELIGÊNCIA DA POLÍCIA CIVIL DE ELITE.
+        SUA MISSÃO: Analisar a IMAGEM deste MANDADO JUDICIAL (Scan ou Foto) e extrair dados estruturados com 100% de precisão tática.
+        
+        REGRAS DE OURO (SEM ALUCINAÇÕES):
+        1. Identifique visualmente campos como VARA, PROCESSO, NOME, ENDEREÇOS.
+        2. Se a imagem estiver ruim, faça o melhor possível para inferir o contexto, mas martele a precisão nos números (RG, CPF, PROCESSO).
+        3. Converta Artigos (ex: 157, 33) para Nomes de Crimes (Roubo, Tráfico), igual à regra padrão.
+        
+        SAÍDA OBRIGATÓRIA EM JSON (SEM COMENTÁRIOS):
+        {
+            "name": "NOME COMPLETO EM MAIÚSCULAS",
+            "rg": "Apenas números",
+            "cpf": "Apenas números",
+            "birthDate": "AAAA-MM-DD",
+            "processNumber": "Número do processo unificado",
+            "type": "MANDADO DE PRISÃO" ou "BUSCA E APREENSÃO",
+            "crime": "NOME DO CRIME TRADUZIDO (Ex: Roubo)",
+            "regime": "Fechado / Semiaberto / Aberto / Preventiva / Temporária / Civil",
+            "issuingCourt": "VARA E COMARCA POR EXTENSO",
+            "addresses": ["Endereço 1", "Endereço 2"],
+            "issueDate": "AAAA-MM-DD",
+            "expirationDate": "AAAA-MM-DD",
+            "observations": "Dados visuais adicionais (tatuagens, marcas) ou observações do texto",
+            "tags": ["Urgente", "Risco de Fuga", etc]
+        }
+    `;
+
+    try {
+        const text = await generateContentWithImageViaFetch(modelName, prompt, base64Image, mimeType, key);
+        return parseGeminiJSON(text, null);
+    } catch (error) {
+        console.error("Erro no Especialista de Extração por Imagem:", error);
         return null;
     }
 }

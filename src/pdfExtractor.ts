@@ -1,5 +1,14 @@
 // NOTE: pdfjs-dist is now dynamically imported to avoid top-level crashes
-import { extractFullWarrantIntelligence, isGeminiEnabled } from './services/geminiService';
+import { extractFullWarrantIntelligence, isGeminiEnabled, extractWarrantFromImage } from './services/geminiService';
+
+const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = error => reject(error);
+    });
+};
 
 
 export interface ExtractedData {
@@ -620,13 +629,57 @@ export const extractPdfData = async (file: File): Promise<ExtractedData> => {
             // @ts-ignore
             const result = await mammoth.extractRawText({ arrayBuffer });
             fullText = result.value;
+        } else if (/\.(jpg|jpeg|png|webp|heic)$/i.test(fileName)) {
+            // IMAGEM DETECTADA
+            if (await isGeminiEnabled()) {
+                try {
+                    const base64 = await fileToBase64(file);
+                    // Remove prefixo data:image/...;base64, para enviar à API
+                    const cleanBase64 = base64.split(',')[1];
+                    const mimeType = file.type || 'image/jpeg';
+
+                    const aiData = await extractWarrantFromImage(cleanBase64, mimeType);
+
+                    if (aiData && aiData.name) {
+                        return {
+                            id: Date.now().toString(),
+                            name: aiData.name,
+                            rg: aiData.rg || '',
+                            cpf: aiData.cpf || '',
+                            processNumber: aiData.processNumber || '',
+                            type: aiData.type || 'MANDADO DE PRISÃO',
+                            category: (aiData.type && aiData.type.includes('BUSCA')) ? 'search' : 'prison',
+                            crime: aiData.crime || 'Outros',
+                            regime: aiData.regime || 'Outro',
+                            issueDate: aiData.issueDate || new Date().toISOString().split('T')[0],
+                            expirationDate: aiData.expirationDate || '',
+                            addresses: aiData.addresses && aiData.addresses.length > 0 ? aiData.addresses : ['Não informado'],
+                            sourceFile: file.name,
+                            status: 'EM ABERTO',
+                            attachments: [file.name],
+                            observations: aiData.observations || '',
+                            tacticalSummary: [],
+                            searchChecklist: [],
+                            autoPriority: aiData.tags || [],
+                            birthDate: aiData.birthDate || '',
+                            age: calculateAge(aiData.birthDate),
+                            issuingCourt: aiData.issuingCourt || ''
+                        };
+                    }
+                } catch (e) {
+                    console.error("Erro ao processar imagem via IA:", e);
+                }
+            } else {
+                throw new Error("IA não habilitada para processar imagens. Configure a chave API.");
+            }
+
         } else {
             // Fallback for text files or unknown
             fullText = await file.text();
         }
 
         // --- NEW: AI-FIRST EXTRACTION ---
-        if (await isGeminiEnabled() && fullText.length > 50) {
+        if (await isGeminiEnabled() && fullText && fullText.length > 50) {
             try {
                 const aiData = await extractFullWarrantIntelligence(fullText);
                 if (aiData && aiData.name) {
