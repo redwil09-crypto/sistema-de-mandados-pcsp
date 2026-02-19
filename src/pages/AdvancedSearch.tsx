@@ -14,7 +14,7 @@ const AdvancedSearch = () => {
     const [searchParams] = useSearchParams();
     const query = searchParams.get('q') || '';
     const [searchTerm, setSearchTerm] = useState(query);
-    const [scope, setScope] = useState<'all' | 'arrest' | 'seizure'>('all');
+    const [scope, setScope] = useState<'all' | 'arrest' | 'seizure' | 'counter'>('all');
 
     // Filter states
     const [filterCrime, setFilterCrime] = useState('');
@@ -28,8 +28,9 @@ const AdvancedSearch = () => {
 
     const filteredWarrants = warrants.filter(w => {
         // Scope Filter
-        if (scope === 'arrest' && w.type.toLowerCase().includes('busca')) return false;
+        if (scope === 'arrest' && (w.type.toLowerCase().includes('busca') || w.type.toLowerCase().includes('contramandado'))) return false;
         if (scope === 'seizure' && !w.type.toLowerCase().includes('busca')) return false;
+        if (scope === 'counter' && !w.type.toLowerCase().includes('contramandado') && w.regime?.toLowerCase() !== 'contramandado') return false;
 
         // Text Search
         const term = searchTerm.toLowerCase();
@@ -126,6 +127,12 @@ const AdvancedSearch = () => {
                             className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-all ${scope === 'seizure' ? 'bg-white dark:bg-surface-light text-primary shadow-sm' : 'text-text-secondary-light dark:text-text-secondary-dark'}`}
                         >
                             Busca
+                        </button>
+                        <button
+                            onClick={() => setScope('counter')}
+                            className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-all ${scope === 'counter' ? 'bg-emerald-500 text-white shadow-sm' : 'text-text-secondary-light dark:text-text-secondary-dark'}`}
+                        >
+                            Contramandado
                         </button>
                     </div>
 
