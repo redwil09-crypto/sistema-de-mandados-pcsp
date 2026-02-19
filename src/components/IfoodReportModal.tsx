@@ -305,10 +305,10 @@ ${indent}Atenciosamente,`;
                         </div>
                     </div>
                     {/* Platform Switcher Buttons - Only show in Result step or Top Bar */}
-                    <div className="flex gap-2 mr-4">
-                        <button onClick={() => handleTypeSwitch('ifood')} className={`p-1.5 rounded-lg border transition-all ${selectedType === 'ifood' ? 'bg-red-500 text-white border-red-400' : 'bg-white/5 text-slate-400 border-white/10 hover:bg-white/10'}`} title="iFood"><Bike size={14} /></button>
-                        <button onClick={() => handleTypeSwitch('uber')} className={`p-1.5 rounded-lg border transition-all ${selectedType === 'uber' ? 'bg-cyan-500 text-white border-cyan-400' : 'bg-white/5 text-slate-400 border-white/10 hover:bg-white/10'}`} title="Uber"><Car size={14} /></button>
-                        <button onClick={() => handleTypeSwitch('99')} className={`p-1.5 rounded-lg border transition-all ${selectedType === '99' ? 'bg-yellow-500 text-white border-yellow-400' : 'bg-white/5 text-slate-400 border-white/10 hover:bg-white/10'}`} title="99"><Car size={14} /></button>
+                    <div className="flex gap-3 mr-4">
+                        <button onClick={() => handleTypeSwitch('ifood')} className={`p-3 rounded-xl border transition-all ${selectedType === 'ifood' ? 'bg-red-500 text-white border-red-400 scale-110 shadow-lg shadow-red-500/20' : 'bg-white/5 text-slate-400 border-white/10 hover:bg-white/10 hover:scale-105'}`} title="iFood"><Bike size={24} /></button>
+                        <button onClick={() => handleTypeSwitch('uber')} className={`p-3 rounded-xl border transition-all ${selectedType === 'uber' ? 'bg-cyan-500 text-white border-cyan-400 scale-110 shadow-lg shadow-cyan-500/20' : 'bg-white/5 text-slate-400 border-white/10 hover:bg-white/10 hover:scale-105'}`} title="Uber"><Car size={24} /></button>
+                        <button onClick={() => handleTypeSwitch('99')} className={`p-3 rounded-xl border transition-all ${selectedType === '99' ? 'bg-yellow-500 text-white border-yellow-400 scale-110 shadow-lg shadow-yellow-500/20' : 'bg-white/5 text-slate-400 border-white/10 hover:bg-white/10 hover:scale-105'}`} title="99"><Car size={24} /></button>
                     </div>
 
                     <button onClick={onClose} className="p-2 hover:bg-slate-700 rounded-full transition-colors ml-auto">
