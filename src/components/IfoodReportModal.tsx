@@ -1,10 +1,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Check, Copy, Download, Loader2, Bot, Bike, Car, Hash, FileText } from 'lucide-react';
+import { X, Copy, Download, Loader2, Bike, Car, Hash, FileText } from 'lucide-react';
 import { toast } from 'sonner';
 import { jsPDF } from 'jspdf';
-import { adaptDocumentToTarget } from '../services/geminiService';
 import { Warrant } from '../types';
 import { uploadFile, getPublicUrl } from '../supabaseStorage';
 
@@ -15,38 +14,6 @@ interface IfoodReportModalProps {
     type: 'ifood' | 'uber' | '99';
     updateWarrant: (id: string, data: Partial<Warrant>) => Promise<boolean>;
 }
-
-const UBER_TEMPLATE = `OFÍCIO
-Ofício: nº.{{OFFICE_NUMBER}}/CAPT/2025
-Referência: PROC. Nº 0006701-81.2017.8.26.0292
-Natureza: Solicitação de Dados.
-Jacareí, 4 de JUNHO de 2025.
-ILMO. SENHOR RESPONSÁVEL:
-Com a finalidade de instruir investigação policial referente ao crime tipificado no artigo 121 do Código Penal, solicito a gentileza de verificar se o indivíduo abaixo relacionado encontram-se cadastrado como usuário ou prestador de serviços da plataforma UBER. Em caso positivo, requer-se o envio das informações cadastrais fornecidas para habilitação na plataforma, incluindo, se disponíveis, nome de usuário, endereço(s), número(s) de telefone, e demais dados vinculados à respectiva conta. E também ENDEREÇO(S) DAS CORRIDAS COM DATAS E HORÁRIOS DE 01/01/2025 HÁ 04/06/2025. As informações devem ser encaminhadas ao e-mail institucional do policial responsável pela investigação: william.castro@policiacivil.sp.gov.br William Campos de Assis Castro – Polícia Civil do Estado de São Paulo Réu de interesse para a investigação: ADRIANA PARANHOS ARICE – CPF 362.590.148-05 Aproveito a oportunidade para renovar meus votos de elevada estima e consideração.
-Atenciosamente
-Luiz Antonio Cunha dos Santos
-Delegado de Polícia
-Ao Ilustríssimo Senhor Responsável
-Empresa UBER.`;
-
-const IFOOD_TEMPLATE = `OFÍCIO
-Ofício: nº.{{OFFICE_NUMBER}}/CAPT/2025 Referência: PROC. Nº 0000637-73.2022.8.26.0100
-Natureza: Solicitação de Dados.
-Jacareí, 28 de novembro de 2025.
-ILMO. SENHOR RESPONSÁVEL,
-Com a finalidade de instruir investigação policial em trâmite nesta unidade, solicito, respeitosamente, a gentileza de verificar se o indivíduo abaixo relacionado encontra-se cadastrado como usuário ou entregador da plataforma IFOOD.
-Em caso positivo, requer-se o envio das informações cadastrais fornecidas para habilitação na plataforma, incluindo, se disponíveis, nome completo, endereço(s), número(s) de telefone, e-mail(s) e demais dados vinculados à respectiva conta.
-As informações devem ser encaminhadas ao e-mail institucional do policial responsável pela
-investigação:
-william.castro@policiacivil.sp.gov.br
-William Campos de Assis Castro – Polícia Civil do Estado de São Paulo
-Pessoa de interesse para a investigação: LUCILENE CORREIA DE AGUIAR / CPF: 803.750.733-53
-Aproveito a oportunidade para renovar meus votos de elevada estima e consideração.
-Atenciosamente,
-Luiz Antônio Cunha dos Santos
-Delegado de Polícia
-Ao Ilustríssimo Senhor Responsável
-Empresa iFood.`;
 
 const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, warrant, type, updateWarrant }) => {
     const [generatedText, setGeneratedText] = useState('');
@@ -62,29 +29,57 @@ const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, wa
         }
     }, [isOpen]);
 
-    const handleGenerate = async () => {
+    const handleGenerate = () => {
         if (!officeNumber.trim()) {
             toast.error("Por favor, informe o número do ofício.");
             return;
         }
 
-        const baseTemplate = (type === 'ifood' ? IFOOD_TEMPLATE : UBER_TEMPLATE)
-            .replace('{{OFFICE_NUMBER}}', officeNumber);
-
         setStep('processing');
         setIsProcessing(true);
 
-        try {
-            const result = await adaptDocumentToTarget(warrant, baseTemplate);
-            setGeneratedText(result || "Erro ao gerar documento.");
+        // Simulate short delay for UX
+        setTimeout(() => {
+            const months = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+            const today = new Date();
+            const dateLine = `Jacareí, ${today.getDate().toString().padStart(2, '0')} de ${months[today.getMonth()]} de ${today.getFullYear()}.`;
+
+            let platformName = 'IFOOD';
+            if (type === 'uber') platformName = 'UBER';
+            if (type === '99') platformName = '99';
+
+            // Indentação (simulada com espaços, pois é plain text na textarea)
+            const indent = "          ";
+
+            const text = `Ofício: nº.${officeNumber}/CAPT/2025
+Referência: PROC. Nº ${warrant.number}
+Natureza: Solicitação de Dados.
+
+${dateLine}
+
+ILMO. SENHOR RESPONSÁVEL,
+
+${indent}Com a finalidade de instruir investigação policial em trâmite nesta unidade, solicito, respeitosamente, a gentileza de verificar se o indivíduo abaixo relacionado encontra-se cadastrado como usuário ou entregador da plataforma ${platformName}.
+
+${indent}Em caso positivo, requer-se o envio das informações cadastrais fornecidas para habilitação na plataforma, incluindo, se disponíveis, nome completo, endereço(s), número(s) de telefone, e-mail(s) e demais dados vinculados à respectiva conta.
+
+${indent}As informações devem ser encaminhadas ao e-mail institucional do policial responsável pela investigação:
+
+${indent}william.castro@policiacivil.sp.gov.br
+${indent}William Campos de Assis Castro – Polícia Civil do Estado de São Paulo
+
+${indent}Pessoa de interesse para a investigação:
+
+${indent}${warrant.name.toUpperCase()} – CPF ${warrant.cpf || warrant.rg || 'NÃO INFORMADO'}
+
+${indent}Aproveito a oportunidade para renovar meus votos de elevada estima e consideração.
+
+${indent}Atenciosamente,`;
+
+            setGeneratedText(text);
             setStep('result');
-        } catch (error) {
-            console.error(error);
-            toast.error("Erro ao processar com IA.");
-            setStep('input');
-        } finally {
             setIsProcessing(false);
-        }
+        }, 600);
     };
 
     const handleCopy = () => {
@@ -216,104 +211,34 @@ const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, wa
 
         // Setup Doc
         doc.setFont('times', 'normal');
-
-        // setup
-        doc.setFont('times', 'normal');
         let y = 10;
 
         // Add Header Page 1
         y = addHeader(doc);
-        y += 3; // Reduced Header Spacing
+        y += 8; // Spacing after header
 
-        // 1. Meta Fields
-        doc.setFontSize(10);
-        doc.setFont('helvetica', 'bold');
-        doc.text(`Ofício: nº.${officeNumber}/CAPT/2025`, margin, y);
-        y += 4; // Reduced
-
-        doc.text("Referência: ", margin, y);
+        // BODY TEXT (From Textarea)
         doc.setFont('helvetica', 'normal');
-        doc.text(`PROC. Nº ${warrant.number}`, margin + 22, y);
-        y += 4; // Reduced
+        doc.setFontSize(11);
 
-        doc.setFont('helvetica', 'bold');
-        doc.text("Natureza: ", margin, y);
-        doc.setFont('helvetica', 'normal');
-        doc.text("Solicitação de Dados.", margin + 18, y);
-        y += 8; // Reduced section gap
+        // Split text by newlines first to respect user paragraphs
+        const lines = generatedText.split('\n');
 
-        // 2. Date
-        const months = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
-        const today = new Date();
-        const dateLine = `Jacareí, ${today.getDate().toString().padStart(2, '0')} de ${months[today.getMonth()]} de ${today.getFullYear()}.`;
+        lines.forEach((line) => {
+            // Check for page break
+            if (y > pageHeight - 65) { // Leave space for footer/signature
+                doc.addPage();
+                y = addHeader(doc) + 8;
+            }
 
-        doc.setFont('helvetica', 'bolditalic');
-        doc.text(dateLine, pageWidth - margin, y, { align: 'right' });
-        doc.setFont('helvetica', 'normal');
-        y += 10; // Reduced
-
-        // 3. Vocative
-        doc.setFont('helvetica', 'bold');
-        doc.text("ILMO. SENHOR RESPONSÁVEL,", margin, y);
-        y += 8; // Reduced
-
-        // 4. Body Paragraphs
-        doc.setFont('helvetica', 'normal');
-        doc.setFontSize(11); // Body font size
-
-        const indent = "          "; // ~10 spaces
-        const lineHeight = 5; // Padrão
-        const paragraphSpacing = 5; // Padrão restore
-
-        // CORPO DO TEXTO
-        // --------------------------------------------------------------------------------
-
-        let platformName = 'IFOOD';
-        if (type === 'uber') platformName = 'UBER';
-        if (type === '99') platformName = '99';
-
-        const p1 = `${indent}Com a finalidade de instruir investigação policial em trâmite nesta unidade, solicito, respeitosamente, a gentileza de verificar se o indivíduo abaixo relacionado encontra-se cadastrado como usuário ou entregador da plataforma ${platformName}.`;
-        const splitP1 = doc.splitTextToSize(p1, maxLineWidth);
-        doc.text(splitP1, margin, y, { align: 'justify', maxWidth: maxLineWidth });
-        y += (splitP1.length * lineHeight) + paragraphSpacing;
-
-        const p2 = `${indent}Em caso positivo, requer-se o envio das informações cadastrais fornecidas para habilitação na plataforma, incluindo, se disponíveis, nome completo, endereço(s), número(s) de telefone, e-mail(s) e demais dados vinculados à respectiva conta.`;
-        const splitP2 = doc.splitTextToSize(p2, maxLineWidth);
-        doc.text(splitP2, margin, y, { align: 'justify', maxWidth: maxLineWidth });
-        y += (splitP2.length * lineHeight) + paragraphSpacing;
-
-        const p3 = `${indent}As informações devem ser encaminhadas ao e-mail institucional do policial responsável pela investigação:`;
-        const splitP3 = doc.splitTextToSize(p3, maxLineWidth);
-        doc.text(splitP3, margin, y, { align: 'justify', maxWidth: maxLineWidth });
-        y += (splitP3.length * lineHeight) + 2;
-
-        // Email Block
-        doc.setFont('helvetica', 'bold');
-        doc.text(`${indent}william.castro@policiacivil.sp.gov.br`, margin, y);
-        y += 6;
-        doc.setFont('helvetica', 'normal');
-        doc.text(`${indent}William Campos de Assis Castro – Polícia Civil do Estado de São Paulo`, margin, y);
-        y += 15;
-
-        // Person of Interest
-        doc.setFont('helvetica', 'normal');
-        doc.text(`${indent}Pessoa de interesse para a investigação:`, margin, y);
-        y += 7;
-
-        doc.setFont('helvetica', 'bold');
-        const personLine = `${indent}${warrant.name.toUpperCase()} – CPF ${warrant.cpf || warrant.rg || 'NÃO INFORMADO'}`;
-        const splitPerson = doc.splitTextToSize(personLine, maxLineWidth);
-        doc.text(splitPerson, margin, y);
-        y += (splitPerson.length * lineHeight) + paragraphSpacing;
-
-        // Closing
-        doc.setFont('helvetica', 'normal');
-        const closing = `${indent}Aproveito a oportunidade para renovar meus votos de elevada estima e consideração.`;
-        const splitClosing = doc.splitTextToSize(closing, maxLineWidth);
-        doc.text(splitClosing, margin, y, { align: 'justify', maxWidth: maxLineWidth });
-        y += (splitClosing.length * lineHeight) + 15;
-
-        doc.text(`${indent}Atenciosamente,`, margin, y);
+            if (line.trim() === '') {
+                y += 5; // Empty line spacing
+            } else {
+                const splitLine = doc.splitTextToSize(line, maxLineWidth);
+                doc.text(splitLine, margin, y);
+                y += (splitLine.length * 5) + 2; // Line height
+            }
+        });
 
 
         // AREA DE ASSINATURA E DESTINATÁRIO (Position Fixed at Bottom)
@@ -373,8 +298,6 @@ const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, wa
             if (uploadedPath) {
                 const url = getPublicUrl(uploadedPath);
                 const currentDocs = warrant.ifoodDocs || [];
-                // Note: We are saving to 'ifoodDocs' field in DB even for Uber/99 for compatibility, 
-                // or we might want to rename this field later. For now, it works as a generic 'platformDocs'.
                 await updateWarrant(warrant.id, { ifoodDocs: [...currentDocs, url] });
                 toast.success("Cópia salva no histórico!", { id: toastId });
                 onClose();
@@ -439,7 +362,7 @@ const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, wa
                                 onClick={handleGenerate}
                                 className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 rounded-xl font-black uppercase tracking-widest shadow-lg shadow-indigo-900/40 transition-all active:scale-95 flex items-center gap-2"
                             >
-                                <FileText size={18} /> Iniciar Redação IA
+                                <FileText size={18} /> Iniciar Redação
                             </button>
                         </div>
                     )}
@@ -447,7 +370,7 @@ const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, wa
                     {step === 'processing' && (
                         <div className="flex-1 flex flex-col items-center justify-center text-center animate-pulse">
                             <Loader2 className="w-12 h-12 text-indigo-500 animate-spin mb-4" />
-                            <h3 className="text-xl font-bold text-white uppercase tracking-tighter">Redigindo Ofício Judicial...</h3>
+                            <h3 className="text-xl font-bold text-white uppercase tracking-tighter">Gerando Minuta...</h3>
                             <p className="text-slate-400 mt-2 max-w-sm text-sm">
                                 Substituindo dados de {warrant.name} no modelo {type.toUpperCase()} nº {officeNumber}.
                             </p>
@@ -462,7 +385,7 @@ const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, wa
                                 onChange={(e) => setGeneratedText(e.target.value)}
                             />
                             <div className="flex justify-between items-center bg-slate-800/80 p-4 rounded-xl border border-slate-700 backdrop-blur">
-                                <p className="text-xs text-slate-400 font-medium italic">Confira os dados antes de assinar.</p>
+                                <p className="text-xs text-slate-400 font-medium italic">Edite o texto acima conforme necessário.</p>
                                 <div className="flex gap-3">
                                     <button
                                         onClick={handleCopy}
