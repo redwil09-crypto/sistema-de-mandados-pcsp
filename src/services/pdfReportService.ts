@@ -461,8 +461,10 @@ export const generateIfoodOfficePDF = async (
 
         // --- BODY ---
         doc.setFontSize(10);
+        doc.setFont('helvetica', 'bold');
         doc.text("Assunto: Requisição de Dados Cadastrais e Registros de Acesso", margin, y);
         y += 10;
+        doc.setFont('helvetica', 'normal');
 
         const bodyText = `Pelo presente, com fundamento na Lei 12.830/2013 e no interesse do Inquérito Policial em epígrafe, REQUISITO a Vossa Senhoria o fornecimento, no prazo improrrogável de 05 (cinco) dias, dos dados cadastrais completos (nome, CPF, telefones, e-mails, endereços de entrega cadastrados e histórico de pedidos com geolocalização se houver) vinculados ao investigado abaixo qualificado:`;
         const splitBody = doc.splitTextToSize(bodyText, pageWidth - (margin * 2));
@@ -484,12 +486,17 @@ export const generateIfoodOfficePDF = async (
         y += 45;
 
         // --- CLOSING ---
-        const closingText = `As informações deverão ser encaminhadas para o e-mail oficial desta unidade (dig.jacarei@policiacivil.sp.gov.br) em formato PDF ou planilha eletrônica. 
-        
-Ressalto que o descumprimento injustificado desta requisição poderá acarretar a responsabilidade penal por Crime de Desobediência (art. 330 do CP), sem prejuízo de outras sanções cabíveis.`;
-        const splitClosing = doc.splitTextToSize(closingText, pageWidth - (margin * 2));
+        const emailText = `As informações deverão ser encaminhadas para o e-mail oficial desta unidade (dig.jacarei@policiacivil.sp.gov.br) em formato PDF ou planilha eletrônica.`;
+        const splitEmail = doc.splitTextToSize(emailText, pageWidth - (margin * 2));
         doc.setFont('helvetica', 'normal');
-        doc.text(splitClosing, margin, y);
+        doc.text(splitEmail, margin, y);
+        y += (splitEmail.length * 5) + 5;
+
+        const warningText = `Ressalto que o descumprimento injustificado desta requisição poderá acarretar a responsabilidade penal por Crime de Desobediência (art. 330 do CP), sem prejuízo de outras sanções cabíveis.`;
+        const splitWarning = doc.splitTextToSize(warningText, pageWidth - (margin * 2));
+        doc.setFont('helvetica', 'bold');
+        doc.text(splitWarning, margin, y);
+        y += (splitWarning.length * 5) + 20;
         y += 40;
 
         // --- DATE AND SIGNATURE ---

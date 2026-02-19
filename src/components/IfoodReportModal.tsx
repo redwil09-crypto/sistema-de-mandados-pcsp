@@ -221,6 +221,17 @@ ${indent}Atenciosamente,`;
             if (line.trim() === '') {
                 y += 5;
             } else {
+                const upperLine = line.toUpperCase().trim();
+                const isImportant =
+                    upperLine.startsWith("OFÍCIO:") ||
+                    upperLine.startsWith("REFERÊNCIA:") ||
+                    upperLine.startsWith("NATUREZA:") ||
+                    upperLine.startsWith("PESSOA DE INTERESSE") ||
+                    (warrant.name && upperLine.includes(warrant.name.toUpperCase()) && upperLine.includes('CPF')) ||
+                    upperLine.startsWith("EM CASO POSITIVO");
+
+                doc.setFont('helvetica', isImportant ? 'bold' : 'normal');
+
                 const splitLine = doc.splitTextToSize(line, maxLineWidth);
                 doc.text(splitLine, margin, y);
                 y += (splitLine.length * 5) + 2;
