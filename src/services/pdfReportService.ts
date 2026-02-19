@@ -497,7 +497,7 @@ export const generateIfoodOfficePDF = async (
         doc.setFont('helvetica', 'bold');
         doc.text(splitWarning, margin, y);
         y += (splitWarning.length * 5) + 20;
-        y += 40;
+        doc.setFont('helvetica', 'normal');
 
         // --- DATE AND SIGNATURE ---
         const today = new Date().toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' });
