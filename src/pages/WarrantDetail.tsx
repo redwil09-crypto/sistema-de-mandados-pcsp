@@ -1807,7 +1807,7 @@ Equipe de Capturas - DIG / PCSP
                                     )}
                                 </div>
                                 <input
-                                    className="text-2xl font-black text-white leading-tight uppercase bg-transparent border-none outline-none focus:ring-1 focus:ring-primary/40 rounded-lg px-2 -ml-2 w-full transition-all hover:text-secondary placeholder:text-white/20"
+                                    className="text-2xl font-black text-text-light dark:text-white leading-tight uppercase bg-transparent border-none outline-none focus:ring-1 focus:ring-primary/40 rounded-lg px-2 -ml-2 w-full transition-all hover:text-secondary placeholder:text-text-secondary-light/50 dark:placeholder:text-white/20"
                                     value={localData.name}
                                     onChange={e => handleFieldChange('name', e.target.value)}
                                     placeholder="NOME DO ALVO"
@@ -1815,7 +1815,7 @@ Equipe de Capturas - DIG / PCSP
                                 <div className="flex items-center gap-2 mt-1 opacity-70">
                                     <span className="text-sm text-text-secondary-dark font-medium font-mono">PROC. Nº</span>
                                     <input
-                                        className="text-sm text-white font-medium font-mono bg-transparent border-none outline-none focus:ring-1 focus:ring-primary/40 rounded px-1 transition-all placeholder:text-white/20"
+                                        className="text-sm text-text-light dark:text-white font-medium font-mono bg-transparent border-none outline-none focus:ring-1 focus:ring-primary/40 rounded px-1 transition-all placeholder:text-text-secondary-light/50 dark:placeholder:text-white/20"
                                         value={localData.number}
                                         onChange={e => handleFieldChange('number', e.target.value)}
                                         placeholder="0000000-00.0000.0.00.0000"
@@ -1827,32 +1827,32 @@ Equipe de Capturas - DIG / PCSP
                                 <div className="bg-background-light dark:bg-white/5 border border-border-light dark:border-white/5 p-2 rounded-xl text-center flex flex-col items-center group/field">
                                     <p className="text-[9px] uppercase font-bold text-text-secondary-light dark:text-text-muted mb-0.5 tracking-tighter">Tipo Crime</p>
                                     <select
-                                        className="w-full bg-transparent border-none text-xs font-black text-white outline-none text-center cursor-pointer appearance-none hover:text-primary transition-colors"
+                                        className="w-full bg-transparent border-none text-xs font-black text-text-light dark:text-white outline-none text-center cursor-pointer appearance-none hover:text-primary transition-colors"
                                         value={localData.crime || ''}
                                         onChange={e => handleFieldChange('crime', e.target.value)}
                                     >
-                                        <option value="" className="bg-surface-dark text-white">Selecione...</option>
-                                        {CRIME_OPTIONS.map(opt => <option key={opt} value={opt} className="bg-surface-dark text-white">{opt}</option>)}
+                                        <option value="" className="bg-white dark:bg-surface-dark text-slate-900 dark:text-white">Selecione...</option>
+                                        {CRIME_OPTIONS.map(opt => <option key={opt} value={opt} className="bg-white dark:bg-surface-dark text-slate-900 dark:text-white">{opt}</option>)}
                                     </select>
                                 </div>
                                 <div className="bg-background-light dark:bg-white/5 border border-border-light dark:border-white/5 p-2 rounded-xl text-center flex flex-col items-center group/field">
                                     <p className="text-[9px] uppercase font-bold text-text-secondary-light dark:text-text-muted mb-0.5 tracking-tighter">Regime Prisional</p>
                                     <select
-                                        className="w-full bg-transparent border-none text-xs font-black text-white outline-none text-center cursor-pointer appearance-none hover:text-primary transition-colors"
+                                        className="w-full bg-transparent border-none text-xs font-black text-text-light dark:text-white outline-none text-center cursor-pointer appearance-none hover:text-primary transition-colors"
                                         value={localData.regime || ''}
                                         onChange={e => handleFieldChange('regime', e.target.value)}
                                     >
-                                        <option value="" className="bg-surface-dark text-white">Selecione...</option>
-                                        {REGIME_OPTIONS.map(opt => <option key={opt} value={opt} className="bg-surface-dark text-white">{opt}</option>)}
+                                        <option value="" className="bg-white dark:bg-surface-dark text-slate-900 dark:text-white">Selecione...</option>
+                                        {REGIME_OPTIONS.map(opt => <option key={opt} value={opt} className="bg-white dark:bg-surface-dark text-slate-900 dark:text-white">{opt}</option>)}
                                     </select>
                                 </div>
                                 <div className="bg-background-light dark:bg-white/5 border border-border-light dark:border-white/5 p-2 rounded-xl text-center">
                                     <p className="text-[9px] uppercase font-bold text-text-secondary-light dark:text-gray-400 mb-0.5 tracking-tighter">Idade Captura</p>
-                                    <p className="text-xs font-black text-white">{localData.age || 'N/I'}</p>
+                                    <p className="text-xs font-black text-text-light dark:text-white">{localData.age || 'N/I'}</p>
                                 </div>
                                 <div className="bg-background-light dark:bg-white/5 border border-border-light dark:border-white/5 p-2 rounded-xl text-center">
                                     <p className="text-[9px] uppercase font-bold text-text-secondary-light dark:text-gray-400 mb-0.5 tracking-tighter">Expedição</p>
-                                    <p className="text-xs font-black text-white font-mono">{localData.issueDate || 'N/I'}</p>
+                                    <p className="text-xs font-black text-text-light dark:text-white font-mono">{localData.issueDate || 'N/I'}</p>
                                 </div>
                             </div>
 
@@ -1904,10 +1904,10 @@ Equipe de Capturas - DIG / PCSP
                     {activeDetailTab === 'documents' && (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {/* Personal Details */}
-                            <div className="bg-surface-dark/90 backdrop-blur-xl border border-white/10 rounded-2xl p-5 shadow-glass space-y-4">
-                                <div className="flex items-center gap-2 mb-2 pb-2 border-b border-white/5">
+                            <div className="bg-surface-light dark:bg-surface-dark/90 backdrop-blur-xl border border-border-light dark:border-white/10 rounded-2xl p-5 shadow-glass space-y-4">
+                                <div className="flex items-center gap-2 mb-2 pb-2 border-b border-border-light dark:border-white/5">
                                     <User className="text-secondary" size={16} />
-                                    <span className="text-[11px] font-black uppercase tracking-widest text-white">Qualificação</span>
+                                    <span className="text-[11px] font-black uppercase tracking-widest text-text-light dark:text-white">Qualificação</span>
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="space-y-1">
@@ -2008,11 +2008,11 @@ Equipe de Capturas - DIG / PCSP
                             </div>
 
                             {/* Attachments Section (Dossiê) */}
-                            <div className="md:col-span-2 bg-surface-dark/60 backdrop-blur border border-white/10 rounded-2xl p-5 shadow-glass">
-                                <div className="flex flex-col mb-4 pb-4 border-b border-white/5 gap-3">
+                            <div className="md:col-span-2 bg-surface-light dark:bg-surface-dark/60 backdrop-blur border border-border-light dark:border-white/10 rounded-2xl p-5 shadow-glass">
+                                <div className="flex flex-col mb-4 pb-4 border-b border-border-light dark:border-white/5 gap-3">
                                     <div className="flex items-center gap-2">
                                         <Paperclip className="text-primary" size={16} />
-                                        <span className="text-[11px] font-black uppercase tracking-widest">Repositório de Documentos</span>
+                                        <span className="text-[11px] font-black uppercase tracking-widest text-text-light dark:text-white">Repositório de Documentos</span>
                                     </div>
 
                                     {/* New Document Inputs */}
@@ -2195,10 +2195,10 @@ Equipe de Capturas - DIG / PCSP
 
                                 if (!hasData) {
                                     return (
-                                        <div className="text-center py-20 opacity-50 border-2 border-dashed border-white/10 rounded-3xl">
-                                            <Bot size={48} className="mx-auto mb-4 text-white/30" />
-                                            <p className="text-white font-bold text-lg">Centro de Inteligência Vazio</p>
-                                            <p className="text-sm text-gray-400 mt-2 max-w-md mx-auto">
+                                        <div className="text-center py-20 opacity-50 border-2 border-dashed border-border-light dark:border-white/10 rounded-3xl">
+                                            <Bot size={48} className="mx-auto mb-4 text-text-muted dark:text-white/30" />
+                                            <p className="text-text-light dark:text-white font-bold text-lg">Centro de Inteligência Vazio</p>
+                                            <p className="text-sm text-text-secondary-light dark:text-gray-400 mt-2 max-w-md mx-auto">
                                                 Para ativar, vá na aba <strong>RELATÓRIO ESTRATÉGICO</strong>, realize uma análise e clique em
                                                 <span className="text-indigo-400 font-bold mx-1">REGISTRAR NO PRONTUÁRIO</span>.
                                             </p>
@@ -2213,14 +2213,14 @@ Equipe de Capturas - DIG / PCSP
                                         <div className="md:col-span-8 space-y-6">
 
                                             {/* 1. STRATEGIC SUMMARY CARD */}
-                                            <div className="bg-surface-dark/90 backdrop-blur border border-white/10 rounded-2xl p-6 shadow-glass relative overflow-hidden group">
+                                            <div className="bg-surface-light dark:bg-surface-dark/90 backdrop-blur border border-border-light dark:border-white/10 rounded-2xl p-6 shadow-glass relative overflow-hidden group">
                                                 <div className="absolute top-0 right-0 p-6 opacity-5 pointer-events-none">
                                                     <Lightbulb size={120} />
                                                 </div>
                                                 <h5 className="text-sm font-black text-indigo-400 uppercase tracking-widest mb-3 flex items-center gap-2">
                                                     <Target size={14} /> Resumo Estratégico Consolidado
                                                 </h5>
-                                                <p className="text-white/90 text-sm leading-relaxed whitespace-pre-wrap font-medium">
+                                                <p className="text-text-light dark:text-white/90 text-sm leading-relaxed whitespace-pre-wrap font-medium">
                                                     {intel.summary || "Sem resumo disponível."}
                                                 </p>
                                             </div>
@@ -2228,28 +2228,28 @@ Equipe de Capturas - DIG / PCSP
                                             {/* 2. HYPOTHESES & RISKS ROW */}
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                 {/* HYPOTHESES */}
-                                                <div className="bg-surface-dark/80 border border-white/10 rounded-2xl p-5 shadow-sm hover:border-indigo-500/30 transition-colors">
+                                                <div className="bg-surface-light dark:bg-surface-dark/80 border border-border-light dark:border-white/10 rounded-2xl p-5 shadow-sm hover:border-indigo-500/30 transition-colors">
                                                     <h5 className="text-[10px] font-black text-cyan-400 uppercase tracking-widest mb-3 flex items-center gap-2">
                                                         <Lightbulb size={12} /> Hipóteses Ativas
                                                     </h5>
                                                     <div className="space-y-3">
                                                         {intel.hypotheses && intel.hypotheses.length > 0 ? (
                                                             intel.hypotheses.map((h: any, i: number) => (
-                                                                <div key={i} className={`p-3 rounded-xl border border-white/5 ${h.status === 'Confirmada' ? 'bg-green-500/10 border-green-500/20' : 'bg-white/5'}`}>
+                                                                <div key={i} className={`p-3 rounded-xl border border-border-light dark:border-white/5 ${h.status === 'Confirmada' ? 'bg-green-500/10 border-green-500/20' : 'bg-background-light dark:bg-white/5'}`}>
                                                                     <div className="flex justify-between items-start mb-1">
-                                                                        <span className={`text-[9px] font-black px-1.5 py-0.5 rounded uppercase ${h.confidence === 'Alta' ? 'bg-indigo-500 text-white' : 'bg-white/10 text-gray-400'
+                                                                        <span className={`text-[9px] font-black px-1.5 py-0.5 rounded uppercase ${h.confidence === 'Alta' ? 'bg-indigo-500 text-white' : 'bg-black/10 dark:bg-white/10 text-text-secondary-light dark:text-gray-400'
                                                                             }`}>{h.confidence}</span>
                                                                         {h.status === 'Confirmada' && <CheckCircle size={12} className="text-green-400" />}
                                                                     </div>
-                                                                    <p className="text-xs text-white leading-snug">{h.description}</p>
+                                                                    <p className="text-xs text-text-light dark:text-white leading-snug">{h.description}</p>
                                                                 </div>
                                                             ))
-                                                        ) : <p className="text-xs text-gray-500 italic">Nenhuma hipótese formalizada.</p>}
+                                                        ) : <p className="text-xs text-text-muted italic">Nenhuma hipótese formalizada.</p>}
                                                     </div>
                                                 </div>
 
                                                 {/* RISKS */}
-                                                <div className="bg-surface-dark/80 border border-white/10 rounded-2xl p-5 shadow-sm hover:border-red-500/30 transition-colors">
+                                                <div className="bg-surface-light dark:bg-surface-dark/80 border border-border-light dark:border-white/10 rounded-2xl p-5 shadow-sm hover:border-red-500/30 transition-colors">
                                                     <h5 className="text-[10px] font-black text-red-400 uppercase tracking-widest mb-3 flex items-center gap-2">
                                                         <ShieldAlert size={12} /> Riscos Operacionais
                                                     </h5>
@@ -2260,14 +2260,14 @@ Equipe de Capturas - DIG / PCSP
                                                                     <AlertTriangle size={10} /> {r}
                                                                 </span>
                                                             ))
-                                                        ) : <p className="text-xs text-gray-500 italic">Nenhum risco crítico identificado.</p>}
+                                                        ) : <p className="text-xs text-text-muted italic">Nenhum risco crítico identificado.</p>}
                                                     </div>
                                                 </div>
                                             </div>
 
                                             {/* 3. LOCATIONS & ENTITIES */}
-                                            <div className="bg-surface-dark/80 border border-white/10 rounded-2xl p-5">
-                                                <div className="flex gap-4 mb-4 border-b border-white/10 pb-2">
+                                            <div className="bg-surface-light dark:bg-surface-dark/80 border border-border-light dark:border-white/10 rounded-2xl p-5">
+                                                <div className="flex gap-4 mb-4 border-b border-border-light dark:border-white/10 pb-2">
                                                     <div className="flex-1">
                                                         <h5 className="text-[10px] font-black text-emerald-400 uppercase tracking-widest flex items-center gap-2">
                                                             <MapIcon size={12} /> Endereços mapeados
@@ -2282,28 +2282,28 @@ Equipe de Capturas - DIG / PCSP
 
                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                     {/* Locations List */}
-                                                    <div className="space-y-2 max-h-48 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-white/10">
+                                                    <div className="space-y-2 max-h-48 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-indigo-500/20">
                                                         {intel.locations && intel.locations.map((l: any, i: number) => (
-                                                            <div key={i} className="flex items-start gap-2 p-2 rounded-lg hover:bg-white/5 transition-colors group">
-                                                                <MapPin size={14} className={`mt-0.5 ${l.priority === 'Alta' ? 'text-red-400' : 'text-gray-400'}`} />
+                                                            <div key={i} className="flex items-start gap-2 p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-white/5 transition-colors group">
+                                                                <MapPin size={14} className={`mt-0.5 ${l.priority === 'Alta' ? 'text-red-400' : 'text-text-secondary-light dark:text-gray-400'}`} />
                                                                 <div className="flex-1 min-w-0">
-                                                                    <p className="text-xs font-bold text-white truncate">{l.address}</p>
-                                                                    <p className="text-[10px] text-gray-400 truncate">{l.context}</p>
+                                                                    <p className="text-xs font-bold text-text-light dark:text-white truncate">{l.address}</p>
+                                                                    <p className="text-[10px] text-text-secondary-light dark:text-gray-400 truncate">{l.context}</p>
                                                                 </div>
-                                                                <span className={`text-[9px] px-1.5 rounded ${l.status === 'Verificado' ? 'bg-green-500/20 text-green-400' : 'bg-white/10 text-gray-500'
+                                                                <span className={`text-[9px] px-1.5 rounded ${l.status === 'Verificado' ? 'bg-green-500/20 text-green-400' : 'bg-black/5 dark:bg-white/10 text-text-muted dark:text-gray-500'
                                                                     }`}>{l.status || 'Pendente'}</span>
                                                             </div>
                                                         ))}
                                                     </div>
 
                                                     {/* Entities List */}
-                                                    <div className="space-y-2 max-h-48 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-white/10">
+                                                    <div className="space-y-2 max-h-48 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-indigo-500/20">
                                                         {intel.entities && intel.entities.map((e: any, i: number) => (
-                                                            <div key={i} className="flex items-center gap-2 p-2 rounded-lg hover:bg-white/5 transition-colors">
+                                                            <div key={i} className="flex items-center gap-2 p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-white/5 transition-colors">
                                                                 <User size={14} className="text-indigo-400" />
                                                                 <div className="flex-1 min-w-0">
-                                                                    <p className="text-xs font-bold text-white truncate">{e.name}</p>
-                                                                    <p className="text-[10px] text-gray-400">{e.role}</p>
+                                                                    <p className="text-xs font-bold text-text-light dark:text-white truncate">{e.name}</p>
+                                                                    <p className="text-[10px] text-text-secondary-light dark:text-gray-400">{e.role}</p>
                                                                 </div>
                                                             </div>
                                                         ))}
@@ -2317,8 +2317,8 @@ Equipe de Capturas - DIG / PCSP
                                         <div className="md:col-span-4 space-y-6">
 
                                             {/* NEXT STEPS (ACTIONABLE) */}
-                                            <div className="bg-gradient-to-br from-indigo-900/40 to-surface-dark border border-indigo-500/30 rounded-2xl p-5 shadow-lg">
-                                                <h5 className="text-[10px] font-black text-white uppercase tracking-widest mb-4 flex items-center gap-2">
+                                            <div className="bg-gradient-to-br from-indigo-50 to-white dark:from-indigo-900/40 dark:to-surface-dark border border-indigo-500/30 rounded-2xl p-5 shadow-lg">
+                                                <h5 className="text-[10px] font-black text-text-light dark:text-white uppercase tracking-widest mb-4 flex items-center gap-2">
                                                     <CheckSquare size={14} className="text-green-400" /> Próximos Passos
                                                 </h5>
                                                 <div className="space-y-3">
@@ -2327,39 +2327,39 @@ Equipe de Capturas - DIG / PCSP
                                                             <div
                                                                 key={i}
                                                                 onClick={() => handleToggleTacticalChecklist(i)}
-                                                                className="flex items-start gap-3 p-2 rounded-xl bg-black/20 hover:bg-black/40 transition-colors cursor-pointer group select-none"
+                                                                className="flex items-start gap-3 p-2 rounded-xl bg-black/5 dark:bg-black/20 hover:bg-black/10 dark:hover:bg-black/40 transition-colors cursor-pointer group select-none"
                                                             >
-                                                                <div className={`mt-1 w-4 h-4 rounded border flex items-center justify-center transition-all ${s.status === 'Concluído' || s.checked ? 'bg-green-500 border-green-500 shadow-[0_0_8px_rgba(34,197,94,0.4)]' : 'border-gray-500 group-hover:border-white'
+                                                                <div className={`mt-1 w-4 h-4 rounded border flex items-center justify-center transition-all ${s.status === 'Concluído' || s.checked ? 'bg-green-500 border-green-500 shadow-[0_0_8px_rgba(34,197,94,0.4)]' : 'border-gray-400 dark:border-gray-500 group-hover:border-slate-800 dark:group-hover:border-white'
                                                                     }`}>
                                                                     {(s.status === 'Concluído' || s.checked) && <CheckSquare size={10} className="text-white" />}
                                                                 </div>
                                                                 <div className="flex-1">
-                                                                    <p className={`text-xs font-medium leading-relaxed transition-all ${(s.status === 'Concluído' || s.checked) ? 'text-gray-500 line-through' : 'text-white'}`}>
+                                                                    <p className={`text-xs font-medium leading-relaxed transition-all ${(s.status === 'Concluído' || s.checked) ? 'text-gray-500 line-through' : 'text-text-light dark:text-white'}`}>
                                                                         {s.task}
                                                                     </p>
                                                                     {s.priority === 'Alta' && <span className="text-[9px] text-red-400 font-bold uppercase mt-1 inline-block">Prioridade Alta</span>}
                                                                 </div>
                                                             </div>
                                                         ))
-                                                    ) : <p className="text-xs text-gray-500 text-center">Nenhuma ação pendente.</p>}
+                                                    ) : <p className="text-xs text-text-muted text-center">Nenhuma ação pendente.</p>}
                                                 </div>
                                             </div>
 
                                             {/* STRATEGIC TIMELINE (NOT THE RAW LOG) */}
-                                            <div className="bg-surface-dark border border-white/5 rounded-2xl p-5">
-                                                <h5 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                                            <div className="bg-surface-light dark:bg-surface-dark border border-border-light dark:border-white/5 rounded-2xl p-5">
+                                                <h5 className="text-[10px] font-black text-text-secondary-light dark:text-gray-400 uppercase tracking-widest mb-4 flex items-center gap-2">
                                                     <History size={14} /> Evolução da Investigação
                                                 </h5>
                                                 <div className="space-y-4 relative pl-2">
                                                     {/* Timeline Line */}
-                                                    <div className="absolute left-[11px] top-2 bottom-2 w-px bg-white/10"></div>
+                                                    <div className="absolute left-[11px] top-2 bottom-2 w-px bg-border-light dark:bg-white/10"></div>
 
                                                     {intel.timeline && intel.timeline.slice(0, 5).map((t: any, i: number) => (
                                                         <div key={i} className="relative pl-6">
-                                                            <div className="absolute left-[7px] top-1.5 w-2 h-2 rounded-full bg-indigo-500 ring-4 ring-surface-dark"></div>
-                                                            <p className="text-[10px] text-indigo-300 font-bold mb-0.5">{t.date}</p>
-                                                            <p className="text-xs text-white leading-tight">{t.event}</p>
-                                                            <p className="text-[9px] text-gray-500 mt-0.5">{t.source}</p>
+                                                            <div className="absolute left-[7px] top-1.5 w-2 h-2 rounded-full bg-indigo-500 ring-4 ring-surface-light dark:ring-surface-dark"></div>
+                                                            <p className="text-[10px] text-indigo-500 dark:text-indigo-300 font-black mb-0.5">{t.date}</p>
+                                                            <p className="text-xs text-text-light dark:text-white leading-tight">{t.event}</p>
+                                                            <p className="text-[9px] text-text-muted dark:text-gray-500 mt-0.5">{t.source}</p>
                                                         </div>
                                                     ))}
                                                 </div>
@@ -2707,22 +2707,22 @@ Equipe de Capturas - DIG / PCSP
                                                             {/* Geo Intelligence */}
                                                             {aiDiligenceResult.locations && aiDiligenceResult.locations.length > 0 && (
                                                                 <div>
-                                                                    <p className="text-xs font-black uppercase text-indigo-300 mb-2 flex items-center gap-1"><MapPin size={14} /> Rastro Geográfico</p>
+                                                                    <p className="text-xs font-black uppercase text-indigo-500 dark:text-indigo-300 mb-2 flex items-center gap-1"><MapPin size={14} /> Rastro Geográfico</p>
                                                                     <div className="space-y-1.5">
                                                                         {aiDiligenceResult.locations.map((loc: any, i: number) => (
-                                                                            <div key={i} className="bg-white/5 border border-white/5 p-2 rounded-lg flex items-start gap-2 group hover:bg-white/10 transition-all">
-                                                                                <div className="p-1.5 bg-indigo-500/20 text-indigo-400 rounded-lg group-hover:bg-indigo-500 group-hover:text-white transition-colors">
+                                                                            <div key={i} className="bg-background-light dark:bg-white/5 border border-border-light dark:border-white/5 p-2 rounded-lg flex items-start gap-2 group hover:bg-slate-100 dark:hover:bg-white/10 transition-all">
+                                                                                <div className="p-1.5 bg-indigo-500/20 text-indigo-500 dark:text-indigo-400 rounded-lg group-hover:bg-indigo-500 group-hover:text-white transition-colors">
                                                                                     <MapIcon size={12} />
                                                                                 </div>
                                                                                 <div className="flex-1 min-w-0">
-                                                                                    <p className="text-sm font-bold text-gray-100 truncate">{loc.address}</p>
-                                                                                    <p className="text-xs text-gray-400">{loc.context}</p>
+                                                                                    <p className="text-sm font-bold text-text-light dark:text-gray-100 truncate">{loc.address}</p>
+                                                                                    <p className="text-xs text-text-secondary-light dark:text-gray-400">{loc.context}</p>
                                                                                 </div>
                                                                                 <a
                                                                                     href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(loc.address)}`}
                                                                                     target="_blank"
                                                                                     rel="noreferrer"
-                                                                                    className="p-1.5 text-text-muted hover:text-white bg-black/20 hover:bg-indigo-600 rounded-lg transition-all"
+                                                                                    className="p-1.5 text-text-muted hover:text-white bg-black/10 dark:bg-black/20 hover:bg-indigo-600 rounded-lg transition-all"
                                                                                 >
                                                                                     <ExternalLink size={10} />
                                                                                 </a>
@@ -2742,14 +2742,14 @@ Equipe de Capturas - DIG / PCSP
                                                                 <div className="space-y-3 mb-3 max-h-[200px] overflow-y-auto scrollbar-thin scrollbar-thumb-indigo-500/30 pr-2">
                                                                     {Array.isArray(chatHistory) && chatHistory.map((msg, idx) => (
                                                                         <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                                                                            <div className={`max-w-[85%] p-2 rounded-xl text-[11px] leading-relaxed ${msg.role === 'user' ? 'bg-indigo-600 text-white rounded-tr-sm' : 'bg-white/10 text-text-dark rounded-tl-sm'}`}>
+                                                                            <div className={`max-w-[85%] p-2 rounded-xl text-[11px] leading-relaxed ${msg.role === 'user' ? 'bg-indigo-600 text-white rounded-tr-sm' : 'bg-slate-100 dark:bg-white/10 text-text-light dark:text-text-dark rounded-tl-sm'}`}>
                                                                                 {msg.content}
                                                                             </div>
                                                                         </div>
                                                                     ))}
                                                                     {isChatThinking && (
                                                                         <div className="flex justify-start">
-                                                                            <div className="bg-white/10 text-text-muted p-2 rounded-xl rounded-tl-sm flex items-center gap-1">
+                                                                            <div className="bg-slate-100 dark:bg-white/10 text-text-muted p-2 rounded-xl rounded-tl-sm flex items-center gap-1">
                                                                                 <span className="w-1 h-1 bg-current rounded-full animate-bounce"></span>
                                                                                 <span className="w-1 h-1 bg-current rounded-full animate-bounce delay-100"></span>
                                                                                 <span className="w-1 h-1 bg-current rounded-full animate-bounce delay-200"></span>
@@ -2763,7 +2763,7 @@ Equipe de Capturas - DIG / PCSP
                                                                         onChange={e => setChatInput(e.target.value)}
                                                                         onKeyDown={e => e.key === 'Enter' && handleAssistantChat()}
                                                                         placeholder="Pergunte ao Agente sobre os dados..."
-                                                                        className="w-full bg-black/20 border border-indigo-500/20 rounded-xl pl-3 pr-10 py-2.5 text-xs text-white outline-none focus:ring-1 focus:ring-indigo-500/50 placeholder:text-indigo-300/30"
+                                                                        className="w-full bg-white dark:bg-black/20 border border-border-light dark:border-indigo-500/20 rounded-xl pl-3 pr-10 py-2.5 text-xs text-text-light dark:text-white outline-none focus:ring-1 focus:ring-indigo-500/50 placeholder:text-text-secondary-light dark:placeholder:text-indigo-300/30"
                                                                     />
                                                                     <button
                                                                         onClick={handleAssistantChat}
@@ -2792,10 +2792,10 @@ Equipe de Capturas - DIG / PCSP
                                 </div>
 
                                 {/* Document Analysis Button */}
-                                <div className="bg-white/5 border border-white/10 rounded-2xl p-4 flex flex-col items-center justify-center gap-3 text-center group hover:bg-white/10 transition-all cursor-dashed border-2 border-indigo-500/20">
-                                    <Bot size={24} className="text-indigo-400 group-hover:scale-110 transition-transform" />
+                                <div className="bg-surface-light dark:bg-white/5 border border-border-light dark:border-white/10 rounded-2xl p-4 flex flex-col items-center justify-center gap-3 text-center group hover:bg-slate-100 dark:hover:bg-white/10 transition-all cursor-dashed border-2 border-indigo-500/20">
+                                    <Bot size={24} className="text-secondary dark:text-indigo-400 group-hover:scale-110 transition-transform" />
                                     <div>
-                                        <h4 className="text-sm font-black text-white uppercase tracking-wider">Centro de Fusão de Dados</h4>
+                                        <h4 className="text-sm font-black text-text-light dark:text-white uppercase tracking-wider">Centro de Fusão de Dados</h4>
                                         <p className="text-[10px] text-text-muted mt-1 uppercase">Carregar arquivos externos (PDF/TXT) para cruzamento de dados</p>
                                     </div>
                                     <input
