@@ -3,18 +3,24 @@
 @tailwind utilities;
 
 @layer base {
-  body {
-    @apply bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark antialiased;
-    background-color: #d4d4d8;
-    /* Zinc 300 - Neutral/Lead Gray */
-    background-image:
-      radial-gradient(circle at 50% 0%, rgba(99, 102, 241, 0.15) 0%, rgba(34, 211, 238, 0.08) 50%, transparent 90%),
-      linear-gradient(rgba(15, 23, 42, 0.03) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(15, 23, 42, 0.03) 1px, transparent 1px);
-    background-size: 100% 100%, 40px 40px, 40px 40px;
-    background-attachment: fixed;
+  html {
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: none;
+    /* Prevent bounce at top/bottom which feels weird */
+    overscroll-behavior-x: auto;
+    /* Allow side swipe */
   }
 
+  body {
+    @apply bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark antialiased;
+    background-color: #f4f4f5;
+    /* Zinc 100 - Very Light Gray */
+    background-image: none;
+    /* Clean look */
+  }
+
+  /* Force dark mode override */
   .dark body {
     @apply bg-background-dark;
     background-image: none;

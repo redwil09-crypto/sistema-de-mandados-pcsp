@@ -13,7 +13,7 @@ import { toast } from 'sonner';
 interface WarrantContextType {
     warrants: Warrant[];
     loading: boolean;
-    refreshWarrants: () => Promise<void>;
+    refreshWarrants: (silent?: boolean) => Promise<void>;
     addWarrant: (w: Partial<Warrant>) => Promise<{ success: boolean; error?: string }>;
     updateWarrant: (id: string, updates: Partial<Warrant>) => Promise<boolean>;
     deleteWarrant: (id: string) => Promise<boolean>;
@@ -58,9 +58,14 @@ export const WarrantProvider = ({ children }: { children: ReactNode }) => {
     const lastAlertedIds = React.useRef<Set<string>>(new Set());
     const lastAnnouncedIds = React.useRef<Set<string>>(new Set());
 
+    const initialized = React.useRef(false);
+
     // Initial Load
     useEffect(() => {
         const load = async () => {
+            if (initialized.current) return;
+            initialized.current = true;
+
             const { data: { session } } = await supabase.auth.getSession();
             if (session) {
                 await refreshWarrants();
@@ -73,12 +78,17 @@ export const WarrantProvider = ({ children }: { children: ReactNode }) => {
         load();
 
         // Listen for auth changes to reload/clear
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-            if (session) {
-                refreshWarrants();
-            } else {
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+            // Avoid reacting to INITIAL_SESSION if we are already handling it manually above
+            if (event === 'INITIAL_SESSION' && initialized.current) return;
+
+            if (session && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED')) {
+                // If token refreshed, just update silently. DO NOT set loading true.
+                refreshWarrants(true);
+            } else if (!session) {
                 setWarrants([]);
                 setLoading(false);
+                initialized.current = false;
             }
         });
 
@@ -90,8 +100,8 @@ export const WarrantProvider = ({ children }: { children: ReactNode }) => {
         localStorage.setItem('routeWarrants', JSON.stringify(routeWarrants));
     }, [routeWarrants]);
 
-    const refreshWarrants = async () => {
-        setLoading(true);
+    const refreshWarrants = async (silent = false) => {
+        if (!silent) setLoading(true);
         try {
             const data = await getWarrants();
             setWarrants(data || []);
@@ -99,7 +109,7 @@ export const WarrantProvider = ({ children }: { children: ReactNode }) => {
             console.error("Error loading warrants:", err);
             toast.error("Erro ao carregar dados do banco.");
         } finally {
-            setLoading(false);
+            if (!silent) setLoading(false);
         }
     };
 

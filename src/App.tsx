@@ -115,7 +115,7 @@ function AppContent({ isDark, toggleTheme }: { isDark: boolean; toggleTheme: () 
         });
     }, [warrants]);
 
-    if (loading) {
+    if (loading && (!warrants || warrants.length === 0)) {
         return (
             <div className="flex min-h-screen items-center justify-center bg-background-light dark:bg-background-dark">
                 <div className="flex flex-col items-center gap-4">

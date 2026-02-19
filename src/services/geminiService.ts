@@ -259,30 +259,48 @@ export async function analyzeRawDiligence(warrantData: any, rawInfo: string) {
     if (!(await isGeminiEnabled())) return null;
 
     const prompt = `
-        Você é um Especialista em Inteligência Policial de alto nível.
-        Sua missão é analisar informações brutas (diligências, observações, informes) colhidas por equipes de campo sobre um alvo de mandado judicial.
+        VOCÊ É UM EXPERT EM INTELIGÊNCIA POLICIAL OPERACIONAL.
+        SUA MISSÃO: Analisar informes brutos de campo e estruturar uma INTELIGÊNCIA TÁTICA para o sistema.
 
         DADOS DO ALVO:
         ${JSON.stringify(warrantData, null, 2)}
 
-        INFORMAÇÃO BRUTA COLETADA:
+        INFORMAÇÃO BRUTA COLETADA (DILIGÊNCIA):
         "${rawInfo}"
 
-        Sua análise deve:
-        1. CONFRONTAR: Verifique se a informação nova contradiz ou confirma dados já existentes (endereço, rotina, contatos).
-        2. INSIGHTS: Identifique padrões ocultos (ex: horários de maior vulnerabilidade, possíveis refúgios, comportamento de fuga).
-        3. OPINIÃO TÁTICA: Sugira a melhor abordagem ou o próximo passo para a captura, avaliando o risco.
-        4. IDENTIFICAÇÃO: Extraia nomes, apelidos, veículos (placas) ou endereços mencionados.
+        DIRETRIZES DE ANÁLISE:
+        1. Identifique RISCOS imediatos para a equipe.
+        2. Extraia ENTIDADES (Pessoas, Veículos, Organizações).
+        3. Mapeie LOCAIS citados e verifique se batem com o mandado.
+        4. Crie um PLANO DE AÇÃO (Checklist) para o próximo turno.
+        5. OBRIGATÓRIO: Inclua SEMPRE a tarefa "Solicitar dados plataformas (iFood/Uber/99)" com Prioridade ALTA, se ainda não feito.
 
-        Responda de forma profissional, direta e em formato Markdown estruturado para leitura rápida em dispositivos móveis.
-        Use emojis para sinalizar pontos críticos.
+        SAÍDA OBRIGATÓRIA EM JSON (SEM MARKDOWN, APENAS O JSON):
+        {
+            "summary": "Resumo tático direto e profissional (máx 3 linhas) para o log operacional.",
+            "riskLevel": "Baixo" | "Médio" | "Alto" | "Crítico",
+            "riskReason": "Motivo curto do nível de risco (ex: 'Alvo armado', 'Fuga provável').",
+            "entities": [
+                { "name": "Nome", "role": "Mãe/Comparsa/Vizinho", "context": "Onde aparece na história" }
+            ],
+            "locations": [
+                { "address": "Endereço citado", "context": "Casa da namorada/Esconderijo", "priority": "Alta/Média" }
+            ],
+            "checklist": [
+                { "task": "Ação sugerida (ex: Pesquisar placa ABC-1234)", "priority": "Alta/Normal", "status": "Pendente", "checked": false }
+            ],
+            "hypotheses": [
+                { "description": "Hipótese de localização (ex: Está escondido na casa da mãe)", "confidence": "Alta/Média/Baixa", "status": "Ativa" }
+            ]
+        }
     `;
 
     try {
-        return await tryGenerateContent(prompt);
+        const text = await tryGenerateContent(prompt);
+        return parseGeminiJSON(text, null);
     } catch (error: any) {
-        console.error("Erro no Gemini (Análise Bruta):", error);
-        return `Erro na Análise de Inteligência: ${error.message}`;
+        console.error("Erro no Gemini (Análise Estruturada):", error);
+        return null;
     }
 }
 
@@ -497,6 +515,7 @@ export async function mergeIntelligence(
         3. EVOLUÇÃO: Se uma hipótese antiga foi reforçada, aumente a confiança. Se foi refutada, mude status.
         4. LIMPEZA: Remova "Próximos Passos" que já foram implicitamente feitos ou ficaram obsoletos.
         5. PROGRESSO: Estime o quanto avançamos na localização (0-100%).
+        6. GARANTIA: Se não houver a tarefa "Solicitar dados plataformas (iFood/Uber/99)", ADICIONE-A com prioridade ALTA.
 
         SAÍDA OBRIGATÓRIA EM JSON (ESTRUTURA RÍGIDA - TacticalIntelligence):
         {

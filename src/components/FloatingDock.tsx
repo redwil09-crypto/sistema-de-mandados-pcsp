@@ -20,13 +20,13 @@ const FloatingDock = ({
 }: FloatingDockProps) => {
 
     return (
-        <div className="w-full bg-[#151517] backdrop-blur-xl border border-white/5 rounded-2xl shadow-glass overflow-hidden">
-            <div className="flex h-20 w-full items-center justify-center gap-6 sm:gap-10 md:gap-16">
+        <div className="w-full bg-surface-light dark:bg-[#151517] backdrop-blur-xl border border-border-light dark:border-white/5 rounded-2xl shadow-glass overflow-hidden">
+            <div className="flex h-20 w-full items-center justify-between px-3 sm:justify-center sm:gap-10 md:gap-16 whitespace-nowrap">
 
                 {onBack && (
                     <button
                         onClick={onBack}
-                        className="relative flex flex-col items-center justify-center gap-1.5 transition-all text-zinc-500 hover:text-white group"
+                        className="relative flex flex-col items-center justify-center gap-1.5 transition-all text-text-secondary-light dark:text-zinc-500 hover:text-text-light dark:hover:text-white group"
                     >
                         <ChevronLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
                         <span className="text-[10px] font-black tracking-widest uppercase font-display">Voltar</span>
@@ -47,7 +47,7 @@ const FloatingDock = ({
                 {onSave && (
                     <button
                         onClick={onSave}
-                        className="relative flex flex-col items-center justify-center gap-1.5 transition-all text-zinc-500 hover:text-white group"
+                        className="relative flex flex-col items-center justify-center gap-1.5 transition-all text-text-secondary-light dark:text-zinc-500 hover:text-text-light dark:hover:text-white group"
                     >
                         <RefreshCw size={20} className="group-hover:rotate-180 transition-transform duration-700" />
                         <span className="text-[10px] font-black tracking-widest uppercase font-display">Editar</span>
@@ -57,7 +57,7 @@ const FloatingDock = ({
                 {onPrint && (
                     <button
                         onClick={onPrint}
-                        className="relative flex flex-col items-center justify-center gap-1.5 transition-all text-zinc-500 hover:text-white group"
+                        className="relative flex flex-col items-center justify-center gap-1.5 transition-all text-text-secondary-light dark:text-zinc-500 hover:text-text-light dark:hover:text-white group"
                     >
                         <Printer size={20} className="group-hover:scale-110 transition-transform" />
                         <span className="text-[10px] font-black tracking-widest uppercase font-display">Imprimir</span>
@@ -67,7 +67,7 @@ const FloatingDock = ({
                 {onFinalize && (
                     <button
                         onClick={onFinalize}
-                        className="relative flex flex-col items-center justify-center gap-1.5 transition-all text-zinc-500 hover:text-white group"
+                        className="relative flex flex-col items-center justify-center gap-1.5 transition-all text-text-secondary-light dark:text-zinc-500 hover:text-text-light dark:hover:text-white group"
                     >
                         {status === 'CUMPRIDO' ? <RotateCcw size={20} /> : <CheckCircle size={20} />}
                         <span className="text-[10px] font-black tracking-widest uppercase font-display">
@@ -79,7 +79,7 @@ const FloatingDock = ({
                 {onDelete && (
                     <button
                         onClick={onDelete}
-                        className="relative flex flex-col items-center justify-center gap-1.5 transition-all text-zinc-500 hover:text-red-500 group"
+                        className="relative flex flex-col items-center justify-center gap-1.5 transition-all text-text-secondary-light dark:text-zinc-500 hover:text-red-500 group"
                     >
                         <Trash2 size={20} className="group-hover:scale-110 transition-transform" />
                         <span className="text-[10px] font-black tracking-widest uppercase font-display">Apagar</span>
