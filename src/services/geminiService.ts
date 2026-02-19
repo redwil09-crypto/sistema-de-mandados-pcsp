@@ -273,6 +273,7 @@ export async function analyzeRawDiligence(warrantData: any, rawInfo: string) {
         2. Extraia ENTIDADES (Pessoas, Veículos, Organizações).
         3. Mapeie LOCAIS citados e verifique se batem com o mandado.
         4. Crie um PLANO DE AÇÃO (Checklist) para o próximo turno.
+        5. OBRIGATÓRIO: Inclua SEMPRE a tarefa "Solicitar dados plataformas (iFood/Uber/99)" com Prioridade ALTA, se ainda não feito.
 
         SAÍDA OBRIGATÓRIA EM JSON (SEM MARKDOWN, APENAS O JSON):
         {
@@ -514,6 +515,7 @@ export async function mergeIntelligence(
         3. EVOLUÇÃO: Se uma hipótese antiga foi reforçada, aumente a confiança. Se foi refutada, mude status.
         4. LIMPEZA: Remova "Próximos Passos" que já foram implicitamente feitos ou ficaram obsoletos.
         5. PROGRESSO: Estime o quanto avançamos na localização (0-100%).
+        6. GARANTIA: Se não houver a tarefa "Solicitar dados plataformas (iFood/Uber/99)", ADICIONE-A com prioridade ALTA.
 
         SAÍDA OBRIGATÓRIA EM JSON (ESTRUTURA RÍGIDA - TacticalIntelligence):
         {
