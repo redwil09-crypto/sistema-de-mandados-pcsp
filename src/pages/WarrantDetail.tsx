@@ -2440,7 +2440,7 @@ Equipe de Capturas - DIG / PCSP
                                                 />
                                                 <label
                                                     htmlFor="ifood-upload"
-                                                    className="px-3 py-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-[10px] font-bold uppercase cursor-pointer transition-all text-white flex items-center gap-2"
+                                                    className="px-3 py-1 bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 border border-border-light dark:border-white/10 rounded-lg text-[10px] font-bold uppercase cursor-pointer transition-all text-text-secondary-light dark:text-white flex items-center gap-2"
                                                 >
                                                     <Paperclip size={12} /> Anexar
                                                 </label>
@@ -2460,7 +2460,7 @@ Equipe de Capturas - DIG / PCSP
                                                             </span>
                                                         </div>
                                                         <div className="flex gap-1">
-                                                            <a href={getPublicUrl(doc)} target="_blank" rel="noopener noreferrer" className="p-1.5 text-text-muted hover:text-white" title="Visualizar">
+                                                            <a href={getPublicUrl(doc)} target="_blank" rel="noopener noreferrer" className="p-1.5 text-text-muted hover:text-slate-900 dark:hover:text-white" title="Visualizar">
                                                                 <Eye size={14} />
                                                             </a>
                                                             <button
@@ -2478,7 +2478,7 @@ Equipe de Capturas - DIG / PCSP
                                                     </div>
                                                 ))
                                             ) : (
-                                                <div className="text-center py-8 border-2 border-dashed border-white/5 rounded-xl">
+                                                <div className="text-center py-8 border-2 border-dashed border-border-light dark:border-white/5 rounded-xl">
                                                     <p className="text-[10px] text-text-muted font-bold uppercase">Nenhum retorno anexado</p>
                                                 </div>
                                             )}

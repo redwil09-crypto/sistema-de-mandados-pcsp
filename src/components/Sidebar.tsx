@@ -116,8 +116,8 @@ const Sidebar = ({ routeCount = 0, isCollapsed, toggleCollapse, isDark, toggleTh
                             return `
                                 flex items-center ${isCollapsed ? 'justify-center px-0' : 'justify-start px-4'} py-3 mx-3 rounded-xl transition-all duration-300 group relative
                                 ${customActive
-                                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/40'
-                                    : 'text-zinc-400 hover:text-white hover:bg-white/5'
+                                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30 dark:shadow-blue-900/40'
+                                    : 'text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5'
                                 }
                             `;
                         }}
@@ -157,7 +157,7 @@ const Sidebar = ({ routeCount = 0, isCollapsed, toggleCollapse, isDark, toggleTh
     return (
         <>
             {/* Mobile Header / Toggle */}
-            <div className="md:hidden fixed top-0 left-0 right-0 h-16 bg-zinc-950/90 backdrop-blur-xl border-b border-white/5 flex items-center justify-between px-4 z-50">
+            <div className="md:hidden fixed top-0 left-0 right-0 h-16 bg-white/90 dark:bg-zinc-950/90 backdrop-blur-xl border-b border-border-light dark:border-white/5 flex items-center justify-between px-4 z-50">
                 <div className="flex items-center gap-2">
                     <div className="h-8 w-8 rounded-lg bg-blue-600 flex items-center justify-center shadow-neon-blue">
                         <Siren size={18} className="text-white" />
@@ -165,7 +165,7 @@ const Sidebar = ({ routeCount = 0, isCollapsed, toggleCollapse, isDark, toggleTh
                 </div>
                 <button
                     onClick={() => setIsOpen(!isOpen)}
-                    className="p-2 text-zinc-400 hover:text-white transition-colors active:scale-95"
+                    className="p-2 text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white transition-colors active:scale-95"
                 >
                     {isOpen ? <X size={24} /> : <Menu size={24} />}
                 </button>
@@ -195,15 +195,15 @@ const Sidebar = ({ routeCount = 0, isCollapsed, toggleCollapse, isDark, toggleTh
                 onTouchEnd={onTouchEnd}
             >
                 {/* Desktop Header */}
-                <div className={`hidden md:flex items-center ${isCollapsed ? 'justify-center' : 'justify-between px-6'} h-20 border-b border-white/5 relative`}>
+                <div className={`hidden md:flex items-center ${isCollapsed ? 'justify-center' : 'justify-between px-6'} h-20 border-b border-border-light dark:border-white/5 relative`}>
                     <div className="flex items-center gap-3">
                         <img
                             src="/brasao_pcsp_nova.png"
                             alt="Brasão PCSP"
-                            className="h-10 w-auto object-contain shrink-0 drop-shadow-[0_0_8px_rgba(255,255,255,0.3)] transition-transform hover:scale-110"
+                            className="h-10 w-auto object-contain shrink-0 drop-shadow-md dark:drop-shadow-[0_0_8px_rgba(255,255,255,0.3)] transition-transform hover:scale-110"
                         />
                         {!isCollapsed && (
-                            <h1 className="font-display font-black text-xl text-white tracking-widest whitespace-nowrap overflow-hidden">
+                            <h1 className="font-display font-black text-xl text-slate-900 dark:text-white tracking-widest whitespace-nowrap overflow-hidden">
                                 PCSP
                             </h1>
                         )}
@@ -212,8 +212,8 @@ const Sidebar = ({ routeCount = 0, isCollapsed, toggleCollapse, isDark, toggleTh
                     <button
                         onClick={toggleCollapse}
                         className={`
-                            h-6 w-6 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center 
-                            text-zinc-400 hover:text-white hover:bg-blue-600 hover:border-blue-500 transition-all
+                            h-6 w-6 rounded-full bg-slate-100 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 flex items-center justify-center 
+                            text-slate-400 dark:text-zinc-400 hover:text-white hover:bg-blue-600 hover:border-blue-500 transition-all
                             absolute -right-3 top-1/2 -translate-y-1/2 shadow-lg z-20
                             ${isCollapsed ? '' : ''}
                         `}
@@ -230,12 +230,12 @@ const Sidebar = ({ routeCount = 0, isCollapsed, toggleCollapse, isDark, toggleTh
                 </nav>
 
                 {/* Footer */}
-                <div className="p-3 border-t border-white/5 bg-zinc-900/30 backdrop-blur-sm flex flex-col gap-3">
+                <div className="p-3 border-t border-border-light dark:border-white/5 bg-slate-50 dark:bg-zinc-900/30 backdrop-blur-sm flex flex-col gap-3">
                     {/* Theme and Notifications */}
                     <div className={`flex items-center ${isCollapsed ? 'flex-col gap-3' : 'justify-between px-2'}`}>
                         <button
                             onClick={toggleTheme}
-                            className="p-2 rounded-lg text-zinc-400 hover:bg-white/5 hover:text-white transition-all border border-transparent hover:border-white/10 group relative"
+                            className="p-2 rounded-lg text-slate-500 dark:text-zinc-400 hover:bg-slate-200 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white transition-all border border-transparent hover:border-border-light dark:hover:border-white/10 group relative"
                             title={isDark ? "Modo Claro" : "Modo Escuro"}
                         >
                             {isDark ? <Sun size={20} /> : <Moon size={20} />}
@@ -243,12 +243,12 @@ const Sidebar = ({ routeCount = 0, isCollapsed, toggleCollapse, isDark, toggleTh
 
                         <button
                             onClick={() => toast.info(hasNotifications ? 'Novas notificações' : 'Nenhuma notificação nova')}
-                            className="p-2 rounded-lg text-zinc-400 hover:bg-white/5 hover:text-white transition-all border border-transparent hover:border-white/10 group relative"
+                            className="p-2 rounded-lg text-slate-500 dark:text-zinc-400 hover:bg-slate-200 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white transition-all border border-transparent hover:border-border-light dark:hover:border-white/10 group relative"
                             title="Notificações"
                         >
                             <Bell size={20} />
                             {hasNotifications && (
-                                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border border-[#09090b]" />
+                                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border border-white dark:border-[#09090b]" />
                             )}
                         </button>
                     </div>
@@ -257,28 +257,28 @@ const Sidebar = ({ routeCount = 0, isCollapsed, toggleCollapse, isDark, toggleTh
                     <NavLink
                         to="/profile"
                         className={`
-                        flex items-center gap-3 p-2 rounded-xl border border-white/5 bg-white/5 
-                        ${isCollapsed ? 'justify-center border-0 bg-transparent p-0' : 'hover:bg-white/10 hover:border-blue-500/30'} 
+                        flex items-center gap-3 p-2 rounded-xl border border-border-light dark:border-white/5 bg-white dark:bg-white/5 
+                        ${isCollapsed ? 'justify-center border-0 bg-transparent p-0' : 'hover:bg-slate-100 dark:hover:bg-white/10 hover:border-blue-500/30'} 
                         transition-all duration-300 group
                     `}>
                         {isCollapsed ? (
                             <div className="relative cursor-pointer group">
-                                <div className="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center border border-white/10 group-hover:border-blue-500 transition-all overflow-hidden">
-                                    <User size={20} className="text-zinc-400 group-hover:text-white" />
+                                <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-zinc-800 flex items-center justify-center border border-slate-300 dark:border-white/10 group-hover:border-blue-500 transition-all overflow-hidden">
+                                    <User size={20} className="text-slate-500 dark:text-zinc-400 group-hover:text-blue-600 dark:group-hover:text-white" />
                                 </div>
-                                <div className="absolute bottom-0 right-0 h-2.5 w-2.5 bg-green-500 rounded-full border-2 border-[#09090b]" />
+                                <div className="absolute bottom-0 right-0 h-2.5 w-2.5 bg-green-500 rounded-full border-2 border-white dark:border-[#09090b]" />
                             </div>
                         ) : (
                             <>
                                 <div className="relative">
-                                    <div className="w-9 h-9 rounded-full bg-zinc-800 flex items-center justify-center border border-white/10 group-hover:border-blue-500 transition-all overflow-hidden">
-                                        <User size={18} className="text-zinc-400 group-hover:text-white" />
+                                    <div className="w-9 h-9 rounded-full bg-slate-200 dark:bg-zinc-800 flex items-center justify-center border border-slate-300 dark:border-white/10 group-hover:border-blue-500 transition-all overflow-hidden">
+                                        <User size={18} className="text-slate-500 dark:text-zinc-400 group-hover:text-blue-600 dark:group-hover:text-white" />
                                     </div>
-                                    <div className="absolute bottom-0 right-0 h-2.5 w-2.5 bg-green-500 rounded-full border-2 border-[#09090b]" />
+                                    <div className="absolute bottom-0 right-0 h-2.5 w-2.5 bg-green-500 rounded-full border-2 border-white dark:border-[#09090b]" />
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                    <p className="text-xs font-bold text-white truncate">Investigador</p>
-                                    <p className="text-[10px] text-zinc-500 uppercase tracking-wider truncate">Em Serviço</p>
+                                    <p className="text-xs font-bold text-slate-900 dark:text-white truncate">Investigador</p>
+                                    <p className="text-[10px] text-slate-500 dark:text-zinc-500 uppercase tracking-wider truncate">Em Serviço</p>
                                 </div>
                                 <button
                                     onClick={(e) => {
