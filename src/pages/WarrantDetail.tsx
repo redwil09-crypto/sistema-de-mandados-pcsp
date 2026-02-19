@@ -2373,7 +2373,7 @@ Equipe de Capturas - DIG / PCSP
 
 
                             {/* Investigation: iFood Intelligence (Merged) */}
-                            <div className="bg-surface-dark/90 backdrop-blur-xl border border-white/10 rounded-2xl p-5 shadow-glass">
+                            <div className="bg-surface-light dark:bg-surface-dark/90 backdrop-blur-xl border border-border-light dark:border-white/10 rounded-2xl p-5 shadow-glass">
                                 <div className="flex items-center justify-between mb-4 border-b border-white/5 pb-4">
                                     <div className="flex items-center gap-2">
                                         <div className="flex items-center">
@@ -2382,7 +2382,7 @@ Equipe de Capturas - DIG / PCSP
                                             <Car className="text-cyan-400" size={20} />
                                         </div>
                                         <div>
-                                            <h3 className="text-sm font-black uppercase text-white tracking-widest">Inteligência iFood & Uber</h3>
+                                            <h3 className="text-sm font-black uppercase text-text-light dark:text-white tracking-widest">Inteligência iFood & Uber</h3>
                                             <p className="text-[10px] text-text-muted font-bold uppercase">Rastreamento de Pedidos e Corridas</p>
                                         </div>
                                     </div>
@@ -2410,7 +2410,7 @@ Equipe de Capturas - DIG / PCSP
                                             <label className="text-[9px] font-black text-text-muted uppercase tracking-wider">Resultado da Pesquisa</label>
                                             <div className="relative">
                                                 <textarea
-                                                    className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm text-white outline-none focus:ring-1 focus:ring-primary min-h-[120px] resize-none pb-12"
+                                                    className="w-full bg-background-light dark:bg-white/5 border border-border-light dark:border-white/10 rounded-xl p-3 text-sm text-text-light dark:text-white outline-none focus:ring-1 focus:ring-primary min-h-[120px] resize-none pb-12"
                                                     placeholder="Cole aqui os endereços e dados obtidos..."
                                                     value={localData.ifoodResult || ''}
                                                     onChange={e => handleFieldChange('ifoodResult', e.target.value)}
@@ -2450,12 +2450,12 @@ Equipe de Capturas - DIG / PCSP
                                         <div className="space-y-2 max-h-[220px] overflow-y-auto pr-2 scrollbar-thumb-white/10 scrollbar-track-transparent">
                                             {data.ifoodDocs && data.ifoodDocs.length > 0 ? (
                                                 data.ifoodDocs.map((doc: string, idx: number) => (
-                                                    <div key={idx} className="flex items-center justify-between bg-white/5 border border-white/5 p-3 rounded-xl group hover:bg-white/10 transition-all">
+                                                    <div key={idx} className="flex items-center justify-between bg-background-light dark:bg-white/5 border border-border-light dark:border-white/5 p-3 rounded-xl group hover:bg-slate-100 dark:hover:bg-white/10 transition-all">
                                                         <div className="flex items-center gap-3 overflow-hidden">
                                                             <div className="p-2 bg-amber-500/10 text-amber-500 rounded-lg">
                                                                 <FileText size={14} />
                                                             </div>
-                                                            <span className="text-xs text-white truncate max-w-[150px]">
+                                                            <span className="text-xs text-text-light dark:text-white truncate max-w-[150px]">
                                                                 {doc.split('/').pop()?.replace(/^\d+_/, '')}
                                                             </span>
                                                         </div>
@@ -2488,23 +2488,23 @@ Equipe de Capturas - DIG / PCSP
                             </div>
 
                             {/* Investigation: Analytic Observations (Merged) */}
-                            <div className="bg-surface-dark/90 backdrop-blur-xl border border-white/10 rounded-2xl p-5 shadow-glass space-y-4">
-                                <div className="flex items-center gap-2 mb-2 pb-2 border-b border-white/5">
+                            <div className="bg-surface-light dark:bg-surface-dark/90 backdrop-blur-xl border border-border-light dark:border-white/10 rounded-2xl p-5 shadow-glass space-y-4">
+                                <div className="flex items-center gap-2 mb-2 pb-2 border-b border-border-light dark:border-white/5">
                                     <MessageSquare className="text-secondary" size={16} />
-                                    <span className="text-[11px] font-black uppercase tracking-widest text-white">Observações Analíticas</span>
+                                    <span className="text-[11px] font-black uppercase tracking-widest text-text-light dark:text-white">Observações Analíticas</span>
                                 </div>
-                                <textarea value={localData.observation || ''} onChange={e => handleFieldChange('observation', e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-sm text-white outline-none focus:ring-2 focus:ring-primary/20 transition-all resize-none min-h-[140px]" placeholder="Adicione considerações estratégicas para futuras equipes..." />
+                                <textarea value={localData.observation || ''} onChange={e => handleFieldChange('observation', e.target.value)} className="w-full bg-background-light dark:bg-white/5 border border-border-light dark:border-white/10 rounded-xl p-4 text-sm text-text-light dark:text-white outline-none focus:ring-2 focus:ring-primary/20 transition-all resize-none min-h-[140px]" placeholder="Adicione considerações estratégicas para futuras equipes..." />
                             </div>
 
                             {/* Intelligent Report Generator HUD */}
-                            <div className="bg-surface-dark/80 backdrop-blur-xl border border-white/10 rounded-2xl p-5 shadow-glass space-y-5">
-                                <div className="flex items-center justify-between border-b border-white/5 pb-4">
+                            <div className="bg-surface-light dark:bg-surface-dark/80 backdrop-blur-xl border border-border-light dark:border-white/10 rounded-2xl p-5 shadow-glass space-y-5">
+                                <div className="flex items-center justify-between border-b border-border-light dark:border-white/5 pb-4">
                                     <div className="flex items-center gap-3">
                                         <div className="w-10 h-10 rounded-xl bg-indigo-500/20 flex items-center justify-center text-indigo-400 border border-indigo-500/30">
                                             <FileCheck size={20} />
                                         </div>
                                         <div>
-                                            <h3 className="text-sm font-black uppercase text-white tracking-widest">Escrivão de Elite</h3>
+                                            <h3 className="text-sm font-black uppercase text-text-light dark:text-white tracking-widest">Escrivão de Elite</h3>
                                             <p className="text-[10px] text-text-muted font-bold uppercase">Gerador de Relatórios Oficiais</p>
                                         </div>
                                     </div>
@@ -2516,14 +2516,14 @@ Equipe de Capturas - DIG / PCSP
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                     {data.reports && data.reports.length > 0 ? (
                                         data.reports.map((file: string, idx: number) => (
-                                            <div key={idx} className="bg-white/5 border border-white/5 rounded-xl p-4 flex flex-col justify-between hover:bg-white/10 transition-all group">
+                                            <div key={idx} className="bg-background-light dark:bg-white/5 border border-border-light dark:border-white/5 rounded-xl p-4 flex flex-col justify-between hover:bg-slate-100 dark:hover:bg-white/10 transition-all group">
                                                 <div className="flex items-start gap-3 mb-4">
                                                     <div className="p-3 bg-indigo-500/20 rounded-xl text-indigo-400 group-hover:scale-110 transition-transform">
                                                         <FileText size={20} />
                                                     </div>
                                                     <div className="min-w-0">
                                                         <p className="text-[10px] font-black text-indigo-400 uppercase tracking-wider mb-1">RELATÓRIO OPERACIONAL</p>
-                                                        <p className="text-xs font-bold text-white truncate">{file.split('/').pop()?.replace(/^\d+_/, '')}</p>
+                                                        <p className="text-xs font-bold text-text-light dark:text-white truncate">{file.split('/').pop()?.replace(/^\d+_/, '')}</p>
                                                     </div>
                                                 </div>
                                                 <div className="flex gap-2">
@@ -2549,18 +2549,18 @@ Equipe de Capturas - DIG / PCSP
                     {activeDetailTab === 'timeline' && (
                         <div className="space-y-6">
                             {/* Investigation Feed Header */}
-                            <div className="bg-surface-dark/90 backdrop-blur-xl border border-white/10 rounded-2xl p-6 shadow-tactic">
-                                <div className="flex items-center gap-3 mb-6 border-b border-white/5 pb-4">
+                            <div className="bg-surface-light dark:bg-surface-dark/90 backdrop-blur-xl border border-border-light dark:border-white/10 rounded-2xl p-6 shadow-tactic">
+                                <div className="flex items-center gap-3 mb-6 border-b border-border-light dark:border-white/5 pb-4">
                                     <div className="w-10 h-10 rounded-2xl bg-indigo-500/20 flex items-center justify-center text-indigo-400 border border-indigo-500/30">
                                         <History size={20} />
                                     </div>
                                     <div>
-                                        <h3 className="text-sm font-black uppercase text-white tracking-widest">Log Operacional</h3>
+                                        <h3 className="text-sm font-black uppercase text-text-light dark:text-white tracking-widest">Log Operacional</h3>
                                         <p className="text-[10px] text-text-muted font-bold uppercase">Histórico Cronológico de Diligências</p>
                                     </div>
                                 </div>
 
-                                <div className="bg-white/5 border border-white/10 rounded-2xl p-4 focus-within:ring-2 focus-within:ring-primary/40 transition-all shadow-inner relative group">
+                                <div className="bg-background-light dark:bg-white/5 border border-border-light dark:border-white/10 rounded-2xl p-4 focus-within:ring-2 focus-within:ring-primary/40 transition-all shadow-inner relative group">
                                     <div className="flex justify-between items-center mb-3">
                                         <span className="text-xs font-black uppercase tracking-widest text-primary/80">Entrada de Informe de Campo</span>
                                         <button onClick={handleAnalyzeDiligence} disabled={!newDiligence.trim() || isAnalyzingDiligence} className="text-[10px] font-black uppercase bg-indigo-500 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow-lg shadow-indigo-500/20 active:scale-95 disabled:opacity-50">
@@ -2568,7 +2568,7 @@ Equipe de Capturas - DIG / PCSP
                                         </button>
                                     </div>
                                     <div className="relative">
-                                        <textarea value={newDiligence} onChange={e => setNewDiligence(e.target.value)} className="w-full bg-transparent border-none text-white text-lg leading-relaxed outline-none resize-none min-h-[160px] pr-12 scrollbar-none placeholder:text-white/20" placeholder="Descreva informes brutos, vizinhos, veículos, placas..." />
+                                        <textarea value={newDiligence} onChange={e => setNewDiligence(e.target.value)} className="w-full bg-transparent border-none text-text-light dark:text-white text-lg leading-relaxed outline-none resize-none min-h-[160px] pr-12 scrollbar-none placeholder:text-text-secondary-light dark:placeholder:text-white/20" placeholder="Descreva informes brutos, vizinhos, veículos, placas..." />
                                         <div className="absolute right-0 bottom-0 p-2">
                                             <VoiceInput onTranscript={t => setNewDiligence(t)} currentValue={newDiligence} />
                                         </div>
@@ -2904,7 +2904,7 @@ Equipe de Capturas - DIG / PCSP
                                     <input className="w-full bg-background-light dark:bg-white/5 border border-border-light dark:border-white/10 rounded-xl p-3 text-xs text-text-light dark:text-white placeholder:text-indigo-300/30" placeholder="Ex: 'Seja mais formal', 'Mencione a equipe de campo'..." value={capturasData.aiInstructions} onChange={e => setCapturasData({ ...capturasData, aiInstructions: e.target.value })} />
                                     <button onClick={handleRefreshAiReport} disabled={isGeneratingAiReport} className="w-full py-3 bg-indigo-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/20">{isGeneratingAiReport ? <RefreshCw size={14} className="animate-spin" /> : <Bot size={14} />} {isGeneratingAiReport ? 'ANTIGRAVITY PROCESSANDO...' : 'EXECUTAR ANÁLISE E REDAÇÃO IA'}</button>
                                 </div>
-                                <textarea className="w-full bg-white/5 border border-white/10 rounded-2xl p-5 text-sm leading-relaxed text-white min-h-[300px] font-serif" value={capturasData.body} onChange={e => setCapturasData({ ...capturasData, body: e.target.value })} />
+                                <textarea className="w-full bg-background-light dark:bg-white/5 border border-border-light dark:border-white/10 rounded-2xl p-5 text-sm leading-relaxed text-text-light dark:text-white min-h-[300px] font-serif" value={capturasData.body} onChange={e => setCapturasData({ ...capturasData, body: e.target.value })} />
                             </div>
                             <div className="p-5 border-t border-white/10 bg-white/5">
                                 <button onClick={handleGenerateCapturasPDF} className="w-full py-4 bg-primary text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-tactic flex items-center justify-center gap-2"><Printer size={18} /> IMPRIMIR E ANEXAR PDF OFICIAL</button>
@@ -2917,12 +2917,12 @@ Equipe de Capturas - DIG / PCSP
             {
                 isFinalizeModalOpen && (
                     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-                        <div className="bg-surface-dark border border-white/10 rounded-3xl w-full max-w-md p-6 shadow-tactic space-y-6">
-                            <div className="flex items-center gap-3 border-b border-white/5 pb-4"><CheckCircle className="text-green-500" size={24} /><h3 className="text-xl font-black uppercase text-white tracking-tighter">Encerrar Protocolo</h3></div>
+                        <div className="bg-surface-light dark:bg-surface-dark border border-border-light dark:border-white/10 rounded-3xl w-full max-w-md p-6 shadow-tactic space-y-6">
+                            <div className="flex items-center gap-3 border-b border-border-light dark:border-white/5 pb-4"><CheckCircle className="text-green-500" size={24} /><h3 className="text-xl font-black uppercase text-text-light dark:text-white tracking-tighter">Encerrar Protocolo</h3></div>
                             <div className="space-y-4">
-                                <div className="space-y-1"><label className="text-[10px] font-black text-text-muted uppercase tracking-widest">Data Cumprimento</label><input type="date" className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white" value={finalizeFormData.date} onChange={e => setFinalizeFormData({ ...finalizeFormData, date: e.target.value })} /></div>
-                                <div className="space-y-1"><label className="text-[10px] font-black text-text-muted uppercase tracking-widest">Ofício DIG Vinculado</label><input type="text" className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white" value={finalizeFormData.digOffice} onChange={e => setFinalizeFormData({ ...finalizeFormData, digOffice: e.target.value })} /></div>
-                                <div className="space-y-1"><label className="text-[10px] font-black text-text-muted uppercase tracking-widest">Resultado Final</label><select className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white appearance-none" value={finalizeFormData.result} onChange={e => setFinalizeFormData({ ...finalizeFormData, result: e.target.value })}>{['PRESO', 'NEGATIVO', 'ENCAMINHADO', 'ÓBITO', 'CONTRA', 'LOCALIZADO'].map(opt => <option key={opt} value={opt} className="bg-surface-dark">{opt}</option>)}</select></div>
+                                <div className="space-y-1"><label className="text-[10px] font-black text-text-muted uppercase tracking-widest">Data Cumprimento</label><input type="date" className="w-full bg-background-light dark:bg-white/5 border border-border-light dark:border-white/10 rounded-xl p-3 text-text-light dark:text-white" value={finalizeFormData.date} onChange={e => setFinalizeFormData({ ...finalizeFormData, date: e.target.value })} /></div>
+                                <div className="space-y-1"><label className="text-[10px] font-black text-text-muted uppercase tracking-widest">Ofício DIG Vinculado</label><input type="text" className="w-full bg-background-light dark:bg-white/5 border border-border-light dark:border-white/10 rounded-xl p-3 text-text-light dark:text-white" value={finalizeFormData.digOffice} onChange={e => setFinalizeFormData({ ...finalizeFormData, digOffice: e.target.value })} /></div>
+                                <div className="space-y-1"><label className="text-[10px] font-black text-text-muted uppercase tracking-widest">Resultado Final</label><select className="w-full bg-background-light dark:bg-white/5 border border-border-light dark:border-white/10 rounded-xl p-3 text-text-light dark:text-white appearance-none" value={finalizeFormData.result} onChange={e => setFinalizeFormData({ ...finalizeFormData, result: e.target.value })}>{['PRESO', 'NEGATIVO', 'ENCAMINHADO', 'ÓBITO', 'CONTRA', 'LOCALIZADO'].map(opt => <option key={opt} value={opt} className="bg-surface-light dark:bg-surface-dark text-text-light dark:text-white">{opt}</option>)}</select></div>
                             </div>
                             <div className="flex gap-3">
                                 <button onClick={() => setIsFinalizeModalOpen(false)} className="flex-1 py-3.5 rounded-2xl font-black text-[10px] uppercase tracking-widest bg-white/5 text-white hover:bg-white/10 transition-all">Cancelar</button>

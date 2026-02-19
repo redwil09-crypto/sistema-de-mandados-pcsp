@@ -299,10 +299,10 @@ ${indent}Atenciosamente,`;
 
     return createPortal(
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-            <div className="bg-slate-900 border border-slate-700 w-full max-w-4xl h-[90vh] rounded-xl shadow-2xl flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="bg-surface-light dark:bg-slate-900 border border-border-light dark:border-slate-700 w-full max-w-4xl h-[90vh] rounded-xl shadow-2xl flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
 
                 {/* Header */}
-                <div className="relative flex items-center justify-between p-4 border-b border-slate-700 bg-slate-800/50">
+                <div className="relative flex items-center justify-between p-4 border-b border-border-light dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
 
                     {/* Left: Title */}
                     <div className="flex items-center gap-3 z-10 w-1/3">
@@ -313,8 +313,8 @@ ${indent}Atenciosamente,`;
                             {selectedType === 'uber' ? <Car className="w-6 h-6" /> : selectedType === '99' ? <Car className="w-6 h-6" /> : <Bike className="w-6 h-6" />}
                         </div>
                         <div>
-                            <h2 className="text-lg font-bold text-slate-100 uppercase">Ofício {selectedType.toUpperCase()}</h2>
-                            <p className="text-xs text-slate-400">Geração de Documento Oficial</p>
+                            <h2 className="text-lg font-bold text-text-light dark:text-slate-100 uppercase">Ofício {selectedType.toUpperCase()}</h2>
+                            <p className="text-xs text-text-secondary-light dark:text-slate-400">Geração de Documento Oficial</p>
                         </div>
                     </div>
 
@@ -322,19 +322,19 @@ ${indent}Atenciosamente,`;
                     <div className="absolute left-1/2 -translate-x-1/2 flex gap-2 z-0">
                         <button
                             onClick={() => handleTypeSwitch('ifood')}
-                            className={`px-6 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${selectedType === 'ifood' ? 'bg-red-600 text-white shadow-lg shadow-red-600/20 scale-105' : 'bg-slate-700/50 text-slate-400 hover:bg-slate-700 hover:text-white'}`}
+                            className={`px-6 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${selectedType === 'ifood' ? 'bg-red-600 text-white shadow-lg shadow-red-600/20 scale-105' : 'bg-slate-200 dark:bg-slate-700/50 text-slate-500 dark:text-slate-400 hover:bg-slate-300 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white'}`}
                         >
                             iFood
                         </button>
                         <button
                             onClick={() => handleTypeSwitch('uber')}
-                            className={`px-6 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${selectedType === 'uber' ? 'bg-cyan-600 text-white shadow-lg shadow-cyan-600/20 scale-105' : 'bg-slate-700/50 text-slate-400 hover:bg-slate-700 hover:text-white'}`}
+                            className={`px-6 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${selectedType === 'uber' ? 'bg-cyan-600 text-white shadow-lg shadow-cyan-600/20 scale-105' : 'bg-slate-200 dark:bg-slate-700/50 text-slate-500 dark:text-slate-400 hover:bg-slate-300 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white'}`}
                         >
                             Uber
                         </button>
                         <button
                             onClick={() => handleTypeSwitch('99')}
-                            className={`px-6 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${selectedType === '99' ? 'bg-yellow-500 text-white shadow-lg shadow-yellow-500/20 scale-105' : 'bg-slate-700/50 text-slate-400 hover:bg-slate-700 hover:text-white'}`}
+                            className={`px-6 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${selectedType === '99' ? 'bg-yellow-500 text-white shadow-lg shadow-yellow-500/20 scale-105' : 'bg-slate-200 dark:bg-slate-700/50 text-slate-500 dark:text-slate-400 hover:bg-slate-300 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white'}`}
                         >
                             99
                         </button>
@@ -342,7 +342,7 @@ ${indent}Atenciosamente,`;
 
                     {/* Right: Close */}
                     <div className="z-10 w-1/3 flex justify-end">
-                        <button onClick={onClose} className="p-2 hover:bg-slate-700 rounded-full transition-colors">
+                        <button onClick={onClose} className="p-2 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-full transition-colors">
                             <X className="w-5 h-5 text-slate-400" />
                         </button>
                     </div>
@@ -357,14 +357,14 @@ ${indent}Atenciosamente,`;
                                 <Hash size={40} />
                             </div>
                             <div className="text-center">
-                                <h3 className="text-xl font-bold text-white mb-2">Número do Ofício</h3>
-                                <p className="text-slate-400 text-sm">Informe o número sequencial para o documento.</p>
+                                <h3 className="text-xl font-bold text-text-light dark:text-white mb-2">Número do Ofício</h3>
+                                <p className="text-text-secondary-light dark:text-slate-400 text-sm">Informe o número sequencial para o documento.</p>
                             </div>
                             <div className="w-full max-w-xs scale-110">
                                 <input
                                     type="text"
                                     autoFocus
-                                    className="w-full bg-slate-800 border-2 border-slate-700 rounded-xl px-4 py-3 text-center text-2xl font-black text-white outline-none focus:border-indigo-500 transition-all placeholder:text-slate-600"
+                                    className="w-full bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-center text-2xl font-black text-slate-900 dark:text-white outline-none focus:border-indigo-500 transition-all placeholder:text-slate-400 dark:placeholder:text-slate-600"
                                     placeholder="Ex: 026"
                                     value={officeNumber}
                                     onChange={(e) => setOfficeNumber(e.target.value)}
@@ -383,8 +383,8 @@ ${indent}Atenciosamente,`;
                     {step === 'processing' && (
                         <div className="flex-1 flex flex-col items-center justify-center text-center animate-pulse">
                             <Loader2 className="w-12 h-12 text-indigo-500 animate-spin mb-4" />
-                            <h3 className="text-xl font-bold text-white uppercase tracking-tighter">Gerando Minuta...</h3>
-                            <p className="text-slate-400 mt-2 max-w-sm text-sm">
+                            <h3 className="text-xl font-bold text-text-light dark:text-white uppercase tracking-tighter">Gerando Minuta...</h3>
+                            <p className="text-text-secondary-light dark:text-slate-400 mt-2 max-w-sm text-sm">
                                 Substituindo dados de {warrant.name} no modelo {selectedType.toUpperCase()} nº {officeNumber}.
                             </p>
                         </div>
@@ -397,12 +397,12 @@ ${indent}Atenciosamente,`;
                                 value={generatedText}
                                 onChange={(e) => setGeneratedText(e.target.value)}
                             />
-                            <div className="flex justify-between items-center bg-slate-800/80 p-4 rounded-xl border border-slate-700 backdrop-blur">
-                                <p className="text-xs text-slate-400 font-medium italic">Edite o texto acima conforme necessário.</p>
+                            <div className="flex justify-between items-center bg-slate-100 dark:bg-slate-800/80 p-4 rounded-xl border border-slate-200 dark:border-slate-700 backdrop-blur">
+                                <p className="text-xs text-text-secondary-light dark:text-slate-400 font-medium italic">Edite o texto acima conforme necessário.</p>
                                 <div className="flex gap-3">
                                     <button
                                         onClick={handleCopy}
-                                        className="px-6 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg text-sm font-bold flex items-center gap-2 transition-all active:scale-95"
+                                        className="px-6 py-2 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-white rounded-lg text-sm font-bold flex items-center gap-2 transition-all active:scale-95"
                                     >
                                         <Copy className="w-4 h-4" /> Copiar
                                     </button>
