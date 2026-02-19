@@ -2369,15 +2369,7 @@ Equipe de Capturas - DIG / PCSP
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div className="space-y-4">
-                                        <div className="space-y-1">
-                                            <label className="text-[9px] font-black text-text-muted uppercase tracking-wider">Número do Ofício</label>
-                                            <input
-                                                className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm font-mono text-white outline-none focus:ring-1 focus:ring-primary"
-                                                placeholder="Ex: 001/CAPT/2026"
-                                                value={localData.ifoodNumber || ''}
-                                                onChange={e => handleFieldChange('ifoodNumber', e.target.value)}
-                                            />
-                                        </div>
+
                                         <div className="space-y-1">
                                             <label className="text-[9px] font-black text-text-muted uppercase tracking-wider">Resultado da Pesquisa</label>
                                             <textarea
