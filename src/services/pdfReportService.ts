@@ -465,9 +465,7 @@ export const generateIfoodOfficePDF = async (
         y += 8;
 
         const metaFields = [
-            { label: "Natureza:", value: "Requisição de Dados Cadastrais" },
-            { label: "Referência:", value: `Alvo: ${data.name.toUpperCase()}` },
-            { label: "RG/CPF:", value: `${data.rg || 'N/I'} / ${data.cpf || 'N/I'}` }
+            { label: "Natureza:", value: "Requisição de Dados Cadastrais" }
         ];
 
         metaFields.forEach(field => {
@@ -476,8 +474,24 @@ export const generateIfoodOfficePDF = async (
             const labelWidth = doc.getTextWidth(field.label + " ");
             doc.setFont('helvetica', 'normal');
             doc.text(field.value, margin + labelWidth, y);
-            y += 6;
+            y += 8; // More space
         });
+
+        // --- SUBJECT DETAILS (GRAY BOX) ---
+        doc.setFillColor(230, 230, 230); // Light Gray
+        doc.rect(margin, y, contentWidth, 25, 'F');
+        doc.setTextColor(0, 0, 0);
+
+        let detailY = y + 7;
+        doc.setFont('helvetica', 'bold');
+        doc.text(`ALVO: ${data.name.toUpperCase()}`, margin + 5, detailY);
+
+        detailY += 8;
+        doc.setFont('helvetica', 'normal');
+        doc.text(`RG: ${data.rg || "NÃO INFORMADO"}`, margin + 5, detailY);
+        doc.text(`CPF: ${data.cpf || "NÃO INFORMADO"}`, margin + 80, detailY);
+
+        y += 35;
 
         // --- DESTINATÁRIO ---
         y += 6;
@@ -500,24 +514,18 @@ export const generateIfoodOfficePDF = async (
         y += (splitClosing.length * 6) + 15;
 
         // --- SIGNATURE BLOCK ---
-        const sigX = pageWidth / 2;
-        doc.line(sigX - 35, y, sigX + 35, y);
-        y += 5;
-        doc.setFont('times', 'bold');
-        doc.text("Equipe de Inteligência", sigX, y, { align: 'center' });
-        doc.setFont('times', 'normal');
-        doc.text("DIG Jacareí / Deinter 1", sigX, y + 5, { align: 'center' });
-        y += 15;
+        // --- FOOTER (New Style) ---
+        // Align with 'IfoodReportModal' footer style (Centered Signature)
+        const footerY = pageHeight - 35;
 
-        // --- FOOTER BOX (As per standard) ---
-        const boxY = pageHeight - 35;
-        doc.setLineDashPattern([1, 1], 0);
-        doc.rect(margin, boxY, contentWidth, 18);
-        doc.setFontSize(9);
-        doc.setFont('helvetica', 'bolditalic');
-        doc.text("Excelentíssimo Delegado de Polícia", margin + 5, boxY + 7);
+        doc.setFont('helvetica', 'bold');
+        doc.text("Luiz Antônio Cunha dos Santos", pageWidth / 2, footerY, { align: 'center' });
+        doc.text("Delegado de Polícia", pageWidth / 2, footerY + 5, { align: 'center' });
+
         doc.setFont('helvetica', 'normal');
-        doc.text("Luiz Antônio Cunha dos Santos", margin + 5, boxY + 13);
+        doc.setFontSize(8);
+        const addr1 = "Rua Moisés Ruston, 370, Parque Itamaraty, Jacareí-SP, CEP-12.307-260";
+        doc.text(addr1, pageWidth - margin, pageHeight - 10, { align: 'right' });
 
         const fileName = `Oficio_iFood_${data.name.replace(/\s+/g, '_')}.pdf`;
         doc.save(fileName);
