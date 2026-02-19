@@ -43,6 +43,7 @@ export interface Warrant {
     longitude?: number;
     tacticalSummary?: string; // Sumário Tático extraído
     issuingCourt?: string;       // Fórum/Vara Expedidora
+    tacticalIntel?: any;     // Inteligência Tática (Gemini Analysis)
     ifoodDocs?: string[];    // Documentos anexos do iFood
 }
 
@@ -61,8 +62,9 @@ export interface DiligentEntry {
     id: string;
     date: string;
     investigator: string;
+    author?: string; // Alias for backward compatibility
     notes: string;
-    type: 'observation' | 'attempt' | 'intelligence';
+    type: 'observation' | 'attempt' | 'intelligence' | 'IFOOD_UBER';
 }
 
 export interface StatData {

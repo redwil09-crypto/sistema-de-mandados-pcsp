@@ -1011,6 +1011,57 @@ Equipe de Capturas - DIG / PCSP
         setIsDeleteConfirmOpen(false);
     };
 
+    const handleAnalyzeIfoodResult = async (text: string) => {
+        if (!text.trim()) return;
+
+        setIsAnalyzingDiligence(true);
+        const loadingToast = toast.loading("Processando Inteligência de Plataforma...");
+
+        try {
+            // 1. AI Analysis
+            const analysis = await analyzeRawDiligence(data, `RESULTADO DE PESQUISA (IFOOD/UBER/99): ${text}`);
+
+            if (analysis) {
+                // 2. Merge with existing Intel
+                const currentIntel = data.tacticalIntel || {};
+                const mergedIntel = await mergeIntelligence(data, currentIntel, analysis);
+
+                // 3. Create Diligence Entry
+                const newHistoryItem = {
+                    id: Date.now().toString(),
+                    date: new Date().toISOString(),
+                    notes: `[INTELIGÊNCIA PLATAFORMA] ${analysis.summary || 'Dados de plataforma processados.'}`,
+                    investigator: 'Agente (Via Sistema)',
+                    type: 'IFOOD_UBER' as const
+                };
+
+                const updatedHistory = [...(data.diligentHistory || []), newHistoryItem];
+
+                // 4. Update Database
+                const success = await updateWarrant(data.id, {
+                    tacticalIntel: mergedIntel,
+                    diligentHistory: updatedHistory,
+                    tacticalSummary: analysis.summary // Update main AI summary too
+                });
+
+                if (success) {
+                    setAiDiligenceResult(mergedIntel); // Update local state
+                    toast.success("Inteligência Tática Atualizada!", { id: loadingToast });
+                    setNewDiligence(''); // Clear main input if needed, but here we keep the ifood result
+                } else {
+                    toast.error("Erro ao salvar inteligência.", { id: loadingToast });
+                }
+            } else {
+                toast.error("IA não retornou análise válida.", { id: loadingToast });
+            }
+        } catch (error) {
+            console.error(error);
+            toast.error("Falha no processamento.", { id: loadingToast });
+        } finally {
+            setIsAnalyzingDiligence(false);
+        }
+    };
+
     const handleDownloadPDF = async () => {
         if (!data) return;
         // Refresh data to ensure history is included
@@ -2357,14 +2408,25 @@ Equipe de Capturas - DIG / PCSP
 
                                         <div className="space-y-1">
                                             <label className="text-[9px] font-black text-text-muted uppercase tracking-wider">Resultado da Pesquisa</label>
-                                            <textarea
-                                                className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm text-white outline-none focus:ring-1 focus:ring-primary min-h-[120px] resize-none"
-                                                placeholder="Cole aqui os endereços e dados obtidos..."
-                                                value={localData.ifoodResult || ''}
-                                                onChange={e => handleFieldChange('ifoodResult', e.target.value)}
-                                            />
+                                            <div className="relative">
+                                                <textarea
+                                                    className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm text-white outline-none focus:ring-1 focus:ring-primary min-h-[120px] resize-none pb-12"
+                                                    placeholder="Cole aqui os endereços e dados obtidos..."
+                                                    value={localData.ifoodResult || ''}
+                                                    onChange={e => handleFieldChange('ifoodResult', e.target.value)}
+                                                />
+                                                <button
+                                                    onClick={() => handleAnalyzeIfoodResult(localData.ifoodResult)}
+                                                    disabled={!localData.ifoodResult || isAnalyzingDiligence}
+                                                    className="absolute right-2 bottom-2 bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest shadow-lg flex items-center gap-2 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                >
+                                                    <Sparkles size={12} className={isAnalyzingDiligence ? 'animate-spin' : ''} />
+                                                    {isAnalyzingDiligence ? 'Analisando...' : 'Processar Inteligência'}
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
+
 
                                     <div className="space-y-4">
                                         <div className="flex items-center justify-between">
