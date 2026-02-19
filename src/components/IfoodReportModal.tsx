@@ -15,14 +15,21 @@ interface IfoodReportModalProps {
     updateWarrant: (id: string, data: Partial<Warrant>) => Promise<boolean>;
 }
 
-const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, warrant, type, updateWarrant }) => {
+const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, warrant, type: initialType, updateWarrant }) => {
     const [generatedText, setGeneratedText] = useState('');
     const [isProcessing, setIsProcessing] = useState(false);
     const [officeNumber, setOfficeNumber] = useState('');
     const [step, setStep] = useState<'input' | 'processing' | 'result'>('input');
     const [badgeImg, setBadgeImg] = useState<HTMLImageElement | null>(null);
+    const [selectedType, setSelectedType] = useState(initialType);
 
-    // Preload badge image to speed up PDF generation
+    // Update selectedType if props change (reset)
+    useEffect(() => {
+        if (isOpen) setSelectedType(initialType);
+    }, [initialType, isOpen]);
+
+
+    // Preload badge image
     useEffect(() => {
         const loadBadge = async () => {
             try {
@@ -31,7 +38,6 @@ const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, wa
                 await new Promise((resolve) => {
                     img.onload = () => resolve(true);
                     img.onerror = () => {
-                        // Fallback
                         img.src = './brasao_pcsp_colorido.png';
                         img.onload = () => resolve(true);
                         img.onerror = () => resolve(false);
@@ -53,28 +59,18 @@ const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, wa
         }
     }, [isOpen]);
 
-    const handleGenerate = () => {
-        if (!officeNumber.trim()) {
-            toast.error("Por favor, informe o número do ofício.");
-            return;
-        }
+    const generateTextForType = (currentType: 'ifood' | 'uber' | '99') => {
+        const months = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+        const today = new Date();
+        const dateLine = `Jacareí, ${today.getDate().toString().padStart(2, '0')} de ${months[today.getMonth()]} de ${today.getFullYear()}.`;
 
-        setStep('processing');
-        setIsProcessing(true);
+        let platformName = 'IFOOD';
+        if (currentType === 'uber') platformName = 'UBER';
+        if (currentType === '99') platformName = '99';
 
-        // Reduced delay
-        setTimeout(() => {
-            const months = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
-            const today = new Date();
-            const dateLine = `Jacareí, ${today.getDate().toString().padStart(2, '0')} de ${months[today.getMonth()]} de ${today.getFullYear()}.`;
+        const indent = "          ";
 
-            let platformName = 'IFOOD';
-            if (type === 'uber') platformName = 'UBER';
-            if (type === '99') platformName = '99';
-
-            const indent = "          ";
-
-            const text = `Ofício: nº.${officeNumber}/CAPT/2025
+        return `Ofício: nº.${officeNumber}/CAPT/2025
 Referência: PROC. Nº ${warrant.number}
 Natureza: Solicitação de Dados.
 
@@ -98,11 +94,33 @@ ${indent}${warrant.name.toUpperCase()} – CPF ${warrant.cpf || warrant.rg || 'N
 ${indent}Aproveito a oportunidade para renovar meus votos de elevada estima e consideração.
 
 ${indent}Atenciosamente,`;
+    };
 
+    const handleGenerate = () => {
+        if (!officeNumber.trim()) {
+            toast.error("Por favor, informe o número do ofício.");
+            return;
+        }
+
+        setStep('processing');
+        setIsProcessing(true);
+
+        setTimeout(() => {
+            const text = generateTextForType(selectedType);
             setGeneratedText(text);
             setStep('result');
             setIsProcessing(false);
-        }, 300); // Faster transition
+        }, 300);
+    };
+
+    // When switching types in result mode, regenerate text immediately
+    const handleTypeSwitch = (newType: 'ifood' | 'uber' | '99') => {
+        setSelectedType(newType);
+        if (step === 'result') {
+            const text = generateTextForType(newType);
+            setGeneratedText(text);
+            toast.success(`Modelo alterado para ${newType.toUpperCase()}`);
+        }
     };
 
     const handleCopy = () => {
@@ -113,8 +131,6 @@ ${indent}Atenciosamente,`;
     const handleDownloadPDF = async () => {
         if (!generatedText) return;
 
-        // Use cached image or try to load if missing (fallback logic inside component state removed for speed, assumed loaded by useEffect)
-
         const doc = new jsPDF();
         const pageWidth = doc.internal.pageSize.getWidth();
         const pageHeight = doc.internal.pageSize.getHeight();
@@ -124,21 +140,16 @@ ${indent}Atenciosamente,`;
         // --- HEADER FUNCTION ---
         const addHeader = (pdf: jsPDF) => {
             let y = 10;
-
-            // 1. Badge (Left)
             if (badgeImg) {
                 const imgProps = pdf.getImageProperties(badgeImg);
-                const badgeH = 26; // Approx
+                const badgeH = 26;
                 const badgeW = (imgProps.width * badgeH) / imgProps.height;
                 pdf.addImage(badgeImg, 'PNG', margin, y, badgeW, badgeH);
             }
-
-            // 2. Text (Right of badge)
-            const textX = margin + 32; // Skip badge width
+            const textX = margin + 32;
             pdf.setFont('helvetica', 'normal');
             pdf.setFontSize(8);
             pdf.setTextColor(0, 0, 0);
-
             const headerLines = [
                 "SECRETARIA DA SEGURANÇA PÚBLICA",
                 "POLÍCIA CIVIL DO ESTADO DE SÃO PAULO",
@@ -148,96 +159,65 @@ ${indent}Atenciosamente,`;
                 "“DELEGADO TALIS PRADO PINTO”",
                 "DELEGACIA DE INVESTIGAÇÕES GERAIS DE JACAREÍ"
             ];
-
             let lineY = y + 3;
             headerLines.forEach(line => {
                 pdf.text(line, textX, lineY);
                 lineY += 3.5;
             });
-
-            // 3. Gray Bar "OFÍCIO"
             const barY = lineY + 2;
-            pdf.setFillColor(200, 200, 200); // Light Gray
+            pdf.setFillColor(200, 200, 200);
             pdf.rect(margin, barY, maxLineWidth, 6, 'F');
             pdf.setDrawColor(0);
             pdf.setLineWidth(0.1);
-            pdf.rect(margin, barY, maxLineWidth, 6, 'S'); // Border
-
+            pdf.rect(margin, barY, maxLineWidth, 6, 'S');
             pdf.setFont('helvetica', 'bold');
             pdf.setFontSize(10);
             pdf.text("OFÍCIO", pageWidth / 2, barY + 4.2, { align: 'center' });
-
-            return barY + 10; // Return Y where content starts
+            return barY + 10;
         };
 
         // --- FOOTER FUNCTION ---
         const addFooter = (pdf: jsPDF, pageNum: number, totalPages: number) => {
             const footerY = pageHeight - 15;
-
-            // Address Block (Left)
             pdf.setFont('helvetica', 'normal');
             pdf.setFontSize(8);
             pdf.setTextColor(0, 0, 0);
-
             const addr1 = "Rua Moisés Ruston, 370, Parque Itamaraty, Jacareí-SP, CEP-12.307-260";
-            const addr2 = "Tel-12-3951-1000 - E-mail - dig.jacarei@policiacivil.sp.gov.br";
-
             const today = new Date();
             const dateStr = `Data (${today.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' })})`;
             const pageStr = `Página ${pageNum} de ${totalPages}`;
-
             const dividerX = pageWidth - margin - 35;
             pdf.setDrawColor(0);
             pdf.line(dividerX, footerY - 2, dividerX, footerY + 8);
-
-            // Left of divider (Address)
             pdf.text(addr1, dividerX - 5, footerY, { align: 'right' });
-
-            // Left of divider (Contact)
             const phonePart = "Tel-12-3951-1000 - E-mail - ";
             const emailPart = "dig.jacarei@policiacivil.sp.gov.br";
-
-            // Render the phone part (black)
             const fullContactWidth = pdf.getTextWidth(phonePart + emailPart);
             const contactEndX = dividerX - 5;
             const contactStartX = contactEndX - fullContactWidth;
-
             pdf.text(phonePart, contactStartX, footerY + 4);
-
-            // Render the email part (blue) next to it
             pdf.setTextColor(0, 0, 255);
             pdf.text(emailPart, contactStartX + pdf.getTextWidth(phonePart), footerY + 4);
-            pdf.setTextColor(0, 0, 0); // Reset
-
-            // Right of divider
+            pdf.setTextColor(0, 0, 0);
             pdf.text(dateStr, dividerX + 5, footerY);
             pdf.text(pageStr, dividerX + 5, footerY + 4);
         };
 
         // --- CONTENT GENERATION ---
-
-        // Setup Doc
         doc.setFont('times', 'normal');
         let y = 10;
-
-        // Add Header Page 1
         y = addHeader(doc);
-        y += 8; // Spacing after header
+        y += 8;
 
-        // BODY TEXT (From Textarea)
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(11);
 
-        // Split text by newlines carefully
         const lines = generatedText.split('\n');
-
         lines.forEach((line) => {
-            // Check for page break
             if (y > pageHeight - 65) {
                 doc.addPage();
                 y = addHeader(doc) + 8;
             }
-
             if (line.trim() === '') {
                 y += 5;
             } else {
@@ -247,38 +227,29 @@ ${indent}Atenciosamente,`;
             }
         });
 
-
-        // AREA DE ASSINATURA E DESTINATÁRIO (Position Fixed at Bottom)
-        // --------------------------------------------------------------------------------
-
+        // Footer Logic
         const footerStart = pageHeight - 15;
         const addresseeY = footerStart - 15;
         const signatureNameY = addresseeY - 25;
         const signatureTitleY = signatureNameY + 5;
 
-        // Se o texto invadir a área da assinatura, cria nova página
         if (y > signatureNameY - 10) {
             doc.addPage();
             addHeader(doc);
         }
 
-        // Render Signature Block (Fixed Position)
         doc.setFont('helvetica', 'bold');
         doc.text("Luiz Antônio Cunha dos Santos", pageWidth / 2, signatureNameY, { align: 'center' });
         doc.text("Delegado de Polícia", pageWidth / 2, signatureTitleY, { align: 'center' });
-
-        // Render Addressee Block (Fixed Position)
         doc.setFont('helvetica', 'normal');
         doc.text("Ao Ilustríssimo Senhor Responsável", margin, addresseeY);
         doc.setFont('helvetica', 'bold');
 
-        // Dynamic Company Name Footer
         let companyName = 'iFood';
-        if (type === 'uber') companyName = 'UBER';
-        if (type === '99') companyName = '99';
+        if (selectedType === 'uber') companyName = 'UBER';
+        if (selectedType === '99') companyName = '99';
         doc.text(`Empresa ${companyName}.`, margin, addresseeY + 5);
 
-        // Add Footers
         const totalPages = (doc as any).internal.pages.length - 1;
         for (let i = 1; i <= totalPages; i++) {
             doc.setPage(i);
@@ -286,15 +257,13 @@ ${indent}Atenciosamente,`;
         }
 
         const pdfBlob = doc.output('blob');
-        const pdfFile = new File([pdfBlob], `Oficio_${type.toUpperCase()}_${officeNumber}.pdf`, { type: 'application/pdf' });
+        const pdfFile = new File([pdfBlob], `Oficio_${selectedType.toUpperCase()}_${officeNumber}.pdf`, { type: 'application/pdf' });
 
-        // Save locally first
         let filenameType = 'IFood';
-        if (type === 'uber') filenameType = 'Uber';
-        if (type === '99') filenameType = '99';
+        if (selectedType === 'uber') filenameType = 'Uber';
+        if (selectedType === '99') filenameType = '99';
         doc.save(`Oficio_${filenameType}_${officeNumber}_${warrant.name.replace(/\s+/g, '_')}.pdf`);
 
-        // Upload & Save to DB
         const toastId = toast.loading("Salvando cópia no prontuário...");
         try {
             const path = `attachments/ifood/${warrant.id}/${Date.now()}_Oficio_${officeNumber}.pdf`;
@@ -324,18 +293,25 @@ ${indent}Atenciosamente,`;
                 {/* Header */}
                 <div className="flex items-center justify-between p-4 border-b border-slate-700 bg-slate-800/50">
                     <div className="flex items-center gap-3">
-                        <div className={`p-2 rounded-lg border ${type === 'uber' ? 'bg-cyan-500/10 border-cyan-500/20 text-cyan-500' :
-                                type === '99' ? 'bg-yellow-500/10 border-yellow-500/20 text-yellow-500' :
+                        <div className={`p-2 rounded-lg border ${selectedType === 'uber' ? 'bg-cyan-500/10 border-cyan-500/20 text-cyan-500' :
+                                selectedType === '99' ? 'bg-yellow-500/10 border-yellow-500/20 text-yellow-500' :
                                     'bg-red-500/10 border-red-500/20 text-red-500'
                             }`}>
-                            {type === 'uber' ? <Car className="w-6 h-6" /> : type === '99' ? <Car className="w-6 h-6" /> : <Bike className="w-6 h-6" />}
+                            {selectedType === 'uber' ? <Car className="w-6 h-6" /> : selectedType === '99' ? <Car className="w-6 h-6" /> : <Bike className="w-6 h-6" />}
                         </div>
                         <div>
-                            <h2 className="text-lg font-bold text-slate-100 uppercase">Ofício {type.toUpperCase()}</h2>
+                            <h2 className="text-lg font-bold text-slate-100 uppercase">Ofício {selectedType.toUpperCase()}</h2>
                             <p className="text-xs text-slate-400">Geração de Documento Oficial</p>
                         </div>
                     </div>
-                    <button onClick={onClose} className="p-2 hover:bg-slate-700 rounded-full transition-colors">
+                    {/* Platform Switcher Buttons - Only show in Result step or Top Bar */}
+                    <div className="flex gap-2 mr-4">
+                        <button onClick={() => handleTypeSwitch('ifood')} className={`p-1.5 rounded-lg border transition-all ${selectedType === 'ifood' ? 'bg-red-500 text-white border-red-400' : 'bg-white/5 text-slate-400 border-white/10 hover:bg-white/10'}`} title="iFood"><Bike size={14} /></button>
+                        <button onClick={() => handleTypeSwitch('uber')} className={`p-1.5 rounded-lg border transition-all ${selectedType === 'uber' ? 'bg-cyan-500 text-white border-cyan-400' : 'bg-white/5 text-slate-400 border-white/10 hover:bg-white/10'}`} title="Uber"><Car size={14} /></button>
+                        <button onClick={() => handleTypeSwitch('99')} className={`p-1.5 rounded-lg border transition-all ${selectedType === '99' ? 'bg-yellow-500 text-white border-yellow-400' : 'bg-white/5 text-slate-400 border-white/10 hover:bg-white/10'}`} title="99"><Car size={14} /></button>
+                    </div>
+
+                    <button onClick={onClose} className="p-2 hover:bg-slate-700 rounded-full transition-colors ml-auto">
                         <X className="w-5 h-5 text-slate-400" />
                     </button>
                 </div>
@@ -377,7 +353,7 @@ ${indent}Atenciosamente,`;
                             <Loader2 className="w-12 h-12 text-indigo-500 animate-spin mb-4" />
                             <h3 className="text-xl font-bold text-white uppercase tracking-tighter">Gerando Minuta...</h3>
                             <p className="text-slate-400 mt-2 max-w-sm text-sm">
-                                Substituindo dados de {warrant.name} no modelo {type.toUpperCase()} nº {officeNumber}.
+                                Substituindo dados de {warrant.name} no modelo {selectedType.toUpperCase()} nº {officeNumber}.
                             </p>
                         </div>
                     )}
