@@ -2337,14 +2337,14 @@ Equipe de Capturas - DIG / PCSP
                                     </div>
                                     <button
                                         onClick={handleGenerateIfoodOffice}
-                                        className="bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-tactic flex items-center gap-2 transition-all active:scale-95"
+                                        className="bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-tactic flex items-center gap-2 transition-all active:scale-95 border border-slate-500/30"
                                     >
                                         <FileText size={14} /> Gerar Ofício Padrão (Modelo Antigo)
                                     </button>
                                     <div className="flex justify-end w-full sm:w-auto">
                                         <button
                                             onClick={() => setActiveReportType('ifood')}
-                                            className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg flex items-center gap-2 transition-all active:scale-95 border border-indigo-500/30"
+                                            className="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg flex items-center gap-2 transition-all active:scale-95 border border-indigo-500/30"
                                         >
                                             <Bike size={14} /> GERAR OFÍCIO PLATAFORMA
                                         </button>
