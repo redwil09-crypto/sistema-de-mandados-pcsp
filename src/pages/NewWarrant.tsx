@@ -24,7 +24,7 @@ const NewWarrant = () => {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const editId = searchParams.get('edit');
-    const [type, setType] = useState<'prison' | 'search'>('prison');
+    const [type, setType] = useState<'prison' | 'search' | 'counter'>('prison');
     const [isUploading, setIsUploading] = useState(false);
     const [isSearchingCep, setIsSearchingCep] = useState(false);
     const [suggestions, setSuggestions] = useState<GeocodingResult[]>([]);
@@ -318,7 +318,7 @@ const NewWarrant = () => {
 
             const warrantData: Partial<Warrant> = {
                 name: formData.name,
-                type: type === 'prison' ? 'MANDADO DE PRISÃO' : 'BUSCA E APREENSÃO',
+                type: type === 'prison' ? 'MANDADO DE PRISÃO' : (type === 'search' ? 'BUSCA E APREENSÃO' : 'CONTRAMANDADO DE PRISÃO'),
                 location: formData.location,
                 number: formData.number,
                 rg: formData.rg,
@@ -393,7 +393,17 @@ const NewWarrant = () => {
                         onClick={() => setType('search')}
                         className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${type === 'search' ? 'bg-primary text-white shadow-sm' : 'text-text-secondary-light dark:text-text-secondary-dark'}`}
                     >
-                        Busca e Apreensão
+                        Busca
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => {
+                            setType('counter');
+                            setFormData(prev => ({ ...prev, regime: 'Contramandado' }));
+                        }} // @ts-ignore
+                        className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 ${type === 'counter' ? 'bg-emerald-500 text-white shadow-sm ring-2 ring-emerald-500/20' : 'text-text-secondary-light dark:text-text-secondary-dark hover:bg-emerald-500/10 hover:text-emerald-500'}`}
+                    >
+                        <FileCheck size={14} /> Contramandado
                     </button>
                 </div>
             </div>

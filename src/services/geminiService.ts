@@ -322,6 +322,7 @@ export async function extractWarrantFromImage(base64Image: string, mimeType: str
         1. Identifique visualmente campos como VARA, PROCESSO, NOME, ENDEREÇOS.
         2. Se a imagem estiver ruim, faça o melhor possível para inferir o contexto, mas martele a precisão nos números (RG, CPF, PROCESSO).
         3. Converta Artigos (ex: 157, 33) para Nomes de Crimes (Roubo, Tráfico), igual à regra padrão.
+        4. IMPORTANTE: Se o documento contiver "CONTRAMANDADO", "REVOGAÇÃO" ou a pessoa não for mais procurada, defina "type": "CONTRAMANDADO DE PRISÃO" e "regime": "Contramandado".
         
         SAÍDA OBRIGATÓRIA EM JSON (SEM COMENTÁRIOS):
         {
@@ -330,9 +331,9 @@ export async function extractWarrantFromImage(base64Image: string, mimeType: str
             "cpf": "Apenas números",
             "birthDate": "AAAA-MM-DD",
             "processNumber": "Número do processo unificado",
-            "type": "MANDADO DE PRISÃO" ou "BUSCA E APREENSÃO",
+            "type": "MANDADO DE PRISÃO", "BUSCA E APREENSÃO" ou "CONTRAMANDADO DE PRISÃO",
             "crime": "NOME DO CRIME TRADUZIDO (Ex: Roubo)",
-            "regime": "Fechado / Semiaberto / Aberto / Preventiva / Temporária / Civil",
+            "regime": "Fechado / Semiaberto / Aberto / Preventiva / Temporária / Civil / Contramandado",
             "issuingCourt": "VARA E COMARCA POR EXTENSO",
             "addresses": ["Endereço 1", "Endereço 2"],
             "issueDate": "AAAA-MM-DD",

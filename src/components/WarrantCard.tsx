@@ -16,12 +16,20 @@ interface WarrantCardProps {
 }
 
 const WarrantCard = ({ data, onPrint, isPlanned, onRouteToggle, onFinalize, onDelete, ...props }: WarrantCardProps) => {
-    // Determine stripe color based on search/seizure vs arrest
+    // Determine stripe color based on search/seizure vs arrest vs counter-warrant
     const isSearch = data.type ? (data.type.toLowerCase().includes('busca') || data.type.toLowerCase().includes('apreensão')) : false;
+    const isCounterWarrant = (data.regime && data.regime.toLowerCase() === 'contramandado') || (data.type && data.type.toLowerCase().includes('contramandado'));
 
-    const hoverClasses = isSearch
-        ? 'hover:border-orange-500 hover:shadow-[0_0_25px_rgba(249,115,22,0.6)]'
-        : 'hover:border-blue-500 hover:shadow-[0_0_25px_rgba(59,130,246,0.6)]';
+    let hoverClasses = 'hover:border-blue-500 hover:shadow-[0_0_25px_rgba(59,130,246,0.6)]';
+    let stripeClasses = 'bg-blue-600 shadow-[2px_0_15px_rgba(37,99,235,0.6)]';
+
+    if (isSearch) {
+        hoverClasses = 'hover:border-orange-500 hover:shadow-[0_0_25px_rgba(249,115,22,0.6)]';
+        stripeClasses = 'bg-orange-600 shadow-[2px_0_15px_rgba(234,88,12,0.6)]';
+    } else if (isCounterWarrant) {
+        hoverClasses = 'hover:border-emerald-500 hover:shadow-[0_0_25px_rgba(16,185,129,0.6)] border-emerald-500/30';
+        stripeClasses = 'bg-emerald-500 shadow-[2px_0_15px_rgba(16,185,129,0.6)]';
+    }
 
     return (
         <Link
@@ -30,7 +38,7 @@ const WarrantCard = ({ data, onPrint, isPlanned, onRouteToggle, onFinalize, onDe
             {...props}
         >
             {/* Type Indicator Strip (Left Border) */}
-            <div className={`absolute left-0 top-0 bottom-0 w-1.5 transition-colors duration-300 ${isSearch ? 'bg-orange-600 shadow-[2px_0_15px_rgba(234,88,12,0.6)]' : 'bg-blue-600 shadow-[2px_0_15px_rgba(37,99,235,0.6)]'}`}></div>
+            <div className={`absolute left-0 top-0 bottom-0 w-1.5 transition-colors duration-300 ${stripeClasses}`}></div>
 
             {/* Hover Tech Pattern Overlay */}
             <div className="absolute inset-0 bg-grid-pattern opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
@@ -97,8 +105,17 @@ const WarrantCard = ({ data, onPrint, isPlanned, onRouteToggle, onFinalize, onDe
                     {/* Meta Data Grid */}
                     <div className="grid grid-cols-1 gap-1 mb-3">
                         <div className="flex items-center gap-2">
-                            {isSearch ? <Briefcase size={12} className="text-orange-500" /> : <Gavel size={12} className="text-secondary" />}
-                            <span className="text-xs font-medium text-text-secondary-light dark:text-text-secondary-dark">{data.type}</span>
+                            {isSearch ? (
+                                <Briefcase size={12} className="text-orange-500" />
+                            ) : isCounterWarrant ? (
+                                <CheckCircle size={12} className="text-emerald-500" />
+                            ) : (
+                                <Gavel size={12} className="text-secondary" />
+                            )}
+
+                            <span className={`text-xs font-medium ${isCounterWarrant ? 'text-emerald-600 dark:text-emerald-400 font-bold uppercase tracking-wider' : 'text-text-secondary-light dark:text-text-secondary-dark'}`}>
+                                {isCounterWarrant ? 'CONTRAMANDADO' : data.type}
+                            </span>
                         </div>
 
                         {(data.crime || data.regime) && (
