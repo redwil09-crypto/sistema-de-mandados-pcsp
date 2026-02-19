@@ -294,8 +294,8 @@ ${indent}Atenciosamente,`;
                 <div className="flex items-center justify-between p-4 border-b border-slate-700 bg-slate-800/50">
                     <div className="flex items-center gap-3">
                         <div className={`p-2 rounded-lg border ${selectedType === 'uber' ? 'bg-cyan-500/10 border-cyan-500/20 text-cyan-500' :
-                                selectedType === '99' ? 'bg-yellow-500/10 border-yellow-500/20 text-yellow-500' :
-                                    'bg-red-500/10 border-red-500/20 text-red-500'
+                            selectedType === '99' ? 'bg-yellow-500/10 border-yellow-500/20 text-yellow-500' :
+                                'bg-red-500/10 border-red-500/20 text-red-500'
                             }`}>
                             {selectedType === 'uber' ? <Car className="w-6 h-6" /> : selectedType === '99' ? <Car className="w-6 h-6" /> : <Bike className="w-6 h-6" />}
                         </div>

@@ -430,7 +430,8 @@ export const generateIfoodOfficePDF = async (
                 "SECRETARIA DA SEGURANÇA PÚBLICA",
                 "POLÍCIA CIVIL DO ESTADO DE SÃO PAULO",
                 "DEINTER 1 - SÃO JOSÉ DOS CAMPOS",
-                "DELEGACIA SECCIONAL DE POLÍCIA DE JACAREÍ",
+                "DELEGACIA SECCIONAL DE POLÍCIA DE JACAREÍ –",
+                "“DELEGADO TALIS PRADO PINTO”",
                 "DELEGACIA DE INVESTIGAÇÕES GERAIS DE JACAREÍ"
             ];
             headerLines.forEach((line, index) => {
@@ -514,9 +515,9 @@ export const generateIfoodOfficePDF = async (
         doc.rect(margin, boxY, contentWidth, 18);
         doc.setFontSize(9);
         doc.setFont('helvetica', 'bolditalic');
-        doc.text("Excelentíssimo Delegado de Polícia Titular", margin + 5, boxY + 7);
+        doc.text("Excelentíssimo Delegado de Polícia", margin + 5, boxY + 7);
         doc.setFont('helvetica', 'normal');
-        doc.text("Dr. Rubens G. Garcia de Camargo Jr.", margin + 5, boxY + 13);
+        doc.text("Luiz Antônio Cunha dos Santos", margin + 5, boxY + 13);
 
         const fileName = `Oficio_iFood_${data.name.replace(/\s+/g, '_')}.pdf`;
         doc.save(fileName);
