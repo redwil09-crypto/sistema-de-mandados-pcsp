@@ -1721,6 +1721,14 @@ Equipe de Capturas - DIG / PCSP
         navigate('/');
     };
 
+    // Determine Theme Colors based on Type
+    const isSearch = localData.type ? (localData.type.toLowerCase().includes('busca') || localData.type.toLowerCase().includes('apreensão')) : false;
+    const isCounterWarrant = (localData.regime && (localData.regime.toLowerCase() === 'contramandado' || localData.regime.toLowerCase() === 'civil')) || (localData.type && localData.type.toLowerCase().includes('contramandado'));
+
+    const themeColor = isSearch ? 'text-orange-500' : (isCounterWarrant ? 'text-emerald-500' : 'text-primary');
+    const themeBg = isSearch ? 'bg-orange-500/10' : (isCounterWarrant ? 'bg-emerald-500/10' : 'bg-primary/10');
+    const themeBorder = isSearch ? 'border-orange-500/20' : (isCounterWarrant ? 'border-emerald-500/20' : 'border-primary/20');
+
     return (
         <div className="min-h-screen bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark font-display relative overflow-x-hidden pb-12">
             {/* Tactical Grid Background Layer */}
@@ -1739,7 +1747,7 @@ Equipe de Capturas - DIG / PCSP
                 {/* 1. Tactical Profile Header */}
                 <div className="bg-surface-light dark:bg-surface-dark/60 backdrop-blur-xl border border-border-light dark:border-white/10 rounded-2xl p-4 shadow-glass overflow-hidden relative group">
                     {/* Animated Glow Decorator */}
-                    <div className="absolute -top-24 -right-24 w-48 h-48 bg-primary/10 rounded-full blur-3xl group-hover:bg-primary/20 transition-all"></div>
+                    <div className={`absolute -top-24 -right-24 w-48 h-48 ${themeBg} rounded-full blur-3xl group-hover:opacity-100 transition-all opacity-50`}></div>
 
                     <div className="flex flex-col sm:flex-row gap-6 relative">
                         <div className="relative shrink-0 mx-auto sm:mx-0 group/photo">
@@ -1797,9 +1805,15 @@ Equipe de Capturas - DIG / PCSP
                         <div className="flex-1 space-y-4 text-center sm:text-left">
                             <div>
                                 <div className="flex flex-wrap justify-center sm:justify-start items-center gap-2 mb-1">
-                                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-secondary bg-secondary/10 px-2 py-0.5 rounded border border-secondary/20">
-                                        Identificação Biométrica
-                                    </span>
+                                    {isCounterWarrant ? (
+                                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20 flex items-center gap-1">
+                                            <FileCheck size={10} /> CONTRAMANDADO
+                                        </span>
+                                    ) : (
+                                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-secondary bg-secondary/10 px-2 py-0.5 rounded border border-secondary/20">
+                                            Identificação Biométrica
+                                        </span>
+                                    )}
                                     {localData.status === 'EM ABERTO' && (
                                         <span className="text-[10px] font-black uppercase tracking-[0.2em] text-risk-high bg-risk-high/10 px-2 py-0.5 rounded border border-risk-high/20 animate-pulse">
                                             Status: Foragido
@@ -1807,7 +1821,7 @@ Equipe de Capturas - DIG / PCSP
                                     )}
                                 </div>
                                 <input
-                                    className="text-2xl font-black text-text-light dark:text-white leading-tight uppercase bg-transparent border-none outline-none focus:ring-1 focus:ring-primary/40 rounded-lg px-2 -ml-2 w-full transition-all hover:text-secondary placeholder:text-text-secondary-light/50 dark:placeholder:text-white/20"
+                                    className={`text-2xl font-black text-text-light dark:text-white leading-tight uppercase bg-transparent border-none outline-none focus:ring-1 focus:ring-primary/40 rounded-lg px-2 -ml-2 w-full transition-all hover:text-${themeColor.replace('text-', '')} placeholder:text-text-secondary-light/50 dark:placeholder:text-white/20`}
                                     value={localData.name}
                                     onChange={e => handleFieldChange('name', e.target.value)}
                                     placeholder="NOME DO ALVO"
@@ -1844,6 +1858,7 @@ Equipe de Capturas - DIG / PCSP
                                     >
                                         <option value="" className="bg-white dark:bg-surface-dark text-slate-900 dark:text-white">Selecione...</option>
                                         {REGIME_OPTIONS.map(opt => <option key={opt} value={opt} className="bg-white dark:bg-surface-dark text-slate-900 dark:text-white">{opt}</option>)}
+                                        <option value="Contramandado" className="bg-white dark:bg-surface-dark text-slate-900 dark:text-white font-bold text-emerald-500">Contramandado</option>
                                     </select>
                                 </div>
                                 <div className="bg-background-light dark:bg-white/5 border border-border-light dark:border-white/5 p-2 rounded-xl text-center">
