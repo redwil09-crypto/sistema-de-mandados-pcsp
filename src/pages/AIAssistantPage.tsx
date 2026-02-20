@@ -1264,14 +1264,14 @@ const AIAssistantPage = () => {
                         <div className="space-y-4 animate-in fade-in pb-4">
                             {/* Filters Section */}
                             <div className="flex gap-2">
-                                <div className="relative flex-1">
-                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary-light" size={20} />
+                                <div className="relative flex-1 group">
+                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-primary dark:text-blue-500 group-focus-within:text-blue-400 transition-colors" size={20} />
                                     <input
                                         type="text"
                                         value={searchTerm}
                                         onChange={(e) => setSearchTerm(e.target.value)}
                                         placeholder="Buscar por nome, CPF, RG, processo..."
-                                        className="w-full rounded-xl border-none bg-surface-light py-3 pl-10 pr-4 text-sm shadow-sm dark:bg-surface-dark dark:text-white placeholder:text-text-secondary-light dark:placeholder:text-text-secondary-dark"
+                                        className="w-full rounded-xl border-2 border-border-light dark:border-white/10 bg-white dark:bg-zinc-900/50 py-3 pl-10 pr-4 text-sm shadow-sm dark:text-white placeholder:text-text-secondary-light dark:placeholder:text-zinc-500 focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all outline-none"
                                     />
                                 </div>
                                 <button
@@ -1286,52 +1286,52 @@ const AIAssistantPage = () => {
                             </div>
 
                             {showFilters && (
-                                <div className="bg-surface-light dark:bg-surface-dark p-4 rounded-xl shadow-sm border border-border-light dark:border-border-dark animate-in slide-in-from-top-2">
-                                    <div className="flex justify-between items-center mb-3">
-                                        <h3 className="font-bold text-text-light dark:text-text-dark text-sm">Filtros Avançados</h3>
+                                <div className="bg-surface-light dark:bg-[#151517] p-5 rounded-2xl shadow-xl border border-border-light dark:border-white/10 animate-in slide-in-from-top-2">
+                                    <div className="flex justify-between items-center mb-4">
+                                        <h3 className="font-black text-text-light dark:text-white text-xs uppercase tracking-widest">Filtros Avançados</h3>
                                         {hasActiveFilters && (
                                             <button onClick={clearFilters} className="text-xs text-primary font-bold hover:underline">
                                                 Limpar
                                             </button>
                                         )}
                                     </div>
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
-                                        <div>
-                                            <label className="block text-xs font-medium text-text-secondary-light mb-1">Crime</label>
-                                            <select value={filterCrime} onChange={e => setFilterCrime(e.target.value)} className="w-full rounded-lg border border-border-light dark:border-border-dark bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white text-xs p-2 outline-none focus:ring-1 focus:ring-primary appearance-none">
-                                                <option value="" className="bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white">Todos os Crimes</option>
-                                                {CRIME_OPTIONS.map(c => <option key={c} value={c} className="bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white">{c}</option>)}
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                                        <div className="space-y-1.5">
+                                            <label className="block text-[10px] font-black text-text-secondary-light dark:text-zinc-500 uppercase tracking-widest ml-1">Crime</label>
+                                            <select value={filterCrime} onChange={e => setFilterCrime(e.target.value)} className="w-full rounded-xl border border-border-light dark:border-white/10 bg-white dark:bg-black/40 text-zinc-900 dark:text-zinc-200 text-xs p-3 outline-none focus:ring-2 focus:ring-primary/30 appearance-none transition-all">
+                                                <option value="" className="bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white">Todos os Crimes</option>
+                                                {CRIME_OPTIONS.map(c => <option key={c} value={c} className="bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white">{c}</option>)}
                                             </select>
                                         </div>
-                                        <div>
-                                            <label className="block text-xs font-medium text-text-secondary-light mb-1">Status</label>
-                                            <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className="w-full rounded-lg border border-border-light dark:border-border-dark bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white text-xs p-2 outline-none focus:ring-1 focus:ring-primary appearance-none">
-                                                <option value="" className="bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white">Todos</option>
-                                                <option value="EM ABERTO" className="bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white">Em Aberto</option>
-                                                <option value="CUMPRIDO" className="bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white">Cumprido</option>
-                                                <option value="PRESO" className="bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white">Preso</option>
+                                        <div className="space-y-1.5">
+                                            <label className="block text-[10px] font-black text-text-secondary-light dark:text-zinc-500 uppercase tracking-widest ml-1">Status</label>
+                                            <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className="w-full rounded-xl border border-border-light dark:border-white/10 bg-white dark:bg-black/40 text-zinc-900 dark:text-zinc-200 text-xs p-3 outline-none focus:ring-2 focus:ring-primary/30 appearance-none transition-all">
+                                                <option value="" className="bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white">Todos</option>
+                                                <option value="EM ABERTO" className="bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white">Em Aberto</option>
+                                                <option value="CUMPRIDO" className="bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white">Cumprido</option>
+                                                <option value="PRESO" className="bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white">Preso</option>
                                             </select>
                                         </div>
                                     </div>
-                                    <div className="grid grid-cols-2 gap-3">
-                                        <div>
-                                            <label className="block text-xs font-medium text-text-secondary-light mb-1">Data Início</label>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="space-y-1.5">
+                                            <label className="block text-[10px] font-black text-text-secondary-light dark:text-zinc-500 uppercase tracking-widest ml-1">Data Início</label>
                                             <input
                                                 type="text"
                                                 value={dateStart}
                                                 onChange={(e) => setDateStart(maskDate(e.target.value))}
                                                 placeholder="DD/MM/YYYY"
-                                                className="w-full rounded-lg border border-border-light dark:border-border-dark bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white text-xs p-2 outline-none focus:ring-1 focus:ring-primary"
+                                                className="w-full rounded-xl border border-border-light dark:border-white/10 bg-white dark:bg-black/40 text-zinc-900 dark:text-zinc-200 text-xs p-3 outline-none focus:ring-2 focus:ring-primary/30 transition-all font-mono"
                                             />
                                         </div>
-                                        <div>
-                                            <label className="block text-xs font-medium text-text-secondary-light mb-1">Data Fim</label>
+                                        <div className="space-y-1.5">
+                                            <label className="block text-[10px] font-black text-text-secondary-light dark:text-zinc-500 uppercase tracking-widest ml-1">Data Fim</label>
                                             <input
                                                 type="text"
                                                 value={dateEnd}
                                                 onChange={(e) => setDateEnd(maskDate(e.target.value))}
                                                 placeholder="DD/MM/YYYY"
-                                                className="w-full rounded-lg border border-border-light dark:border-border-dark bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white text-xs p-2 outline-none focus:ring-1 focus:ring-primary"
+                                                className="w-full rounded-xl border border-border-light dark:border-white/10 bg-white dark:bg-black/40 text-zinc-900 dark:text-zinc-200 text-xs p-3 outline-none focus:ring-2 focus:ring-primary/30 transition-all font-mono"
                                             />
                                         </div>
                                     </div>
@@ -1369,11 +1369,11 @@ const AIAssistantPage = () => {
                                                     </span>
                                                 </div>
 
-                                                <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-[10px] text-text-secondary-light dark:text-zinc-400">
-                                                    <p className="truncate"><span className="font-black text-primary/80 uppercase mr-1">RG:</span> {w.rg || '-'}</p>
-                                                    <p className="truncate"><span className="font-black text-primary/80 uppercase mr-1">CPF:</span> {w.cpf || '-'}</p>
-                                                    <p className="truncate"><span className="font-black text-orange-500 uppercase mr-1">Crime:</span> {w.crime || '-'}</p>
-                                                    <p className="truncate"><span className="font-black text-blue-500 uppercase mr-1">Regime:</span> {w.regime || '-'}</p>
+                                                <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-[10px] text-text-secondary-light dark:text-zinc-500 font-medium">
+                                                    <p className="truncate"><span className="font-black text-blue-600 dark:text-blue-500 uppercase mr-1">RG:</span> <span className="text-zinc-900 dark:text-zinc-300">{w.rg || '-'}</span></p>
+                                                    <p className="truncate"><span className="font-black text-blue-600 dark:text-blue-500 uppercase mr-1">CPF:</span> <span className="text-zinc-900 dark:text-zinc-300">{w.cpf || '-'}</span></p>
+                                                    <p className="truncate"><span className="font-black text-orange-600 dark:text-orange-500 uppercase mr-1">Crime:</span> <span className="text-zinc-900 dark:text-zinc-300">{w.crime || '-'}</span></p>
+                                                    <p className="truncate"><span className="font-black text-indigo-600 dark:text-indigo-500 uppercase mr-1">Regime:</span> <span className="text-zinc-900 dark:text-zinc-300">{w.regime || '-'}</span></p>
                                                 </div>
                                             </div>
                                         </div>
