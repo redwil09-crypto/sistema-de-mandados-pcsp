@@ -272,6 +272,12 @@ export async function extractFullWarrantIntelligence(rawText: string): Promise<a
 
         4. 📅 DATAS: Formate estritamente no padrão AAAA-MM-DD.
 
+        5. 🚫 CONTRAMANDADOS / REVOGAÇÕES:
+           - SE O DOCUMENTO FOR UM "CONTRAMANDADO", "ALVARÁ DE SOLTURA", "REVOGAÇÃO DE PRISÃO" ou "RECOLHIMENTO DE MANDADO":
+           - O CAMPO "type" DEVE SER "CONTRAMANDADO DE PRISÃO".
+           - O CAMPO "regime" DEVE SER "Contramandado".
+           - O CAMPO "status" DEVE SER "CUMPRIDO".
+
         TEXTO BRUTO DO MANDADO (OCR):
         """
         ${rawText}
@@ -339,7 +345,8 @@ export async function extractWarrantFromImage(base64Image: string, mimeType: str
             "issueDate": "AAAA-MM-DD",
             "expirationDate": "AAAA-MM-DD",
             "observations": "Dados visuais adicionais (tatuagens, marcas) ou observações do texto",
-            "tags": ["Urgente", "Risco de Fuga", etc]
+            "tags": ["Urgente", "Risco de Fuga", etc],
+            "status": "EM ABERTO" ou "CUMPRIDO" (Se for Contramandado)
         }
     `;
 

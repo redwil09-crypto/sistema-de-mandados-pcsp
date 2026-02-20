@@ -402,17 +402,22 @@ const AIAssistantPage = () => {
                 }
             }
 
+            // FINAL SAFETY CHECK: Force status for Contramandado
+            const isContramandado = extractedData.type?.toUpperCase().includes('CONTRAMANDADO') ||
+                extractedData.type?.toUpperCase().includes('CONTRA MANDADO') ||
+                extractedData.regime?.toLowerCase() === 'contramandado';
+
             const newWarrant: Warrant = {
                 id: warrantId, // This string ID will be ignored by warrantToDb, DB generates UUID
                 name: extractedData.name,
-                type: extractedData.type,
-                status: extractedData.status || 'EM ABERTO',
+                type: isContramandado ? 'CONTRAMANDADO DE PRISÃO' : extractedData.type,
+                status: isContramandado ? 'CUMPRIDO' : (extractedData.status || 'EM ABERTO'),
 
                 number: extractedData.processNumber,
                 rg: extractedData.rg || '',
                 cpf: extractedData.cpf || '',
                 crime: extractedData.crime || 'Não informado',
-                regime: extractedData.regime || 'Não informado',
+                regime: isContramandado ? 'Contramandado' : (extractedData.regime || 'Não informado'),
                 observation: extractedData.observations || '',
                 issueDate: extractedData.issueDate,
                 entryDate: new Date().toLocaleDateString('pt-BR'),
