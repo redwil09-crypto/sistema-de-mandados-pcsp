@@ -1,0 +1,102 @@
+import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
+import { Home, Printer, CheckCircle, Trash2, RefreshCw, ChevronLeft } from 'lucide-react';
+
+interface FloatingDockProps {
+    onBack: () => void;
+    onHome?: () => void;
+    onSave?: () => void;
+    onPrint: () => void;
+    onFinalize: () => void;
+    onDelete?: () => void;
+    className?: string;
+}
+
+const FloatingDock = ({ onBack, onHome, onSave, onPrint, onFinalize, onDelete, className }: FloatingDockProps) => {
+    const containerClasses = className || "w-full z-10 rounded-3xl border border-border-light dark:border-white/10 bg-slate-100/95 dark:bg-zinc-900/95 backdrop-blur-xl shadow-glass transition-all duration-300 px-4 py-4 mt-8 mb-2";
+
+    return (
+        <div className={`${containerClasses} animate-in fade-in slide-in-from-bottom-5 duration-500`}>
+            <div className="flex w-full items-center justify-center gap-2 sm:gap-6 md:gap-10">
+                {/* Bot+úo VOLTAR (Hist+¦rico) */}
+                <DockItem
+                    onClick={onBack}
+                    icon={<ChevronLeft size={24} />}
+                    color="text-text-secondary-light dark:text-text-secondary-dark hover:text-primary"
+                    bg="hover:bg-primary/10"
+                    label="Voltar"
+                />
+
+                {/* Bot+úo IN+ìCIO (Casinha) - SEMPRE AZUL NEON */}
+                <DockItem
+                    onClick={onHome || onBack}
+                    icon={<Home size={24} className="text-blue-500 drop-shadow-[0_0_8px_rgba(59,130,246,0.6)]" />}
+                    color="text-blue-500"
+                    bg="hover:bg-blue-500/10"
+                    label="Home"
+                />
+
+                {/* Bot+úo ATUALIZAR */}
+                {onSave && (
+                    <DockItem
+                        onClick={onSave}
+                        icon={<RefreshCw size={24} />}
+                        color="text-text-secondary-light dark:text-text-secondary-dark hover:text-orange-500"
+                        bg="hover:bg-orange-500/10"
+                        label="Editar"
+                    />
+                )}
+
+                {/* PDF */}
+                <DockItem
+                    onClick={onPrint}
+                    icon={<Printer size={24} />}
+                    color="text-text-secondary-light dark:text-text-secondary-dark hover:text-yellow-500"
+                    bg="hover:bg-yellow-500/10"
+                    label="Imprimir"
+                />
+
+                {/* CONCLUIR */}
+                <DockItem
+                    onClick={onFinalize}
+                    icon={<CheckCircle size={24} />}
+                    color="text-text-secondary-light dark:text-text-secondary-dark hover:text-green-500"
+                    bg="hover:bg-green-500/10"
+                    label="Baixar"
+                />
+
+                {/* EXCLUIR */}
+                {onDelete && (
+                    <DockItem
+                        onClick={onDelete}
+                        icon={<Trash2 size={24} />}
+                        color="text-text-secondary-light dark:text-text-secondary-dark hover:text-red-500"
+                        bg="hover:bg-red-500/10"
+                        label="Apagar"
+                    />
+                )}
+            </div>
+        </div>
+    );
+};
+
+const DockItem = ({ onClick, icon, color, bg, label, active = false }: { onClick: () => void, icon: React.ReactNode, color: string, bg: string, label: string, active?: boolean }) => {
+    return (
+        <button
+            onClick={onClick}
+            className={`group relative flex flex-col items-center justify-center gap-1 w-14 h-14 rounded-xl transition-all duration-200 ${color} ${active ? bg.replace('hover:bg-', 'bg-') : bg} active:scale-95`}
+        >
+            <div className="relative z-10 scale-90">
+                {icon}
+            </div>
+
+            <span className="text-[9px] font-black uppercase tracking-tighter relative z-10 font-display opacity-80 group-hover:opacity-100 transition-opacity">
+                {label}
+            </span>
+
+            <div className={`absolute inset-0 rounded-xl transition-opacity duration-300 ${active ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'} ${bg.replace('hover:bg-', 'bg-').replace('/20', '/10')}`}></div>
+        </button>
+    );
+};
+
+export default FloatingDock;

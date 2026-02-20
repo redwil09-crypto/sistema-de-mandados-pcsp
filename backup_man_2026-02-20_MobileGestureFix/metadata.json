@@ -1,0 +1,5 @@
+{
+  "name": "Sistema de Mandados PCSP",
+  "description": "Sistema de gestão de mandados policiais funcional e responsivo, com estatísticas, busca e planejamento de rotas.",
+  "requestFramePermissions": []
+}
