@@ -1472,10 +1472,7 @@ Equipe de Capturas - DIG / PCSP
             headerLines.forEach((line, index) => {
                 doc.text(line, textX, y + 4 + (index * 4));
             });
-            y += 32;
-
-            // Spacing reduced
-            y += 2;
+            y += 28; // Reduzido de 32 para 28 para aproximar a barra preta
 
             // --- BLACK TITLE BAR ---
             doc.setFillColor(0, 0, 0);
@@ -1517,7 +1514,14 @@ Equipe de Capturas - DIG / PCSP
                 doc.text(labelText, margin, y);
 
                 const labelWidth = doc.getTextWidth(labelText);
-                doc.setFont('helvetica', 'bolditalic');
+
+                // Aplica Negrito (bold) se for Referência ou Réu, caso contrário mantém bolditalic
+                if (field.label === "Referência:" || field.label === "Réu:" || field.label === "Adolescente:") {
+                    doc.setFont('helvetica', 'bold');
+                } else {
+                    doc.setFont('helvetica', 'bolditalic');
+                }
+
                 doc.text(field.value, margin + labelWidth, y);
                 y += 6;
             });
@@ -1635,6 +1639,8 @@ Equipe de Capturas - DIG / PCSP
                     y = 30;
                 }
             });
+
+            y += 15; // Aumentado o distanciamento do corpo do texto para a assinatura
 
             // --- SIGNATURE BLOCK (Right Aligned) ---
             if (y > pageHeight - 60) {
