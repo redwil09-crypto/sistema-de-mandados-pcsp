@@ -1897,27 +1897,28 @@ Equipe de Capturas - DIG / PCSP
                 {/* 2. Tactical Navigation Tabs */}
                 {/* 2. Tactical Navigation Tabs - Redesigned */}
                 {/* 2. Tactical Navigation Tabs - Ultra Futuristic */}
-                <div className="flex bg-black/80 backdrop-blur-2xl border border-white/5 rounded-full p-1.5 gap-2 shadow-2xl sticky top-2 z-[30] ring-1 ring-white/5 mx-auto max-w-4xl w-full">
+                {/* 2. Tactical Navigation Tabs - Ultra Futuristic & Responsive */}
+                <div className="flex bg-white dark:bg-black/80 backdrop-blur-2xl border border-gray-200 dark:border-white/5 rounded-xl p-1.5 gap-2 shadow-xl sticky top-2 z-[30] ring-1 ring-black/5 dark:ring-white/5 w-full">
                     {[
                         {
                             id: 'documents',
                             label: 'Dossiê',
                             icon: FileText,
-                            activeClass: 'text-cyan-400 shadow-[0_0_20px_rgba(34,211,238,0.3)] bg-cyan-500/10 border-cyan-500/50',
+                            activeClass: 'text-cyan-600 dark:text-cyan-400 shadow-[0_0_20px_rgba(34,211,238,0.3)] bg-cyan-50 dark:bg-cyan-500/10 border-cyan-200 dark:border-cyan-500/50',
                             glowColor: 'cyan'
                         },
                         {
                             id: 'investigation',
                             label: 'Investigações',
                             icon: Bot,
-                            activeClass: 'text-fuchsia-400 shadow-[0_0_20px_rgba(232,121,249,0.3)] bg-fuchsia-500/10 border-fuchsia-500/50',
+                            activeClass: 'text-fuchsia-600 dark:text-fuchsia-400 shadow-[0_0_20px_rgba(232,121,249,0.3)] bg-fuchsia-50 dark:bg-fuchsia-500/10 border-fuchsia-200 dark:border-fuchsia-500/50',
                             glowColor: 'fuchsia'
                         },
                         {
                             id: 'timeline',
                             label: 'Operações',
                             icon: History,
-                            activeClass: 'text-emerald-400 shadow-[0_0_20px_rgba(52,211,153,0.3)] bg-emerald-500/10 border-emerald-500/50',
+                            activeClass: 'text-emerald-600 dark:text-emerald-400 shadow-[0_0_20px_rgba(52,211,153,0.3)] bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/50',
                             glowColor: 'emerald'
                         }
                     ].map((tab) => {
@@ -1927,17 +1928,17 @@ Equipe de Capturas - DIG / PCSP
                                 key={tab.id}
                                 onClick={() => setActiveDetailTab(tab.id as any)}
                                 className={`
-                                    relative flex-1 group flex items-center justify-center gap-2.5 py-3 rounded-full transition-all duration-500 ease-out border
+                                    relative flex-1 group flex items-center justify-center gap-2.5 py-3 rounded-lg transition-all duration-500 ease-out border
                                     ${isActive
                                         ? `${tab.activeClass} scale-[1.02]`
-                                        : 'bg-transparent border-transparent text-gray-500 hover:text-white hover:bg-white/5'
+                                        : 'bg-transparent border-transparent text-gray-400 dark:text-gray-500 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/5'
                                     }
                                 `}
                             >
                                 {/* Futuristic Scanline/Glow Effect for Active State */}
                                 {isActive && (
                                     <>
-                                        <div className={`absolute inset-0 rounded-full bg-gradient-to-r from-transparent via-${tab.glowColor}-500/10 to-transparent opacity-50 animate-pulse-slow`}></div>
+                                        <div className={`absolute inset-0 rounded-lg bg-gradient-to-r from-transparent via-${tab.glowColor}-500/10 to-transparent opacity-50 animate-pulse-slow`}></div>
                                         <div className={`absolute bottom-0 left-1/4 right-1/4 h-[1px] bg-gradient-to-r from-transparent via-${tab.glowColor}-500 to-transparent shadow-[0_0_10px_currentColor]`}></div>
                                     </>
                                 )}
@@ -1946,7 +1947,7 @@ Equipe de Capturas - DIG / PCSP
                                     size={18}
                                     className={`relative z-10 transition-transform duration-300 ${isActive ? 'scale-110 drop-shadow-[0_0_8px_currentColor]' : 'group-hover:scale-110'}`}
                                 />
-                                <span className={`relative z-10 text-[10px] font-black uppercase tracking-[0.2em] ${isActive ? 'text-white' : ''}`}>
+                                <span className={`relative z-10 text-[10px] font-black uppercase tracking-[0.2em] ${isActive ? 'text-gray-900 dark:text-white' : ''}`}>
                                     {tab.label}
                                 </span>
                             </button>
