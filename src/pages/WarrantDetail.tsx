@@ -270,7 +270,9 @@ const WarrantDetail = () => {
                 setCapturasData(prev => ({ ...prev, body: result }));
                 toast.success("Relatório gerado com sucesso!", { id: toastId });
             } else {
-                toast.error("IA falhou, mantendo rascunho.", { id: toastId });
+                // Show the real error if possible
+                const errorMsg = result && result.startsWith("Erro") ? result : "IA falhou em gerar o texto.";
+                toast.error(errorMsg, { id: toastId });
             }
         } catch (e: any) {
             console.error(e);
@@ -643,9 +645,9 @@ const WarrantDetail = () => {
                 const mergedIntel = await mergeIntelligence(data, currentIntel, aiDiligenceResult);
 
                 updatedTacticalSummary = JSON.stringify(mergedIntel);
-            } catch (mergeError) {
+            } catch (mergeError: any) {
                 console.error("Error calling AI Merge:", mergeError);
-                toast.error("Falha na fusão inteligente. Salvando dados brutos.", { id: toastId });
+                toast.error(`Falha na fusão inteligente: ${mergeError.message || mergeError}. Salvando dados brutos.`, { id: toastId });
             }
         }
 
