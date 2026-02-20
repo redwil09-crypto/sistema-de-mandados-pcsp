@@ -2047,7 +2047,7 @@ Equipe de Capturas - DIG / PCSP
                                                 <ShieldAlert size={10} className="animate-pulse" /> Circunstanciado do Cumprimento
                                             </label>
                                             <textarea
-                                                className="w-full bg-lime-500/10 border border-lime-500/40 rounded-xl p-3 text-[10px] text-lime-400 shadow-[0_0_25px_rgba(132,204,22,0.2)] leading-tight h-[46px] overflow-y-auto font-black uppercase italic scrollbar-none ring-1 ring-lime-500/20 focus:ring-2 focus:ring-lime-500/50 outline-none transition-all resize-none placeholder:text-lime-500/30"
+                                                className="w-full bg-lime-500/5 border border-lime-500/20 rounded-xl p-3 text-[10px] text-lime-500 shadow-[0_0_15px_rgba(132,204,22,0.1)] leading-tight h-[46px] overflow-y-auto font-black uppercase italic scrollbar-none ring-1 ring-lime-500/10 focus:ring-2 focus:ring-lime-500/30 outline-none transition-all resize-none placeholder:text-lime-500/30"
                                                 value={localData.fulfillmentDetails || ''}
                                                 onChange={e => handleFieldChange('fulfillmentDetails', e.target.value)}
                                                 placeholder="O QUE, POR QUE, ONDE DO CUMPRIMENTO..."
