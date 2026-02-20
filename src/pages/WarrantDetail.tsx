@@ -54,7 +54,8 @@ const WarrantDetail = () => {
         date: new Date().toISOString().split('T')[0],
         reportNumber: '',
         digOffice: '',
-        result: 'Fechado'
+        result: 'Fechado',
+        details: ''
     });
 
     const [isReopenConfirmOpen, setIsReopenConfirmOpen] = useState(false);
@@ -170,6 +171,7 @@ const WarrantDetail = () => {
                 entryDate: formatDate(data.entryDate),
                 expirationDate: formatDate(data.expirationDate),
                 dischargeDate: formatDate(data.dischargeDate),
+                fulfillmentDetails: data.fulfillmentDetails
             });
         }
     }, [data]);
@@ -178,7 +180,7 @@ const WarrantDetail = () => {
         if (!data) return false;
         const fields: (keyof Warrant)[] = [
             'name', 'type', 'rg', 'cpf', 'number', 'crime', 'regime', 'location',
-            'ifoodNumber', 'ifoodResult', 'digOffice', 'observation', 'age', 'issuingCourt', 'tacticalSummary'
+            'ifoodNumber', 'ifoodResult', 'digOffice', 'observation', 'age', 'issuingCourt', 'tacticalSummary', 'fulfillmentDetails'
         ];
 
         const basicChanges = fields.some(key => localData[key] !== data[key]);
@@ -576,7 +578,8 @@ const WarrantDetail = () => {
             dischargeDate: finalizeFormData.date,
             digOffice: finalizeFormData.digOffice,
             fulfillmentResult: finalizeFormData.result,
-            fulfillmentReport: finalizeFormData.reportNumber
+            fulfillmentReport: finalizeFormData.reportNumber,
+            fulfillmentDetails: finalizeFormData.details
         };
 
         // If closing as Contramandado, force regime update to match logic
@@ -2028,15 +2031,29 @@ Equipe de Capturas - DIG / PCSP
                                             onChange={e => handleFieldChange('issuingCourt', e.target.value)}
                                         />
                                     </div>
-                                    <div className="space-y-1 col-span-2">
+                                    <div className={`space-y-1 ${localData.status === 'CUMPRIDO' || isCounterWarrant ? 'col-span-1' : 'col-span-2'}`}>
                                         <label className="text-[9px] font-black text-text-secondary-light dark:text-text-muted uppercase tracking-wider flex items-center gap-1"><CheckCircle size={10} className="text-secondary" /> Data do Cumprimento</label>
                                         <input
-                                            className="w-full bg-background-light dark:bg-white/5 border border-border-light dark:border-white/10 rounded-lg p-3 text-sm font-mono text-secondary outline-none focus:ring-1 focus:ring-secondary focus:border-secondary/50 transition-all"
+                                            className="w-full bg-background-light dark:bg-white/5 border border-border-light dark:border-white/10 rounded-lg p-3 text-sm font-mono text-secondary outline-none focus:ring-1 focus:ring-secondary focus:border-secondary/50 transition-all font-black"
                                             placeholder="DD/MM/AAAA"
                                             value={localData.dischargeDate || ''}
                                             onChange={e => handleFieldChange('dischargeDate', e.target.value)}
                                         />
                                     </div>
+
+                                    {(localData.status === 'CUMPRIDO' || isCounterWarrant) && (
+                                        <div className="col-span-1 space-y-1 animate-in fade-in slide-in-from-right-4 duration-500">
+                                            <label className="text-[9px] font-black text-lime-500 uppercase tracking-wider flex items-center gap-1">
+                                                <ShieldAlert size={10} className="animate-pulse" /> Circunstanciado do Cumprimento
+                                            </label>
+                                            <textarea
+                                                className="w-full bg-lime-500/10 border border-lime-500/40 rounded-xl p-3 text-[10px] text-lime-400 shadow-[0_0_25px_rgba(132,204,22,0.2)] leading-tight h-[46px] overflow-y-auto font-black uppercase italic scrollbar-none ring-1 ring-lime-500/20 focus:ring-2 focus:ring-lime-500/50 outline-none transition-all resize-none placeholder:text-lime-500/30"
+                                                value={localData.fulfillmentDetails || ''}
+                                                onChange={e => handleFieldChange('fulfillmentDetails', e.target.value)}
+                                                placeholder="O QUE, POR QUE, ONDE DO CUMPRIMENTO..."
+                                            />
+                                        </div>
+                                    )}
                                 </div>
                             </div>
 
@@ -2997,6 +3014,7 @@ Equipe de Capturas - DIG / PCSP
                             <div className="space-y-4">
                                 <div className="space-y-1"><label className="text-[10px] font-black text-text-muted uppercase tracking-widest">Data Cumprimento</label><input type="date" className="w-full bg-background-light dark:bg-white/5 border border-border-light dark:border-white/10 rounded-xl p-3 text-text-light dark:text-white" value={finalizeFormData.date} onChange={e => setFinalizeFormData({ ...finalizeFormData, date: e.target.value })} /></div>
                                 <div className="space-y-1"><label className="text-[10px] font-black text-text-muted uppercase tracking-widest">Ofício DIG Vinculado</label><input type="text" className="w-full bg-background-light dark:bg-white/5 border border-border-light dark:border-white/10 rounded-xl p-3 text-text-light dark:text-white" value={finalizeFormData.digOffice} onChange={e => setFinalizeFormData({ ...finalizeFormData, digOffice: e.target.value })} /></div>
+                                <div className="space-y-1"><label className="text-[10px] font-black text-text-muted uppercase tracking-widest text-[lime]">Circunstanciado (O que, Por que, Onde)</label><textarea className="w-full bg-background-light dark:bg-white/5 border border-border-light dark:border-lime-500/30 rounded-xl p-3 text-sm text-text-light dark:text-white min-h-[80px] focus:ring-1 focus:ring-lime-500" placeholder="Ex: CAPTURA DO RÉU EM SUA RESIDÊNCIA APÓS VIGILÂNCIA..." value={finalizeFormData.details} onChange={e => setFinalizeFormData({ ...finalizeFormData, details: e.target.value })} /></div>
                                 <div className="space-y-1"><label className="text-[10px] font-black text-text-muted uppercase tracking-widest">Resultado Final</label><select className="w-full bg-background-light dark:bg-white/5 border border-border-light dark:border-white/10 rounded-xl p-3 text-text-light dark:text-white appearance-none" value={finalizeFormData.result} onChange={e => setFinalizeFormData({ ...finalizeFormData, result: e.target.value })}>{['PRESO', 'NEGATIVO', 'ENCAMINHADO', 'ÓBITO', 'CONTRAMANDADO', 'LOCALIZADO'].map(opt => <option key={opt} value={opt} className="bg-surface-light dark:bg-surface-dark text-text-light dark:text-white">{opt}</option>)}</select></div>
                             </div>
                             <div className="flex gap-3">
