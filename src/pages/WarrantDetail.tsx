@@ -1904,22 +1904,22 @@ Equipe de Capturas - DIG / PCSP
                             id: 'documents',
                             label: 'Dossiê',
                             icon: FileText,
-                            activeClass: 'text-cyan-600 dark:text-cyan-400 shadow-[0_0_20px_rgba(34,211,238,0.3)] bg-cyan-50 dark:bg-cyan-500/10 border-cyan-200 dark:border-cyan-500/50',
-                            glowColor: 'cyan'
+                            activeClass: 'text-blue-600 dark:text-blue-400 shadow-[0_0_20px_rgba(59,130,246,0.5)] bg-blue-50 dark:bg-blue-500/10 border-blue-200 dark:border-blue-500/50',
+                            glowColor: 'blue'
                         },
                         {
                             id: 'investigation',
                             label: 'Investigações',
                             icon: Bot,
-                            activeClass: 'text-fuchsia-600 dark:text-fuchsia-400 shadow-[0_0_20px_rgba(232,121,249,0.3)] bg-fuchsia-50 dark:bg-fuchsia-500/10 border-fuchsia-200 dark:border-fuchsia-500/50',
-                            glowColor: 'fuchsia'
+                            activeClass: 'text-red-600 dark:text-red-500 shadow-[0_0_20px_rgba(239,68,68,0.5)] bg-red-50 dark:bg-red-500/10 border-red-200 dark:border-red-500/50',
+                            glowColor: 'red'
                         },
                         {
                             id: 'timeline',
                             label: 'Operações',
                             icon: History,
-                            activeClass: 'text-emerald-600 dark:text-emerald-400 shadow-[0_0_20px_rgba(52,211,153,0.3)] bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/50',
-                            glowColor: 'emerald'
+                            activeClass: 'text-lime-600 dark:text-lime-400 shadow-[0_0_20px_rgba(132,204,22,0.5)] bg-lime-50 dark:bg-lime-500/10 border-lime-200 dark:border-lime-500/50',
+                            glowColor: 'lime'
                         }
                     ].map((tab) => {
                         const isActive = activeDetailTab === tab.id;
