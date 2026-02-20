@@ -22,7 +22,9 @@ const NewWarrant = React.lazy(() => import('./pages/NewWarrant'));
 const AIAssistantPage = React.lazy(() => import('./pages/AIAssistantPage'));
 const AuditPage = React.lazy(() => import('./pages/AuditPage'));
 const RoutePlanner = React.lazy(() => import('./pages/RoutePlanner'));
+const RoutePlanner = React.lazy(() => import('./pages/RoutePlanner'));
 const OperationalMap = React.lazy(() => import('./pages/OperationalMap'));
+const CounterWarrantList = React.lazy(() => import('./pages/CounterWarrantList'));
 
 // Components
 import Sidebar from './components/Sidebar';
@@ -161,6 +163,7 @@ function AppContent({ isDark, toggleTheme }: { isDark: boolean; toggleTheme: () 
                             <Route path="/recents" element={<RecentActivityPage />} />
                             <Route path="/minor-search" element={<MinorSearch />} />
                             <Route path="/priority-list" element={<PriorityList />} />
+                            <Route path="/counter-warrants" element={<CounterWarrantList />} />
 
                             <Route path="/route-planner" element={<RoutePlanner />} />
 
