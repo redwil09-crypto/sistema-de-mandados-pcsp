@@ -264,13 +264,13 @@ const WarrantDetail = () => {
         const toastId = toast.loading("🤖 Aplicando modelo de Escrivão de Elite...");
 
         try {
-            const rawContent = `${context}\n\nRASCUNHO INICIAL:\n${defaultBody}`;
+            const rawContent = `DADOS DO CASO:\n${context}\n\nTEXTO ATUAL PARA REESCREVER:\n${defaultBody}`;
 
-            const result = await generateReportBody(currentData, rawContent, 'Aplicar estritamente o manual de modelos.');
+            const result = await generateReportBody(currentData, rawContent, 'Aplique os modelos padrão com um tom humanizado e direto de policial de campo.');
 
             if (result && !result.startsWith("Erro")) {
                 setCapturasData(prev => ({ ...prev, body: result }));
-                toast.success("Relatório gerado com sucesso!", { id: toastId });
+                toast.success("Modelo aplicado com sucesso!", { id: toastId });
             } else {
                 // Show the real error if possible
                 const errorMsg = result && result.startsWith("Erro") ? result : "IA falhou em gerar o texto.";
@@ -294,10 +294,14 @@ const WarrantDetail = () => {
             const fullContext = buildComprehensiveReportContext(currentData);
 
             const rawContent = `
+                DADOS DO CASO:
                 ${fullContext}
 
-                RASCUNHO/TEXTO ATUAL DO AGENTE:
+                TEXTO QUE DEVE SER REESCRITO/REFINADO:
                 ${capturasData.body}
+
+                ORDEM DO POLICIAL PARA ESTA REESCRITA:
+                "${capturasData.aiInstructions}"
             `;
 
             const result = await generateReportBody(currentData, rawContent, capturasData.aiInstructions);
