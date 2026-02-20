@@ -3016,6 +3016,19 @@ Equipe de Capturas - DIG / PCSP
             }
 
 
+            <div className="fixed bottom-6 left-0 right-0 z-50 px-4 md:pl-64 flex justify-center pointer-events-none">
+                <div className="pointer-events-auto max-w-2xl w-full">
+                    <FloatingDock
+                        onBack={() => navigate(-1)}
+                        onHome={() => navigate('/')}
+                        onSave={() => setIsConfirmSaveOpen(true)}
+                        onPrint={() => generateWarrantPDF(localData as Warrant)}
+                        onFinalize={() => setIsFinalizeModalOpen(true)}
+                        onDelete={() => setIsDeleteConfirmOpen(true)}
+                        status={localData.status}
+                    />
+                </div>
+            </div>
         </div >
     );
 };
