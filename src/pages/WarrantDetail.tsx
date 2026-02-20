@@ -1918,8 +1918,8 @@ Equipe de Capturas - DIG / PCSP
                             id: 'timeline',
                             label: 'Operações',
                             icon: History,
-                            activeClass: 'text-lime-600 dark:text-lime-400 shadow-[0_0_20px_rgba(132,204,22,0.3)] bg-gray-100 dark:bg-zinc-900 border-lime-500/50',
-                            glowColor: 'lime'
+                            activeClass: 'text-slate-500 dark:text-slate-300 shadow-[0_0_20px_rgba(148,163,184,0.3)] bg-gray-100 dark:bg-zinc-900 border-slate-500/50',
+                            glowColor: 'slate'
                         }
                     ].map((tab) => {
                         const isActive = activeDetailTab === tab.id;
