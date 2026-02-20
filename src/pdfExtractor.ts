@@ -388,6 +388,11 @@ const determineMandadoType = (text: string): { type: string; category: 'prison' 
         return { type: 'BUSCA E APREENSÃO', category: 'search' };
     }
 
+    // Check for Contramandado
+    if (lowerText.includes('contramandado') || lowerText.includes('contra mandado') || lowerText.includes('revoga') && lowerText.includes('prisão')) {
+        return { type: 'CONTRAMANDADO DE PRISÃO', category: 'prison' }; // Keep category 'prison' or 'counter' depending on UI needs. Using 'counter' is safer if supported.
+    }
+
     if (lowerText.includes('preventiva')) return { type: 'MANDADO DE PRISÃO', category: 'prison' };
     if (lowerText.includes('temporária')) return { type: 'MANDADO DE PRISÃO', category: 'prison' };
     return { type: 'MANDADO DE PRISÃO', category: 'prison' };
@@ -473,6 +478,11 @@ const extractRegime = (text: string, category: 'prison' | 'search', crime: strin
     }
 
     if (crime === "Pensão alimenticia") return "Civil";
+
+    // Contramandado Check
+    if (text.toLowerCase().includes('contramandado') || text.toLowerCase().includes('contra mandado')) {
+        return "Contramandado";
+    }
 
     const regimeRules = [
         { label: "Fechado", pattern: /\bfechado\b/i },
