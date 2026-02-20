@@ -389,8 +389,10 @@ const determineMandadoType = (text: string): { type: string; category: 'prison' 
     }
 
     // Check for Contramandado
-    if (lowerText.includes('contramandado') || lowerText.includes('contra mandado') || lowerText.includes('revoga') && lowerText.includes('prisão')) {
-        return { type: 'CONTRAMANDADO DE PRISÃO', category: 'prison' }; // Keep category 'prison' or 'counter' depending on UI needs. Using 'counter' is safer if supported.
+    const isCounterMatch = (lowerText.includes('contramandado') || lowerText.includes('contra mandado') || lowerText.includes('revoga') && lowerText.includes('prisão')) && !lowerText.includes('suspensão');
+
+    if (isCounterMatch) {
+        return { type: 'CONTRAMANDADO DE PRISÃO', category: 'prison' };
     }
 
     if (lowerText.includes('preventiva')) return { type: 'MANDADO DE PRISÃO', category: 'prison' };
@@ -479,18 +481,20 @@ const extractRegime = (text: string, category: 'prison' | 'search', crime: strin
 
     if (crime === "Pensão alimenticia") return "Civil";
 
-    // Contramandado Check
-    if (text.toLowerCase().includes('contramandado') || text.toLowerCase().includes('contra mandado')) {
+    // Contramandado Check (Strict)
+    const isActuallyCounter = (text.toLowerCase().includes('contramandado') || text.toLowerCase().includes('contra mandado')) && !text.toLowerCase().includes('suspensão');
+
+    if (isActuallyCounter) {
         return "Contramandado";
     }
 
     const regimeRules = [
+        { label: "Suspensão de Regime", pattern: /\bsuspens[ãa]o\s+de\s+regime\b/i },
         { label: "Fechado", pattern: /\bfechado\b/i },
         { label: "Semiaberto", pattern: /\bsemiaberto\b|\bsemi-aberto\b/i },
         { label: "Aberto", pattern: /\baberto\b/i },
         { label: "Preventiva", pattern: /\bpreventiva\b/i },
         { label: "Temporária", pattern: /\btempor[áa]ria\b/i },
-        { label: "Contramandado", pattern: /\bcontramandado\b/i },
     ];
 
     for (const rule of regimeRules) {

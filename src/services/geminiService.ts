@@ -244,11 +244,16 @@ export async function extractFullWarrantIntelligence(rawText: string): Promise<a
 
         4. 📅 DATAS: Formate estritamente no padrão AAAA-MM-DD.
 
-        5. 🚫 CONTRAMANDADOS / REVOGAÇÕES:
+        5. 🚫 CONTRAMANDADOS / REVOGAÇÕES / SUSPENSÕES:
            - SE O DOCUMENTO FOR UM "CONTRAMANDADO", "ALVARÁ DE SOLTURA", "REVOGAÇÃO DE PRISÃO" ou "RECOLHIMENTO DE MANDADO":
-           - O CAMPO "type" DEVE SER "CONTRAMANDADO DE PRISÃO".
-           - O CAMPO "regime" DEVE SER "Contramandado".
-           - O CAMPO "status" DEVE SER "CUMPRIDO".
+             * O CAMPO "type" DEVE SER "CONTRAMANDADO DE PRISÃO".
+             * O CAMPO "regime" DEVE SER "Contramandado".
+             * O CAMPO "status" DEVE SER "CUMPRIDO".
+           
+           - SE O DOCUMENTO FOR "SUSPENSÃO DE REGIME" OU "SUSPENSÃO DE PENA":
+             * O CAMPO "type" DEVE SER "MANDADO DE PRISÃO".
+             * O CAMPO "regime" DEVE SER "Suspensão de Regime".
+             * O CAMPO "status" DEVE SER "EM ABERTO". (Não baixar, pois o réu ainda deve ser capturado/apresentado).
 
         TEXTO BRUTO DO MANDADO (OCR):
         """

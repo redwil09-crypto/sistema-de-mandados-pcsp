@@ -1732,7 +1732,7 @@ Equipe de Capturas - DIG / PCSP
 
     // Determine Theme Colors based on Type
     const isSearch = localData.type ? (localData.type.toLowerCase().includes('busca') || localData.type.toLowerCase().includes('apreensão')) : false;
-    const isCounterWarrant = (localData.regime && (localData.regime.toLowerCase() === 'contramandado' || localData.regime.toLowerCase() === 'civil')) || (localData.type && localData.type.toLowerCase().includes('contramandado'));
+    const isCounterWarrant = (localData.regime && localData.regime.toLowerCase() === 'contramandado') || (localData.type && localData.type.toLowerCase().includes('contramandado'));
 
     const themeColor = isSearch ? 'text-orange-500' : (isCounterWarrant ? 'text-emerald-500' : 'text-primary');
     const themeBg = isSearch ? 'bg-orange-500/10' : (isCounterWarrant ? 'bg-emerald-500/10' : 'bg-primary/10');

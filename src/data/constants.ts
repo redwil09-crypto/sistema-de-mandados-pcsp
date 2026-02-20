@@ -33,5 +33,6 @@ export const REGIME_OPTIONS = [
     "Localização",
     "Internação (Menor)",
     "Audiência de Justificativa",
+    "Suspensão de Regime",
     "Outros"
 ];

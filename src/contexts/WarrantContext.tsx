@@ -104,7 +104,27 @@ export const WarrantProvider = ({ children }: { children: ReactNode }) => {
         if (!silent) setLoading(true);
         try {
             const data = await getWarrants();
-            setWarrants(data || []);
+            const formattedData = data || [];
+
+            // Check for warrants that need correction (Suspensão de Regime should be OPEN)
+            const needsCorrection = formattedData.filter(w =>
+                (w.regime || '').toLowerCase().includes('suspensão') &&
+                w.status !== 'EM ABERTO'
+            );
+
+            if (needsCorrection.length > 0) {
+                console.log(`Fixing ${needsCorrection.length} warrants with regime 'Suspensão' that were closed.`);
+                for (const w of needsCorrection) {
+                    await updateWarrantDb(w.id, { status: 'EM ABERTO' });
+                }
+                // Refresh again to get the corrected state from DB
+                const corrected = await getWarrants();
+                setWarrants(corrected || []);
+                toast.info(`${needsCorrection.length} mandados de Suspensão foram reabertos automaticamente.`);
+            } else {
+                setWarrants(formattedData);
+            }
+
         } catch (err) {
             console.error("Error loading warrants:", err);
             toast.error("Erro ao carregar dados do banco.");
