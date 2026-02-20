@@ -5,13 +5,10 @@ import { supabase } from "../supabaseClient";
 let cachedGlobalKey: string | null = null;
 const MODELS_TO_TRY = [
     "gemini-1.5-flash",
-    "gemini-1.5-flash-001",
-    "gemini-1.5-flash-002",
     "gemini-1.5-flash-8b",
+    "gemini-2.0-flash-exp",
     "gemini-1.5-pro",
-    "gemini-1.5-pro-001",
-    "gemini-pro",
-    "gemini-1.0-pro"
+    "gemini-pro"
 ];
 
 const fetchGlobalKey = async () => {
@@ -162,11 +159,11 @@ const getBestAvailableModel = async (key: string): Promise<string> => {
 
         console.log("DEBUG GEMINI: Modelos disponíveis para esta chave:", availableParams);
 
-        // Ordem de preferência - Priorizando o 2.5 Flash conforme solicitado
+        // Ordem de preferência - Priorizando estabilidade
         const preference = [
             "gemini-1.5-flash",
-            "gemini-2.0-flash",
-            "gemini-2.0-flash-thinking-exp-01-21",
+            "gemini-1.5-flash-8b",
+            "gemini-2.0-flash-exp",
             "gemini-1.5-pro",
             "gemini-pro"
         ];
