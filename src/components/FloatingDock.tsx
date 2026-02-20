@@ -20,8 +20,8 @@ const FloatingDock = ({
 }: FloatingDockProps) => {
 
     return (
-        <div className="w-full bg-white/95 dark:bg-[#151517]/95 backdrop-blur-xl border border-gray-200 dark:border-white/10 rounded-2xl shadow-glass overflow-hidden">
-            <div className="flex h-14 sm:h-16 w-full items-center justify-between px-6 sm:px-12 whitespace-nowrap">
+        <div className="w-full bg-white/90 dark:bg-black/60 backdrop-blur-2xl border border-gray-200 dark:border-white/10 rounded-xl shadow-xl p-1.5 ring-1 ring-black/5 dark:ring-white/5">
+            <div className="flex h-14 w-full items-center justify-center gap-10 whitespace-nowrap">
 
                 {onBack && (
                     <button
@@ -38,9 +38,9 @@ const FloatingDock = ({
                         onClick={onHome}
                         className="relative flex flex-col items-center justify-center gap-0.5 transition-all text-blue-600 dark:text-blue-500 hover:text-blue-400 group"
                     >
-                        <Home size={18} className="drop-shadow-[0_0_8px_rgba(37,99,235,0.6)]" />
+                        <Home size={18} className="drop-shadow-[0_0_8px_rgba(37,99,235,0.4)]" />
                         <span className="text-[8px] font-black tracking-widest uppercase font-display">Início</span>
-                        <div className="absolute -bottom-2 inset-x-0 h-0.5 bg-blue-600 dark:bg-blue-500 shadow-[0_0_10px_rgba(37,99,235,1)] rounded-full"></div>
+                        <div className="absolute -bottom-1.5 inset-x-0 h-0.5 bg-blue-600 dark:bg-blue-500 shadow-[0_0_8px_rgba(37,99,235,1)] rounded-full"></div>
                     </button>
                 )}
 

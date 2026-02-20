@@ -1737,7 +1737,7 @@ Equipe de Capturas - DIG / PCSP
     const themeBorder = isSearch ? 'border-orange-500/20' : (isCounterWarrant ? 'border-emerald-500/20' : 'border-primary/20');
 
     return (
-        <div className="min-h-screen bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark font-display relative overflow-x-hidden pb-24">
+        <div className="min-h-screen bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark font-display relative overflow-x-hidden pb-12">
             {/* Tactical Grid Background Layer */}
             <div className="hidden dark:block fixed inset-0 pointer-events-none opacity-20 z-0">
                 <div className="absolute inset-0 tactical-grid"></div>
@@ -2928,19 +2928,17 @@ Equipe de Capturas - DIG / PCSP
                         document.body
                     )}
 
-                    {/* Persistent Bottom Tool Bar - Full Integration */}
-                    <div className="fixed bottom-0 left-0 right-0 z-[1000] p-0 pointer-events-none">
-                        <div className="max-w-[1600px] mx-auto pointer-events-auto px-4 pb-2">
-                            <FloatingDock
-                                onBack={() => navigate('/')}
-                                onHome={() => navigate('/')}
-                                onSave={() => setIsConfirmSaveOpen(true)}
-                                onPrint={() => generateWarrantPDF(localData as any)}
-                                onFinalize={() => setIsFinalizeModalOpen(true)}
-                                onDelete={() => setIsDeleteConfirmOpen(true)}
-                                status={localData.status}
-                            />
-                        </div>
+                    {/* Tactical Tool Bar - Integrated into Flow with same width as Tabs */}
+                    <div className="w-full mt-4">
+                        <FloatingDock
+                            onBack={() => navigate('/')}
+                            onHome={() => navigate('/')}
+                            onSave={() => setIsConfirmSaveOpen(true)}
+                            onPrint={() => generateWarrantPDF(localData as any)}
+                            onFinalize={() => setIsFinalizeModalOpen(true)}
+                            onDelete={() => setIsDeleteConfirmOpen(true)}
+                            status={localData.status}
+                        />
                     </div>
                 </div>
             </div >
