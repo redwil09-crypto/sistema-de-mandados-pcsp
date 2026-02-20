@@ -1737,7 +1737,7 @@ Equipe de Capturas - DIG / PCSP
     const themeBorder = isSearch ? 'border-orange-500/20' : (isCounterWarrant ? 'border-emerald-500/20' : 'border-primary/20');
 
     return (
-        <div className="min-h-screen bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark font-display relative overflow-x-hidden pb-12">
+        <div className="min-h-screen bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark font-display relative overflow-x-hidden pb-32">
             {/* Tactical Grid Background Layer */}
             <div className="hidden dark:block fixed inset-0 pointer-events-none opacity-20 z-0">
                 <div className="absolute inset-0 tactical-grid"></div>
@@ -2928,17 +2928,19 @@ Equipe de Capturas - DIG / PCSP
                         document.body
                     )}
 
-                    {/* Integrated Tool Bar (FloatingDock) */}
-                    <div className="-mt-2">
-                        <FloatingDock
-                            onBack={() => navigate('/')}
-                            onHome={() => navigate('/')}
-                            onSave={() => setIsConfirmSaveOpen(true)}
-                            onPrint={() => generateWarrantPDF(localData as any)}
-                            onFinalize={() => setIsFinalizeModalOpen(true)}
-                            onDelete={() => setIsDeleteConfirmOpen(true)}
-                            status={localData.status}
-                        />
+                    {/* Persistent Bottom Tool Bar - Fixed for Mobile & Desktop */}
+                    <div className="fixed bottom-0 left-0 right-0 z-[1000] p-4 bg-gradient-to-t from-background-light via-background-light/80 to-transparent dark:from-background-dark dark:via-background-dark/80 dark:to-transparent pointer-events-none">
+                        <div className="max-w-xl mx-auto pointer-events-auto">
+                            <FloatingDock
+                                onBack={() => navigate('/')}
+                                onHome={() => navigate('/')}
+                                onSave={() => setIsConfirmSaveOpen(true)}
+                                onPrint={() => generateWarrantPDF(localData as any)}
+                                onFinalize={() => setIsFinalizeModalOpen(true)}
+                                onDelete={() => setIsDeleteConfirmOpen(true)}
+                                status={localData.status}
+                            />
+                        </div>
                     </div>
                 </div>
             </div >

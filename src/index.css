@@ -6,21 +6,17 @@
   html {
     scroll-behavior: smooth;
     -webkit-overflow-scrolling: touch;
-    overscroll-behavior-y: none;
-    /* Prevent bounce at top/bottom which feels weird */
+    overscroll-behavior-y: contain;
+    /* Bloqueia o gesto de reload do navegador (pull-to-refresh) */
     overscroll-behavior-x: auto;
-    /* Allow side swipe */
   }
 
   body {
     @apply bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark antialiased;
     background-color: #f4f4f5;
-    /* Zinc 100 - Very Light Gray */
     background-image: none;
-    /* Clean look */
   }
 
-  /* Force dark mode override */
   .dark body {
     @apply bg-background-dark;
     background-image: none;
@@ -36,7 +32,6 @@
     box-shadow: 0 8px 15px -3px rgba(0, 0, 0, 0.12), 0 4px 6px -2px rgba(0, 0, 0, 0.08);
   }
 
-  /* Scrollbar utilities */
   .no-scrollbar::-webkit-scrollbar {
     display: none;
   }
@@ -64,7 +59,6 @@
   animation: fade-in-up 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
 }
 
-/* Components - using standard CSS to avoid parser issues */
 .neon-card {
   @apply bg-surface-light dark:bg-surface-dark border border-primary/50 dark:border-primary/20 shadow-soft transition-all duration-300;
   border-radius: 0.75rem;
@@ -86,16 +80,12 @@
   @apply border border-primary shadow-neon-blue;
 }
 
-/* Cyber Button Style - Futuristic */
 .cyber-btn {
   position: relative;
   overflow: hidden;
   background-color: #18181b;
-  /* Zinc 900 */
   color: #3b82f6;
-  /* Blue 500 */
   border: 1px solid rgba(59, 130, 246, 0.3);
-  /* Blue 500 / 30% */
   text-transform: uppercase;
   font-family: 'JetBrains Mono', monospace;
   letter-spacing: 0.1em;
@@ -107,11 +97,8 @@
 
 .cyber-btn:hover {
   background-color: #27272a;
-  /* Zinc 800 */
   color: #60a5fa;
-  /* Blue 400 */
   border-color: #3b82f6;
-  /* Blue 500 */
   box-shadow: 0 0 20px rgba(59, 130, 246, 0.3), inset 0 0 30px rgba(59, 130, 246, 0.1);
   text-shadow: 0 0 8px rgba(59, 130, 246, 0.6);
 }
@@ -134,10 +121,8 @@
 
 .cyber-card {
   background-color: rgba(24, 24, 27, 0.8);
-  /* Zinc 900 / 80% */
   backdrop-filter: blur(8px);
   border: 1px solid #27272a;
-  /* Zinc 800 */
   position: relative;
   overflow: hidden;
   background-image:
@@ -148,7 +133,6 @@
 
 ::selection {
   background-color: #3b82f6;
-  /* Blue 500 Vivid */
   color: #ffffff;
 }
 
