@@ -435,7 +435,9 @@ export async function generateReportBody(warrantData: any, rawContent: string, i
         INSTRUÇÕES EXTRAS: "${instructions}"
 
         ## RESULTADO ESPERADO:
-        Gere APENAS o texto final do relatório, sem comentários. Use linguagem de delegacia, profissional e austera.
+        Gere APENAS o texto final do relatório, sem comentários. 
+        MUITO IMPORTANTE: Use um tom HUMANIZADO e PROFISSIONAL. Evite "juridiquês" excessivo. Escreva como um policial que está relatando os fatos reais: "fomos atendidos por fulano", "conversamos com vizinhos", "foi franqueada a entrada". 
+        PRIORIDADE MÁXIMA: Se o usuário der uma instrução de refinamento, ignore o rascunho anterior e reescreva focado totalmente no que ele pediu e nos modelos de exemplo acima.
         RESPOSTA:
     `;
 
