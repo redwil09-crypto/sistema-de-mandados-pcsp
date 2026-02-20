@@ -1895,24 +1895,57 @@ Equipe de Capturas - DIG / PCSP
                 </div>
 
                 {/* 2. Tactical Navigation Tabs */}
-                <div className="flex bg-surface-light dark:bg-surface-dark/80 backdrop-blur border border-border-light dark:border-white/10 rounded-2xl p-1.5 gap-1.5 shadow-glass sticky top-2 z-[30]">
+                {/* 2. Tactical Navigation Tabs - Redesigned */}
+                <div className="flex bg-surface-light/80 dark:bg-black/40 backdrop-blur-xl border border-border-light dark:border-white/10 rounded-2xl p-1.5 gap-2 shadow-2xl sticky top-2 z-[30]">
                     {[
-                        { id: 'documents', label: 'Dossiê', icon: FileText, color: 'bg-gradient-to-r from-blue-600 to-cyan-500 shadow-blue-500/25 border-blue-400/20' },
-                        { id: 'investigation', label: 'Investigações', icon: Bot, color: 'bg-gradient-to-r from-violet-600 to-fuchsia-500 shadow-violet-500/25 border-violet-400/20' },
-                        { id: 'timeline', label: 'Operações', icon: History, color: 'bg-gradient-to-r from-emerald-500 to-teal-500 shadow-emerald-500/25 border-emerald-400/20' }
-                    ].map(tab => (
-                        <button
-                            key={tab.id}
-                            onClick={() => setActiveDetailTab(tab.id as any)}
-                            className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all duration-300 ${activeDetailTab === tab.id
-                                ? `${tab.color} text-white shadow-lg scale-[1.02] border`
-                                : 'text-text-secondary-light dark:text-text-secondary-dark hover:bg-black/5 dark:hover:bg-white/5 hover:text-text-light dark:hover:text-white border border-transparent'
-                                }`}
-                        >
-                            <tab.icon size={16} className={activeDetailTab === tab.id ? 'animate-pulse' : ''} />
-                            <span className="hidden sm:inline">{tab.label}</span>
-                        </button>
-                    ))}
+                        {
+                            id: 'documents',
+                            label: 'Dossiê',
+                            icon: FileText,
+                            activeClass: 'bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-lg shadow-cyan-500/20 ring-1 ring-white/20'
+                        },
+                        {
+                            id: 'investigation',
+                            label: 'Investigações',
+                            icon: Bot,
+                            activeClass: 'bg-gradient-to-r from-violet-600 to-fuchsia-500 text-white shadow-lg shadow-fuchsia-500/20 ring-1 ring-white/20'
+                        },
+                        {
+                            id: 'timeline',
+                            label: 'Operações',
+                            icon: History,
+                            activeClass: 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-lg shadow-emerald-500/20 ring-1 ring-white/20'
+                        }
+                    ].map(tab => {
+                        const isActive = activeDetailTab === tab.id;
+                        return (
+                            <button
+                                key={tab.id}
+                                onClick={() => setActiveDetailTab(tab.id as any)}
+                                className={`
+                                    relative flex-1 group flex items-center justify-center gap-2.5 py-3.5 rounded-xl transition-all duration-300 ease-out
+                                    ${isActive
+                                        ? `${tab.activeClass} scale-[1.02]`
+                                        : 'bg-transparent text-text-secondary-light dark:text-gray-400 hover:bg-black/5 dark:hover:bg-white/5 hover:text-text-light dark:hover:text-white'
+                                    }
+                                `}
+                            >
+                                <tab.icon
+                                    size={18}
+                                    weight={isActive ? "fill" : "bold"}
+                                    className={`transition-transform duration-300 ${isActive ? 'scale-110' : 'group-hover:scale-110'}`}
+                                />
+                                <span className={`text-[11px] font-black uppercase tracking-widest ${isActive ? '' : 'opacity-70 group-hover:opacity-100'}`}>
+                                    {tab.label}
+                                </span>
+
+                                {/* Subtle Glow for active state */}
+                                {isActive && (
+                                    <div className="absolute inset-0 rounded-xl bg-white/10 mix-blend-overlay"></div>
+                                )}
+                            </button>
+                        );
+                    })}
                 </div>
 
                 {/* 3. Tab Content Area */}
