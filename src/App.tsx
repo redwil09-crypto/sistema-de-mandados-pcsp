@@ -100,7 +100,7 @@ function AppContent({ isDark, toggleTheme }: { isDark: boolean; toggleTheme: () 
     const location = useLocation();
     // const hideNav = ['/warrant-detail', '/new-warrant', '/ai-assistant', '/route-planner', '/map'].some(p => location.pathname.startsWith(p));
     const { routeWarrants, warrants, loading } = useWarrants();
-    const [isCollapsed, setIsCollapsed] = useState(false); // Default to open for full view
+    const [isCollapsed, setIsCollapsed] = useState(true); // Default to closed as requested
 
     const hasNotifications = React.useMemo(() => {
         if (!warrants) return false;

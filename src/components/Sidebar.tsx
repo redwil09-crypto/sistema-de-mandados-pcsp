@@ -24,7 +24,8 @@ import {
     Bell,
     Settings,
     FileSearch,
-    Database
+    Database,
+    FileCheck
 } from 'lucide-react';
 import { supabase } from '../supabaseClient';
 import { toast } from 'sonner';
@@ -70,6 +71,7 @@ const Sidebar = ({ routeCount = 0, isCollapsed, toggleCollapse, isDark, toggleTh
         { icon: Home, label: 'Início', path: '/' },
         { icon: FileText, label: 'Mandados', path: '/warrant-list' },
         { icon: FileSearch, label: 'Busca e Apreensão', path: '/minor-search' },
+        { icon: FileCheck, label: 'Contramandados', path: '/counter-warrants' },
         { icon: PlusCircle, label: 'Novo Registro', path: '/new-warrant' },
         { icon: Search, label: 'Busca Avançada', path: '/advanced-search' },
     ];
