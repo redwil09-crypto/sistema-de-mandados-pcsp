@@ -22,7 +22,6 @@ const NewWarrant = React.lazy(() => import('./pages/NewWarrant'));
 const AIAssistantPage = React.lazy(() => import('./pages/AIAssistantPage'));
 const AuditPage = React.lazy(() => import('./pages/AuditPage'));
 const RoutePlanner = React.lazy(() => import('./pages/RoutePlanner'));
-const RoutePlanner = React.lazy(() => import('./pages/RoutePlanner'));
 const OperationalMap = React.lazy(() => import('./pages/OperationalMap'));
 const CounterWarrantList = React.lazy(() => import('./pages/CounterWarrantList'));
 
