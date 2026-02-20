@@ -438,6 +438,7 @@ export async function generateReportBody(warrantData: any, rawContent: string, i
         Gere APENAS o texto final do relatório, sem comentários. 
         MUITO IMPORTANTE: Use um tom HUMANIZADO e PROFISSIONAL. Evite "juridiquês" excessivo. Escreva como um policial que está relatando os fatos reais: "fomos atendidos por fulano", "conversamos com vizinhos", "foi franqueada a entrada". 
         PRIORIDADE MÁXIMA: Se o usuário der uma instrução de refinamento, ignore o rascunho anterior e reescreva focado totalmente no que ele pediu e nos modelos de exemplo acima.
+        REGRA DE FORMATAÇÃO: Sempre envolva o NOME DO RÉU e o NÚMERO DO PROCESSO em **asteriscos duplos** (ex: **JOÃO DA SILVA**, **12345-67.2024**) para que fiquem em negrito no relatório final.
         RESPOSTA:
     `;
 

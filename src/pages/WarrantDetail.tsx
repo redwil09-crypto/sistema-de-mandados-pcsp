@@ -1519,12 +1519,8 @@ Equipe de Capturas - DIG / PCSP
 
                 const labelWidth = doc.getTextWidth(labelText);
 
-                // Aplica Negrito (bold) se for Referência ou Réu, caso contrário mantém bolditalic
-                if (field.label === "Referência:" || field.label === "Réu:" || field.label === "Adolescente:") {
-                    doc.setFont('helvetica', 'bold');
-                } else {
-                    doc.setFont('helvetica', 'bolditalic');
-                }
+                // Revertido para bolditalic para todos os campos de metadados
+                doc.setFont('helvetica', 'bolditalic');
 
                 doc.text(field.value, margin + labelWidth, y);
                 y += 6;
