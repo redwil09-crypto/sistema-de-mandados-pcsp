@@ -21,7 +21,7 @@ const FloatingDock = ({
 
     return (
         <div className="w-full bg-white/95 dark:bg-[#151517]/95 backdrop-blur-xl border border-gray-200 dark:border-white/10 rounded-2xl shadow-glass overflow-hidden">
-            <div className="flex h-14 sm:h-16 w-full items-center justify-around px-2 sm:px-12 whitespace-nowrap">
+            <div className="flex h-14 sm:h-16 w-full items-center justify-between px-6 sm:px-12 whitespace-nowrap">
 
                 {onBack && (
                     <button
