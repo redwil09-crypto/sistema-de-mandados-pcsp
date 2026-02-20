@@ -1931,7 +1931,7 @@ Equipe de Capturas - DIG / PCSP
                                     relative flex-1 group flex items-center justify-center gap-2.5 py-3 rounded-lg transition-all duration-500 ease-out border
                                     ${isActive
                                         ? `${tab.activeClass} scale-[1.02]`
-                                        : 'bg-transparent border-transparent text-gray-400 dark:text-gray-500 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/5'
+                                        : 'bg-gray-100 dark:bg-zinc-900 border-gray-200 dark:border-white/5 text-gray-400 dark:text-gray-500 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-zinc-800'
                                     }
                                 `}
                             >
