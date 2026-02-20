@@ -2928,18 +2928,7 @@ Equipe de Capturas - DIG / PCSP
                         document.body
                     )}
 
-                    {/* Integrated Tool Bar (Former FloatingDock) */}
-                    <div className="-mt-2">
-                        <FloatingDock
-                            onBack={() => navigate(-1)}
-                            onHome={() => navigate('/')}
-                            onSave={() => navigate(`/new-warrant?edit=${id}`)}
-                            onPrint={handleDownloadPDF}
-                            onFinalize={data.status === 'CUMPRIDO' ? handleReopen : handleFinalize}
-                            onDelete={isAdmin ? () => setIsDeleteConfirmOpen(true) : undefined}
-                            status={data.status}
-                        />
-                    </div>
+
                 </div>
             </div >
 
