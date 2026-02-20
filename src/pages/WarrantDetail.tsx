@@ -1896,53 +1896,59 @@ Equipe de Capturas - DIG / PCSP
 
                 {/* 2. Tactical Navigation Tabs */}
                 {/* 2. Tactical Navigation Tabs - Redesigned */}
-                <div className="flex bg-surface-light/80 dark:bg-black/40 backdrop-blur-xl border border-border-light dark:border-white/10 rounded-2xl p-1.5 gap-2 shadow-2xl sticky top-2 z-[30]">
+                {/* 2. Tactical Navigation Tabs - Ultra Futuristic */}
+                <div className="flex bg-black/80 backdrop-blur-2xl border border-white/5 rounded-full p-1.5 gap-2 shadow-2xl sticky top-2 z-[30] ring-1 ring-white/5 mx-auto max-w-4xl w-full">
                     {[
                         {
                             id: 'documents',
                             label: 'Dossiê',
                             icon: FileText,
-                            activeClass: 'bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-lg shadow-cyan-500/20 ring-1 ring-white/20'
+                            activeClass: 'text-cyan-400 shadow-[0_0_20px_rgba(34,211,238,0.3)] bg-cyan-500/10 border-cyan-500/50',
+                            glowColor: 'cyan'
                         },
                         {
                             id: 'investigation',
                             label: 'Investigações',
                             icon: Bot,
-                            activeClass: 'bg-gradient-to-r from-violet-600 to-fuchsia-500 text-white shadow-lg shadow-fuchsia-500/20 ring-1 ring-white/20'
+                            activeClass: 'text-fuchsia-400 shadow-[0_0_20px_rgba(232,121,249,0.3)] bg-fuchsia-500/10 border-fuchsia-500/50',
+                            glowColor: 'fuchsia'
                         },
                         {
                             id: 'timeline',
                             label: 'Operações',
                             icon: History,
-                            activeClass: 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-lg shadow-emerald-500/20 ring-1 ring-white/20'
+                            activeClass: 'text-emerald-400 shadow-[0_0_20px_rgba(52,211,153,0.3)] bg-emerald-500/10 border-emerald-500/50',
+                            glowColor: 'emerald'
                         }
-                    ].map(tab => {
+                    ].map((tab) => {
                         const isActive = activeDetailTab === tab.id;
                         return (
                             <button
                                 key={tab.id}
                                 onClick={() => setActiveDetailTab(tab.id as any)}
                                 className={`
-                                    relative flex-1 group flex items-center justify-center gap-2.5 py-3.5 rounded-xl transition-all duration-300 ease-out
+                                    relative flex-1 group flex items-center justify-center gap-2.5 py-3 rounded-full transition-all duration-500 ease-out border
                                     ${isActive
                                         ? `${tab.activeClass} scale-[1.02]`
-                                        : 'bg-transparent text-text-secondary-light dark:text-gray-400 hover:bg-black/5 dark:hover:bg-white/5 hover:text-text-light dark:hover:text-white'
+                                        : 'bg-transparent border-transparent text-gray-500 hover:text-white hover:bg-white/5'
                                     }
                                 `}
                             >
+                                {/* Futuristic Scanline/Glow Effect for Active State */}
+                                {isActive && (
+                                    <>
+                                        <div className={`absolute inset-0 rounded-full bg-gradient-to-r from-transparent via-${tab.glowColor}-500/10 to-transparent opacity-50 animate-pulse-slow`}></div>
+                                        <div className={`absolute bottom-0 left-1/4 right-1/4 h-[1px] bg-gradient-to-r from-transparent via-${tab.glowColor}-500 to-transparent shadow-[0_0_10px_currentColor]`}></div>
+                                    </>
+                                )}
+
                                 <tab.icon
                                     size={18}
-                                    weight={isActive ? "fill" : "bold"}
-                                    className={`transition-transform duration-300 ${isActive ? 'scale-110' : 'group-hover:scale-110'}`}
+                                    className={`relative z-10 transition-transform duration-300 ${isActive ? 'scale-110 drop-shadow-[0_0_8px_currentColor]' : 'group-hover:scale-110'}`}
                                 />
-                                <span className={`text-[11px] font-black uppercase tracking-widest ${isActive ? '' : 'opacity-70 group-hover:opacity-100'}`}>
+                                <span className={`relative z-10 text-[10px] font-black uppercase tracking-[0.2em] ${isActive ? 'text-white' : ''}`}>
                                     {tab.label}
                                 </span>
-
-                                {/* Subtle Glow for active state */}
-                                {isActive && (
-                                    <div className="absolute inset-0 rounded-xl bg-white/10 mix-blend-overlay"></div>
-                                )}
                             </button>
                         );
                     })}
