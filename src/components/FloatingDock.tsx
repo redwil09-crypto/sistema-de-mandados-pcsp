@@ -20,15 +20,15 @@ const FloatingDock = ({
 }: FloatingDockProps) => {
 
     return (
-        <div className="w-full bg-surface-light dark:bg-[#151517] backdrop-blur-xl border border-border-light dark:border-white/5 rounded-2xl shadow-glass overflow-hidden">
+        <div className="w-full bg-white dark:bg-[#151517] backdrop-blur-xl border border-gray-200 dark:border-white/5 rounded-2xl shadow-xl overflow-hidden">
             <div className="flex h-20 w-full items-center justify-between px-3 sm:justify-center sm:gap-10 md:gap-16 whitespace-nowrap">
 
                 {onBack && (
                     <button
                         onClick={onBack}
-                        className="relative flex flex-col items-center justify-center gap-1.5 transition-all text-text-secondary-light dark:text-zinc-500 hover:text-text-light dark:hover:text-white group"
+                        className="relative flex flex-col items-center justify-center gap-1.5 transition-all text-blue-600 dark:text-blue-500 hover:text-blue-400 group"
                     >
-                        <ChevronLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
+                        <ChevronLeft size={20} className="group-hover:-translate-x-1 transition-transform drop-shadow-[0_0_8px_rgba(37,99,235,0.5)]" />
                         <span className="text-[10px] font-black tracking-widest uppercase font-display">Voltar</span>
                     </button>
                 )}
@@ -36,20 +36,20 @@ const FloatingDock = ({
                 {onHome && (
                     <button
                         onClick={onHome}
-                        className="relative flex flex-col items-center justify-center gap-1.5 transition-all text-blue-500 group"
+                        className="relative flex flex-col items-center justify-center gap-1.5 transition-all text-blue-600 dark:text-blue-500 hover:text-blue-400 group"
                     >
-                        <Home size={22} className="drop-shadow-[0_0_8px_rgba(59,130,246,0.5)]" />
+                        <Home size={22} className="drop-shadow-[0_0_8px_rgba(37,99,235,0.8)]" />
                         <span className="text-[10px] font-black tracking-widest uppercase font-display">Home</span>
-                        <div className="absolute -bottom-3 inset-x-0 h-1 bg-blue-500 shadow-[0_0_15px_rgba(59,130,246,1)] rounded-full"></div>
+                        <div className="absolute -bottom-3 inset-x-0 h-1 bg-blue-600 dark:bg-blue-500 shadow-[0_0_15px_rgba(37,99,235,1)] rounded-full"></div>
                     </button>
                 )}
 
                 {onSave && (
                     <button
                         onClick={onSave}
-                        className="relative flex flex-col items-center justify-center gap-1.5 transition-all text-text-secondary-light dark:text-zinc-500 hover:text-text-light dark:hover:text-white group"
+                        className="relative flex flex-col items-center justify-center gap-1.5 transition-all text-lime-600 dark:text-lime-400 hover:text-lime-300 group"
                     >
-                        <RefreshCw size={20} className="group-hover:rotate-180 transition-transform duration-700" />
+                        <RefreshCw size={20} className="group-hover:rotate-180 transition-transform duration-700 drop-shadow-[0_0_8px_rgba(132,204,22,0.5)]" />
                         <span className="text-[10px] font-black tracking-widest uppercase font-display">Editar</span>
                     </button>
                 )}
@@ -57,9 +57,9 @@ const FloatingDock = ({
                 {onPrint && (
                     <button
                         onClick={onPrint}
-                        className="relative flex flex-col items-center justify-center gap-1.5 transition-all text-text-secondary-light dark:text-zinc-500 hover:text-text-light dark:hover:text-white group"
+                        className="relative flex flex-col items-center justify-center gap-1.5 transition-all text-lime-600 dark:text-lime-400 hover:text-lime-300 group"
                     >
-                        <Printer size={20} className="group-hover:scale-110 transition-transform" />
+                        <Printer size={20} className="group-hover:scale-110 transition-transform drop-shadow-[0_0_8px_rgba(132,204,22,0.5)]" />
                         <span className="text-[10px] font-black tracking-widest uppercase font-display">Imprimir</span>
                     </button>
                 )}
@@ -67,9 +67,9 @@ const FloatingDock = ({
                 {onFinalize && (
                     <button
                         onClick={onFinalize}
-                        className="relative flex flex-col items-center justify-center gap-1.5 transition-all text-text-secondary-light dark:text-zinc-500 hover:text-text-light dark:hover:text-white group"
+                        className="relative flex flex-col items-center justify-center gap-1.5 transition-all text-red-600 dark:text-red-500 hover:text-red-400 group"
                     >
-                        {status === 'CUMPRIDO' ? <RotateCcw size={20} /> : <CheckCircle size={20} />}
+                        {status === 'CUMPRIDO' ? <RotateCcw size={20} className="drop-shadow-[0_0_8px_rgba(239,68,68,0.5)]" /> : <CheckCircle size={20} className="drop-shadow-[0_0_8_rgba(239,68,68,0.5)]" />}
                         <span className="text-[10px] font-black tracking-widest uppercase font-display">
                             {status === 'CUMPRIDO' ? 'Reabrir' : 'Baixar'}
                         </span>
@@ -79,9 +79,9 @@ const FloatingDock = ({
                 {onDelete && (
                     <button
                         onClick={onDelete}
-                        className="relative flex flex-col items-center justify-center gap-1.5 transition-all text-text-secondary-light dark:text-zinc-500 hover:text-red-500 group"
+                        className="relative flex flex-col items-center justify-center gap-1.5 transition-all text-red-600 dark:text-red-500 hover:text-white dark:hover:text-red-400 group"
                     >
-                        <Trash2 size={20} className="group-hover:scale-110 transition-transform" />
+                        <Trash2 size={20} className="group-hover:scale-110 transition-transform drop-shadow-[0_0_8px_rgba(239,68,68,0.5)]" />
                         <span className="text-[10px] font-black tracking-widest uppercase font-display">Apagar</span>
                     </button>
                 )}
