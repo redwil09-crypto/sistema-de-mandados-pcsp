@@ -1957,7 +1957,7 @@ Equipe de Capturas - DIG / PCSP
 
                 {/* 3. Tab Content Area */}
                 <div
-                    className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-400 touch-pan-y"
+                    className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-400 touch-auto"
                     onTouchStart={onTouchStart}
                     onTouchMove={onTouchMove}
                     onTouchEnd={onTouchEnd}
