@@ -6,7 +6,7 @@ import { useParams, useNavigate, Link, useSearchParams } from 'react-router-dom'
 import { jsPDF } from 'jspdf';
 import {
     AlertCircle, User, Gavel, Calendar, MapPin, Map as MapIcon, Home,
-    Bike, Car, FileCheck, FileText, Paperclip, Edit,
+    Bike, Car, FileCheck, FileText, Paperclip, Edit, Camera,
     Route as RouteIcon, RotateCcw, CheckCircle, Printer,
     Trash2, Zap, Bell, Eye, History, Send, Copy,
     ShieldAlert, MessageSquare, Plus, PlusCircle, X, ChevronRight, Bot, Cpu, Sparkles, RefreshCw, AlertTriangle, ExternalLink,
