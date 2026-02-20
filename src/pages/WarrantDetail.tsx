@@ -2928,9 +2928,9 @@ Equipe de Capturas - DIG / PCSP
                         document.body
                     )}
 
-                    {/* Persistent Bottom Tool Bar - Fixed for Mobile & Desktop */}
-                    <div className="fixed bottom-0 left-0 right-0 z-[1000] p-4 bg-gradient-to-t from-background-light via-background-light/80 to-transparent dark:from-background-dark dark:via-background-dark/80 dark:to-transparent pointer-events-none">
-                        <div className="max-w-xl mx-auto pointer-events-auto">
+                    {/* Persistent Bottom Tool Bar - Wider & Lower Spacing */}
+                    <div className="fixed bottom-0 left-0 right-0 z-[1000] p-3 pointer-events-none">
+                        <div className="max-w-4xl mx-auto pointer-events-auto">
                             <FloatingDock
                                 onBack={() => navigate('/')}
                                 onHome={() => navigate('/')}
