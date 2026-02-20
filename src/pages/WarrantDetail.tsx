@@ -569,13 +569,20 @@ const WarrantDetail = () => {
     };
 
     const handleConfirmFinalize = async () => {
-        const success = await updateWarrant(data.id, {
+        const updates: any = {
             status: 'CUMPRIDO',
             dischargeDate: finalizeFormData.date,
             digOffice: finalizeFormData.digOffice,
             fulfillmentResult: finalizeFormData.result,
             fulfillmentReport: finalizeFormData.reportNumber
-        });
+        };
+
+        // If closing as Contramandado, force regime update to match logic
+        if (finalizeFormData.result === 'CONTRAMANDADO') {
+            updates.regime = 'Contramandado';
+        }
+
+        const success = await updateWarrant(data.id, updates);
         if (success) {
             toast.success("Mandado finalizado com sucesso!");
         } else {
@@ -2937,7 +2944,7 @@ Equipe de Capturas - DIG / PCSP
                             <div className="space-y-4">
                                 <div className="space-y-1"><label className="text-[10px] font-black text-text-muted uppercase tracking-widest">Data Cumprimento</label><input type="date" className="w-full bg-background-light dark:bg-white/5 border border-border-light dark:border-white/10 rounded-xl p-3 text-text-light dark:text-white" value={finalizeFormData.date} onChange={e => setFinalizeFormData({ ...finalizeFormData, date: e.target.value })} /></div>
                                 <div className="space-y-1"><label className="text-[10px] font-black text-text-muted uppercase tracking-widest">Ofício DIG Vinculado</label><input type="text" className="w-full bg-background-light dark:bg-white/5 border border-border-light dark:border-white/10 rounded-xl p-3 text-text-light dark:text-white" value={finalizeFormData.digOffice} onChange={e => setFinalizeFormData({ ...finalizeFormData, digOffice: e.target.value })} /></div>
-                                <div className="space-y-1"><label className="text-[10px] font-black text-text-muted uppercase tracking-widest">Resultado Final</label><select className="w-full bg-background-light dark:bg-white/5 border border-border-light dark:border-white/10 rounded-xl p-3 text-text-light dark:text-white appearance-none" value={finalizeFormData.result} onChange={e => setFinalizeFormData({ ...finalizeFormData, result: e.target.value })}>{['PRESO', 'NEGATIVO', 'ENCAMINHADO', 'ÓBITO', 'CONTRA', 'LOCALIZADO'].map(opt => <option key={opt} value={opt} className="bg-surface-light dark:bg-surface-dark text-text-light dark:text-white">{opt}</option>)}</select></div>
+                                <div className="space-y-1"><label className="text-[10px] font-black text-text-muted uppercase tracking-widest">Resultado Final</label><select className="w-full bg-background-light dark:bg-white/5 border border-border-light dark:border-white/10 rounded-xl p-3 text-text-light dark:text-white appearance-none" value={finalizeFormData.result} onChange={e => setFinalizeFormData({ ...finalizeFormData, result: e.target.value })}>{['PRESO', 'NEGATIVO', 'ENCAMINHADO', 'ÓBITO', 'CONTRAMANDADO', 'LOCALIZADO'].map(opt => <option key={opt} value={opt} className="bg-surface-light dark:bg-surface-dark text-text-light dark:text-white">{opt}</option>)}</select></div>
                             </div>
                             <div className="flex gap-3">
                                 <button onClick={() => setIsFinalizeModalOpen(false)} className="flex-1 py-3.5 rounded-2xl font-black text-[10px] uppercase tracking-widest bg-white/5 text-white hover:bg-white/10 transition-all">Cancelar</button>

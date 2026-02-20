@@ -238,7 +238,16 @@ const AIAssistantPage = () => {
             try {
                 const data = await extractFromText(text, "Comando de Voz");
                 const isDuplicate = warrants.some(w => w.number === data.processNumber);
-                setBatchResults([{ ...data, isDuplicate, tags: data.autoPriority || [] }]);
+                // Check for Contramandado
+                const isContramandado = data.type?.toUpperCase().includes('CONTRAMANDADO') || data.type?.toUpperCase().includes('CONTRA MANDADO');
+
+                setBatchResults([{
+                    ...data,
+                    status: isContramandado ? 'CUMPRIDO' : 'EM ABERTO',
+                    regime: isContramandado ? 'Contramandado' : data.regime,
+                    isDuplicate,
+                    tags: data.autoPriority || []
+                }]);
                 setCurrentIndex(0);
                 setStep('review');
                 toast.success("Mandado gerado via Comando de Voz!");
@@ -286,8 +295,13 @@ const AIAssistantPage = () => {
                     const data = await extractPdfData(f);
                     // Anti-duplicity check
                     const isDuplicate = warrants.some(w => w.number === data.processNumber);
+                    // Check for Contramandado
+                    const isContramandado = data.type?.toUpperCase().includes('CONTRAMANDADO') || data.type?.toUpperCase().includes('CONTRA MANDADO');
+
                     const formattedData = {
                         ...data,
+                        status: isContramandado ? 'CUMPRIDO' : 'EM ABERTO',
+                        regime: isContramandado ? 'Contramandado' : data.regime,
                         isDuplicate,
                         tags: data.autoPriority || [],
                         birthDate: formatDate(data.birthDate),
@@ -318,8 +332,13 @@ const AIAssistantPage = () => {
         try {
             const data = await extractFromText(inputText, "Texto via Transferência");
             const isDuplicate = warrants.some(w => w.number === data.processNumber);
+            // Check for Contramandado
+            const isContramandado = data.type?.toUpperCase().includes('CONTRAMANDADO') || data.type?.toUpperCase().includes('CONTRA MANDADO');
+
             const formattedData = {
                 ...data,
+                status: isContramandado ? 'CUMPRIDO' : 'EM ABERTO',
+                regime: isContramandado ? 'Contramandado' : data.regime,
                 isDuplicate,
                 tags: data.autoPriority || [],
                 birthDate: formatDate(data.birthDate),
@@ -387,7 +406,7 @@ const AIAssistantPage = () => {
                 id: warrantId, // This string ID will be ignored by warrantToDb, DB generates UUID
                 name: extractedData.name,
                 type: extractedData.type,
-                status: 'EM ABERTO',
+                status: extractedData.status || 'EM ABERTO',
 
                 number: extractedData.processNumber,
                 rg: extractedData.rg || '',
@@ -708,6 +727,7 @@ const AIAssistantPage = () => {
                                             onClick={() => {
                                                 handleExtractedDataChange('category', 'prison');
                                                 handleExtractedDataChange('type', 'Mandado de Prisão');
+                                                handleExtractedDataChange('status', 'EM ABERTO');
                                             }}
                                             className={`flex-1 py-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 border-2 ${extractedData.category === 'prison'
                                                 ? 'bg-red-600 border-red-600 text-white shadow-lg shadow-red-500/20'
@@ -721,6 +741,7 @@ const AIAssistantPage = () => {
                                             onClick={() => {
                                                 handleExtractedDataChange('category', 'search');
                                                 handleExtractedDataChange('type', 'BUSCA E APREENSÃO');
+                                                handleExtractedDataChange('status', 'EM ABERTO');
                                             }}
                                             className={`flex-1 py-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 border-2 ${extractedData.category === 'search'
                                                 ? 'bg-orange-600 border-orange-600 text-white shadow-lg shadow-orange-500/20'
@@ -735,6 +756,7 @@ const AIAssistantPage = () => {
                                                 handleExtractedDataChange('category', 'counter');
                                                 handleExtractedDataChange('type', 'CONTRAMANDADO DE PRISÃO');
                                                 handleExtractedDataChange('regime', 'Contramandado');
+                                                handleExtractedDataChange('status', 'CUMPRIDO');
                                             }}
                                             className={`flex-1 py-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 border-2 ${extractedData.category === 'counter' || extractedData.type.includes('CONTRAMANDADO')
                                                 ? 'bg-emerald-600 border-emerald-600 text-white shadow-lg shadow-emerald-500/20'
