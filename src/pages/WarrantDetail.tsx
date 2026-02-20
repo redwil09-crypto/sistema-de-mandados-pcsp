@@ -1904,21 +1904,21 @@ Equipe de Capturas - DIG / PCSP
                             id: 'documents',
                             label: 'Dossiê',
                             icon: FileText,
-                            activeClass: 'text-blue-600 dark:text-blue-400 shadow-[0_0_20px_rgba(59,130,246,0.5)] bg-blue-50 dark:bg-blue-500/10 border-blue-200 dark:border-blue-500/50',
+                            activeClass: 'text-blue-600 dark:text-blue-400 shadow-[0_0_20px_rgba(59,130,246,0.3)] bg-gray-100 dark:bg-zinc-900 border-blue-500/50',
                             glowColor: 'blue'
                         },
                         {
                             id: 'investigation',
                             label: 'Investigações',
                             icon: Bot,
-                            activeClass: 'text-red-600 dark:text-red-500 shadow-[0_0_20px_rgba(239,68,68,0.5)] bg-red-50 dark:bg-red-500/10 border-red-200 dark:border-red-500/50',
+                            activeClass: 'text-red-600 dark:text-red-500 shadow-[0_0_20px_rgba(239,68,68,0.3)] bg-gray-100 dark:bg-zinc-900 border-red-500/50',
                             glowColor: 'red'
                         },
                         {
                             id: 'timeline',
                             label: 'Operações',
                             icon: History,
-                            activeClass: 'text-lime-600 dark:text-lime-400 shadow-[0_0_20px_rgba(132,204,22,0.5)] bg-lime-50 dark:bg-lime-500/10 border-lime-200 dark:border-lime-500/50',
+                            activeClass: 'text-lime-600 dark:text-lime-400 shadow-[0_0_20px_rgba(132,204,22,0.3)] bg-gray-100 dark:bg-zinc-900 border-lime-500/50',
                             glowColor: 'lime'
                         }
                     ].map((tab) => {
