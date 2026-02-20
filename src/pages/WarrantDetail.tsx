@@ -1756,13 +1756,13 @@ Equipe de Capturas - DIG / PCSP
                     {/* Animated Glow Decorator */}
                     <div className={`absolute -top-24 -right-24 w-48 h-48 ${themeBg} rounded-full blur-3xl group-hover:opacity-100 transition-all opacity-50`}></div>
 
-                    {localData.status === 'CUMPRIDO' && (
+                    {(localData.status === 'CUMPRIDO' || isCounterWarrant) && (
                         <div className="absolute top-2 right-2 sm:top-6 sm:right-10 rotate-12 opacity-80 pointer-events-none z-20">
                             <div className={`border-[4px] ${isSearch ? 'border-orange-500 text-orange-500 shadow-[0_0_20px_rgba(249,115,22,0.3)]' : 'border-emerald-500 text-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.3)]'} px-4 py-1 rounded-sm font-black text-2xl sm:text-5xl tracking-tighter uppercase bg-white/10 dark:bg-black/20 backdrop-blur-md`}>
-                                CUMPRIDO
+                                {isCounterWarrant ? 'BAIXADO' : 'CUMPRIDO'}
                             </div>
                             <p className={`text-[8px] sm:text-[10px] ${isSearch ? 'text-orange-600 dark:text-orange-400 bg-orange-500/10' : 'text-emerald-600 dark:text-emerald-400 bg-emerald-500/10'} font-bold text-center mt-1 uppercase tracking-widest rounded py-0.5`}>
-                                {localData.dischargeDate || (isSearch ? 'Diligência Efetivada' : 'Captura Efetivada')}
+                                {localData.dischargeDate || (isCounterWarrant ? 'Recolhimento Judicial' : (isSearch ? 'Diligência Efetivada' : 'Captura Efetivada'))}
                             </p>
                         </div>
                     )}
