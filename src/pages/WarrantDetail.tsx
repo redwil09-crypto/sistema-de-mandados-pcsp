@@ -688,8 +688,15 @@ const WarrantDetail = () => {
 
             toast.success("Informações Transferidas para o Centro de Inteligência!", { id: toastId });
 
-            // MANTÉM OS DADOS VISÍVEIS (Removido o auto-clear de 1s para o usuário ler a análise)
+            // MANTÉM OS DADOS VISÍVEIS (Removido o auto-clear para o usuário ler a análise)
             setAiAnalysisSaved(true);
+
+            // Redireciona para a aba de sugestão para ver o resultado consolidado
+            setActiveDetailTab('investigation');
+            setTimeout(() => {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }, 100);
+
             setTimeout(() => setAiAnalysisSaved(false), 3000);
         } else {
             toast.error("Erro ao salvar no prontuário.", { id: toastId });
@@ -1044,7 +1051,9 @@ Equipe de Capturas - DIG / PCSP
 
             if (analysis) {
                 // 2. Merge with existing Intel
-                const currentIntel = data.tacticalIntel || {};
+                const currentIntel = data.tacticalSummary ?
+                    (typeof data.tacticalSummary === 'string' ? JSON.parse(data.tacticalSummary) : data.tacticalSummary)
+                    : {};
                 const mergedIntel = await mergeIntelligence(data, currentIntel, analysis);
 
                 // 3. Create Diligence Entry
@@ -1058,22 +1067,22 @@ Equipe de Capturas - DIG / PCSP
 
                 const updatedHistory = [...(data.diligentHistory || []), newHistoryItem];
 
-                // 4. Update Database
+                // 4. Update Database - SALVANDO O JSON COMPLETO NO SUMMARY
                 const success = await updateWarrant(data.id, {
-                    tacticalIntel: mergedIntel,
                     diligentHistory: updatedHistory,
-                    tacticalSummary: analysis.summary // Update main AI summary too
+                    tacticalSummary: JSON.stringify(mergedIntel),
+                    ifoodResult: text // Garante que o texto da pesquisa não suma
                 });
 
                 if (success) {
                     setAiDiligenceResult(mergedIntel); // Update local state
                     toast.success("Inteligência Tática Atualizada!", { id: loadingToast });
 
-                    // Redirecionar para o topo da aba de Investigações para ver o resumo tático
+                    // FORÇAR TRANSIÇÃO E ATUALIZAÇÃO
                     setActiveDetailTab('investigation');
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-
-                    setNewDiligence(''); // Clear main input if needed, but here we keep the ifood result
+                    setTimeout(() => {
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }, 100);
                 } else {
                     toast.error("Erro ao salvar inteligência.", { id: loadingToast });
                 }
@@ -1980,7 +1989,7 @@ Equipe de Capturas - DIG / PCSP
                                     className={`relative z-10 transition-transform duration-300 ${isActive ? 'scale-110 drop-shadow-[0_0_8px_currentColor]' : 'group-hover:scale-110'}`}
                                 />
                                 <span className={`relative z-10 text-[10px] font-black uppercase tracking-[0.2em] ${isActive ? 'text-gray-900 dark:text-white' : ''}`}>
-                                    {tab.label}
+                                    {tab.id === 'investigation' ? 'Sugestão Tática Inteligente' : tab.label}
                                 </span>
                             </button>
                         );
