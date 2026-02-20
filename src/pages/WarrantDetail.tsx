@@ -1821,7 +1821,7 @@ Equipe de Capturas - DIG / PCSP
                                 className="absolute -bottom-2 -right-2 bg-primary hover:bg-primary-dark p-1.5 rounded-lg shadow-lg border border-white/20 cursor-pointer transition-transform hover:scale-105 active:scale-95 group/edit z-10"
                                 title="Trocar Foto"
                             >
-                                <RefreshCw size={12} className="text-white group-hover/edit:rotate-180 transition-transform duration-700" />
+                                <Camera size={12} className="text-white group-hover/edit:scale-110 transition-transform" />
                             </label>
                         </div>
 
@@ -2963,7 +2963,7 @@ Equipe de Capturas - DIG / PCSP
                         <FloatingDock
                             onBack={() => navigate('/')}
                             onHome={() => navigate('/')}
-                            onSave={() => setIsConfirmSaveOpen(true)}
+                            onSave={() => navigate(`/new-warrant?edit=${data.id}`)}
                             onPrint={() => generateWarrantPDF(localData as any)}
                             onFinalize={() => setIsFinalizeModalOpen(true)}
                             onDelete={() => setIsDeleteConfirmOpen(true)}

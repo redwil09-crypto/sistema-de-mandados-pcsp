@@ -2,7 +2,7 @@
 import React from 'react';
 import {
     ChevronLeft, Home, RefreshCw, Printer,
-    CheckCircle, Trash2, RotateCcw
+    CheckCircle, Trash2, RotateCcw, Edit, Pencil
 } from 'lucide-react';
 
 interface FloatingDockProps {
@@ -49,7 +49,7 @@ const FloatingDock = ({
                         onClick={onSave}
                         className="relative flex flex-col items-center justify-center gap-1 transition-all text-text-secondary-light dark:text-zinc-500 hover:text-text-light dark:hover:text-white group"
                     >
-                        <RefreshCw size={18} className="group-hover:rotate-180 transition-transform duration-700" />
+                        <Pencil size={18} className="group-hover:scale-110 transition-transform" />
                         <span className="text-[9px] font-black tracking-widest uppercase font-display">Editar</span>
                     </button>
                 )}
