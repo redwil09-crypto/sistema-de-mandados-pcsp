@@ -6,7 +6,7 @@ import { useParams, useNavigate, Link, useSearchParams } from 'react-router-dom'
 import { jsPDF } from 'jspdf';
 import {
     AlertCircle, User, Gavel, Calendar, MapPin, Map as MapIcon, Home,
-    Bike, Car, FileCheck, FileText, Paperclip, Edit,
+    Bike, Car, FileCheck, FileText, Paperclip, Edit, Camera,
     Route as RouteIcon, RotateCcw, CheckCircle, Printer,
     Trash2, Zap, Bell, Eye, History, Send, Copy,
     ShieldAlert, MessageSquare, Plus, PlusCircle, X, ChevronRight, Bot, Cpu, Sparkles, RefreshCw, AlertTriangle, ExternalLink,
@@ -54,7 +54,8 @@ const WarrantDetail = () => {
         date: new Date().toISOString().split('T')[0],
         reportNumber: '',
         digOffice: '',
-        result: 'Fechado'
+        result: 'Fechado',
+        details: ''
     });
 
     const [isReopenConfirmOpen, setIsReopenConfirmOpen] = useState(false);
@@ -170,6 +171,7 @@ const WarrantDetail = () => {
                 entryDate: formatDate(data.entryDate),
                 expirationDate: formatDate(data.expirationDate),
                 dischargeDate: formatDate(data.dischargeDate),
+                fulfillmentDetails: data.fulfillmentDetails
             });
         }
     }, [data]);
@@ -178,7 +180,7 @@ const WarrantDetail = () => {
         if (!data) return false;
         const fields: (keyof Warrant)[] = [
             'name', 'type', 'rg', 'cpf', 'number', 'crime', 'regime', 'location',
-            'ifoodNumber', 'ifoodResult', 'digOffice', 'observation', 'age', 'issuingCourt', 'tacticalSummary'
+            'ifoodNumber', 'ifoodResult', 'digOffice', 'observation', 'age', 'issuingCourt', 'tacticalSummary', 'fulfillmentDetails'
         ];
 
         const basicChanges = fields.some(key => localData[key] !== data[key]);
@@ -262,15 +264,17 @@ const WarrantDetail = () => {
         const toastId = toast.loading("🤖 Aplicando modelo de Escrivão de Elite...");
 
         try {
-            const rawContent = `${context}\n\nRASCUNHO INICIAL:\n${defaultBody}`;
+            const rawContent = `DADOS DO CASO:\n${context}\n\nTEXTO ATUAL PARA REESCREVER:\n${defaultBody}`;
 
-            const result = await generateReportBody(currentData, rawContent, 'Aplicar estritamente o manual de modelos.');
+            const result = await generateReportBody(currentData, rawContent, 'Aplique os modelos padrão com um tom humanizado e direto de policial de campo.');
 
             if (result && !result.startsWith("Erro")) {
                 setCapturasData(prev => ({ ...prev, body: result }));
-                toast.success("Relatório gerado com sucesso!", { id: toastId });
+                toast.success("Modelo aplicado com sucesso!", { id: toastId });
             } else {
-                toast.error("IA falhou, mantendo rascunho.", { id: toastId });
+                // Show the real error if possible
+                const errorMsg = result && result.startsWith("Erro") ? result : "IA falhou em gerar o texto.";
+                toast.error(errorMsg, { id: toastId });
             }
         } catch (e: any) {
             console.error(e);
@@ -290,10 +294,14 @@ const WarrantDetail = () => {
             const fullContext = buildComprehensiveReportContext(currentData);
 
             const rawContent = `
+                DADOS DO CASO:
                 ${fullContext}
 
-                RASCUNHO/TEXTO ATUAL DO AGENTE:
+                TEXTO QUE DEVE SER REESCRITO/REFINADO:
                 ${capturasData.body}
+
+                ORDEM DO POLICIAL PARA ESTA REESCRITA:
+                "${capturasData.aiInstructions}"
             `;
 
             const result = await generateReportBody(currentData, rawContent, capturasData.aiInstructions);
@@ -356,7 +364,7 @@ const WarrantDetail = () => {
             'location', 'ifoodNumber', 'ifoodResult', 'digOffice',
             'issueDate', 'entryDate', 'expirationDate', 'dischargeDate', 'observation',
             'status', 'fulfillmentResult', 'fulfillmentReport', 'latitude', 'longitude',
-            'tacticalSummary', 'tags', 'birthDate', 'age', 'issuingCourt'
+            'tacticalSummary', 'tags', 'birthDate', 'age', 'issuingCourt', 'fulfillmentDetails'
         ];
 
         fields.forEach(key => {
@@ -574,7 +582,8 @@ const WarrantDetail = () => {
             dischargeDate: finalizeFormData.date,
             digOffice: finalizeFormData.digOffice,
             fulfillmentResult: finalizeFormData.result,
-            fulfillmentReport: finalizeFormData.reportNumber
+            fulfillmentReport: finalizeFormData.reportNumber,
+            fulfillmentDetails: finalizeFormData.details
         };
 
         // If closing as Contramandado, force regime update to match logic
@@ -643,9 +652,9 @@ const WarrantDetail = () => {
                 const mergedIntel = await mergeIntelligence(data, currentIntel, aiDiligenceResult);
 
                 updatedTacticalSummary = JSON.stringify(mergedIntel);
-            } catch (mergeError) {
+            } catch (mergeError: any) {
                 console.error("Error calling AI Merge:", mergeError);
-                toast.error("Falha na fusão inteligente. Salvando dados brutos.", { id: toastId });
+                toast.error(`Falha na fusão inteligente: ${mergeError.message || mergeError}. Salvando dados brutos.`, { id: toastId });
             }
         }
 
@@ -679,12 +688,16 @@ const WarrantDetail = () => {
 
             toast.success("Informações Transferidas para o Centro de Inteligência!", { id: toastId });
 
-            // CLEAR THE "RELATÓRIO ESTRATÉGICO" (TIMELINE INPUTS)
-            // This ensures the source is disposable/temporary as requested
+            // MANTÉM OS DADOS VISÍVEIS (Removido o auto-clear para o usuário ler a análise)
+            setAiAnalysisSaved(true);
+
+            // Redireciona para a aba de sugestão para ver o resultado consolidado
+            setActiveDetailTab('investigation');
             setTimeout(() => {
-                setAiAnalysisSaved(false);
-                setAiDiligenceResult(null);
-            }, 1000);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }, 100);
+
+            setTimeout(() => setAiAnalysisSaved(false), 3000);
         } else {
             toast.error("Erro ao salvar no prontuário.", { id: toastId });
         }
@@ -704,6 +717,10 @@ const WarrantDetail = () => {
             if (result) {
                 setAiDiligenceResult(result);
                 toast.success("Análise estratégica concluída!", { id: tid });
+
+                // Redirecionar para a aba de Investigações (Sugestão Tática) e rolar para o topo
+                setActiveDetailTab('investigation');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
             } else {
                 toast.error("IA indisponível no momento.", { id: tid });
             }
@@ -889,6 +906,10 @@ Equipe de Capturas - DIG / PCSP
                 setAnalyzedDocumentText(text); // Save context
                 setChatHistory([]); // Reset chat on new document
                 toast.success('Análise de Inteligência concluída!', { id: toastId });
+
+                // Redirecionar para ver o resultado
+                setActiveDetailTab('investigation');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
             } else {
                 toast.error('Não foi possível gerar a análise.', { id: toastId });
             }
@@ -1030,7 +1051,9 @@ Equipe de Capturas - DIG / PCSP
 
             if (analysis) {
                 // 2. Merge with existing Intel
-                const currentIntel = data.tacticalIntel || {};
+                const currentIntel = data.tacticalSummary ?
+                    (typeof data.tacticalSummary === 'string' ? JSON.parse(data.tacticalSummary) : data.tacticalSummary)
+                    : {};
                 const mergedIntel = await mergeIntelligence(data, currentIntel, analysis);
 
                 // 3. Create Diligence Entry
@@ -1044,17 +1067,22 @@ Equipe de Capturas - DIG / PCSP
 
                 const updatedHistory = [...(data.diligentHistory || []), newHistoryItem];
 
-                // 4. Update Database
+                // 4. Update Database - SALVANDO O JSON COMPLETO NO SUMMARY
                 const success = await updateWarrant(data.id, {
-                    tacticalIntel: mergedIntel,
                     diligentHistory: updatedHistory,
-                    tacticalSummary: analysis.summary // Update main AI summary too
+                    tacticalSummary: JSON.stringify(mergedIntel),
+                    ifoodResult: text // Garante que o texto da pesquisa não suma
                 });
 
                 if (success) {
                     setAiDiligenceResult(mergedIntel); // Update local state
                     toast.success("Inteligência Tática Atualizada!", { id: loadingToast });
-                    setNewDiligence(''); // Clear main input if needed, but here we keep the ifood result
+
+                    // FORÇAR TRANSIÇÃO E ATUALIZAÇÃO
+                    setActiveDetailTab('investigation');
+                    setTimeout(() => {
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }, 100);
                 } else {
                     toast.error("Erro ao salvar inteligência.", { id: loadingToast });
                 }
@@ -1467,10 +1495,7 @@ Equipe de Capturas - DIG / PCSP
             headerLines.forEach((line, index) => {
                 doc.text(line, textX, y + 4 + (index * 4));
             });
-            y += 32;
-
-            // Spacing reduced
-            y += 2;
+            y += 28; // Reduzido de 32 para 28 para aproximar a barra preta
 
             // --- BLACK TITLE BAR ---
             doc.setFillColor(0, 0, 0);
@@ -1512,7 +1537,10 @@ Equipe de Capturas - DIG / PCSP
                 doc.text(labelText, margin, y);
 
                 const labelWidth = doc.getTextWidth(labelText);
+
+                // Revertido para bolditalic para todos os campos de metadados
                 doc.setFont('helvetica', 'bolditalic');
+
                 doc.text(field.value, margin + labelWidth, y);
                 y += 6;
             });
@@ -1631,6 +1659,8 @@ Equipe de Capturas - DIG / PCSP
                 }
             });
 
+            y += 15; // Aumentado o distanciamento do corpo do texto para a assinatura
+
             // --- SIGNATURE BLOCK (Right Aligned) ---
             if (y > pageHeight - 60) {
                 doc.addPage();
@@ -1730,7 +1760,7 @@ Equipe de Capturas - DIG / PCSP
 
     // Determine Theme Colors based on Type
     const isSearch = localData.type ? (localData.type.toLowerCase().includes('busca') || localData.type.toLowerCase().includes('apreensão')) : false;
-    const isCounterWarrant = (localData.regime && (localData.regime.toLowerCase() === 'contramandado' || localData.regime.toLowerCase() === 'civil')) || (localData.type && localData.type.toLowerCase().includes('contramandado'));
+    const isCounterWarrant = (localData.regime && localData.regime.toLowerCase() === 'contramandado') || (localData.type && localData.type.toLowerCase().includes('contramandado'));
 
     const themeColor = isSearch ? 'text-orange-500' : (isCounterWarrant ? 'text-emerald-500' : 'text-primary');
     const themeBg = isSearch ? 'bg-orange-500/10' : (isCounterWarrant ? 'bg-emerald-500/10' : 'bg-primary/10');
@@ -1755,6 +1785,17 @@ Equipe de Capturas - DIG / PCSP
                 <div className="bg-surface-light dark:bg-surface-dark/60 backdrop-blur-xl border border-border-light dark:border-white/10 rounded-2xl p-4 shadow-glass overflow-hidden relative group">
                     {/* Animated Glow Decorator */}
                     <div className={`absolute -top-24 -right-24 w-48 h-48 ${themeBg} rounded-full blur-3xl group-hover:opacity-100 transition-all opacity-50`}></div>
+
+                    {(localData.status === 'CUMPRIDO' || isCounterWarrant) && (
+                        <div className="absolute top-2 right-2 sm:top-6 sm:right-10 rotate-12 opacity-80 pointer-events-none z-20">
+                            <div className={`border-[4px] ${isSearch ? 'border-orange-500 text-orange-500 shadow-[0_0_20px_rgba(249,115,22,0.3)]' : 'border-emerald-500 text-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.3)]'} px-4 py-1 rounded-sm font-black text-2xl sm:text-5xl tracking-tighter uppercase bg-white/10 dark:bg-black/20 backdrop-blur-md`}>
+                                {isCounterWarrant ? 'BAIXADO' : 'CUMPRIDO'}
+                            </div>
+                            <p className={`text-[8px] sm:text-[10px] ${isSearch ? 'text-orange-600 dark:text-orange-400 bg-orange-500/10' : 'text-emerald-600 dark:text-emerald-400 bg-emerald-500/10'} font-bold text-center mt-1 uppercase tracking-widest rounded py-0.5`}>
+                                {localData.dischargeDate || (isCounterWarrant ? 'Recolhimento Judicial' : (isSearch ? 'Diligência Efetivada' : 'Captura Efetivada'))}
+                            </p>
+                        </div>
+                    )}
 
                     <div className="flex flex-col sm:flex-row gap-6 relative">
                         <div className="relative shrink-0 mx-auto sm:mx-0 group/photo">
@@ -1805,7 +1846,7 @@ Equipe de Capturas - DIG / PCSP
                                 className="absolute -bottom-2 -right-2 bg-primary hover:bg-primary-dark p-1.5 rounded-lg shadow-lg border border-white/20 cursor-pointer transition-transform hover:scale-105 active:scale-95 group/edit z-10"
                                 title="Trocar Foto"
                             >
-                                <RefreshCw size={12} className="text-white group-hover/edit:rotate-180 transition-transform duration-700" />
+                                <Camera size={12} className="text-white group-hover/edit:scale-110 transition-transform" />
                             </label>
                         </div>
 
@@ -1909,7 +1950,7 @@ Equipe de Capturas - DIG / PCSP
                         },
                         {
                             id: 'investigation',
-                            label: 'Investigações',
+                            label: 'Sugestão Tática',
                             icon: Bot,
                             activeClass: 'text-red-600 dark:text-red-500 shadow-[0_0_20px_rgba(239,68,68,0.3)] bg-gray-100 dark:bg-zinc-900 border-red-500/50',
                             glowColor: 'red'
@@ -1948,7 +1989,7 @@ Equipe de Capturas - DIG / PCSP
                                     className={`relative z-10 transition-transform duration-300 ${isActive ? 'scale-110 drop-shadow-[0_0_8px_currentColor]' : 'group-hover:scale-110'}`}
                                 />
                                 <span className={`relative z-10 text-[10px] font-black uppercase tracking-[0.2em] ${isActive ? 'text-gray-900 dark:text-white' : ''}`}>
-                                    {tab.label}
+                                    {tab.id === 'investigation' ? 'Sugestão Tática Inteligente' : tab.label}
                                 </span>
                             </button>
                         );
@@ -2015,15 +2056,29 @@ Equipe de Capturas - DIG / PCSP
                                             onChange={e => handleFieldChange('issuingCourt', e.target.value)}
                                         />
                                     </div>
-                                    <div className="space-y-1 col-span-2">
+                                    <div className={`space-y-1 ${localData.status === 'CUMPRIDO' || isCounterWarrant ? 'col-span-1' : 'col-span-2'}`}>
                                         <label className="text-[9px] font-black text-text-secondary-light dark:text-text-muted uppercase tracking-wider flex items-center gap-1"><CheckCircle size={10} className="text-secondary" /> Data do Cumprimento</label>
                                         <input
-                                            className="w-full bg-background-light dark:bg-white/5 border border-border-light dark:border-white/10 rounded-lg p-3 text-sm font-mono text-secondary outline-none focus:ring-1 focus:ring-secondary focus:border-secondary/50 transition-all"
+                                            className="w-full bg-background-light dark:bg-white/5 border border-border-light dark:border-white/10 rounded-lg p-3 text-sm font-mono text-secondary outline-none focus:ring-1 focus:ring-secondary focus:border-secondary/50 transition-all font-black"
                                             placeholder="DD/MM/AAAA"
                                             value={localData.dischargeDate || ''}
                                             onChange={e => handleFieldChange('dischargeDate', e.target.value)}
                                         />
                                     </div>
+
+                                    {(localData.status === 'CUMPRIDO' || isCounterWarrant) && (
+                                        <div className="col-span-1 space-y-1 animate-in fade-in slide-in-from-right-4 duration-500">
+                                            <label className="text-[9px] font-black text-lime-500 uppercase tracking-wider flex items-center gap-1">
+                                                <ShieldAlert size={10} className="animate-pulse" /> Circunstanciado do Cumprimento
+                                            </label>
+                                            <textarea
+                                                className="w-full bg-lime-500/5 border border-lime-500/20 rounded-xl p-3 text-[10px] text-lime-500 shadow-[0_0_15px_rgba(132,204,22,0.1)] leading-tight h-[46px] overflow-y-auto font-black uppercase italic scrollbar-none ring-1 ring-lime-500/10 focus:ring-2 focus:ring-lime-500/30 outline-none transition-all resize-none placeholder:text-lime-500/30"
+                                                value={localData.fulfillmentDetails || ''}
+                                                onChange={e => handleFieldChange('fulfillmentDetails', e.target.value)}
+                                                placeholder="O QUE, POR QUE, ONDE DO CUMPRIMENTO..."
+                                            />
+                                        </div>
+                                    )}
                                 </div>
                             </div>
 
@@ -2933,7 +2988,7 @@ Equipe de Capturas - DIG / PCSP
                         <FloatingDock
                             onBack={() => navigate('/')}
                             onHome={() => navigate('/')}
-                            onSave={() => setIsConfirmSaveOpen(true)}
+                            onSave={() => navigate(`/new-warrant?edit=${data.id}`)}
                             onPrint={() => generateWarrantPDF(localData as any)}
                             onFinalize={() => setIsFinalizeModalOpen(true)}
                             onDelete={() => setIsDeleteConfirmOpen(true)}
@@ -2984,6 +3039,7 @@ Equipe de Capturas - DIG / PCSP
                             <div className="space-y-4">
                                 <div className="space-y-1"><label className="text-[10px] font-black text-text-muted uppercase tracking-widest">Data Cumprimento</label><input type="date" className="w-full bg-background-light dark:bg-white/5 border border-border-light dark:border-white/10 rounded-xl p-3 text-text-light dark:text-white" value={finalizeFormData.date} onChange={e => setFinalizeFormData({ ...finalizeFormData, date: e.target.value })} /></div>
                                 <div className="space-y-1"><label className="text-[10px] font-black text-text-muted uppercase tracking-widest">Ofício DIG Vinculado</label><input type="text" className="w-full bg-background-light dark:bg-white/5 border border-border-light dark:border-white/10 rounded-xl p-3 text-text-light dark:text-white" value={finalizeFormData.digOffice} onChange={e => setFinalizeFormData({ ...finalizeFormData, digOffice: e.target.value })} /></div>
+                                <div className="space-y-1"><label className="text-[10px] font-black text-text-muted uppercase tracking-widest text-[lime]">Circunstanciado (O que, Por que, Onde)</label><textarea className="w-full bg-background-light dark:bg-white/5 border border-border-light dark:border-lime-500/30 rounded-xl p-3 text-sm text-text-light dark:text-white min-h-[80px] focus:ring-1 focus:ring-lime-500" placeholder="Ex: CAPTURA DO RÉU EM SUA RESIDÊNCIA APÓS VIGILÂNCIA..." value={finalizeFormData.details} onChange={e => setFinalizeFormData({ ...finalizeFormData, details: e.target.value })} /></div>
                                 <div className="space-y-1"><label className="text-[10px] font-black text-text-muted uppercase tracking-widest">Resultado Final</label><select className="w-full bg-background-light dark:bg-white/5 border border-border-light dark:border-white/10 rounded-xl p-3 text-text-light dark:text-white appearance-none" value={finalizeFormData.result} onChange={e => setFinalizeFormData({ ...finalizeFormData, result: e.target.value })}>{['PRESO', 'NEGATIVO', 'ENCAMINHADO', 'ÓBITO', 'CONTRAMANDADO', 'LOCALIZADO'].map(opt => <option key={opt} value={opt} className="bg-surface-light dark:bg-surface-dark text-text-light dark:text-white">{opt}</option>)}</select></div>
                             </div>
                             <div className="flex gap-3">

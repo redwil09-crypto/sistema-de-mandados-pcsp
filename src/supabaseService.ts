@@ -44,6 +44,7 @@ const dbToWarrant = (dbWarrant: any): Warrant => {
         tags: dbWarrant.tags || [],
         fulfillmentResult: dbWarrant.fulfillment_result,
         fulfillmentReport: dbWarrant.fulfillment_report,
+        fulfillmentDetails: dbWarrant.description,
         ifoodDocs: dbWarrant.ifood_docs || [], // Added mapping
         date: dbWarrant.entry_date || dbWarrant.created_at?.split('T')[0],
         createdAt: dbWarrant.created_at,
@@ -93,6 +94,7 @@ const warrantToDb = (warrant: Partial<Warrant>) => {
     if (warrant.tags !== undefined) dbObj.tags = warrant.tags;
     if (warrant.fulfillmentResult !== undefined) dbObj.fulfillment_result = warrant.fulfillmentResult;
     if (warrant.fulfillmentReport !== undefined) dbObj.fulfillment_report = warrant.fulfillmentReport;
+    if (warrant.fulfillmentDetails !== undefined) dbObj.description = warrant.fulfillmentDetails;
     if (warrant.diligentHistory !== undefined) dbObj.diligent_history = warrant.diligentHistory;
     if (warrant.tacticalSummary !== undefined) dbObj.tactical_summary = warrant.tacticalSummary;
     if (warrant.ifoodDocs !== undefined) dbObj.ifood_docs = warrant.ifoodDocs; // Added mapping
@@ -352,7 +354,9 @@ export const translateField = (field: string) => {
         dischargeDate: 'Data Baixa',
         discharge_date: 'Data Baixa',
         issuingCourt: 'Vara / Fórum',
-        issuing_court: 'Vara / Fórum'
+        issuing_court: 'Vara / Fórum',
+        fulfillmentDetails: 'Circunstanciado do Cumprimento',
+        fulfillment_details: 'Circunstanciado do Cumprimento'
     };
     return map[field] || field;
 };

@@ -35,6 +35,7 @@ export interface Warrant {
     date?: string;           // Compatibility date field
     tags?: string[];         // Priority tags
     fulfillmentResult?: string; // Resultado do cumprimento (Fechado, Aberto, etc)
+    fulfillmentDetails?: string; // Detalhes circunstanciados (O que, Por que, Onde)
     fulfillmentReport?: string; // Número do relatório
     createdAt?: string;         // Data de criação no banco
     updatedAt?: string;         // Data de atualização no banco

@@ -645,7 +645,7 @@ export const generateCapturasReportPDF = async (
         doc.setTextColor(255, 255, 255);
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(12);
-        doc.text("RELATÓRIO CAPTURAS", pageWidth / 2, y + 5, { align: 'center' });
+        doc.text("RELATÓRIO DE CAPTURAS", pageWidth / 2, y + 5, { align: 'center' });
         doc.setTextColor(0, 0, 0);
         y += 12;
 
