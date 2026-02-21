@@ -14,7 +14,7 @@ export default defineConfig(({ mode }) => {
       react(),
       VitePWA({
         registerType: 'autoUpdate',
-        includeAssets: ['brasao_pcsp_colorido.png', 'brasao_pcsp_nova.png'],
+        includeAssets: ['novo_brasao_tatical.png', 'brasao_pcsp_colorido.png', 'brasao_pcsp_nova.png'],
         manifest: {
           name: 'Sistema de Mandados PCSP',
           short_name: 'Mandados',
@@ -23,7 +23,7 @@ export default defineConfig(({ mode }) => {
           start_url: '/',
           icons: [
             {
-              src: 'brasao_pcsp_colorido.png',
+              src: 'novo_brasao_tatical.png',
               sizes: '192x192',
               type: 'image/png'
             }

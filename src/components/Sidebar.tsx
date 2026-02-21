@@ -200,7 +200,7 @@ const Sidebar = ({ routeCount = 0, isCollapsed, toggleCollapse, isDark, toggleTh
                 <div className={`hidden md:flex items-center ${isCollapsed ? 'justify-center' : 'justify-between px-6'} h-20 border-b border-border-light dark:border-white/5 relative`}>
                     <div className="flex items-center gap-3">
                         <img
-                            src="/brasao_pcsp_nova.png"
+                            src="/novo_brasao_tatical.png"
                             alt="Brasão PCSP"
                             className="h-10 w-auto object-contain shrink-0 drop-shadow-md dark:drop-shadow-[0_0_8px_rgba(255,255,255,0.3)] transition-transform hover:scale-110"
                         />
