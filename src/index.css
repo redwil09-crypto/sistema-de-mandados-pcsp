@@ -42,11 +42,9 @@
   }
 
   .tactical-shield-clip {
-    /* Recorte mais justo para eliminar bordas brancas/quadriculadas */
-    clip-path: polygon(50% 8%, 84% 20%, 82% 62%, 50% 92%, 18% 62%, 16% 20%);
+    /* Recorte preciso para o brasão dourado, removendo o fundo branco da imagem */
+    clip-path: polygon(50% 0%, 95% 15%, 95% 60%, 50% 100%, 5% 60%, 5% 15%);
     object-fit: contain;
-    transform: scale(1.1);
-    /* Leve zoom para garantir que o ouro preencha a máscara */
   }
 }
 

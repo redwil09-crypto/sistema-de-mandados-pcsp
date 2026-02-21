@@ -117,13 +117,11 @@ const HomePage = ({ isDark, toggleTheme }: HomePageProps) => {
             <header className="sticky top-0 z-40 bg-background-light dark:bg-background-dark px-4 py-4 pb-2">
                 <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-3">
-                        <div className="bg-zinc-950/20 dark:bg-black/40 rounded-xl p-1.5 shadow-inner border border-white/5">
-                            <img
-                                src="/novo_brasao_tatical.png"
-                                alt="Brasão"
-                                className="h-10 w-auto object-contain tactical-shield-clip"
-                            />
-                        </div>
+                        <img
+                            src="/novo_brasao_tatical.png"
+                            alt="Brasão"
+                            className="h-14 w-auto object-contain tactical-shield-clip drop-shadow-xl"
+                        />
                         <div>
                             <h1 className="text-lg font-black text-text-light dark:text-text-dark uppercase tracking-widest leading-none">Polícia Civil</h1>
                             <p className="text-[8px] font-black text-text-secondary-light/60 dark:text-text-dark/50 tracking-[0.2em] uppercase mt-1">Sistema de Mandados</p>
