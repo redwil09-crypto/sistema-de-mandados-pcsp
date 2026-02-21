@@ -14,7 +14,7 @@ export default defineConfig(({ mode }) => {
       react(),
       VitePWA({
         registerType: 'autoUpdate',
-        includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
+        includeAssets: ['brasao_pcsp_colorido.png', 'brasao_pcsp_nova.png'],
         manifest: {
           name: 'Sistema de Mandados PCSP',
           short_name: 'Mandados',
