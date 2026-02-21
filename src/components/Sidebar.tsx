@@ -161,9 +161,11 @@ const Sidebar = ({ routeCount = 0, isCollapsed, toggleCollapse, isDark, toggleTh
             {/* Mobile Header / Toggle */}
             <div className="md:hidden fixed top-0 left-0 right-0 h-16 bg-white/90 dark:bg-zinc-950/90 backdrop-blur-xl border-b border-border-light dark:border-white/5 flex items-center justify-between px-4 z-50">
                 <div className="flex items-center gap-2">
-                    <div className="h-8 w-8 rounded-lg bg-blue-600 flex items-center justify-center shadow-neon-blue">
-                        <Siren size={18} className="text-white" />
-                    </div>
+                    <img
+                        src="/novo_brasao_tatical.png"
+                        alt="Brasão PCSP"
+                        className="h-8 w-auto object-contain drop-shadow-[0_0_8px_rgba(0,245,255,0.5)]"
+                    />
                 </div>
                 <button
                     onClick={() => setIsOpen(!isOpen)}
@@ -202,7 +204,7 @@ const Sidebar = ({ routeCount = 0, isCollapsed, toggleCollapse, isDark, toggleTh
                         <img
                             src="/novo_brasao_tatical.png"
                             alt="Brasão PCSP"
-                            className="h-10 w-auto object-contain shrink-0 drop-shadow-md dark:drop-shadow-[0_0_8px_rgba(255,255,255,0.3)] transition-transform hover:scale-110"
+                            className="h-10 w-auto object-contain shrink-0 drop-shadow-[0_0_12px_rgba(255,255,255,0.2)] transition-transform hover:scale-110"
                         />
                         {!isCollapsed && (
                             <h1 className="font-display font-black text-xl text-slate-900 dark:text-white tracking-widest whitespace-nowrap overflow-hidden">
