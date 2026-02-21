@@ -204,12 +204,15 @@ const Sidebar = ({ routeCount = 0, isCollapsed, toggleCollapse, isDark, toggleTh
                         <img
                             src="/novo_brasao_tatical.png"
                             alt="Brasão PCSP"
-                            className="h-10 w-auto object-contain shrink-0 drop-shadow-[0_0_12px_rgba(255,255,255,0.2)] transition-transform hover:scale-110 tactical-shield-clip"
+                            className="h-11 w-auto object-contain shrink-0 drop-shadow-[0_0_15px_rgba(255,215,0,0.4)] transition-transform hover:scale-110 tactical-shield-clip"
                         />
                         {!isCollapsed && (
-                            <h1 className="font-display font-black text-xl text-slate-900 dark:text-white tracking-widest whitespace-nowrap overflow-hidden">
-                                PCSP
-                            </h1>
+                            <div className="flex flex-col">
+                                <h1 className="font-display font-black text-xl text-slate-900 dark:text-white tracking-widest whitespace-nowrap overflow-hidden leading-none">
+                                    PCSP
+                                </h1>
+                                <span className="text-[7px] font-black text-zinc-500 uppercase tracking-[0.3em] mt-1">Inteligência</span>
+                            </div>
                         )}
                     </div>
 
