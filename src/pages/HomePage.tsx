@@ -120,7 +120,7 @@ const HomePage = ({ isDark, toggleTheme }: HomePageProps) => {
                         <img
                             src="/novo_brasao_tatical.png"
                             alt="Brasão"
-                            className="h-10 w-auto object-contain drop-shadow-sm"
+                            className="h-10 w-auto object-contain drop-shadow-sm tactical-shield-clip"
                         />
                         <div>
                             <h1 className="text-lg font-black text-text-light dark:text-text-dark uppercase tracking-widest leading-none">Polícia Civil</h1>

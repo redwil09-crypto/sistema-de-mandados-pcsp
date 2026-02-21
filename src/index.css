@@ -40,6 +40,10 @@
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
+
+  .tactical-shield-clip {
+    clip-path: polygon(50% 5%, 88% 18%, 88% 65%, 50% 95%, 12% 65%, 12% 18%);
+  }
 }
 
 /* Animations */

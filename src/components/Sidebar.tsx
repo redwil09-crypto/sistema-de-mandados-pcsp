@@ -164,7 +164,7 @@ const Sidebar = ({ routeCount = 0, isCollapsed, toggleCollapse, isDark, toggleTh
                     <img
                         src="/novo_brasao_tatical.png"
                         alt="Brasão PCSP"
-                        className="h-8 w-auto object-contain drop-shadow-[0_0_8px_rgba(0,245,255,0.5)]"
+                        className="h-8 w-auto object-contain drop-shadow-[0_0_8px_rgba(0,245,255,0.5)] tactical-shield-clip"
                     />
                 </div>
                 <button
@@ -204,7 +204,7 @@ const Sidebar = ({ routeCount = 0, isCollapsed, toggleCollapse, isDark, toggleTh
                         <img
                             src="/novo_brasao_tatical.png"
                             alt="Brasão PCSP"
-                            className="h-10 w-auto object-contain shrink-0 drop-shadow-[0_0_12px_rgba(255,255,255,0.2)] transition-transform hover:scale-110"
+                            className="h-10 w-auto object-contain shrink-0 drop-shadow-[0_0_12px_rgba(255,255,255,0.2)] transition-transform hover:scale-110 tactical-shield-clip"
                         />
                         {!isCollapsed && (
                             <h1 className="font-display font-black text-xl text-slate-900 dark:text-white tracking-widest whitespace-nowrap overflow-hidden">

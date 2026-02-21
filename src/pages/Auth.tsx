@@ -57,7 +57,7 @@ export default function Auth() {
                         <img
                             src="/novo_brasao_tatical.png"
                             alt="Brasão PCSP"
-                            className="h-full w-auto object-contain drop-shadow-[0_0_15px_rgba(255,215,0,0.3)] animate-float"
+                            className="h-full w-auto object-contain drop-shadow-[0_0_15px_rgba(255,215,0,0.3)] animate-float tactical-shield-clip"
                         />
                     </div>
                     <h2 className="text-xl font-black tracking-[0.3em] text-white uppercase italic">
