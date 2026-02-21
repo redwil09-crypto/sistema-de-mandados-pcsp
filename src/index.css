@@ -42,7 +42,11 @@
   }
 
   .tactical-shield-clip {
-    clip-path: polygon(50% 5%, 88% 18%, 88% 65%, 50% 95%, 12% 65%, 12% 18%);
+    /* Recorte mais justo para eliminar bordas brancas/quadriculadas */
+    clip-path: polygon(50% 8%, 84% 20%, 82% 62%, 50% 92%, 18% 62%, 16% 20%);
+    object-fit: contain;
+    transform: scale(1.1);
+    /* Leve zoom para garantir que o ouro preencha a máscara */
   }
 }
 

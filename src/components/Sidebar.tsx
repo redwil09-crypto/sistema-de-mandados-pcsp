@@ -161,11 +161,13 @@ const Sidebar = ({ routeCount = 0, isCollapsed, toggleCollapse, isDark, toggleTh
             {/* Mobile Header / Toggle */}
             <div className="md:hidden fixed top-0 left-0 right-0 h-16 bg-white/90 dark:bg-zinc-950/90 backdrop-blur-xl border-b border-border-light dark:border-white/5 flex items-center justify-between px-4 z-50">
                 <div className="flex items-center gap-2">
-                    <img
-                        src="/novo_brasao_tatical.png"
-                        alt="Brasão"
-                        className="h-10 w-auto object-contain drop-shadow-[0_0_10px_rgba(255,215,0,0.3)] tactical-shield-clip"
-                    />
+                    <div className="bg-zinc-950/20 dark:bg-black/40 rounded-lg p-1">
+                        <img
+                            src="/novo_brasao_tatical.png"
+                            alt="Brasão"
+                            className="h-9 w-auto object-contain tactical-shield-clip"
+                        />
+                    </div>
                 </div>
                 <button
                     onClick={() => setIsOpen(!isOpen)}
@@ -201,11 +203,13 @@ const Sidebar = ({ routeCount = 0, isCollapsed, toggleCollapse, isDark, toggleTh
                 {/* Desktop Header */}
                 <div className={`hidden md:flex items-center ${isCollapsed ? 'justify-center' : 'justify-between px-6'} h-20 border-b border-border-light dark:border-white/5 relative`}>
                     <div className="flex items-center gap-3">
-                        <img
-                            src="/novo_brasao_tatical.png"
-                            alt="Brasão PCSP"
-                            className="h-11 w-auto object-contain shrink-0 drop-shadow-[0_0_15px_rgba(255,215,0,0.4)] transition-transform hover:scale-110 tactical-shield-clip"
-                        />
+                        <div className="bg-zinc-950/20 dark:bg-black/40 rounded-xl p-1 shadow-inner">
+                            <img
+                                src="/novo_brasao_tatical.png"
+                                alt="Brasão PCSP"
+                                className="h-10 w-auto object-contain shrink-0 tactical-shield-clip"
+                            />
+                        </div>
                         {!isCollapsed && (
                             <div className="flex flex-col">
                                 <h1 className="font-display font-black text-xl text-slate-900 dark:text-white tracking-widest whitespace-nowrap overflow-hidden leading-none">

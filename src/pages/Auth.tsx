@@ -53,11 +53,11 @@ export default function Auth() {
 
             <div className="w-full max-w-sm space-y-6 relative z-10">
                 <div className="text-center">
-                    <div className="mx-auto flex h-20 w-20 items-center justify-center mb-4">
+                    <div className="mx-auto flex h-24 w-24 items-center justify-center mb-4 bg-zinc-950/20 dark:bg-black/40 rounded-2xl p-2 shadow-inner border border-white/5">
                         <img
                             src="/novo_brasao_tatical.png"
                             alt="Brasão PCSP"
-                            className="h-full w-auto object-contain drop-shadow-[0_0_15px_rgba(255,215,0,0.3)] animate-float tactical-shield-clip"
+                            className="h-full w-auto object-contain animate-float tactical-shield-clip"
                         />
                     </div>
                     <h2 className="text-xl font-black tracking-[0.3em] text-white uppercase italic">

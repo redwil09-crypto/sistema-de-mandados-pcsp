@@ -26,6 +26,11 @@ export default defineConfig(({ mode }) => {
               src: 'novo_brasao_tatical.png',
               sizes: '192x192',
               type: 'image/png'
+            },
+            {
+              src: 'novo_brasao_tatical.png',
+              sizes: '512x512',
+              type: 'image/png'
             }
           ]
         }
