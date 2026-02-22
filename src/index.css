@@ -42,8 +42,7 @@
   }
 
   .tactical-shield-clip {
-    /* Recorte preciso para o brasão dourado, removendo o fundo branco da imagem */
-    clip-path: polygon(50% 0%, 95% 15%, 95% 60%, 50% 100%, 5% 60%, 5% 15%);
+    /* Fundo transparente via script */
     object-fit: contain;
   }
 }
