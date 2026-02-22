@@ -403,8 +403,8 @@ export async function generateReportBody(warrantData: any, rawContent: string, i
         ---
         ## 📂 BANCO DE CENÁRIOS (MODELOS DE ELITE)
 
-        [CENÁRIO 1: ENDEREÇO EM OUTRA COMARCA]
-        "Em cumprimento ao [TIPO_DE_MANDADO] expedido nos autos do processo nº [NÚMERO_DO_PROCESSO], referente ao delito de [CRIME_OU_NATUREZA], esta equipe procedeu a diligências e pesquisas visando à localização de [NOME_DO_ALVO].\n\nContudo, após minuciosa análise dos sistemas de inteligência policial (CORTEX, IIRGD, PRODESP), constatou-se que o réu não possui registros residenciais ou vínculos ativos nesta Comarca de Jacareí/SP. No texto da referida ordem judicial, consta como endereço de referência o imóvel situado na [ENDEREÇO_DO_MANDADO].\n\nDiante da ausência de elementos que indiquem a presença do procurado nesta circunscrição, sugere-se a remessa do presente expediente à autoridade policial daquela Comarca, para as providências de estilo.\n\nAté o momento, as diligências restaram negativas."
+        [CENÁRIO 1: ENDEREÇO EM OUTRA COMARCA / RETORNO DE PLATAFORMA FORA DA CIDADE]
+        "Em cumprimento ao [TIPO_DE_MANDADO] expedido nos autos do processo nº [NÚMERO_DO_PROCESSO], referente ao delito de [CRIME_OU_NATUREZA], esta equipe procedeu a diligências e pesquisas visando à localização de [NOME_DO_ALVO].\n\nNo decurso das investigações, através do levantamento de inteligência e cruzamento com dados de plataformas (iFood, Uber, etc.), constatou-se que o réu não possui endereços ativos e frequentados nesta Comarca de Jacareí/SP. Os últimos registros confiáveis apontam movimentação do alvo na cidade/região de [NOME_DA_CIDADE_DE_DESTINO, ex: São Paulo, Guarulhos, São José dos Campos].\n\nConsiderando a competência territorial, sugere-se a remessa do presente expediente à autoridade policial daquela localidade para as providências de captura logísticas cabíveis, uma vez que esta equipe atua exclusivamente nesta municipalidade.\n\nAté o momento, as diligências de campo em solo restaram negativas."
 
         [CENÁRIO 2: CONTATO COM MÃE/FAMILIAR - NÃO MORA MAIS]
         "Em cumprimento ao [TIPO_DE_MANDADO] (Processo nº [NÚMERO_DO_PROCESSO]), oriundo da [VARA], esta equipe dirigiu-se ao endereço situado na [ENDEREÇO_DILIGENCIADO], apontado como reduto do procurado [NOME_DO_ALVO].\n\nNo local, fomos atendidos pela Sra. [NOME_DA_PESSOA_ATENDIDA] (RG: [RG]), genitora/familiar do réu, a qual declarou sob as penas da lei que o mesmo não reside no imóvel há considerável lapso temporal, desconhecendo seu atual paradeiro e afirmando não manter contato com o mesmo.\n\nApós a devida ciência sobre a ordem judicial, foi franqueada a entrada no imóvel, sendo realizada varredura tática em todos os cômodos, restando infrutífera a localização do alvo. Pesquisas de campo com populares lindeiros também não forneceram novos indícios.\n\nDiante do exposto, o resultado da diligência permanece negativo."
@@ -428,6 +428,8 @@ export async function generateReportBody(warrantData: any, rawContent: string, i
         PROCESSO: ${warrantData.number}
         VARA: ${warrantData.issuingCourt || 'Vara Criminal'}
         TIPO DE CRIME/REGIME: ${warrantData.category || 'Criminal'} / ${warrantData.regime || 'Total'}
+        DADOS DE PLATAFORMA (iFood/Uber etc - Use para cruzar endereços!):
+        "${warrantData.ifoodResult || 'Nenhum dado de plataforma registrado ainda.'}"
         
         RELATO DO AGENTE:
         "${rawContent}"
