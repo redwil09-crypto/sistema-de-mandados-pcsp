@@ -27,6 +27,7 @@ const CounterWarrantList = React.lazy(() => import('./pages/CounterWarrantList')
 
 // Components
 import Sidebar from './components/Sidebar';
+import NotificationOverlay from './components/NotificationOverlay';
 import { useLocation } from 'react-router-dom';
 
 import { Toaster } from 'sonner';
@@ -102,6 +103,7 @@ function AppContent({ isDark, toggleTheme }: { isDark: boolean; toggleTheme: () 
     // const hideNav = ['/warrant-detail', '/new-warrant', '/ai-assistant', '/route-planner', '/map'].some(p => location.pathname.startsWith(p));
     const { routeWarrants, warrants, loading } = useWarrants();
     const [isCollapsed, setIsCollapsed] = useState(true); // Default to closed as requested
+    const [showNotifications, setShowNotifications] = useState(false);
 
     const hasNotifications = React.useMemo(() => {
         if (!warrants) return false;
@@ -132,7 +134,6 @@ function AppContent({ isDark, toggleTheme }: { isDark: boolean; toggleTheme: () 
             <ScrollToTop />
             <Toaster richColors position="top-right" />
 
-            {/* Sidebar Navigation */}
             <Sidebar
                 routeCount={routeWarrants.length}
                 isCollapsed={isCollapsed}
@@ -140,6 +141,13 @@ function AppContent({ isDark, toggleTheme }: { isDark: boolean; toggleTheme: () 
                 toggleCollapse={() => setIsCollapsed(!isCollapsed)}
                 isDark={isDark}
                 toggleTheme={toggleTheme}
+                onToggleNotifications={() => setShowNotifications(!showNotifications)}
+            />
+
+            <NotificationOverlay
+                warrants={warrants}
+                isOpen={showNotifications}
+                onClose={() => setShowNotifications(false)}
             />
 
             {/* Main Content Area - Padded for Sidebar on Desktop */}
@@ -155,7 +163,7 @@ function AppContent({ isDark, toggleTheme }: { isDark: boolean; toggleTheme: () 
                     <div key={location.pathname} className="page-enter pb-20 md:pb-0 pt-16 md:pt-4 px-4 w-full">
                         <Routes>
                             {/* Passes theme props to Home since these are layout related, not warrant related */}
-                            <Route path="/" element={<HomePage isDark={isDark} toggleTheme={toggleTheme} />} />
+                            <Route path="/" element={<HomePage isDark={isDark} toggleTheme={toggleTheme} onToggleNotifications={() => setShowNotifications(!showNotifications)} />} />
 
                             <Route path="/warrant-list" element={<WarrantList />} />
                             <Route path="/advanced-search" element={<AdvancedSearch />} />

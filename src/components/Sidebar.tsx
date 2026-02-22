@@ -37,13 +37,14 @@ interface SidebarProps {
     isDark: boolean;
     toggleTheme: () => void;
     hasNotifications?: boolean;
+    onToggleNotifications?: () => void;
 }
 
 
 
 // ... imports
 
-const Sidebar = ({ routeCount = 0, isCollapsed, toggleCollapse, isDark, toggleTheme, hasNotifications = false }: SidebarProps) => {
+const Sidebar = ({ routeCount = 0, isCollapsed, toggleCollapse, isDark, toggleTheme, hasNotifications = false, onToggleNotifications }: SidebarProps) => {
     const [isOpen, setIsOpen] = useState(false); // Mobile state
     const location = useLocation();
 
@@ -249,7 +250,7 @@ const Sidebar = ({ routeCount = 0, isCollapsed, toggleCollapse, isDark, toggleTh
                         </button>
 
                         <button
-                            onClick={() => toast.info(hasNotifications ? 'Novas notificações' : 'Nenhuma notificação nova')}
+                            onClick={() => onToggleNotifications ? onToggleNotifications() : toast.info(hasNotifications ? 'Novas notificações' : 'Nenhuma notificação nova')}
                             className="p-2 rounded-lg text-slate-500 dark:text-zinc-400 hover:bg-slate-200 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white transition-all border border-transparent hover:border-border-light dark:hover:border-white/10 group relative"
                             title="Notificações"
                         >
