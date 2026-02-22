@@ -1076,6 +1076,16 @@ Equipe de Capturas - DIG / PCSP
 
                 if (success) {
                     setAiDiligenceResult(mergedIntel); // Update local state
+
+                    // Atualiza localData para refletir no UI imediatamente sem conflito
+                    handleFieldChange('tacticalSummary', JSON.stringify(mergedIntel));
+                    handleFieldChange('ifoodResult', text);
+
+                    // Atualiza o contexto global para recarregar o histórico
+                    if (refreshWarrants) {
+                        await refreshWarrants(true);
+                    }
+
                     toast.success("Inteligência Tática Atualizada!", { id: loadingToast });
 
                     // FORÇAR TRANSIÇÃO E ATUALIZAÇÃO
