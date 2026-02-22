@@ -248,7 +248,7 @@ export const generateWarrantPDF = async (
         drawSectionHeader("Análise de Inteligência Tática");
         const intelRows: [string, string][] = [
             ["Controle iFood", data.ifoodNumber || "-"],
-            ["Vínculos Identificados", data.ifoodResult || "-"],
+            ["Pesquisa em Plataformas", data.ifoodResult && data.ifoodResult.length > 200 ? "Dados de plataformas processados na Análise Tática." : (data.ifoodResult || "-")],
             ["Observações DIG", data.observation || data.description || "-"]
         ];
 
@@ -288,6 +288,19 @@ export const generateWarrantPDF = async (
                 // 5. Locais
                 if (intel.locations?.length) {
                     intelRows.push(["Pontos de Interesse", intel.locations.map((l: any) => `${l.address}`).join(' | ')]);
+                }
+
+                // 6. Linha do Tempo da Investigação (Timeline Tática)
+                if (intel.timeline?.length) {
+                    const timelineText = intel.timeline
+                        .map((t: any) => `* ${t.date} - ${t.event} (Fonte: ${t.source || 'IA'})`)
+                        .join('\n');
+                    intelRows.push(["Evolução Estratégica", timelineText]);
+                }
+
+                // 7. Avanço / Progresso
+                if (intel.progressLevel !== undefined) {
+                    intelRows.push(["Progresso de Localização", `${intel.progressLevel}% Concluído`]);
                 }
             }
         } catch (e) { }
