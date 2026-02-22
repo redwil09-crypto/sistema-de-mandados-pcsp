@@ -118,7 +118,7 @@ const HomePage = ({ isDark, toggleTheme }: HomePageProps) => {
                 <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-3">
                         <img
-                            src="/novo_brasao_tatical.png"
+                            src="/brasao_police_siren.png"
                             alt="Brasão"
                             className="h-14 w-auto object-contain tactical-shield-clip drop-shadow-[0_0_6px_rgba(255,0,0,1)]"
                         />
