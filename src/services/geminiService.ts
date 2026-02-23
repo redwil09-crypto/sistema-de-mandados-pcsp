@@ -355,9 +355,9 @@ export async function analyzeRawDiligence(warrantData: any, rawInfo: string) {
 
         SAÍDA OBRIGATÓRIA EM JSON (SEM MARKDOWN, APENAS O JSON):
         {
-            "summary": "Resumo tático direto e profissional (máx 3 linhas) para o log operacional.",
+            "summary": "Resumo tático direto e profissional (máx 3 linhas) para o log operacional. Se a pesquisa (ex: iFood) retornou NEGATIVA, cite formalmente que o alvo não possui vínculo com a referida plataforma.",
             "riskLevel": "Baixo" | "Médio" | "Alto" | "Crítico",
-            "riskReason": "Motivo curto do nível de risco (ex: 'Alvo armado', 'Fuga provável').",
+            "riskReason": "Motivo curto do nível de risco (ex: 'Alvo armado', 'Fuga provável'). Se for apenas pesquisa negativa, coloque risco Baixo.",
             "entities": [
                 { "name": "Nome", "role": "Mãe/Comparsa/Vizinho", "context": "Onde aparece na história" }
             ],
@@ -371,6 +371,8 @@ export async function analyzeRawDiligence(warrantData: any, rawInfo: string) {
                 { "description": "Hipótese de localização (ex: Está escondido na casa da mãe)", "confidence": "Alta/Média/Baixa", "status": "Ativa" }
             ]
         }
+        
+        CRÍTICO: Mesmo se a informação indicar que NÃO ACHOU NADA (zero vínculos no iFood, alvo não cadastrado, etc), DEVOLVA O JSON ESTRUTURADO dizendo no summary que "A pesquisa na plataforma X retornou resultados negativos, alvo sem vínculos ativos.". JAMAIS retorne vazio ou fora do formato JSON.
     `;
 
     try {
