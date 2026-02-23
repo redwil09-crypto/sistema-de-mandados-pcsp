@@ -1054,65 +1054,82 @@ Equipe de Capturas - DIG / PCSP
                 upperText.includes('NENHUM RESULTADO ENCONTRADO') ||
                 upperText.includes('RESPOSTA NEGATIVA') ||
                 upperText.includes('NÃO FORAM ENCONTRADOS DADOS');
-            let analysis: any = null;
 
-            if (isDefinitiveNegative) {
-                // Generate analysis locally, saving AI tokens!
-                analysis = {
-                    summary: 'A pesquisa na plataforma retornou resultados negativos, alvo sem vínculos ativos.',
-                    riskLevel: 'Baixo',
-                    riskReason: 'Pesquisa negativa, sem endereços apontados.',
-                    entities: [],
-                    locations: [],
-                    checklist: [],
-                    hypotheses: []
-                };
-                toast.success('Análise de negatividade feita nativamente (Zero Tokens).', { id: loadingToast });
-            } else {
-                // Use AI for complex data parsing
-                analysis = await analyzeRawDiligence(data, `RESULTADO DE PESQUISA (IFOOD/UBER/99): ${text}`);
+            let currentIntel: any = {};
+            if (data.tacticalSummary) {
+                try {
+                    currentIntel = typeof data.tacticalSummary === 'string' ? JSON.parse(data.tacticalSummary) : data.tacticalSummary;
+                } catch (e) {
+                    currentIntel = {};
+                }
             }
 
-            if (analysis) {
-                // 2. Merge with existing Intel
-                const currentIntel = data.tacticalSummary ?
-                    (typeof data.tacticalSummary === 'string' ? JSON.parse(data.tacticalSummary) : data.tacticalSummary)
-                    : {};
-                const mergedIntel = await mergeIntelligence(data, currentIntel, analysis);
+            let mergedIntel: any = null;
+            let analysisSummary = '';
 
+            if (isDefinitiveNegative) {
+                // Bypass both analysis and merging via Gemini! (100% Zero Token)
+                analysisSummary = 'A pesquisa na plataforma retornou resultados negativos, alvo sem vínculos ativos.';
+                const timelineEntry = {
+                    date: new Date().toISOString().split('T')[0],
+                    event: 'Pesquisa iFood/Uber retornou negativo',
+                    source: 'iFood/Plataformas'
+                };
+
+                mergedIntel = {
+                    ...currentIntel,
+                    summary: (currentIntel.summary ? currentIntel.summary + '\n\n' : '') + '[NOVA INFORMAÇÃO] ' + analysisSummary,
+                    timeline: [...(currentIntel.timeline || []), timelineEntry],
+                    locations: currentIntel.locations || [],
+                    entities: currentIntel.entities || [],
+                    risks: currentIntel.risks || [],
+                    hypotheses: currentIntel.hypotheses || [],
+                    checklist: currentIntel.checklist || [],
+                    progressLevel: currentIntel.progressLevel || 0
+                };
+
+                toast.success('Análise Negativa Feita e Mesclada Nativamente (Zero Tokens!).', { id: loadingToast });
+            } else {
+                // Use AI for complex data parsing
+                const analysis = await analyzeRawDiligence(data, `RESULTADO DE PESQUISA (IFOOD/UBER/99): ${text}`);
+                if (analysis) {
+                    analysisSummary = analysis.summary || 'Dados de plataforma processados.';
+                    mergedIntel = await mergeIntelligence(data, currentIntel, analysis);
+                }
+            }
+
+            if (mergedIntel) {
                 // 3. Create Diligence Entry
                 const newHistoryItem = {
                     id: Date.now().toString(),
                     date: new Date().toISOString(),
-                    notes: `[INTELIGÊNCIA PLATAFORMA] ${analysis.summary || 'Dados de plataforma processados.'}`,
+                    notes: `[INTELIGÊNCIA PLATAFORMA] ${analysisSummary}`,
                     investigator: 'Agente (Via Sistema)',
                     type: 'IFOOD_UBER' as const
                 };
 
                 const updatedHistory = [...(data.diligentHistory || []), newHistoryItem];
 
-                // 4. Update Database - SALVANDO O JSON COMPLETO NO SUMMARY
+                // 4. Update Database
                 const success = await updateWarrant(data.id, {
                     diligentHistory: updatedHistory,
                     tacticalSummary: JSON.stringify(mergedIntel),
-                    ifoodResult: text // Garante que o texto da pesquisa não suma
+                    ifoodResult: text
                 });
 
                 if (success) {
-                    setAiDiligenceResult(mergedIntel); // Update local state
-
-                    // Atualiza localData para refletir no UI imediatamente sem conflito
+                    setAiDiligenceResult(mergedIntel);
                     handleFieldChange('tacticalSummary', JSON.stringify(mergedIntel));
                     handleFieldChange('ifoodResult', text);
 
-                    // Atualiza o contexto global para recarregar o histórico
                     if (refreshWarrants) {
                         await refreshWarrants(true);
                     }
 
-                    toast.success("Inteligência Tática Atualizada!", { id: loadingToast });
+                    if (!isDefinitiveNegative) {
+                        toast.success("Inteligência Tática Atualizada!", { id: loadingToast });
+                    }
 
-                    // FORÇAR TRANSIÇÃO E ATUALIZAÇÃO
                     setActiveDetailTab('investigation');
                     setTimeout(() => {
                         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1125,7 +1142,7 @@ Equipe de Capturas - DIG / PCSP
             }
         } catch (error) {
             console.error(error);
-            toast.error("Falha no processamento.", { id: loadingToast });
+            toast.error("Falha no processamento do log tático.", { id: loadingToast });
         } finally {
             setIsAnalyzingDiligence(false);
         }
