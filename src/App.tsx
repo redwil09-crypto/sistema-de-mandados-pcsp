@@ -169,7 +169,7 @@ function AppContent({ isDark, toggleTheme }: { isDark: boolean; toggleTheme: () 
                     <div key={location.pathname} className="page-enter pb-20 md:pb-0 pt-16 md:pt-4 px-4 w-full">
                         <Routes>
                             {/* Passes theme props to Home since these are layout related, not warrant related */}
-                            <Route path="/" element={<HomePage isDark={isDark} toggleTheme={toggleTheme} onToggleNotifications={() => setShowNotifications(!showNotifications)} />} />
+                            <Route path="/" element={<HomePage isDark={isDark} toggleTheme={toggleTheme} onToggleNotifications={() => setShowNotifications(!showNotifications)} hasNotifications={hasNotifications} />} />
 
                             <Route path="/warrant-list" element={<WarrantList />} />
                             <Route path="/advanced-search" element={<AdvancedSearch />} />

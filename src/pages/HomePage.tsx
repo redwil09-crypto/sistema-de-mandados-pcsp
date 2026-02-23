@@ -17,9 +17,10 @@ interface HomePageProps {
     isDark: boolean;
     toggleTheme: () => void;
     onToggleNotifications?: () => void;
+    hasNotifications?: boolean;
 }
 
-const HomePage = ({ isDark, toggleTheme, onToggleNotifications }: HomePageProps) => {
+const HomePage = ({ isDark, toggleTheme, onToggleNotifications, hasNotifications }: HomePageProps) => {
     const { warrants, updateWarrant, deleteWarrant, routeWarrants, toggleRouteWarrant } = useWarrants();
     const navigate = useNavigate();
 
@@ -34,24 +35,7 @@ const HomePage = ({ isDark, toggleTheme, onToggleNotifications }: HomePageProps)
     const urgentCount = priorityWarrants.filter(w => (w as any).tags?.includes('Urgente')).length;
     const oficioCount = priorityWarrants.filter(w => (w as any).tags?.includes('Ofício de Cobrança')).length;
 
-    // Real Notification Logic (Expiring warrants)
-    const urgentNotifications = useMemo(() => {
-        const today = new Date();
-        return warrants
-            .filter(w => w.status === 'EM ABERTO' && w.expirationDate)
-            .map(w => {
-                const expDate = w.expirationDate!.includes('/')
-                    ? new Date(w.expirationDate!.split('/').reverse().join('-'))
-                    : new Date(w.expirationDate!);
-                const diffTime = expDate.getTime() - today.getTime();
-                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                return { ...w, daysLeft: diffDays };
-            })
-            .filter(w => w.daysLeft <= 30)
-            .sort((a, b) => a.daysLeft - b.daysLeft);
-    }, [warrants]);
 
-    const hasUrgentNotifications = urgentNotifications.some(w => w.daysLeft <= 7);
 
     return (
         <div className="min-h-screen pb-20 relative">
@@ -82,7 +66,7 @@ const HomePage = ({ isDark, toggleTheme, onToggleNotifications }: HomePageProps)
                             className={`relative rounded-full p-2 hover:bg-black/5 dark:hover:bg-white/10 transition-colors`}
                         >
                             <Bell size={24} />
-                            {hasUrgentNotifications && <span className="absolute top-2 right-2 h-2.5 w-2.5 rounded-full bg-orange-500 border-2 border-background-light dark:border-background-dark animate-pulse"></span>}
+                            {hasNotifications && <span className="absolute top-2 right-2 h-2.5 w-2.5 rounded-full bg-orange-500 border-2 border-background-light dark:border-background-dark animate-pulse"></span>}
                         </button>
                     </div>
                 </div>
