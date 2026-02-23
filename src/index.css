@@ -40,6 +40,11 @@
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
+
+  .tactical-shield-clip {
+    /* Fundo transparente via script */
+    object-fit: contain;
+  }
 }
 
 /* Animations */

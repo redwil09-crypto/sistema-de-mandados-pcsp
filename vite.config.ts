@@ -14,7 +14,7 @@ export default defineConfig(({ mode }) => {
       react(),
       VitePWA({
         registerType: 'autoUpdate',
-        includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
+        includeAssets: ['brasao_police_siren.png', 'brasao_pcsp_colorido.png', 'brasao_pcsp_nova.png'],
         manifest: {
           name: 'Sistema de Mandados PCSP',
           short_name: 'Mandados',
@@ -23,8 +23,13 @@ export default defineConfig(({ mode }) => {
           start_url: '/',
           icons: [
             {
-              src: 'brasao_pcsp_colorido.png',
+              src: 'brasao_police_siren.png',
               sizes: '192x192',
+              type: 'image/png'
+            },
+            {
+              src: 'brasao_police_siren.png',
+              sizes: '512x512',
               type: 'image/png'
             }
           ]

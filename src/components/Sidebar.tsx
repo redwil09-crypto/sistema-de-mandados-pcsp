@@ -37,13 +37,14 @@ interface SidebarProps {
     isDark: boolean;
     toggleTheme: () => void;
     hasNotifications?: boolean;
+    onToggleNotifications?: () => void;
 }
 
 
 
 // ... imports
 
-const Sidebar = ({ routeCount = 0, isCollapsed, toggleCollapse, isDark, toggleTheme, hasNotifications = false }: SidebarProps) => {
+const Sidebar = ({ routeCount = 0, isCollapsed, toggleCollapse, isDark, toggleTheme, hasNotifications = false, onToggleNotifications }: SidebarProps) => {
     const [isOpen, setIsOpen] = useState(false); // Mobile state
     const location = useLocation();
 
@@ -161,9 +162,11 @@ const Sidebar = ({ routeCount = 0, isCollapsed, toggleCollapse, isDark, toggleTh
             {/* Mobile Header / Toggle */}
             <div className="md:hidden fixed top-0 left-0 right-0 h-16 bg-white/90 dark:bg-zinc-950/90 backdrop-blur-xl border-b border-border-light dark:border-white/5 flex items-center justify-between px-4 z-50">
                 <div className="flex items-center gap-2">
-                    <div className="h-8 w-8 rounded-lg bg-blue-600 flex items-center justify-center shadow-neon-blue">
-                        <Siren size={18} className="text-white" />
-                    </div>
+                    <img
+                        src="/brasao_police_siren.png"
+                        alt="Brasão"
+                        className="h-10 w-auto object-contain tactical-shield-clip drop-shadow-[0_0_5px_rgba(255,0,0,1)]"
+                    />
                 </div>
                 <button
                     onClick={() => setIsOpen(!isOpen)}
@@ -200,14 +203,17 @@ const Sidebar = ({ routeCount = 0, isCollapsed, toggleCollapse, isDark, toggleTh
                 <div className={`hidden md:flex items-center ${isCollapsed ? 'justify-center' : 'justify-between px-6'} h-20 border-b border-border-light dark:border-white/5 relative`}>
                     <div className="flex items-center gap-3">
                         <img
-                            src="/brasao_pcsp_nova.png"
+                            src="/brasao_police_siren.png"
                             alt="Brasão PCSP"
-                            className="h-10 w-auto object-contain shrink-0 drop-shadow-md dark:drop-shadow-[0_0_8px_rgba(255,255,255,0.3)] transition-transform hover:scale-110"
+                            className="h-12 w-auto object-contain shrink-0 tactical-shield-clip drop-shadow-[0_0_6px_rgba(255,0,0,1)]"
                         />
                         {!isCollapsed && (
-                            <h1 className="font-display font-black text-xl text-slate-900 dark:text-white tracking-widest whitespace-nowrap overflow-hidden">
-                                PCSP
-                            </h1>
+                            <div className="flex flex-col">
+                                <h1 className="font-display font-black text-xl text-slate-900 dark:text-white tracking-widest whitespace-nowrap overflow-hidden leading-none">
+                                    PCSP
+                                </h1>
+                                <span className="text-[7px] font-black text-zinc-500 uppercase tracking-[0.3em] mt-1">Inteligência</span>
+                            </div>
                         )}
                     </div>
 
@@ -244,7 +250,7 @@ const Sidebar = ({ routeCount = 0, isCollapsed, toggleCollapse, isDark, toggleTh
                         </button>
 
                         <button
-                            onClick={() => toast.info(hasNotifications ? 'Novas notificações' : 'Nenhuma notificação nova')}
+                            onClick={() => onToggleNotifications ? onToggleNotifications() : toast.info(hasNotifications ? 'Novas notificações' : 'Nenhuma notificação nova')}
                             className="p-2 rounded-lg text-slate-500 dark:text-zinc-400 hover:bg-slate-200 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white transition-all border border-transparent hover:border-border-light dark:hover:border-white/10 group relative"
                             title="Notificações"
                         >

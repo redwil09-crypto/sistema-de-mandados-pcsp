@@ -26,6 +26,7 @@ import { generateWarrantPDF, generateIfoodOfficePDF } from '../services/pdfRepor
 import IfoodReportModal from '../components/IfoodReportModal';
 import FloatingDock from '../components/FloatingDock';
 import { analyzeRawDiligence, generateReportBody, analyzeDocumentStrategy, askAssistantStrategy, mergeIntelligence } from '../services/geminiService';
+import { extractPdfData } from '../services/pdfExtractionService';
 import { extractRawTextFromPdf, extractFromText } from '../pdfExtractor';
 import { CRIME_OPTIONS, REGIME_OPTIONS } from '../data/constants';
 import { useWarrants } from '../contexts/WarrantContext';
@@ -1046,39 +1047,89 @@ Equipe de Capturas - DIG / PCSP
         const loadingToast = toast.loading("Processando Inteligência de Plataforma...");
 
         try {
-            // 1. AI Analysis
-            const analysis = await analyzeRawDiligence(data, `RESULTADO DE PESQUISA (IFOOD/UBER/99): ${text}`);
+            // 1. Heuristic Zero-Token Analysis for Negatives
+            const upperText = text.toUpperCase();
+            const isDefinitiveNegative = upperText.includes('NÃO É CLIENTE') ||
+                upperText.includes('NÃO POSSUI CADASTRO') ||
+                upperText.includes('NENHUM RESULTADO ENCONTRADO') ||
+                upperText.includes('RESPOSTA NEGATIVA') ||
+                upperText.includes('NÃO FORAM ENCONTRADOS DADOS');
 
-            if (analysis) {
-                // 2. Merge with existing Intel
-                const currentIntel = data.tacticalSummary ?
-                    (typeof data.tacticalSummary === 'string' ? JSON.parse(data.tacticalSummary) : data.tacticalSummary)
-                    : {};
-                const mergedIntel = await mergeIntelligence(data, currentIntel, analysis);
+            let currentIntel: any = {};
+            if (data.tacticalSummary) {
+                try {
+                    currentIntel = typeof data.tacticalSummary === 'string' ? JSON.parse(data.tacticalSummary) : data.tacticalSummary;
+                } catch (e) {
+                    currentIntel = {};
+                }
+            }
 
+            let mergedIntel: any = null;
+            let analysisSummary = '';
+
+            if (isDefinitiveNegative) {
+                // Bypass both analysis and merging via Gemini! (100% Zero Token)
+                analysisSummary = 'A pesquisa na plataforma retornou resultados negativos, alvo sem vínculos ativos.';
+                const timelineEntry = {
+                    date: new Date().toISOString().split('T')[0],
+                    event: 'Pesquisa iFood/Uber retornou negativo',
+                    source: 'iFood/Plataformas'
+                };
+
+                mergedIntel = {
+                    ...currentIntel,
+                    summary: (currentIntel.summary ? currentIntel.summary + '\n\n' : '') + '[NOVA INFORMAÇÃO] ' + analysisSummary,
+                    timeline: [...(currentIntel.timeline || []), timelineEntry],
+                    locations: currentIntel.locations || [],
+                    entities: currentIntel.entities || [],
+                    risks: currentIntel.risks || [],
+                    hypotheses: currentIntel.hypotheses || [],
+                    checklist: currentIntel.checklist || [],
+                    progressLevel: currentIntel.progressLevel || 0
+                };
+
+                toast.success('Análise Negativa Feita e Mesclada Nativamente (Zero Tokens!).', { id: loadingToast });
+            } else {
+                // Use AI for complex data parsing
+                const analysis = await analyzeRawDiligence(data, `RESULTADO DE PESQUISA (IFOOD/UBER/99): ${text}`);
+                if (analysis) {
+                    analysisSummary = analysis.summary || 'Dados de plataforma processados.';
+                    mergedIntel = await mergeIntelligence(data, currentIntel, analysis);
+                }
+            }
+
+            if (mergedIntel) {
                 // 3. Create Diligence Entry
                 const newHistoryItem = {
                     id: Date.now().toString(),
                     date: new Date().toISOString(),
-                    notes: `[INTELIGÊNCIA PLATAFORMA] ${analysis.summary || 'Dados de plataforma processados.'}`,
+                    notes: `[INTELIGÊNCIA PLATAFORMA] ${analysisSummary}`,
                     investigator: 'Agente (Via Sistema)',
                     type: 'IFOOD_UBER' as const
                 };
 
                 const updatedHistory = [...(data.diligentHistory || []), newHistoryItem];
 
-                // 4. Update Database - SALVANDO O JSON COMPLETO NO SUMMARY
+                // 4. Update Database
                 const success = await updateWarrant(data.id, {
                     diligentHistory: updatedHistory,
                     tacticalSummary: JSON.stringify(mergedIntel),
-                    ifoodResult: text // Garante que o texto da pesquisa não suma
+                    ifoodResult: text
                 });
 
                 if (success) {
-                    setAiDiligenceResult(mergedIntel); // Update local state
-                    toast.success("Inteligência Tática Atualizada!", { id: loadingToast });
+                    setAiDiligenceResult(mergedIntel);
+                    handleFieldChange('tacticalSummary', JSON.stringify(mergedIntel));
+                    handleFieldChange('ifoodResult', text);
 
-                    // FORÇAR TRANSIÇÃO E ATUALIZAÇÃO
+                    if (refreshWarrants) {
+                        await refreshWarrants(true);
+                    }
+
+                    if (!isDefinitiveNegative) {
+                        toast.success("Inteligência Tática Atualizada!", { id: loadingToast });
+                    }
+
                     setActiveDetailTab('investigation');
                     setTimeout(() => {
                         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1091,10 +1142,26 @@ Equipe de Capturas - DIG / PCSP
             }
         } catch (error) {
             console.error(error);
-            toast.error("Falha no processamento.", { id: loadingToast });
+            toast.error("Falha no processamento do log tático.", { id: loadingToast });
         } finally {
             setIsAnalyzingDiligence(false);
         }
+    };
+
+    const handleExtractPdfTextLocal = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        const toastId = toast.loading("Lendo arquivo PDF localmente...");
+        try {
+            const text = await extractPdfData(file);
+            setLocalData(prev => ({ ...prev, ifoodResult: text }));
+            toast.success("Texto extraído com sucesso! Verifique a caixa de Rastreamento.", { id: toastId });
+        } catch (error) {
+            console.error("Erro ao extrair PDF local:", error);
+            toast.error("Falha ao ler PDF. Tente colar o texto manualmente.", { id: toastId });
+        }
+        e.target.value = ''; // Reset input
     };
 
     const handleDownloadPDF = async () => {
@@ -1357,18 +1424,30 @@ Equipe de Capturas - DIG / PCSP
             const history = currentData.diligentHistory || [];
             const observations = currentData.observation || '';
             const crime = (currentData.crime || '').toLowerCase();
+            const ifoodData = currentData.ifoodResult || '';
+
+            // Extrair cidades do resumo tático para fortalecer a checagem
+            let aiAddresses = '';
+            try {
+                if (currentData.tacticalSummary) {
+                    const intel = JSON.parse(currentData.tacticalSummary);
+                    if (intel.locations) {
+                        aiAddresses = intel.locations.map((l: any) => l.address).join(' ');
+                    }
+                }
+            } catch (e) { }
 
             // Intelligence safety check
-            if (history.length === 0 && !observations.trim()) {
+            if (history.length === 0 && !observations.trim() && !ifoodData.trim() && !aiAddresses) {
                 return "[AVISO: NÃO HÁ INFORMAÇÕES RELEVANTES NA LINHA DO TEMPO OU OBSERVAÇÕES PARA GERAR O RELATÓRIO DO ZERO. POR FAVOR, REGISTRE AS DILIGÊNCIAS PRIMEIRO OU USE O BOTÃO DE IA PARA CRIAR COM BASE NO QUE TIVER.]";
             }
 
-            const fullText = (history.map(h => (h.notes || '')).join(' ') + ' ' + observations).toLowerCase();
-            const addrLower = address.toLowerCase();
+            const fullText = (history.map(h => (h.notes || '')).join(' ') + ' ' + observations + ' ' + ifoodData + ' ' + aiAddresses).toLowerCase();
+            const addrLower = (address + ' ' + aiAddresses).toLowerCase();
 
             // 1. OUTRA CIDADE / CIRCUNSCRIÇÃO
-            // Detecta se é outra cidade E se NÃO é Jacareí
-            const isAnotherCity = address && (
+            // Detecta se é outra cidade (incluindo retornos de plataformas como iFood/Uber) E se NÃO é Jacareí
+            const isAnotherCity = addrLower && (
                 !addrLower.includes('jacareí') && (
                     addrLower.includes('são sebastião') ||
                     addrLower.includes('sjc') ||
@@ -1379,57 +1458,62 @@ Equipe de Capturas - DIG / PCSP
                     addrLower.includes('santa branca') ||
                     addrLower.includes('igaratá') ||
                     addrLower.includes('paraibuna') ||
+                    addrLower.includes('guarulhos') ||
+                    addrLower.includes('caraguatatuba') ||
+                    addrLower.includes('ubatuba') ||
                     addrLower.includes('mg') ||
                     addrLower.includes('rj') ||
                     addrLower.includes('pr') ||
                     addrLower.includes('sc') ||
-                    addrLower.includes('rs')
+                    addrLower.includes('rs') ||
+                    fullText.includes('outra cidade') ||
+                    fullText.includes('outro município') ||
+                    fullText.includes('outro estado')
                 )
             );
 
             if (isAnotherCity) {
-                return `Em cumprimento ao solicitado, informo que, a despeito do mandado expedido, constatou-se que o endereço do réu ${name} (${address}) não pertence à circunscrição desta Seccional de Jacareí/SP.\n\nConsiderando a competência territorial, sugere-se o encaminhamento da ordem judicial (via Carta Precatória ou Ofício) à autoridade policial daquela localidade para as devidas providências, uma vez que esta equipe atua exclusivamente nos limites deste município.\n\nNada mais havendo, encaminha-se o presente.`;
+                return `Em cumprimento ao solicitado, informo que, a despeito do mandado expedido e com base em levantamentos de inteligência recentes (incluindo cruzamento de dados de plataformas e fontes abertas), constatou-se que os endereços vinculados ao réu ${name} localizam-se fora da circunscrição desta Seccional de Jacareí/SP.\n\nConsiderando a competência territorial e a economia processual, sugere-se o encaminhamento da ordem judicial (via Carta Precatória ou Ofício) à autoridade policial competente pela região apontada para as devidas providências, uma vez que esta equipe atua exclusivamente nos limites deste município.\n\nNada mais havendo, encaminha-se o presente.`;
             }
 
             // 2. CONTATO COM GENITORA / FAMILIARES / MUDOU-SE (Exemplo 3)
-            if (fullText.includes('mãe') || fullText.includes('genitora') || fullText.includes('pai') || fullText.includes('familia') || fullText.includes('não reside') || fullText.includes('mudou')) {
-                return `Em cumprimento ao Mandado de Prisão referente ao Processo nº ${process}, foram realizadas diligências no endereço indicado como possível residência do réu ${name}, situado na ${address}.\n\nAo chegar ao local, a equipe de Jacareí/SP foi atendida por moradores/familiares do procurado, os quais relataram que o mesmo não reside mais no endereço há longo lapso temporal, não mantendo contato e não possuindo informações que possam contribuir para sua localização. Após apresentação do mandado judicial, foi franqueado o acesso ao imóvel, sendo realizada busca em todos os cômodos da residência, sem êxito.\n\nPor fim, consultas atualizadas nos sistemas policiais não apontaram novos endereços ou vínculos deste réu nesta cidade. Diante disso, as diligências foram encerradas sem êxito.`;
+            if (fullText.includes('mãe') || fullText.includes('genitora') || fullText.includes('pai') || fullText.includes('familia') || fullText.includes('não reside') || fullText.includes('mudou') || fullText.includes('desconhecido')) {
+                return `Em cumprimento ao Mandado de Prisão referente ao Processo nº ${process}, foram realizadas diligências e ações de inteligência buscando a localização do réu ${name}.\n\nNo decurso das investigações e checagem de endereços (incluindo ${address || 'os levantados em sistema'}), constatou-se mediante contato com familiares/moradores ou cruzamento de dados que o alvo não reside mais no local há considerável lapso temporal, não havendo informações que possam contribuir para sua prisão imediata.\n\nPor fim, consultas atualizadas nos sistemas policiais não apontaram novos endereços ativos deste réu nesta cidade. Diante disso, as diligências foram encerradas sem êxito.`;
             }
 
             // 3. IMÓVEL COM PLACAS (Exemplo 13)
-            if (fullText.includes('aluga') || fullText.includes('vende') || fullText.includes('placa') || fullText.includes('desabitado') || fullText.includes('vazio')) {
-                return `Em cumprimento ao mandado de prisão expedido nos autos do processo nº ${process}, em desfavor de ${name}, esta equipe de Jacareí/SP realizou diligências no endereço indicado — ${address}.\n\nForam efetuadas visitas em dias e horários distintos, constatando-se que o imóvel encontra-se com placas de “aluga-se” ou “vende-se” (ou encontra-se visivelmente desabitado), sem qualquer movimentação que indicasse a presença de moradores ou ocupação regular da residência no momento das verificações.\n\nAté o momento, não foram obtidos elementos que indiquem o paradeiro do procurado, permanecendo negativas as diligências nesta Comarca.`;
+            if (fullText.includes('aluga') || fullText.includes('vende') || fullText.includes('placa') || fullText.includes('desabitado') || fullText.includes('vazio') || fullText.includes('abandonado')) {
+                return `Em cumprimento ao mandado de prisão expedido nos autos do processo nº ${process}, em desfavor de ${name}, esta equipe de Jacareí/SP realizou diligências focadas nos endereços vinculados, notadamente: ${address || 'o constante nos autos'}.\n\nForam efetuadas visitas em dias e horários distintos, constatando-se que o imóvel encontra-se com placas de “aluga-se” ou “vende-se” (ou encontra-se visivelmente desabitado), sem qualquer movimentação que indicasse a presença de moradores ou ocupação regular da residência no momento das verificações.\n\nAté o momento, não foram obtidos novos elementos de plataformas ou sistemas que indiquem o paradeiro do procurado, permanecendo negativas as diligências nesta Comarca.`;
             }
 
             // 4. PENSÃO ALIMENTÍCIA / SISTEMAS (Exemplo 2)
-            if (crime.includes('pensão') || crime.includes('alimentar')) {
-                return `Em cumprimento ao Mandado de Prisão Civil, referente ao Processo nº ${process}, pela obrigação de pensão alimentícia, foram realizadas consultas nos sistemas policiais para localização de ${name} nesta Comarca de Jacareí/SP.\n\nAs pesquisas não identificaram qualquer endereço ativo do executado no município, inexistindo dados recentes que indicassem residência ou vínculo local. Ressalte-se que não sobrevieram novas informações, até a presente data, capazes de orientar diligências adicionais ou modificar o cenário fático apresentado.\n\nDiante do exposto, as diligências restaram infrutíferas nesta Comarca de Jacareí/SP.`;
+            if (crime.includes('pensão') || crime.includes('alimentar') || fullText.includes('alimentos')) {
+                return `Em cumprimento ao Mandado de Prisão Civil, referente ao Processo nº ${process}, pela obrigação de pensão alimentícia, foram realizadas consultas nos sistemas policiais e cruzamento de dados cadastrais para localização de ${name} nesta Comarca de Jacareí/SP.\n\nAs pesquisas (incluindo varredura em bancos de dados abertos e fechados) não identificaram qualquer endereço ativo e idôneo do executado no município, inexistindo dados recentes que indicassem residência ou vínculo local. Ressalte-se que não sobrevieram novas informações, até a presente data, capazes de orientar diligências de campo adicionais.\n\nDiante do exposto, as diligências restaram infrutíferas nesta Comarca de Jacareí/SP.`;
             }
 
             // 5. NEGATIVA GERAL / VIZINHOS (Exemplo 9, 10, 11)
-            if (fullText.includes('vizinho') || fullText.includes('entrevista') || fullText.includes('morador') || fullText.includes('desconhece')) {
-                return `Em cumprimento ao mandado expedido nos autos do processo nº ${process}, em desfavor de ${name}, esta equipe procedeu a diligências no endereço indicado — ${address}.\n\nForam realizadas verificações in loco em dias e horários diversos, ocasião em que se constatou ausência de sinais de habitação ou indício de presença recente do procurado no imóvel. Procedeu-se à entrevista com moradores lindeiros, os quais informaram que há considerável lapso temporal não visualizam o requerido naquela localidade, bem como desconhecem seu atual paradeiro.\n\nAdicionalmente, foram efetuadas consultas nos sistemas policiais disponíveis, não sendo identificados novos endereços ou informações úteis à sua localização. Diante do exposto, as diligências restaram infrutíferas nesta cidade de Jacareí/SP.`;
+            if (fullText.includes('vizinho') || fullText.includes('entrevista') || fullText.includes('morador') || fullText.includes('desconhece') || fullText.includes('infrutífer')) {
+                return `Em cumprimento ao mandado expedido nos autos do processo nº ${process}, em desfavor de ${name}, esta equipe procedeu a diligências investigativas no endereço: ${address || 'vinculado ao alvo'}.\n\nForam realizadas verificações in loco e levantamentos velados, ocasião em que se constatou ausência de sinais de habitação ou indício de presença recente do procurado. Procedeu-se também a cruzamentos em plataformas de inteligência de dados, que não retornaram vínculos fortes atualizados para esta municipalidade.\n\nAdicionalmente, foram efetuadas consultas ininterruptas nos sistemas policiais disponíveis, não sendo identificados novos endereços. Diante do exposto, as diligências restaram infrutíferas nesta cidade de Jacareí/SP.`;
             }
 
             // 6. FALLBACK: PADRÃO FORMAL (Exemplo 4)
-            // Se caiu aqui, é porque nenhuma condição específica foi atendida.
-            // Vamos montar um texto genérico mas INCLUINDO as informações reais.
-
             const diligentHistoryText = history.length > 0
-                ? `Constam as seguintes diligências realizadas: ${history.map(h => `${new Date(h.date).toLocaleDateString()} - ${h.notes}`).join('; ')}.`
+                ? `Constam as seguintes ações documentadas: ${history.map(h => `${new Date(h.date).toLocaleDateString()} - ${h.notes}`).join('; ')}.`
                 : '';
 
             const obsText = localData.observation
                 ? `Observa-se ainda que: ${localData.observation}.`
                 : '';
 
-            return `Registra-se o presente para dar cumprimento ao Mandado de Prisão expedido em desfavor de ${name}, nos autos do processo nº ${process}, oriundo da Comarca de Jacareí/SP.\n\nA equipe desta especializada procedeu às diligências nos endereços vinculados ao réu, notadamente na ${address}. \n\n${diligentHistoryText}\n\n${obsText}\n\nAté o presente momento, não foi possível localizar o investigado, restando negativas as diligências realizadas por esta equipe para cumprimento da ordem judicial em Jacareí/SP.`;
+            const ifoodNotice = ifoodData ? `Foram também processados dados de retorno de plataformas (iFood/Uber/Similares) visando enriquecer a inteligência do alvo.` : '';
+
+            return `Registra-se o presente para dar cumprimento ao Mandado de Prisão expedido em desfavor de ${name}, nos autos do processo nº ${process}, oriundo da Comarca de Jacareí/SP.\n\nA equipe desta especializada procedeu às diligências orgânicas e eletrônicas cabíveis nos endereços vinculados ao réu, notadamente em: ${address || 'locais cadastrados'}. \n\n${diligentHistoryText}\n\n${obsText} ${ifoodNotice}\n\nAté o presente momento, e mesmo após cruzamento prático e de inteligência, não foi possível localizar o investigado, restando negativas as diligências realizadas por esta equipe para cumprimento da ordem judicial em Jacareí/SP.`;
         };
 
         setCapturasData(prev => ({
             ...prev,
             reportNumber: currentData.fulfillmentReport || `02/CAPT/${new Date().getFullYear()}`,
-            court: '1ª Vara da Família e Sucessões de Jacareí/SP',
+            court: '1ª Vara criminal de Jacareí/SP',
             body: generateIntelligentReportBody(),
             aiInstructions: ''
         }));
@@ -2524,7 +2608,24 @@ Equipe de Capturas - DIG / PCSP
                                     <div className="space-y-4">
 
                                         <div className="space-y-1">
-                                            <label className="text-[9px] font-black text-text-muted uppercase tracking-wider">Resultado da Pesquisa</label>
+                                            <div className="flex items-center justify-between">
+                                                <label className="text-[9px] font-black text-text-muted uppercase tracking-wider">Resultado da Pesquisa</label>
+                                                <div className="flex gap-2">
+                                                    <input
+                                                        type="file"
+                                                        id="local-pdf-extract"
+                                                        className="hidden"
+                                                        accept=".pdf"
+                                                        onChange={handleExtractPdfTextLocal}
+                                                    />
+                                                    <label
+                                                        htmlFor="local-pdf-extract"
+                                                        className="px-2 py-0.5 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-500 border border-indigo-500/20 rounded text-[9px] font-bold uppercase cursor-pointer transition-all flex items-center gap-1"
+                                                    >
+                                                        <FileText size={10} /> Copiar de PDF (Grátis)
+                                                    </label>
+                                                </div>
+                                            </div>
                                             <div className="relative">
                                                 <textarea
                                                     className="w-full bg-background-light dark:bg-white/5 border border-border-light dark:border-white/10 rounded-xl p-3 text-sm text-text-light dark:text-white outline-none focus:ring-1 focus:ring-primary min-h-[120px] resize-none pb-12"
