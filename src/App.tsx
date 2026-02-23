@@ -105,14 +105,20 @@ function AppContent({ isDark, toggleTheme }: { isDark: boolean; toggleTheme: () 
 
     const hasNotifications = React.useMemo(() => {
         if (!warrants) return false;
-        const now = new Date();
-        const threshold = new Date();
-        threshold.setDate(now.getDate() + 7); // 7 days warning
+        const today = new Date();
 
         return warrants.some(w => {
             if (w.status !== 'EM ABERTO' || !w.expirationDate) return false;
-            const exp = new Date(w.expirationDate);
-            return exp <= threshold;
+
+            const expDate = w.expirationDate.includes('/')
+                ? new Date(w.expirationDate.split('/').reverse().join('-'))
+                : new Date(w.expirationDate);
+
+            const diffTime = expDate.getTime() - today.getTime();
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+            // Check if it's within 7 days (including already expired ones, so diffDays <= 7)
+            return diffDays <= 7;
         });
     }, [warrants]);
 
