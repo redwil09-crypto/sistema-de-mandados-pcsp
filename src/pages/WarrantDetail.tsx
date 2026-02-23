@@ -26,6 +26,7 @@ import { generateWarrantPDF, generateIfoodOfficePDF } from '../services/pdfRepor
 import IfoodReportModal from '../components/IfoodReportModal';
 import FloatingDock from '../components/FloatingDock';
 import { analyzeRawDiligence, generateReportBody, analyzeDocumentStrategy, askAssistantStrategy, mergeIntelligence } from '../services/geminiService';
+import { extractPdfData } from '../services/pdfExtractionService';
 import { extractRawTextFromPdf, extractFromText } from '../pdfExtractor';
 import { CRIME_OPTIONS, REGIME_OPTIONS } from '../data/constants';
 import { useWarrants } from '../contexts/WarrantContext';
@@ -1046,8 +1047,31 @@ Equipe de Capturas - DIG / PCSP
         const loadingToast = toast.loading("Processando Inteligência de Plataforma...");
 
         try {
-            // 1. AI Analysis
-            const analysis = await analyzeRawDiligence(data, `RESULTADO DE PESQUISA (IFOOD/UBER/99): ${text}`);
+            // 1. Heuristic Zero-Token Analysis for Negatives
+            const upperText = text.toUpperCase();
+            const isDefinitiveNegative = upperText.includes('NÃO É CLIENTE') ||
+                upperText.includes('NÃO POSSUI CADASTRO') ||
+                upperText.includes('NENHUM RESULTADO ENCONTRADO') ||
+                upperText.includes('RESPOSTA NEGATIVA') ||
+                upperText.includes('NÃO FORAM ENCONTRADOS DADOS');
+            let analysis: any = null;
+
+            if (isDefinitiveNegative) {
+                // Generate analysis locally, saving AI tokens!
+                analysis = {
+                    summary: 'A pesquisa na plataforma retornou resultados negativos, alvo sem vínculos ativos.',
+                    riskLevel: 'Baixo',
+                    riskReason: 'Pesquisa negativa, sem endereços apontados.',
+                    entities: [],
+                    locations: [],
+                    checklist: [],
+                    hypotheses: []
+                };
+                toast.success('Análise de negatividade feita nativamente (Zero Tokens).', { id: loadingToast });
+            } else {
+                // Use AI for complex data parsing
+                analysis = await analyzeRawDiligence(data, `RESULTADO DE PESQUISA (IFOOD/UBER/99): ${text}`);
+            }
 
             if (analysis) {
                 // 2. Merge with existing Intel
@@ -1105,6 +1129,22 @@ Equipe de Capturas - DIG / PCSP
         } finally {
             setIsAnalyzingDiligence(false);
         }
+    };
+
+    const handleExtractPdfTextLocal = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        const toastId = toast.loading("Lendo arquivo PDF localmente...");
+        try {
+            const text = await extractPdfData(file);
+            setLocalData(prev => ({ ...prev, ifoodResult: text }));
+            toast.success("Texto extraído com sucesso! Verifique a caixa de Rastreamento.", { id: toastId });
+        } catch (error) {
+            console.error("Erro ao extrair PDF local:", error);
+            toast.error("Falha ao ler PDF. Tente colar o texto manualmente.", { id: toastId });
+        }
+        e.target.value = ''; // Reset input
     };
 
     const handleDownloadPDF = async () => {
@@ -2551,7 +2591,24 @@ Equipe de Capturas - DIG / PCSP
                                     <div className="space-y-4">
 
                                         <div className="space-y-1">
-                                            <label className="text-[9px] font-black text-text-muted uppercase tracking-wider">Resultado da Pesquisa</label>
+                                            <div className="flex items-center justify-between">
+                                                <label className="text-[9px] font-black text-text-muted uppercase tracking-wider">Resultado da Pesquisa</label>
+                                                <div className="flex gap-2">
+                                                    <input
+                                                        type="file"
+                                                        id="local-pdf-extract"
+                                                        className="hidden"
+                                                        accept=".pdf"
+                                                        onChange={handleExtractPdfTextLocal}
+                                                    />
+                                                    <label
+                                                        htmlFor="local-pdf-extract"
+                                                        className="px-2 py-0.5 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-500 border border-indigo-500/20 rounded text-[9px] font-bold uppercase cursor-pointer transition-all flex items-center gap-1"
+                                                    >
+                                                        <FileText size={10} /> Copiar de PDF (Grátis)
+                                                    </label>
+                                                </div>
+                                            </div>
                                             <div className="relative">
                                                 <textarea
                                                     className="w-full bg-background-light dark:bg-white/5 border border-border-light dark:border-white/10 rounded-xl p-3 text-sm text-text-light dark:text-white outline-none focus:ring-1 focus:ring-primary min-h-[120px] resize-none pb-12"
