@@ -28,6 +28,7 @@ const CounterWarrantList = React.lazy(() => import('./pages/CounterWarrantList')
 // Components
 import Sidebar from './components/Sidebar';
 import NotificationOverlay from './components/NotificationOverlay';
+import PerformanceOptimizationModal from './components/PerformanceOptimizationModal';
 import { useLocation } from 'react-router-dom';
 
 import { Toaster } from 'sonner';
@@ -48,6 +49,9 @@ function App() {
 
     const [session, setSession] = useState<Session | null>(null);
     const [authLoading, setAuthLoading] = useState(true);
+    const [showPerformanceModal, setShowPerformanceModal] = useState(() => {
+        return sessionStorage.getItem('performance_optimization_accepted') !== 'true';
+    });
 
     useEffect(() => {
         supabase.auth.getSession().then(({ data: { session } }) => {
@@ -86,13 +90,33 @@ function App() {
     }
 
     if (!session) {
-        return <Auth />;
+        return (
+            <>
+                <Auth />
+                {showPerformanceModal && (
+                    <PerformanceOptimizationModal
+                        onAccept={() => {
+                            sessionStorage.setItem('performance_optimization_accepted', 'true');
+                            setShowPerformanceModal(false);
+                        }}
+                    />
+                )}
+            </>
+        );
     }
 
     return (
         <WarrantProvider>
             <HashRouter>
                 <AppContent isDark={isDark} toggleTheme={toggleTheme} />
+                {showPerformanceModal && (
+                    <PerformanceOptimizationModal
+                        onAccept={() => {
+                            sessionStorage.setItem('performance_optimization_accepted', 'true');
+                            setShowPerformanceModal(false);
+                        }}
+                    />
+                )}
             </HashRouter>
         </WarrantProvider>
     );
