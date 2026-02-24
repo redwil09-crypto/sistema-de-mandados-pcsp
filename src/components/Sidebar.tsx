@@ -188,7 +188,7 @@ const Sidebar = ({ routeCount = 0, isCollapsed, toggleCollapse, isDark, toggleTh
             <aside
                 className={`
                     fixed top-0 bottom-0 left-0 z-50
-                    bg-surface-light dark:bg-surface-dark border-r border-border-light dark:border-blue-600 dark:shadow-[4px_0_20px_rgba(37,99,235,0.3)]
+                    bg-surface-light dark:bg-surface-dark border-r border-border-light dark:border-white/5
                     flex flex-col
                     transform transition-all duration-300 cubic-bezier(0.4, 0, 0.2, 1)
                     pt-16 md:pt-0
@@ -200,7 +200,7 @@ const Sidebar = ({ routeCount = 0, isCollapsed, toggleCollapse, isDark, toggleTh
                 onTouchEnd={onTouchEnd}
             >
                 {/* Desktop Header */}
-                <div className={`hidden md:flex items-center ${isCollapsed ? 'justify-center' : 'justify-between px-6'} h-20 border-b border-border-light dark:border-white/5 relative`}>
+                <div className={`hidden md:flex items-center ${isCollapsed ? 'justify-center' : 'justify-between px-6'} h-20 border-b border-border-light dark:border-blue-600 dark:shadow-[0_4px_20px_rgba(37,99,235,0.3)] relative`}>
                     <div className="flex items-center gap-3">
                         <img
                             src="/brasao_police_siren.png"
@@ -238,7 +238,7 @@ const Sidebar = ({ routeCount = 0, isCollapsed, toggleCollapse, isDark, toggleTh
                 </nav>
 
                 {/* Footer */}
-                <div className="p-3 border-t border-border-light dark:border-white/5 bg-slate-50 dark:bg-zinc-900/30 backdrop-blur-sm flex flex-col gap-3">
+                <div className="p-3 border-t border-border-light dark:border-blue-600 dark:shadow-[0_-4px_20px_rgba(37,99,235,0.3)] bg-slate-50 dark:bg-zinc-900/30 backdrop-blur-sm flex flex-col gap-3">
                     {/* Theme and Notifications */}
                     <div className={`flex items-center ${isCollapsed ? 'flex-col gap-3' : 'justify-between px-2'}`}>
                         <button
