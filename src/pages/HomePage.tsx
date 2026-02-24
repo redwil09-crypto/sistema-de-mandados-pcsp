@@ -41,7 +41,13 @@ const HomePage = ({ isDark, toggleTheme, onToggleNotifications, hasNotifications
         <div className="min-h-screen pb-20 relative">
 
             <header className="sticky top-0 z-40 bg-background-light dark:bg-background-dark px-4 py-4 pb-2">
-                <div className="flex items-center justify-end mb-4">
+                <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                        <div>
+                            <h1 className="text-lg font-black text-text-light dark:text-text-dark uppercase tracking-widest leading-none">Polícia Civil</h1>
+                            <p className="text-[8px] font-black text-text-secondary-light/60 dark:text-text-dark/50 tracking-[0.2em] uppercase mt-1">Sistema de Mandados</p>
+                        </div>
+                    </div>
                     <div className="flex items-center gap-2">
                         <button
                             onClick={toggleTheme}
