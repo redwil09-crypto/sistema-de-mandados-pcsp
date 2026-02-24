@@ -20,8 +20,8 @@ const FloatingDock = ({
 }: FloatingDockProps) => {
 
     return (
-        <div className="w-full bg-gray-100 dark:bg-zinc-900 border border-gray-200 dark:border-white/5 rounded-xl shadow-xl p-1.5 ring-1 ring-black/5 dark:ring-white/5">
-            <div className="flex h-14 w-full items-center justify-center gap-14 whitespace-nowrap">
+        <div className="w-full bg-gray-100 dark:bg-zinc-900 border border-gray-200 dark:border-white/5 rounded-xl shadow-xl p-1.5 ring-1 ring-black/5 dark:ring-white/5 px-2">
+            <div className="flex h-14 w-full items-center justify-between sm:justify-evenly gap-1 whitespace-nowrap">
 
                 {onBack && (
                     <button

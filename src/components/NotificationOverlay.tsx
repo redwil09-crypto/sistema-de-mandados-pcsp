@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { CalendarClock, X, CheckCircle } from 'lucide-react';
 import { Warrant } from '../types';
 import { formatDate } from '../utils/helpers';
-import { EXPIRING_WARRANTS } from '../data/mockData';
+
 
 interface NotificationOverlayProps {
     warrants: Warrant[];
@@ -71,7 +71,7 @@ const NotificationOverlay = ({ warrants, isOpen, onClose }: NotificationOverlayP
                         <div className="p-6 text-center text-text-secondary-light">
                             <CheckCircle size={32} className="mx-auto mb-2 text-green-500" />
                             <p className="text-sm">Nenhum mandado urgente.</p>
-                            {!showAllNotifications && EXPIRING_WARRANTS.length > 0 && (
+                            {!showAllNotifications && urgentNotifications.length > 0 && (
                                 <p className="text-xs mt-1 text-gray-500 dark:text-gray-400">Clique em "Ver completo" para ver os próximos.</p>
                             )}
                         </div>
