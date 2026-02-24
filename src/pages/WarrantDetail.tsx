@@ -2056,7 +2056,7 @@ Equipe de Capturas - DIG / PCSP
                                 key={tab.id}
                                 onClick={() => setActiveDetailTab(tab.id as any)}
                                 className={`
-                                    relative flex-1 group flex items-center justify-center gap-2.5 py-3 rounded-lg transition-all duration-300 ease-out border shadow-sm
+                                    relative flex-1 group flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2.5 py-2 sm:py-3 px-1 sm:px-2 rounded-lg transition-all duration-300 ease-out border shadow-sm
                                     ${isActive
                                         ? `${tab.activeClass} scale-[1.02] font-black z-10`
                                         : tab.inactiveClass
@@ -2075,8 +2075,13 @@ Equipe de Capturas - DIG / PCSP
                                     size={18}
                                     className={`relative z-10 transition-transform duration-300 ${isActive ? 'scale-110 drop-shadow-[0_0_8px_white]' : 'group-hover:scale-110'}`}
                                 />
-                                <span className={`relative z-10 text-[10px] uppercase tracking-[0.2em] ${isActive ? 'text-white font-black' : 'font-bold'}`}>
-                                    {tab.id === 'investigation' ? 'Sugestão Tática Inteligente' : tab.label}
+                                <span className={`relative z-10 text-[9px] sm:text-[10px] uppercase tracking-[0.1em] sm:tracking-[0.2em] leading-tight text-center sm:text-left ${isActive ? 'text-white font-black' : 'font-bold'}`}>
+                                    {tab.id === 'investigation' ? (
+                                        <>
+                                            <span className="hidden sm:inline">Sugestão Tática Inteligente</span>
+                                            <span className="sm:hidden">Inteligência</span>
+                                        </>
+                                    ) : tab.label}
                                 </span>
                             </button>
                         );
