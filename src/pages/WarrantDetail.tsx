@@ -2029,22 +2029,25 @@ Equipe de Capturas - DIG / PCSP
                             id: 'documents',
                             label: 'Dossiê',
                             icon: FileText,
-                            activeClass: 'text-blue-600 dark:text-blue-400 shadow-[0_0_20px_rgba(59,130,246,0.3)] bg-gray-100 dark:bg-zinc-900 border-blue-500/50',
-                            glowColor: 'blue'
+                            activeClass: 'text-white shadow-[0_0_30px_rgba(239,68,68,0.4)] bg-gradient-to-b from-red-600 to-red-800 border-red-500',
+                            glowColor: 'red',
+                            inactiveClass: 'bg-white dark:bg-zinc-900 border-gray-300 dark:border-white/10 text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-gray-50 dark:hover:bg-zinc-800/50 hover:border-red-500/30'
                         },
                         {
                             id: 'investigation',
                             label: 'Sugestão Tática',
                             icon: Bot,
-                            activeClass: 'text-red-600 dark:text-red-500 shadow-[0_0_20px_rgba(239,68,68,0.3)] bg-gray-100 dark:bg-zinc-900 border-red-500/50',
-                            glowColor: 'red'
+                            activeClass: 'text-white shadow-[0_0_30px_rgba(239,68,68,0.4)] bg-gradient-to-b from-red-600 to-red-800 border-red-500',
+                            glowColor: 'red',
+                            inactiveClass: 'bg-white dark:bg-zinc-900 border-gray-300 dark:border-white/10 text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-gray-50 dark:hover:bg-zinc-800/50 hover:border-red-500/30'
                         },
                         {
                             id: 'timeline',
                             label: 'Operações',
                             icon: History,
-                            activeClass: 'text-slate-500 dark:text-slate-300 shadow-[0_0_20px_rgba(148,163,184,0.3)] bg-gray-100 dark:bg-zinc-900 border-slate-500/50',
-                            glowColor: 'slate'
+                            activeClass: 'text-white shadow-[0_0_30px_rgba(239,68,68,0.4)] bg-gradient-to-b from-red-600 to-red-800 border-red-500',
+                            glowColor: 'red',
+                            inactiveClass: 'bg-white dark:bg-zinc-900 border-gray-300 dark:border-white/10 text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-gray-50 dark:hover:bg-zinc-800/50 hover:border-red-500/30'
                         }
                     ].map((tab) => {
                         const isActive = activeDetailTab === tab.id;
@@ -2053,26 +2056,26 @@ Equipe de Capturas - DIG / PCSP
                                 key={tab.id}
                                 onClick={() => setActiveDetailTab(tab.id as any)}
                                 className={`
-                                    relative flex-1 group flex items-center justify-center gap-2.5 py-3 rounded-lg transition-all duration-500 ease-out border
+                                    relative flex-1 group flex items-center justify-center gap-2.5 py-3 rounded-lg transition-all duration-300 ease-out border shadow-sm
                                     ${isActive
-                                        ? `${tab.activeClass} scale-[1.02]`
-                                        : 'bg-gray-100 dark:bg-zinc-900 border-gray-200 dark:border-white/5 text-gray-400 dark:text-gray-500 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-zinc-800'
+                                        ? `${tab.activeClass} scale-[1.02] font-black z-10`
+                                        : tab.inactiveClass
                                     }
                                 `}
                             >
                                 {/* Futuristic Scanline/Glow Effect for Active State */}
                                 {isActive && (
                                     <>
-                                        <div className={`absolute inset-0 rounded-lg bg-gradient-to-r from-transparent via-${tab.glowColor}-500/10 to-transparent opacity-50 animate-pulse-slow`}></div>
-                                        <div className={`absolute bottom-0 left-1/4 right-1/4 h-[1px] bg-gradient-to-r from-transparent via-${tab.glowColor}-500 to-transparent shadow-[0_0_10px_currentColor]`}></div>
+                                        <div className={`absolute inset-0 rounded-lg bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-50 animate-pulse-slow`}></div>
+                                        <div className={`absolute bottom-0 left-1/4 right-1/4 h-[2px] bg-gradient-to-r from-transparent via-white to-transparent shadow-[0_0_10px_white]`}></div>
                                     </>
                                 )}
 
                                 <tab.icon
                                     size={18}
-                                    className={`relative z-10 transition-transform duration-300 ${isActive ? 'scale-110 drop-shadow-[0_0_8px_currentColor]' : 'group-hover:scale-110'}`}
+                                    className={`relative z-10 transition-transform duration-300 ${isActive ? 'scale-110 drop-shadow-[0_0_8px_white]' : 'group-hover:scale-110'}`}
                                 />
-                                <span className={`relative z-10 text-[10px] font-black uppercase tracking-[0.2em] ${isActive ? 'text-gray-900 dark:text-white' : ''}`}>
+                                <span className={`relative z-10 text-[10px] uppercase tracking-[0.2em] ${isActive ? 'text-white font-black' : 'font-bold'}`}>
                                     {tab.id === 'investigation' ? 'Sugestão Tática Inteligente' : tab.label}
                                 </span>
                             </button>
