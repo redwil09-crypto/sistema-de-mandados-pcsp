@@ -55,7 +55,7 @@ export default function Auth() {
                 <div className="text-center">
                     <div className="mx-auto flex h-28 w-28 items-center justify-center mb-6">
                         <img
-                            src="/brasao_police_siren.png"
+                            src="/novo_brasao_lock.png"
                             alt="Brasão PCSP"
                             className="h-full w-auto object-contain animate-float tactical-shield-clip drop-shadow-[0_0_8px_rgba(255,0,0,1)]"
                         />
