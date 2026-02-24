@@ -434,7 +434,7 @@ const AIAssistantPage = () => {
                 longitude: extractedData.longitude
             };
 
-            const { success, error } = await onAdd(newWarrant);
+            const { success, error, id } = await onAdd(newWarrant);
             if (success) {
                 toast.success(`${extractedData.name} salvo com sucesso!`);
 
@@ -445,6 +445,10 @@ const AIAssistantPage = () => {
                 } else {
                     setStep('saved');
                     localStorage.removeItem('ai_assist_session'); // Limpa sessão ao concluir
+                    // Auto-navegar se for apenas um
+                    if (batchResults.length === 1 && id) {
+                        navigate(`/warrant-detail/${id}`);
+                    }
                 }
             } else {
                 toast.error(`Erro ao salvar no banco de dados: ${error || "Verifique a conexão."}`);

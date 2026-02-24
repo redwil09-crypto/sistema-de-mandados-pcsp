@@ -349,7 +349,7 @@ const NewWarrant = () => {
                 const result = await updateWarrant(editId, warrantData);
                 if (result) {
                     toast.success("Mandado atualizado com sucesso!");
-                    navigate('/');
+                    navigate(`/warrant-detail/${editId}`);
                 } else {
                     toast.error("Falha ao atualizar no servidor.");
                 }
@@ -359,10 +359,11 @@ const NewWarrant = () => {
                     id: warrantId,
                     status: 'EM ABERTO'
                 };
-                const { success, error } = await addWarrant(newWarrant);
+                const { success, error, id } = await addWarrant(newWarrant);
                 if (success) {
                     toast.success("Mandado salvo com sucesso!");
-                    navigate('/');
+                    // Ensure the route accepts the newly generated DB true ID to avoid mismatched URL 
+                    navigate(id ? `/warrant-detail/${id}` : '/warrant-list');
                 } else {
                     toast.error(`Falha ao salvar no servidor: ${error}`);
                 }

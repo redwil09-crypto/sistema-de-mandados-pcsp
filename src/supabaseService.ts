@@ -139,6 +139,9 @@ export const createWarrant = async (warrant: Partial<Warrant>): Promise<{ data: 
             .select()
             .single();
 
+        console.log("INSERT - DATA:", data);
+        console.log("INSERT - ERROR:", error);
+
         if (error) throw error;
 
         // Log audit
@@ -197,6 +200,9 @@ export const updateWarrant = async (id: string, updates: Partial<Warrant>): Prom
             .eq('id', id)
             .select()
             .single();
+
+        console.log("UPDATE - DATA:", data);
+        console.log("UPDATE - ERROR:", error);
 
         if (error) throw error;
 

@@ -14,7 +14,7 @@ interface WarrantContextType {
     warrants: Warrant[];
     loading: boolean;
     refreshWarrants: (silent?: boolean) => Promise<void>;
-    addWarrant: (w: Partial<Warrant>) => Promise<{ success: boolean; error?: string }>;
+    addWarrant: (w: Partial<Warrant>) => Promise<{ success: boolean; error?: string; id?: string }>;
     updateWarrant: (id: string, updates: Partial<Warrant>) => Promise<boolean>;
     deleteWarrant: (id: string) => Promise<boolean>;
 
@@ -139,7 +139,7 @@ export const WarrantProvider = ({ children }: { children: ReactNode }) => {
             // Optimistic update or reload? Reload is safer for consistency, optimistic is faster.
             // Let's reload for now to adhere to original logic, but we can optimize later.
             await refreshWarrants();
-            return { success: true };
+            return { success: true, id: data.id };
         }
         return { success: false, error: error?.message || "Erro desconhecido ao salvar." };
     };
