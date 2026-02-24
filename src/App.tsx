@@ -102,8 +102,16 @@ function AppContent({ isDark, toggleTheme }: { isDark: boolean; toggleTheme: () 
     const location = useLocation();
     // const hideNav = ['/warrant-detail', '/new-warrant', '/ai-assistant', '/route-planner', '/map'].some(p => location.pathname.startsWith(p));
     const { routeWarrants, warrants, loading } = useWarrants();
-    const [isCollapsed, setIsCollapsed] = useState(true); // Default to closed as requested
+    const [isCollapsed, setIsCollapsed] = useState(() => {
+        return sessionStorage.getItem('sidebar_collapsed') === 'true';
+    });
     const [showNotifications, setShowNotifications] = useState(false);
+
+    const handleToggleCollapse = () => {
+        const nextState = !isCollapsed;
+        setIsCollapsed(nextState);
+        sessionStorage.setItem('sidebar_collapsed', String(nextState));
+    };
 
     const hasNotifications = React.useMemo(() => {
         if (!warrants) return false;
@@ -144,7 +152,7 @@ function AppContent({ isDark, toggleTheme }: { isDark: boolean; toggleTheme: () 
                 routeCount={routeWarrants.length}
                 isCollapsed={isCollapsed}
                 hasNotifications={hasNotifications}
-                toggleCollapse={() => setIsCollapsed(!isCollapsed)}
+                toggleCollapse={handleToggleCollapse}
                 isDark={isDark}
                 toggleTheme={toggleTheme}
                 onToggleNotifications={() => setShowNotifications(!showNotifications)}

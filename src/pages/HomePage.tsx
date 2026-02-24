@@ -41,18 +41,7 @@ const HomePage = ({ isDark, toggleTheme, onToggleNotifications, hasNotifications
         <div className="min-h-screen pb-20 relative">
 
             <header className="sticky top-0 z-40 bg-background-light dark:bg-background-dark px-4 py-4 pb-2">
-                <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-3">
-                        <img
-                            src="/brasao_police_siren.png"
-                            alt="Brasão"
-                            className="h-14 w-auto object-contain tactical-shield-clip drop-shadow-[0_0_6px_rgba(255,0,0,1)]"
-                        />
-                        <div>
-                            <h1 className="text-lg font-black text-text-light dark:text-text-dark uppercase tracking-widest leading-none">Polícia Civil</h1>
-                            <p className="text-[8px] font-black text-text-secondary-light/60 dark:text-text-dark/50 tracking-[0.2em] uppercase mt-1">Sistema de Mandados</p>
-                        </div>
-                    </div>
+                <div className="flex items-center justify-end mb-4">
                     <div className="flex items-center gap-2">
                         <button
                             onClick={toggleTheme}
@@ -153,11 +142,11 @@ const HomePage = ({ isDark, toggleTheme, onToggleNotifications, hasNotifications
                 </div>
 
                 {/* Duty Summary Card */}
-                <Link to="/priority-list" className="block mt-4 rounded-2xl bg-surface-light p-4 shadow-md transition-all active:scale-[0.98] dark:bg-surface-dark border border-transparent hover:border-red-500 hover:shadow-[0_0_25px_rgba(239,68,68,0.6)] relative overflow-hidden group">
-                    <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-red-500/10 blur-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <Link to="/priority-list" className="block mt-4 rounded-2xl bg-surface-light p-4 transition-all active:scale-[0.98] dark:bg-surface-dark border border-red-500 dark:border-red-500/80 shadow-[0_0_15px_rgba(239,68,68,0.5)] dark:shadow-[0_0_20px_rgba(239,68,68,0.4)] relative overflow-hidden group">
+                    <div className="absolute -right-6 -top-6 h-28 w-28 rounded-full bg-red-500/20 blur-xl opacity-100 transition-opacity"></div>
                     <div className="relative z-10 flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-500 border border-transparent group-hover:border-red-500/30 transition-colors">
+                            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-500 border border-red-500/40 dark:border-red-500/30 transition-colors">
                                 <Siren size={24} />
                             </div>
                             <div>
