@@ -107,14 +107,20 @@ function AppContent({ isDark, toggleTheme }: { isDark: boolean; toggleTheme: () 
 
     const hasNotifications = React.useMemo(() => {
         if (!warrants) return false;
-        const now = new Date();
-        const threshold = new Date();
-        threshold.setDate(now.getDate() + 7); // 7 days warning
+        const today = new Date();
 
         return warrants.some(w => {
             if (w.status !== 'EM ABERTO' || !w.expirationDate) return false;
-            const exp = new Date(w.expirationDate);
-            return exp <= threshold;
+
+            const expDate = w.expirationDate.includes('/')
+                ? new Date(w.expirationDate.split('/').reverse().join('-'))
+                : new Date(w.expirationDate);
+
+            const diffTime = expDate.getTime() - today.getTime();
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+            // Check if it's within 7 days (including already expired ones, so diffDays <= 7)
+            return diffDays <= 7;
         });
     }, [warrants]);
 
@@ -163,7 +169,7 @@ function AppContent({ isDark, toggleTheme }: { isDark: boolean; toggleTheme: () 
                     <div key={location.pathname} className="page-enter pb-20 md:pb-0 pt-16 md:pt-4 px-4 w-full">
                         <Routes>
                             {/* Passes theme props to Home since these are layout related, not warrant related */}
-                            <Route path="/" element={<HomePage isDark={isDark} toggleTheme={toggleTheme} onToggleNotifications={() => setShowNotifications(!showNotifications)} />} />
+                            <Route path="/" element={<HomePage isDark={isDark} toggleTheme={toggleTheme} onToggleNotifications={() => setShowNotifications(!showNotifications)} hasNotifications={hasNotifications} />} />
 
                             <Route path="/warrant-list" element={<WarrantList />} />
                             <Route path="/advanced-search" element={<AdvancedSearch />} />

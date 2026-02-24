@@ -26,7 +26,7 @@ const NotificationOverlay = ({ warrants, isOpen, onClose }: NotificationOverlayP
                 const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
                 return { ...w, daysLeft: diffDays };
             })
-            .filter(w => w.daysLeft <= 30 && w.daysLeft >= 0)
+            .filter(w => w.daysLeft <= 30)
             .sort((a, b) => a.daysLeft - b.daysLeft);
     }, [warrants]);
 
