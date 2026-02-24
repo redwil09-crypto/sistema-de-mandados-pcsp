@@ -163,7 +163,7 @@ const Sidebar = ({ routeCount = 0, isCollapsed, toggleCollapse, isDark, toggleTh
             <div className="md:hidden fixed top-0 left-0 right-0 h-16 bg-white/90 dark:bg-zinc-950/90 backdrop-blur-xl border-b border-border-light dark:border-white/5 flex items-center justify-between px-4 z-50">
                 <div className="flex items-center gap-2">
                     <img
-                        src="/brasao_police_siren.png"
+                        src="/brasao_olho_16_neon.png"
                         alt="Brasão"
                         className="h-10 w-auto object-contain tactical-shield-clip drop-shadow-[0_0_5px_rgba(255,0,0,1)]"
                     />
@@ -203,7 +203,7 @@ const Sidebar = ({ routeCount = 0, isCollapsed, toggleCollapse, isDark, toggleTh
                 <div className={`hidden md:flex items-center ${isCollapsed ? 'justify-center' : 'justify-between px-6'} h-20 border-b border-border-light dark:border-blue-600 dark:shadow-[0_4px_20px_rgba(37,99,235,0.3)] relative`}>
                     <div className="flex items-center gap-3">
                         <img
-                            src="/brasao_police_siren.png"
+                            src="/brasao_olho_16_neon.png"
                             alt="Brasão PCSP"
                             className="h-12 w-auto object-contain shrink-0 tactical-shield-clip drop-shadow-[0_0_6px_rgba(255,0,0,1)]"
                         />
