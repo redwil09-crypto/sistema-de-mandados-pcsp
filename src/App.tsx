@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { supabase } from './supabaseClient';
 import type { Session } from '@supabase/supabase-js';
+import { AlertCircle, LogOut } from 'lucide-react';
 
 // Context
 import { WarrantProvider, useWarrants } from './contexts/WarrantContext';
@@ -39,6 +40,64 @@ function ScrollToTop() {
         window.scrollTo(0, 0);
     }, [pathname]);
     return null;
+}
+
+function PendingApproval() {
+    const handleSignOut = async () => {
+        await supabase.auth.signOut();
+    };
+
+    return (
+        <div className="min-h-screen bg-[#f0f9f4] flex flex-col items-center justify-start pt-12 px-4 space-y-8">
+            <div className="w-full max-w-md bg-[#ff4b4b] text-white p-4 rounded-xl shadow-lg flex items-start gap-4 animate-in slide-in-from-top-4 duration-500">
+                <div className="mt-1">
+                    <AlertCircle size={24} />
+                </div>
+                <div>
+                    <h3 className="font-bold text-sm uppercase tracking-wider">Acesso recusado</h3>
+                    <p className="text-[11px] opacity-90 leading-relaxed mt-1">
+                        Seu acesso ainda não foi aprovado por um administrador.
+                    </p>
+                </div>
+            </div>
+
+            <div className="w-full max-w-md bg-white rounded-[32px] p-10 shadow-xl text-center space-y-6">
+                <div className="flex justify-center gap-4 mb-4">
+                    <div className="w-12 h-12 text-[#2eb872] animate-bounce">
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" />
+                        </svg>
+                    </div>
+                </div>
+
+                <h1 className="text-4xl font-black text-[#1a4d33] leading-tight">
+                    Transforme seu lar em um jardim
+                </h1>
+
+                <p className="text-sm text-[#4a7a61] leading-relaxed">
+                    Descubra o prazer de cultivar plantas e flores. Dicas, cuidados e inspiração para criar seu próprio oásis verde.
+                </p>
+
+                <div className="grid grid-cols-2 gap-4 pt-4">
+                    <button className="bg-[#10a37f] text-white font-bold py-4 rounded-xl text-xs flex items-center justify-center gap-2">
+                        Começar Agora
+                    </button>
+                    <button className="bg-[#1a1c1e] text-white font-bold py-4 rounded-xl text-xs">
+                        Saiba Mais
+                    </button>
+                </div>
+
+                <div className="pt-8">
+                    <button
+                        onClick={handleSignOut}
+                        className="text-[10px] font-black uppercase tracking-widest text-[#ff4b4b] hover:underline flex items-center justify-center gap-2 mx-auto"
+                    >
+                        <LogOut size={14} /> Sair da conta
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
 }
 
 function App() {
@@ -105,6 +164,25 @@ function App() {
         );
     }
 
+    // Authorization Check
+    const isAuthorized = session.user.user_metadata?.authorized === true;
+
+    if (!isAuthorized) {
+        return (
+            <>
+                <PendingApproval />
+                {showPerformanceModal && (
+                    <PerformanceOptimizationModal
+                        onAccept={() => {
+                            sessionStorage.setItem('performance_optimization_accepted', 'true');
+                            setShowPerformanceModal(false);
+                        }}
+                    />
+                )}
+            </>
+        );
+    }
+
     return (
         <WarrantProvider>
             <HashRouter>
@@ -124,7 +202,6 @@ function App() {
 
 function AppContent({ isDark, toggleTheme }: { isDark: boolean; toggleTheme: () => void }) {
     const location = useLocation();
-    // const hideNav = ['/warrant-detail', '/new-warrant', '/ai-assistant', '/route-planner', '/map'].some(p => location.pathname.startsWith(p));
     const { routeWarrants, warrants, loading } = useWarrants();
     const [isCollapsed, setIsCollapsed] = useState(() => {
         return sessionStorage.getItem('sidebar_collapsed') === 'true';
@@ -151,7 +228,6 @@ function AppContent({ isDark, toggleTheme }: { isDark: boolean; toggleTheme: () 
             const diffTime = expDate.getTime() - today.getTime();
             const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-            // Check if it's within 7 days (including already expired ones, so diffDays <= 7)
             return diffDays <= 7;
         });
     }, [warrants]);
@@ -188,7 +264,6 @@ function AppContent({ isDark, toggleTheme }: { isDark: boolean; toggleTheme: () 
                 onClose={() => setShowNotifications(false)}
             />
 
-            {/* Main Content Area - Padded for Sidebar on Desktop */}
             <div className={`transition-all duration-300 ${isCollapsed ? 'md:pl-20' : 'md:pl-56'} min-h-screen`}>
                 <React.Suspense fallback={
                     <div className="flex h-[80vh] items-center justify-center">
@@ -200,27 +275,21 @@ function AppContent({ isDark, toggleTheme }: { isDark: boolean; toggleTheme: () 
                 }>
                     <div key={location.pathname} className="page-enter pb-20 md:pb-0 pt-16 md:pt-4 px-4 w-full">
                         <Routes>
-                            {/* Passes theme props to Home since these are layout related, not warrant related */}
                             <Route path="/" element={<HomePage isDark={isDark} toggleTheme={toggleTheme} onToggleNotifications={() => setShowNotifications(!showNotifications)} hasNotifications={hasNotifications} />} />
-
                             <Route path="/warrant-list" element={<WarrantList />} />
                             <Route path="/advanced-search" element={<AdvancedSearch />} />
                             <Route path="/recents" element={<RecentActivityPage />} />
                             <Route path="/minor-search" element={<MinorSearch />} />
                             <Route path="/priority-list" element={<PriorityList />} />
                             <Route path="/counter-warrants" element={<CounterWarrantList />} />
-
                             <Route path="/route-planner" element={<RoutePlanner />} />
-
                             <Route path="/stats" element={<Stats />} />
                             <Route path="/audit" element={<AuditPage />} />
                             <Route path="/profile" element={<Profile />} />
                             <Route path="/ai-assistant" element={<AIAssistantPage />} />
                             <Route path="/map" element={<OperationalMap />} />
-
                             <Route path="/warrant-detail/:id" element={<WarrantDetail />} />
                             <Route path="/new-warrant" element={<NewWarrant />} />
-
                             <Route path="*" element={<Navigate to="/" replace />} />
                         </Routes>
                     </div>
