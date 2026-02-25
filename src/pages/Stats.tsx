@@ -89,60 +89,84 @@ const Stats = () => {
             }));
     }, [warrants]);
 
+    // Heatmap Data (Top Locations)
+    const heatmapData = useMemo(() => {
+        const locations: Record<string, number> = {};
+        warrants.filter(w => w.status === 'EM ABERTO').forEach(w => {
+            const city = (w.location || 'NÃO INFORMADO').split(',')[0].split('-')[0].trim().toUpperCase();
+            locations[city] = (locations[city] || 0) + 1;
+        });
+
+        const sorted = Object.entries(locations)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 4);
+
+        const max = sorted[0]?.[1] || 1;
+        return sorted.map(([name, value]) => ({
+            name,
+            value,
+            intensity: Math.round((value / max) * 100)
+        }));
+    }, [warrants]);
+
     return (
-        <div className="min-h-screen bg-background-light dark:bg-background-dark pb-24">
+        <div className="min-h-screen bg-background-light dark:bg-[#050505] pb-24 relative overflow-hidden">
+            {/* Background Aesthetic Elements */}
+            <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-600/5 rounded-full blur-[120px] -mr-64 -mt-64 pointer-events-none"></div>
+            <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-red-600/5 rounded-full blur-[120px] -ml-64 -mb-64 pointer-events-none"></div>
+
             <Header title="Estatísticas Operacionais" back showHome />
 
-            <main className="p-4 md:p-6 space-y-6 max-w-7xl mx-auto">
+            <main className="p-4 md:p-6 space-y-6 max-w-7xl mx-auto relative z-10">
 
-                {/* 1. Main Metrics Grid */}
+                {/* 1. Main Metrics Grid - Cyber Style */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <StatCard
                         label="Total Acervo"
                         value={stats.total}
                         icon={<Database size={20} />}
-                        className="bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-500/30"
+                        className="bg-blue-500/5 text-blue-400 border-blue-500/20 shadow-[0_0_15px_rgba(59,130,246,0.1)]"
                     />
                     <StatCard
                         label="Em Aberto"
                         value={stats.active}
                         icon={<AlertTriangle size={20} />}
-                        className="bg-red-500/10 text-red-600 dark:text-red-400 border-red-200 dark:border-red-500/30"
+                        className="bg-red-500/5 text-red-400 border-red-500/20 shadow-[0_0_15px_rgba(239,68,68,0.1)]"
                     />
                     <StatCard
                         label="Cumpridos"
                         value={stats.done}
                         icon={<CheckCircle2 size={20} />}
-                        className="bg-green-500/10 text-green-600 dark:text-green-400 border-green-200 dark:border-green-500/30"
+                        className="bg-emerald-500/5 text-emerald-400 border-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.1)]"
                     />
                     <StatCard
                         label="Taxa de Êxito"
                         value={`${stats.successRate}%`}
                         icon={<Activity size={20} />}
-                        className="bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-200 dark:border-indigo-500/30"
+                        className="bg-indigo-500/5 text-indigo-400 border-indigo-500/20 shadow-[0_0_15px_rgba(99,102,241,0.1)]"
                     />
                 </div>
 
-                {/* 2. Charts Section */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    {/* General Status Chart */}
-                    <div className="bg-surface-light dark:bg-surface-dark p-6 rounded-2xl border border-border-light dark:border-border-dark shadow-sm">
-                        <h3 className="font-bold text-sm uppercase tracking-wider text-text-secondary-light dark:text-text-secondary-dark mb-6 flex items-center gap-2">
-                            <TrendingUp size={16} /> Produção Geral
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    {/* General Status Chart - Glassmorphism */}
+                    <div className="lg:col-span-2 bg-surface-light/40 dark:bg-zinc-900/40 backdrop-blur-xl p-6 rounded-3xl border border-white/5 shadow-2xl">
+                        <h3 className="font-bold text-[10px] uppercase tracking-[0.3em] text-white/40 mb-8 flex items-center gap-3">
+                            <span className="w-1.5 h-1.5 bg-primary rounded-full animate-pulse"></span>
+                            Distribuição de Status
                         </h3>
-                        <div className="h-64 w-full">
+                        <div className="h-72 w-full">
                             <ResponsiveContainer width="100%" height="100%">
-                                <BarChart data={chartData} barSize={60}>
-                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#52525b" opacity={0.2} />
-                                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#71717a' }} />
-                                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#71717a' }} />
+                                <BarChart data={chartData} barSize={40}>
+                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#ffffff" opacity={0.03} />
+                                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#ffffff40', fontWeight: 'bold' }} />
+                                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#ffffff40' }} />
                                     <Tooltip
-                                        contentStyle={{ backgroundColor: '#1e293b', borderRadius: '8px', border: '1px solid #334155', color: '#fff' }}
-                                        cursor={{ fill: 'transparent' }}
+                                        contentStyle={{ backgroundColor: '#09090b', borderRadius: '12px', border: '1px solid #ffffff10', color: '#fff' }}
+                                        cursor={{ fill: 'rgba(255,255,255,0.03)' }}
                                     />
                                     <Bar dataKey="value" radius={[4, 4, 0, 0]}>
                                         {chartData.map((entry, index) => (
-                                            <Cell key={`cell-${index}`} fill={entry.color} />
+                                            <Cell key={`cell-${index}`} fill={entry.color} fillOpacity={0.8} />
                                         ))}
                                     </Bar>
                                 </BarChart>
@@ -150,124 +174,100 @@ const Stats = () => {
                         </div>
                     </div>
 
-                    {/* Crimes Chart */}
-                    <div className="bg-surface-light dark:bg-surface-dark p-6 rounded-2xl border border-border-light dark:border-border-dark shadow-sm">
-                        <h3 className="font-bold text-sm uppercase tracking-wider text-text-secondary-light dark:text-text-secondary-dark mb-6 flex items-center gap-2">
-                            <Shield size={16} /> Top 5 Naturezas
+                    {/* Heatmap Tático - Idea 3 implementation */}
+                    <div className="bg-surface-light/40 dark:bg-zinc-900/40 backdrop-blur-xl p-6 rounded-3xl border border-white/5 shadow-2xl relative overflow-hidden group">
+                        <div className="absolute -right-8 -top-8 w-32 h-32 bg-primary/5 rounded-full blur-3xl transition-all group-hover:bg-primary/10"></div>
+                        <h3 className="font-bold text-[10px] uppercase tracking-[0.3em] text-white/40 mb-8 flex items-center gap-3">
+                            <Siren size={14} className="text-primary" />
+                            Mapa de Calor Tático
                         </h3>
-                        <div className="h-64 w-full relative">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <PieChart>
-                                    <Pie
-                                        data={natureData}
-                                        cx="50%"
-                                        cy="50%"
-                                        innerRadius={60}
-                                        outerRadius={80}
-                                        paddingAngle={5}
-                                        dataKey="value"
-                                    >
-                                        {natureData.map((entry, index) => (
-                                            <Cell key={`cell-${index}`} fill={entry.color} />
-                                        ))}
-                                    </Pie>
-                                    <Tooltip contentStyle={{ backgroundColor: '#1e293b', borderRadius: '8px', border: '1px solid #334155', color: '#fff' }} />
-                                </PieChart>
-                            </ResponsiveContainer>
-                            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                                <span className="text-3xl font-black text-text-light dark:text-text-dark">{stats.active}</span>
-                                <span className="text-[10px] text-text-secondary-light dark:text-text-secondary-dark uppercase">Ativos</span>
-                            </div>
-                        </div>
-                        <div className="mt-4 flex flex-wrap justify-center gap-3">
-                            {natureData.slice(0, 3).map((item, idx) => (
-                                <div key={idx} className="flex items-center gap-1.5 text-xs text-text-secondary-light dark:text-text-secondary-dark">
-                                    <span className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }} />
-                                    <span>{item.name}</span>
-                                    <span className="font-bold text-text-light dark:text-text-dark">({item.value})</span>
+
+                        <div className="space-y-6 relative z-10">
+                            {heatmapData.map((item, idx) => (
+                                <div key={idx} className="space-y-2">
+                                    <div className="flex justify-between items-end">
+                                        <span className="text-xs font-black text-white/70 uppercase tracking-wider">{item.name}</span>
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-[10px] font-bold text-primary">{item.value} mandados</span>
+                                            <span className="px-1.5 py-0.5 rounded bg-primary/10 text-primary text-[8px] font-black">{item.intensity}%</span>
+                                        </div>
+                                    </div>
+                                    <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
+                                        <div
+                                            className="h-full bg-gradient-to-r from-blue-600 to-primary rounded-full shadow-[0_0_10px_rgba(37,99,235,0.4)] transition-all duration-1000"
+                                            style={{ width: `${item.intensity}%` }}
+                                        />
+                                    </div>
                                 </div>
                             ))}
+
+                            {heatmapData.length === 0 && (
+                                <div className="h-40 flex items-center justify-center text-white/20 text-[10px] font-bold uppercase tracking-widest border border-dashed border-white/5 rounded-2xl">
+                                    Aguardando Dados Geográficos...
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="mt-8 pt-6 border-t border-white/5 text-center">
+                            <p className="text-[8px] font-black text-primary/50 uppercase tracking-[0.2em]">Zonas de maior incidência operacional</p>
                         </div>
                     </div>
                 </div>
 
-                {/* 3. TACTICAL ANALYSIS & RISKS (Revised "Flashy" Section) */}
-                <div className="space-y-4 pt-4 border-t border-border-light dark:border-border-dark">
-                    <h2 className="text-lg font-black uppercase tracking-widest text-text-light dark:text-text-dark flex items-center gap-2 mb-4">
-                        <Activity className="text-primary" /> Análise de Campo
-                    </h2>
-
-                    {/* Operational Types Split */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="bg-surface-light dark:bg-surface-dark p-5 rounded-xl border border-border-light dark:border-border-dark shadow-sm relative overflow-hidden group">
-                            <div className="absolute right-0 top-0 w-24 h-24 bg-red-500/5 rounded-bl-full group-hover:bg-red-500/10 transition-colors"></div>
-                            <div className="flex items-center justify-between mb-4 relative z-10">
-                                <div className="flex items-center gap-3">
-                                    <div className="p-3 bg-red-100 dark:bg-red-500/20 text-red-600 dark:text-red-400 rounded-lg">
-                                        <Lock size={24} />
-                                    </div>
-                                    <div>
-                                        <h3 className="font-bold text-text-light dark:text-text-dark text-lg">Prisão</h3>
-                                        <p className="text-xs text-text-secondary-light dark:text-text-secondary-dark">Mandados de Captura</p>
-                                    </div>
+                {/* 3. TACTICAL ANALYSIS & RISKS - Cyber Glows */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="bg-zinc-900/40 backdrop-blur-xl p-5 rounded-3xl border border-red-500/10 shadow-2xl relative overflow-hidden group border-l-4 border-l-red-500">
+                        <div className="flex items-center justify-between relative z-10">
+                            <div className="flex items-center gap-4">
+                                <div className="p-4 bg-red-500/10 text-red-500 rounded-2xl shadow-[0_0_20px_rgba(239,68,68,0.15)]">
+                                    <Lock size={24} />
                                 </div>
-                                <div className="text-right">
-                                    <span className="block text-3xl font-black text-red-600 dark:text-red-500">{stats.prison}</span>
-                                    <span className="text-xs font-bold text-text-secondary-light">{stats.prisonPct}% do total</span>
+                                <div>
+                                    <h3 className="font-black text-white text-lg tracking-tight uppercase">Prisão</h3>
+                                    <p className="text-[10px] font-bold text-white/30 uppercase tracking-widest">Mandados de Captura</p>
                                 </div>
                             </div>
-                            {/* Progress Bar */}
-                            <div className="w-full bg-gray-200 dark:bg-gray-700 h-2 rounded-full overflow-hidden">
-                                <div
-                                    className="h-full bg-red-500 rounded-full transition-all duration-1000 ease-out"
-                                    style={{ width: `${stats.prisonPct}%` }}
-                                ></div>
-                            </div>
-                        </div>
-
-                        <div className="bg-surface-light dark:bg-surface-dark p-5 rounded-xl border border-border-light dark:border-border-dark shadow-sm relative overflow-hidden group">
-                            <div className="absolute right-0 top-0 w-24 h-24 bg-orange-500/5 rounded-bl-full group-hover:bg-orange-500/10 transition-colors"></div>
-                            <div className="flex items-center justify-between mb-4 relative z-10">
-                                <div className="flex items-center gap-3">
-                                    <div className="p-3 bg-orange-100 dark:bg-orange-500/20 text-orange-600 dark:text-orange-400 rounded-lg">
-                                        <Search size={24} />
-                                    </div>
-                                    <div>
-                                        <h3 className="font-bold text-text-light dark:text-text-dark text-lg">Busca</h3>
-                                        <p className="text-xs text-text-secondary-light dark:text-text-secondary-dark">Busca e Apreensão</p>
-                                    </div>
-                                </div>
-                                <div className="text-right">
-                                    <span className="block text-3xl font-black text-orange-600 dark:text-orange-500">{stats.search}</span>
-                                    <span className="text-xs font-bold text-text-secondary-light">{stats.searchPct}% do total</span>
-                                </div>
-                            </div>
-                            {/* Progress Bar */}
-                            <div className="w-full bg-gray-200 dark:bg-gray-700 h-2 rounded-full overflow-hidden">
-                                <div
-                                    className="h-full bg-orange-500 rounded-full transition-all duration-1000 ease-out"
-                                    style={{ width: `${stats.searchPct}%` }}
-                                ></div>
+                            <div className="text-right">
+                                <span className="block text-4xl font-black text-red-500 drop-shadow-[0_0_8px_rgba(239,68,68,0.4)]">{stats.prison}</span>
+                                <span className="text-[9px] font-black text-white/20 uppercase tracking-widest">{stats.prisonPct}% Carga</span>
                             </div>
                         </div>
                     </div>
 
-                    {/* Critical Alerts Row */}
-                    <div className="grid grid-cols-2 gap-4 mt-4">
-                        <div className={`p-4 rounded-xl border flex flex-col items-center justify-center text-center gap-2 transition-all ${stats.urgent > 0 ? 'bg-red-500 text-white border-red-600 shadow-lg shadow-red-500/20 animate-pulse-slow' : 'bg-surface-light dark:bg-surface-dark border-border-light dark:border-border-dark'}`}>
-                            <Siren size={32} className={`${stats.urgent > 0 ? 'animate-bounce-subtle' : 'text-text-secondary-light'}`} />
-                            <div>
-                                <span className="block text-2xl font-black mb-1">{stats.urgent}</span>
-                                <span className="text-xs font-bold uppercase tracking-wider opacity-90">Prioridade Alta</span>
+                    <div className="bg-zinc-900/40 backdrop-blur-xl p-5 rounded-3xl border border-orange-500/10 shadow-2xl relative overflow-hidden group border-l-4 border-l-orange-500">
+                        <div className="flex items-center justify-between relative z-10">
+                            <div className="flex items-center gap-4">
+                                <div className="p-4 bg-orange-500/10 text-orange-500 rounded-2xl shadow-[0_0_20px_rgba(249,115,22,0.15)]">
+                                    <Search size={24} />
+                                </div>
+                                <div>
+                                    <h3 className="font-black text-white text-lg tracking-tight uppercase">Busca</h3>
+                                    <p className="text-[10px] font-bold text-white/30 uppercase tracking-widest">Busca e Apreensão</p>
+                                </div>
+                            </div>
+                            <div className="text-right">
+                                <span className="block text-4xl font-black text-orange-500 drop-shadow-[0_0_8px_rgba(249,115,22,0.4)]">{stats.search}</span>
+                                <span className="text-[9px] font-black text-white/20 uppercase tracking-widest">{stats.searchPct}% Carga</span>
                             </div>
                         </div>
+                    </div>
+                </div>
 
-                        <div className={`p-4 rounded-xl border flex flex-col items-center justify-center text-center gap-2 transition-all ${stats.expired > 0 ? 'bg-amber-500 text-white border-amber-600 shadow-lg shadow-amber-500/20' : 'bg-surface-light dark:bg-surface-dark border-border-light dark:border-border-dark'}`}>
-                            <Clock size={32} className={`${stats.expired > 0 ? '' : 'text-text-secondary-light'}`} />
-                            <div>
-                                <span className="block text-2xl font-black mb-1">{stats.expired}</span>
-                                <span className="text-xs font-bold uppercase tracking-wider opacity-90">Vencidos</span>
-                            </div>
+                {/* Critical Alerts Row - Pulse Neon */}
+                <div className="grid grid-cols-2 gap-4">
+                    <div className={`p-6 rounded-3xl border-2 flex flex-col items-center justify-center text-center gap-3 transition-all duration-500 ${stats.urgent > 0 ? 'bg-red-500/10 border-red-500/50 shadow-[0_0_30px_rgba(239,68,68,0.2)] animate-pulse' : 'bg-zinc-900/40 border-white/5'}`}>
+                        <Siren size={32} className={`${stats.urgent > 0 ? 'text-red-500' : 'text-white/10'}`} />
+                        <div>
+                            <span className={`block text-3xl font-black mb-1 ${stats.urgent > 0 ? 'text-red-500' : 'text-white/20'}`}>{stats.urgent}</span>
+                            <span className="text-[9px] font-black uppercase tracking-[0.2em] text-white/40">Alta Periculosidade</span>
+                        </div>
+                    </div>
+
+                    <div className={`p-6 rounded-3xl border-2 flex flex-col items-center justify-center text-center gap-3 transition-all duration-500 ${stats.expired > 0 ? 'bg-amber-500/10 border-amber-500/50 shadow-[0_0_30px_rgba(245,158,11,0.2)]' : 'bg-zinc-900/40 border-white/5'}`}>
+                        <Clock size={32} className={`${stats.expired > 0 ? 'text-amber-500' : 'text-white/10'}`} />
+                        <div>
+                            <span className={`block text-3xl font-black mb-1 ${stats.expired > 0 ? 'text-amber-500' : 'text-white/20'}`}>{stats.expired}</span>
+                            <span className="text-[9px] font-black uppercase tracking-[0.2em] text-white/40">Prazos Expirados</span>
                         </div>
                     </div>
                 </div>
@@ -277,7 +277,6 @@ const Stats = () => {
         </div>
     );
 };
-
 const StatCard = ({ label, value, icon, className = "", subtext }: any) => (
     <div className={`p-4 rounded-2xl border flex flex-col justify-between h-32 relative overflow-hidden transition-transform active:scale-[0.98] ${className}`}>
         <div className="flex justify-between items-start">
