@@ -104,8 +104,8 @@ export default function UserApprovalPage() {
                                     A tabela de perfis não foi detectada. Para gerenciar usuários, execute o comando abaixo no <span className="text-white font-bold">SQL Editor</span> do seu painel Supabase:
                                 </p>
                                 <div className="bg-black/40 p-4 rounded-xl border border-white/5 font-mono text-[10px] text-primary/80 overflow-x-auto whitespace-pre">
-                                    {`-- 1. Criar tabela de perfis
-create table profiles (
+                                    {`-- 1. Garantir que a tabela e colunas existam
+create table if not exists profiles (
   id uuid references auth.users on delete cascade primary key,
   email text,
   full_name text,
@@ -118,11 +118,15 @@ create table profiles (
   created_at timestamp with time zone default timezone('utc'::text, now())
 );
 
--- 2. Habilitar RLS
+-- 2. Corrigir permissões (RLS)
 alter table profiles enable row level security;
+
+-- Deletar política antiga se existir e criar nova
+drop policy if exists "Permitir leitura para todos" on profiles;
+drop policy if exists "Admins podem ver tudo" on profiles;
 create policy "Admins podem ver tudo" on profiles for all using (true);
 
--- 3. Trigger para novos cadastros
+-- 3. Trigger para novos cadastros (Sincronização)
 create or replace function public.handle_new_user()
 returns trigger as $$
 begin
@@ -137,11 +141,16 @@ begin
     new.raw_user_meta_data->>'workplace',
     new.raw_user_meta_data->>'role',
     coalesce((new.raw_user_meta_data->>'authorized')::boolean, false)
-  );
+  )
+  on conflict (id) do update set
+    email = excluded.email,
+    full_name = excluded.full_name;
   return new;
 end;
 $$ language plpgsql security definer;
 
+-- Recriar trigger
+drop trigger if exists on_auth_user_created on auth.users;
 create trigger on_auth_user_created
   after insert on auth.users
   for each row execute procedure public.handle_new_user();`}
