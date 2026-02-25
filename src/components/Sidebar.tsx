@@ -108,7 +108,7 @@ const Sidebar = ({ routeCount = 0, isCollapsed, toggleCollapse, isDark, toggleTh
     const systemNavItems = [
         { icon: Activity, label: 'Log de Atividade', path: '/recents' },
         { icon: Database, label: 'Banco de Dados', path: '/ai-assistant?tab=database' },
-        { icon: ShieldAlert, label: 'Auditoria', path: '/audit' },
+        ...(isAdmin ? [{ icon: ShieldAlert, label: 'Auditoria', path: '/audit' }] : []),
     ];
 
     const NavGroup = ({ title, items }: { title?: string, items: { icon: any; label: string; path: string; badge?: number; isAlert?: boolean }[] }) => (
