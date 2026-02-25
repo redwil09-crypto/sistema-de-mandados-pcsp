@@ -257,56 +257,85 @@ export const generateWarrantPDF = async (
             intelRows.push(["Fundamentação IA", aiTimeSuggestion.reason]);
         }
 
-        // Tactical Summary Expansion (Full Data)
+        drawFields(intelRows);
+        y += 5;
+
+        // Tactical Summary Expansion (Full Data) - Custom Layout
         try {
             if (data.tacticalSummary) {
                 const intel = JSON.parse(data.tacticalSummary || '{}');
 
-                // 1. Resumo Estratégico
-                if (intel.summary) {
-                    intelRows.push(["Resumo Estratégico", intel.summary]);
-                }
+                const hasTacticalData = intel.summary || intel.hypotheses?.length || intel.risks?.length || intel.entities?.length || intel.locations?.length || intel.timeline?.length;
 
-                // 2. Hipóteses
-                if (intel.hypotheses?.length) {
-                    const hypText = intel.hypotheses
-                        .map((h: any) => `[${h.confidence?.toUpperCase()}] ${h.description} ${h.status === 'Confirmada' ? '(CONFIRMADA)' : ''}`)
-                        .join('\n');
-                    intelRows.push(["Hipóteses Ativas", hypText]);
-                }
+                if (hasTacticalData) {
+                    drawSectionHeader("Dossiê de Inteligência e Evolução");
 
-                // 3. Riscos
-                if (intel.risks?.length) {
-                    intelRows.push(["Riscos Operacionais", intel.risks.join(', ')]);
-                }
+                    const drawFullWidthText = (title: string, text: string) => {
+                        if (y > pageHeight - 30) {
+                            doc.addPage();
+                            y = 20;
+                        }
 
-                // 4. Entidades
-                if (intel.entities?.length) {
-                    intelRows.push(["Alvos Relacionados", intel.entities.map((e: any) => `${e.name} (${e.role})`).join('; ')]);
-                }
+                        doc.setFont('helvetica', 'bold');
+                        doc.setFontSize(9);
+                        doc.setTextColor(...COLORS.SECONDARY);
+                        doc.text(title.toUpperCase(), margin + 2, y);
+                        y += 5;
 
-                // 5. Locais
-                if (intel.locations?.length) {
-                    intelRows.push(["Pontos de Interesse", intel.locations.map((l: any) => `${l.address}`).join(' | ')]);
-                }
+                        doc.setFont('helvetica', 'normal');
+                        doc.setFontSize(9);
+                        doc.setTextColor(...COLORS.TEXT);
 
-                // 6. Linha do Tempo da Investigação (Timeline Tática)
-                if (intel.timeline?.length) {
-                    const timelineText = intel.timeline
-                        .map((t: any) => `* ${t.date} - ${t.event} (Fonte: ${t.source || 'IA'})`)
-                        .join('\n');
-                    intelRows.push(["Evolução Estratégica", timelineText]);
-                }
+                        const splitVal = doc.splitTextToSize(text, contentWidth - 4);
 
-                // 7. Avanço / Progresso
-                if (intel.progressLevel !== undefined) {
-                    intelRows.push(["Progresso de Localização", `${intel.progressLevel}% Concluído`]);
+                        // Handle pagination within the text block
+                        splitVal.forEach((line: string) => {
+                            if (y > pageHeight - 20) {
+                                doc.addPage();
+                                y = 20;
+                            }
+                            doc.text(line, margin + 4, y);
+                            y += 5;
+                        });
+                        y += 3; // spacing after block
+                    };
+
+                    if (intel.summary) {
+                        drawFullWidthText("Resumo Estratégico", intel.summary);
+                    }
+
+                    if (intel.progressLevel !== undefined) {
+                        drawFullWidthText("Progresso de Localização Operacional", `${intel.progressLevel}% Concluído`);
+                    }
+
+                    if (intel.hypotheses?.length) {
+                        const hypText = intel.hypotheses
+                            .map((h: any) => `> [${h.confidence?.toUpperCase() || 'NORMAL'}] ${h.description} ${h.status === 'Confirmada' ? '(CONFIRMADA)' : ''}`)
+                            .join('\n');
+                        drawFullWidthText("Hipóteses Ativas", hypText);
+                    }
+
+                    if (intel.risks?.length) {
+                        drawFullWidthText("Avaliação de Riscos Operacionais", intel.risks.map((r: string) => `> ${r}`).join('\n'));
+                    }
+
+                    if (intel.entities?.length) {
+                        drawFullWidthText("Entidades e Alvos Relacionados", intel.entities.map((e: any) => `> ${e.name} (${e.role})`).join('\n'));
+                    }
+
+                    if (intel.locations?.length) {
+                        drawFullWidthText("Pontos de Interesse (Locais Mapeados)", intel.locations.map((l: any) => `> ${l.address}`).join('\n'));
+                    }
+
+                    if (intel.timeline?.length) {
+                        const timelineText = intel.timeline
+                            .map((t: any) => `> ${t.date} - ${t.event} (Fonte: ${t.source || 'IA'})`)
+                            .join('\n');
+                        drawFullWidthText("Linha do Tempo da Investigação", timelineText);
+                    }
                 }
             }
         } catch (e) { }
-
-        drawFields(intelRows);
-        y += 5;
 
         // --- ACTION PLAN (Distinct Styling) ---
         try {
