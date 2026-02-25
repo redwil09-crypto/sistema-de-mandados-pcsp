@@ -195,7 +195,7 @@ const WarrantDetail = () => {
     const hasChanges = useMemo(() => {
         if (!data) return false;
         const fields: (keyof Warrant)[] = [
-            'name', 'type', 'rg', 'cpf', 'number', 'crime', 'regime', 'location',
+            'name', 'type', 'rg', 'cpf', 'number', 'crime', 'regime', 'location', 'img', 'priority',
             'ifoodNumber', 'ifoodResult', 'digOffice', 'observation', 'age', 'issuingCourt', 'tacticalSummary', 'fulfillmentDetails'
         ];
 
@@ -376,7 +376,7 @@ const WarrantDetail = () => {
         // Extract only changed fields to send to updateWarrant
         const updates: Partial<Warrant> = {};
         const fields: (keyof Warrant)[] = [
-            'name', 'type', 'rg', 'cpf', 'number', 'crime', 'regime',
+            'name', 'type', 'rg', 'cpf', 'number', 'crime', 'regime', 'img', 'priority',
             'location', 'ifoodNumber', 'ifoodResult', 'digOffice',
             'issueDate', 'entryDate', 'expirationDate', 'dischargeDate', 'observation',
             'status', 'fulfillmentResult', 'fulfillmentReport', 'latitude', 'longitude',
