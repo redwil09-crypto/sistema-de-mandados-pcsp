@@ -114,7 +114,8 @@ const Sidebar = ({ routeCount = 0, isCollapsed, toggleCollapse, isDark, toggleTh
     const NavGroup = ({ title, items }: { title?: string, items: { icon: any; label: string; path: string; badge?: number; isAlert?: boolean }[] }) => (
         <div className="mb-4">
             {title && !isCollapsed && (
-                <h3 className="px-5 mb-2 text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] fade-in">
+                <h3 className="px-5 mb-3 text-[9px] font-black text-blue-600 dark:text-blue-400/80 uppercase tracking-[0.3em] fade-in flex items-center gap-2">
+                    <span className="w-1 h-1 bg-blue-600 dark:bg-blue-400/80 rounded-full"></span>
                     {title}
                 </h3>
             )}
