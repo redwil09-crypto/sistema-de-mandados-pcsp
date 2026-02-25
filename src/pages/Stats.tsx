@@ -1,5 +1,6 @@
 
 import React, { useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
     ResponsiveContainer, XAxis, YAxis,
     Tooltip, BarChart, Bar, Cell, PieChart, Pie, CartesianGrid
@@ -15,6 +16,7 @@ import { useWarrants } from '../contexts/WarrantContext';
 
 const Stats = () => {
     const { warrants } = useWarrants();
+    const navigate = useNavigate();
 
     // Data Processing
     const stats = useMemo(() => {
@@ -125,19 +127,22 @@ const Stats = () => {
                         label="Total Acervo"
                         value={stats.total}
                         icon={<Database size={20} />}
-                        className="bg-blue-500/5 text-blue-400 border-blue-500/20 shadow-[0_0_15px_rgba(59,130,246,0.1)]"
+                        className="bg-blue-500/5 text-blue-400 border-blue-500/20 shadow-[0_0_15px_rgba(59,130,246,0.1)] cursor-pointer hover:bg-blue-500/10"
+                        onClick={() => navigate('/warrant-list')}
                     />
                     <StatCard
                         label="Em Aberto"
                         value={stats.active}
                         icon={<AlertTriangle size={20} />}
-                        className="bg-red-500/5 text-red-400 border-red-500/20 shadow-[0_0_15px_rgba(239,68,68,0.1)]"
+                        className="bg-red-500/5 text-red-400 border-red-500/20 shadow-[0_0_15px_rgba(239,68,68,0.1)] cursor-pointer hover:bg-red-500/10"
+                        onClick={() => navigate('/warrant-list?status=EM ABERTO')}
                     />
                     <StatCard
                         label="Cumpridos"
                         value={stats.done}
                         icon={<CheckCircle2 size={20} />}
-                        className="bg-emerald-500/5 text-emerald-400 border-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.1)]"
+                        className="bg-emerald-500/5 text-emerald-400 border-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.1)] cursor-pointer hover:bg-emerald-500/10"
+                        onClick={() => navigate('/warrant-list?status=CUMPRIDO')}
                     />
                     <StatCard
                         label="Taxa de Êxito"
@@ -164,9 +169,14 @@ const Stats = () => {
                                         contentStyle={{ backgroundColor: '#09090b', borderRadius: '12px', border: '1px solid #ffffff10', color: '#fff' }}
                                         cursor={{ fill: 'rgba(255,255,255,0.03)' }}
                                     />
-                                    <Bar dataKey="value" radius={[4, 4, 0, 0]}>
+                                    <Bar dataKey="value" radius={[4, 4, 0, 0]} cursor="pointer">
                                         {chartData.map((entry, index) => (
-                                            <Cell key={`cell-${index}`} fill={entry.color} fillOpacity={0.8} />
+                                            <Cell
+                                                key={`cell-${index}`}
+                                                fill={entry.color}
+                                                fillOpacity={0.8}
+                                                onClick={() => navigate(`/warrant-list?status=${entry.name.toUpperCase()}`)}
+                                            />
                                         ))}
                                     </Bar>
                                 </BarChart>
@@ -184,9 +194,13 @@ const Stats = () => {
 
                         <div className="space-y-6 relative z-10">
                             {heatmapData.map((item, idx) => (
-                                <div key={idx} className="space-y-2">
+                                <div
+                                    key={idx}
+                                    className="space-y-2 cursor-pointer hover:bg-white/5 p-2 rounded-lg transition-colors group/row"
+                                    onClick={() => navigate(`/warrant-list?city=${item.name}`)}
+                                >
                                     <div className="flex justify-between items-end">
-                                        <span className="text-xs font-black text-white/70 uppercase tracking-wider">{item.name}</span>
+                                        <span className="text-xs font-black text-white/70 uppercase tracking-wider group-hover/row:text-primary transition-colors">{item.name}</span>
                                         <div className="flex items-center gap-2">
                                             <span className="text-[10px] font-bold text-primary">{item.value} mandados</span>
                                             <span className="px-1.5 py-0.5 rounded bg-primary/10 text-primary text-[8px] font-black">{item.intensity}%</span>
@@ -214,9 +228,67 @@ const Stats = () => {
                     </div>
                 </div>
 
-                {/* 3. TACTICAL ANALYSIS & RISKS - Cyber Glows */}
+                {/* 3. Crimes & Nature Section - Glassmorphism */}
+                <div className="bg-surface-light/40 dark:bg-zinc-900/40 backdrop-blur-xl p-6 rounded-3xl border border-white/5 shadow-2xl relative overflow-hidden group">
+                    <h3 className="font-bold text-[10px] uppercase tracking-[0.3em] text-white/40 mb-8 flex items-center gap-3">
+                        <Shield size={14} className="text-primary" />
+                        Top 5 Naturezas Criminais
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                        <div className="h-64 relative">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <PieChart>
+                                    <Pie
+                                        data={natureData}
+                                        cx="50%"
+                                        cy="50%"
+                                        innerRadius={60}
+                                        outerRadius={80}
+                                        paddingAngle={5}
+                                        dataKey="value"
+                                    >
+                                        {natureData.map((entry, index) => (
+                                            <Cell
+                                                key={`cell-${index}`}
+                                                fill={entry.color}
+                                                onClick={() => navigate(`/warrant-list?q=${entry.name}`)}
+                                                className="cursor-pointer outline-none"
+                                            />
+                                        ))}
+                                    </Pie>
+                                    <Tooltip contentStyle={{ backgroundColor: '#09090b', borderRadius: '12px', border: '1px solid #ffffff10', color: '#fff' }} />
+                                </PieChart>
+                            </ResponsiveContainer>
+                            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                                <span className="text-2xl font-black text-white">{stats.active}</span>
+                                <span className="text-[8px] text-white/40 uppercase font-bold tracking-widest">Ativos</span>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 gap-3">
+                            {natureData.map((item, idx) => (
+                                <div
+                                    key={idx}
+                                    onClick={() => navigate(`/warrant-list?q=${item.name}`)}
+                                    className="flex items-center justify-between p-3 bg-white/5 rounded-xl border border-white/5 hover:bg-primary/10 transition-colors cursor-pointer group/item"
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-2 h-2 rounded-full shadow-[0_0_8px_currentColor]" style={{ color: item.color, backgroundColor: item.color }} />
+                                        <span className="text-xs font-bold text-white/70 group-hover/item:text-white transition-colors uppercase tracking-tight">{item.name}</span>
+                                    </div>
+                                    <span className="text-sm font-black text-primary">{item.value}</span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+
+                {/* 4. TACTICAL ANALYSIS & RISKS - Cyber Glows */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="bg-zinc-900/40 backdrop-blur-xl p-5 rounded-3xl border border-red-500/10 shadow-2xl relative overflow-hidden group border-l-4 border-l-red-500">
+                    <div
+                        onClick={() => navigate('/warrant-list?type=PRISÃO')}
+                        className="bg-zinc-900/40 backdrop-blur-xl p-5 rounded-3xl border border-red-500/10 shadow-2xl relative overflow-hidden group border-l-4 border-l-red-500 cursor-pointer hover:bg-red-500/5 transition-all"
+                    >
                         <div className="flex items-center justify-between relative z-10">
                             <div className="flex items-center gap-4">
                                 <div className="p-4 bg-red-500/10 text-red-500 rounded-2xl shadow-[0_0_20px_rgba(239,68,68,0.15)]">
@@ -234,7 +306,10 @@ const Stats = () => {
                         </div>
                     </div>
 
-                    <div className="bg-zinc-900/40 backdrop-blur-xl p-5 rounded-3xl border border-orange-500/10 shadow-2xl relative overflow-hidden group border-l-4 border-l-orange-500">
+                    <div
+                        onClick={() => navigate('/warrant-list?type=BUSCA')}
+                        className="bg-zinc-900/40 backdrop-blur-xl p-5 rounded-3xl border border-orange-500/10 shadow-2xl relative overflow-hidden group border-l-4 border-l-orange-500 cursor-pointer hover:bg-orange-500/5 transition-all"
+                    >
                         <div className="flex items-center justify-between relative z-10">
                             <div className="flex items-center gap-4">
                                 <div className="p-4 bg-orange-500/10 text-orange-500 rounded-2xl shadow-[0_0_20px_rgba(249,115,22,0.15)]">
@@ -255,7 +330,10 @@ const Stats = () => {
 
                 {/* Critical Alerts Row - Pulse Neon */}
                 <div className="grid grid-cols-2 gap-4">
-                    <div className={`p-6 rounded-3xl border-2 flex flex-col items-center justify-center text-center gap-3 transition-all duration-500 ${stats.urgent > 0 ? 'bg-red-500/10 border-red-500/50 shadow-[0_0_30px_rgba(239,68,68,0.2)] animate-pulse' : 'bg-zinc-900/40 border-white/5'}`}>
+                    <div
+                        onClick={() => navigate('/warrant-list?priority=urgent')}
+                        className={`p-6 rounded-3xl border-2 flex flex-col items-center justify-center text-center gap-3 transition-all duration-500 cursor-pointer ${stats.urgent > 0 ? 'bg-red-500/10 border-red-500/50 shadow-[0_0_30px_rgba(239,68,68,0.2)] animate-pulse hover:bg-red-500/20' : 'bg-zinc-900/40 border-white/5 hover:bg-white/5'}`}
+                    >
                         <Siren size={32} className={`${stats.urgent > 0 ? 'text-red-500' : 'text-white/10'}`} />
                         <div>
                             <span className={`block text-3xl font-black mb-1 ${stats.urgent > 0 ? 'text-red-500' : 'text-white/20'}`}>{stats.urgent}</span>
@@ -263,7 +341,10 @@ const Stats = () => {
                         </div>
                     </div>
 
-                    <div className={`p-6 rounded-3xl border-2 flex flex-col items-center justify-center text-center gap-3 transition-all duration-500 ${stats.expired > 0 ? 'bg-amber-500/10 border-amber-500/50 shadow-[0_0_30px_rgba(245,158,11,0.2)]' : 'bg-zinc-900/40 border-white/5'}`}>
+                    <div
+                        onClick={() => navigate('/warrant-list?expired=true')}
+                        className={`p-6 rounded-3xl border-2 flex flex-col items-center justify-center text-center gap-3 transition-all duration-500 cursor-pointer ${stats.expired > 0 ? 'bg-amber-500/10 border-amber-500/50 shadow-[0_0_30px_rgba(245,158,11,0.2)] hover:bg-amber-500/20' : 'bg-zinc-900/40 border-white/5 hover:bg-white/5'}`}
+                    >
                         <Clock size={32} className={`${stats.expired > 0 ? 'text-amber-500' : 'text-white/10'}`} />
                         <div>
                             <span className={`block text-3xl font-black mb-1 ${stats.expired > 0 ? 'text-amber-500' : 'text-white/20'}`}>{stats.expired}</span>
@@ -277,8 +358,11 @@ const Stats = () => {
         </div>
     );
 };
-const StatCard = ({ label, value, icon, className = "", subtext }: any) => (
-    <div className={`p-4 rounded-2xl border flex flex-col justify-between h-32 relative overflow-hidden transition-transform active:scale-[0.98] ${className}`}>
+const StatCard = ({ label, value, icon, className = "", subtext, onClick }: any) => (
+    <div
+        onClick={onClick}
+        className={`p-4 rounded-2xl border flex flex-col justify-between h-32 relative overflow-hidden transition-all duration-200 active:scale-[0.98] ${className}`}
+    >
         <div className="flex justify-between items-start">
             <span className="p-2 rounded-lg bg-white/20 backdrop-blur-sm">
                 {icon}

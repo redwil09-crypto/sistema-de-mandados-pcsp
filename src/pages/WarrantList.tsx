@@ -14,16 +14,24 @@ const WarrantList = () => {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const query = searchParams.get('q') || '';
-    const [searchTerm, setSearchTerm] = useState(query);
-    const [showFilters, setShowFilters] = useState(false);
+    const initialStatus = searchParams.get('status') || '';
+    const initialType = searchParams.get('type') || '';
+    const initialPriority = searchParams.get('priority') || '';
+    const initialExpired = searchParams.get('expired') === 'true';
+    const initialLocation = searchParams.get('city') || '';
+
+    const [searchTerm, setSearchTerm] = useState(query || initialType || initialLocation);
+    const [showFilters, setShowFilters] = useState(initialStatus !== '' || initialType !== '' || initialPriority !== '' || initialExpired);
 
     // Filter states
     const [filterCrime, setFilterCrime] = useState('');
     const [filterRegime, setFilterRegime] = useState('');
-    const [filterStatus, setFilterStatus] = useState('');
+    const [filterStatus, setFilterStatus] = useState(initialStatus);
     const [dateStart, setDateStart] = useState('');
     const [dateEnd, setDateEnd] = useState('');
     const [observationKeyword, setObservationKeyword] = useState('');
+    const [filterPriority, setFilterPriority] = useState(initialPriority);
+    const [filterExpired, setFilterExpired] = useState(initialExpired);
 
     const statuses = useMemo(() => Array.from(new Set(warrants.map(w => w.status))).sort(), [warrants]);
 
@@ -45,8 +53,27 @@ const WarrantList = () => {
         const matchesStatus = filterStatus ? w.status === filterStatus : true;
         const matchesDate = (!dateStart || (w.date && w.date >= dateStart)) && (!dateEnd || (w.date && w.date <= dateEnd));
         const matchesObservation = observationKeyword ? (w.observation || '').toLowerCase().includes(observationKeyword.toLowerCase()) : true;
+        const matchesPriority = filterPriority === 'urgent' ? (w.priority === 'urgent' || (w.tags || []).includes('Urgente')) : true;
 
-        return matchesText && matchesCrime && matchesRegime && matchesStatus && matchesDate && matchesObservation;
+        // Expiration logic
+        let matchesExpired = true;
+        if (filterExpired) {
+            if (!w.expirationDate || w.status !== 'EM ABERTO') {
+                matchesExpired = false;
+            } else {
+                const today = new Date();
+                let expDate: Date | null = null;
+                if (w.expirationDate.includes('/')) {
+                    const [day, month, year] = w.expirationDate.split('/');
+                    expDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+                } else {
+                    expDate = new Date(w.expirationDate);
+                }
+                matchesExpired = !!(expDate && expDate < today);
+            }
+        }
+
+        return matchesText && matchesCrime && matchesRegime && matchesStatus && matchesDate && matchesObservation && matchesPriority && matchesExpired;
     }).sort((a, b) => a.name.localeCompare(b.name));
 
     const clearFilters = () => {
@@ -57,6 +84,8 @@ const WarrantList = () => {
         setDateEnd('');
         setObservationKeyword('');
         setSearchTerm('');
+        setFilterPriority('');
+        setFilterExpired(false);
     };
 
     const hasActiveFilters = filterCrime || filterRegime || filterStatus || dateStart || dateEnd || observationKeyword;
