@@ -9,7 +9,7 @@ import { generateWarrantPDF } from '../services/pdfReportService';
 import { useWarrants } from '../contexts/WarrantContext';
 
 const WarrantList = () => {
-    const { prisonWarrants: warrants, updateWarrant, deleteWarrant, routeWarrants, toggleRouteWarrant, availableCrimes, availableRegimes } = useWarrants();
+    const { warrants, updateWarrant, deleteWarrant, routeWarrants, toggleRouteWarrant, availableCrimes, availableRegimes } = useWarrants();
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const query = searchParams.get('q') || '';
