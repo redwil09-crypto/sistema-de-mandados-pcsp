@@ -1,24 +1,27 @@
 
 export const CRIME_OPTIONS = [
-    "Ameaça/Injuria/Briga/Lesão",
-    "Armas",
-    "Drogas/Trafico",
-    "Furto",
-    "Roubo",
-    "Lesão corporal",
     "Homicídio",
-    "Crimes Sexuais (Estupro)",
-    "Pensão alimenticia",
-    "Receptação",
-    "Corrupção",
-    "Violencia domestica",
-    "Estelionato",
-    "Crimes de Trânsito",
-    "Porte Ilegal de Arma de Fogo",
     "Feminicídio",
+    "Roubo",
+    "Furto",
+    "Tráfico de Drogas",
+    "Estupro / Crimes Sexuais",
+    "Violência Doméstica",
+    "Posse/Porte de Arma",
+    "Estelionato",
+    "Receptação",
+    "Ameaça",
+    "Extorsão",
+    "Extorsão Mediante Sequestro",
+    "Crimes de Trânsito",
+    "Lesão Corporal",
+    "Desacato",
+    "Resistência",
+    "Pensão Alimentícia",
+    "Corrupção",
     "Crimes Virtuais",
     "Ato Infracional",
-    "Sequestro/Cárcere Privado"
+    "Outros"
 ];
 
 export const REGIME_OPTIONS = [

@@ -419,29 +419,29 @@ const extractCrime = (text: string): string => {
         if (art === '155') return "Furto";
         if (art === '33' || art === '35') return "Tráfico de Drogas";
         if (art === '121') return "Homicídio";
-        if (art === '129') return "Lesão corporal";
-        if (art === '213' || art === '217') return "Estupro / Crime Sexual";
+        if (art === '129') return "Lesão Corporal";
+        if (art === '213' || art === '217') return "Estupro / Crimes Sexuais";
         if (art === '180') return "Receptação";
         if (art === '171') return "Estelionato";
         if (art === '147') return "Ameaça";
         if (art === '158') return "Extorsão";
-        if (art === '159') return "Extorsão mediante sequestro";
-        if (art === '14' || art === '16') return "Armas (Lei 10826)";
+        if (art === '159') return "Extorsão Mediante Sequestro";
+        if (art === '14' || art === '16') return "Posse/Porte de Arma";
         if (art === '302' || art === '303') return "Crimes de Trânsito";
         if (art === '331') return "Desacato";
         if (art === '329') return "Resistência";
     }
 
     const specificRules = [
-        { crime: "Pensão alimenticia", keywords: [/\bpens[ãa]o\b/i, /\baliment[íi]cia\b/i, /\bd[ée]bito\s+alimentar\b/i, /\bd[íi]vida\s+de\s+alimentos\b/i, /\bpris[ãa]o\s+civil\b/i] },
+        { crime: "Pensão Alimentícia", keywords: [/\bpens[ãa]o\b/i, /\baliment[íi]cia\b/i, /\bd[ée]bito\s+alimentar\b/i, /\bd[íi]vida\s+de\s+alimentos\b/i, /\bpris[ãa]o\s+civil\b/i] },
         { crime: "Homicídio", keywords: [/\bhomic[íi]dio\b/i, /\bmatar\b/i, /\bassassinato\b/i, /\bart\.?\s*121\b/i] },
         { crime: "Feminicídio", keywords: [/\bfeminic[íi]dio\b/i] },
         { crime: "Roubo", keywords: [/\broubo\b/i, /\bassalto\b/i, /\bart\.?\s*157\b/i] },
         { crime: "Furto", keywords: [/\bfurto\b/i, /\bart\.?\s*155\b/i] },
-        { crime: "Drogas/Trafico", keywords: [/\btr[áa]fico\b/i, /\bentorpecente\b/i, /\bdrogas\b/i, /\bart\.?\s*33\b/i, /\bart\.?\s*35\b/i] },
-        { crime: "Violencia domestica", keywords: [/\bmaria\s+da\s+penha\b/i, /\bviol[êe]ncia\s+dom[ée]stica\b/i] },
-        { crime: "Estupro", keywords: [/\bestupro\b/i, /\blasc[íi]via\b/i, /\bdignidade\s+sexual\b/i, /\bestupro\s+de\s+vulner[áa]vel\b/i, /\bart\.?\s*213\b/i, /\bart\.?\s*217\b/i] },
-        { crime: "Armas", keywords: [/\barma\s+de\s+fogo\b/i, /\bporte\s+ilegal\b/i, /\bposse\s+de\s+arma\b/i, /\bart\.?\s*14\b/i, /\bart\.?\s*16\b/i] },
+        { crime: "Tráfico de Drogas", keywords: [/\btr[áa]fico\b/i, /\bentorpecente\b/i, /\bdrogas\b/i, /\bart\.?\s*33\b/i, /\bart\.?\s*35\b/i] },
+        { crime: "Violência Doméstica", keywords: [/\bmaria\s+da\s+penha\b/i, /\bviol[êe]ncia\s+dom[ée]stica\b/i] },
+        { crime: "Estupro / Crimes Sexuais", keywords: [/\bestupro\b/i, /\blasc[íi]via\b/i, /\bdignidade\s+sexual\b/i, /\bestupro\s+de\s+vulner[áa]vel\b/i, /\bart\.?\s*213\b/i, /\bart\.?\s*217\b/i] },
+        { crime: "Posse/Porte de Arma", keywords: [/\barma\s+de\s+fogo\b/i, /\bporte\s+ilegal\b/i, /\bposse\s+de\s+arma\b/i, /\bart\.?\s*14\b/i, /\bart\.?\s*16\b/i] },
         { crime: "Estelionato", keywords: [/\bestelionato\b/i, /\bfraude\b/i, /\bart\.?\s*171\b/i] },
         { crime: "Receptação", keywords: [/\brecepta[çc][ãa]o\b/i, /\bart\.?\s*180\b/i] },
         { crime: "Ameaça", keywords: [/\bamea[çc]a\b/i, /\bart\.?\s*147\b/i] },
@@ -450,7 +450,7 @@ const extractCrime = (text: string): string => {
 
     for (const rule of specificRules) {
         if (rule.keywords.some(kw => kw.test(text))) {
-            if (rule.crime === "Pensão alimenticia") {
+            if (rule.crime === "Pensão Alimentícia") {
                 if (/\broubo\b|\btr[áa]fico\b|\bhomic[íi]dio\b/i.test(text)) continue;
                 const first500 = text.substring(0, 500).toLowerCase();
                 const totalOccurrences = (text.toLowerCase().match(/alimentos/g) || []).length;
@@ -479,7 +479,7 @@ const extractRegime = (text: string, category: 'prison' | 'search', crime: strin
         return 'Localização';
     }
 
-    if (crime === "Pensão alimenticia") return "Civil";
+    if (crime === "Pensão Alimentícia") return "Civil";
 
     // Contramandado Check (Strict)
     const isActuallyCounter = (text.toLowerCase().includes('contramandado') || text.toLowerCase().includes('contra mandado')) && !text.toLowerCase().includes('suspensão');
@@ -593,12 +593,12 @@ const extractSearchChecklist = (text: string, category: string): string[] => {
 
 const determineAutoPriority = (text: string, crime: string): string[] => {
     const tags: string[] = [];
-    const highPriorityCrimes = ['Homicídio', 'Feminicídio', 'Roubo', 'Crimes Sexuais (Estupro)', 'Drogas/Trafico'];
+    const highPriorityCrimes = ['Homicídio', 'Feminicídio', 'Roubo', 'Estupro / Crimes Sexuais', 'Tráfico de Drogas'];
 
     if (highPriorityCrimes.includes(crime)) tags.push('Urgente');
     if (text.toLowerCase().includes('prazo determinado') || text.toLowerCase().includes('imediato')) tags.push('Prioridade');
 
-    if (crime === 'Pensão alimenticia' && (text.toLowerCase().includes('cobrança') || text.toLowerCase().includes('ofício'))) {
+    if (crime === 'Pensão Alimentícia' && (text.toLowerCase().includes('cobrança') || text.toLowerCase().includes('ofício'))) {
         tags.push('Ofício de Cobrança');
     }
 

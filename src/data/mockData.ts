@@ -39,7 +39,7 @@ export const MOCK_WARRANTS: (Warrant & { date: string })[] = [
         cpf: "987.654.321-11",
         description: "Tráfico de entorpecentes e associação criminosa",
         date: "2023-08-20",
-        crime: "Drogas/Trafico",
+        crime: "Tráfico de Drogas",
         regime: "Fechado",
         observation: "Endereço confirmado pela inteligência. Cuidado com cães no local.",
         issueDate: "15/08/2023",
@@ -93,7 +93,7 @@ export const MOCK_WARRANTS: (Warrant & { date: string })[] = [
         rg: "11.222.333-4",
         description: "Atraso no pagamento de pensão",
         date: "2024-02-10",
-        crime: "Pensão alimenticia",
+        crime: "Pensão Alimentícia",
         regime: "Civil",
         observation: "Deve 3 meses de pensão. Trabalha em oficina mecânica."
     }
