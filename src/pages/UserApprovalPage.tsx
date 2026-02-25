@@ -4,6 +4,7 @@ import { supabase } from '../supabaseClient';
 import { Shield, UserCheck, UserX, Trash2, Search, Mail, Building2, UserCircle, BadgeCheck, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import Header from '../components/Header';
+import { notificationService } from '../services/notificationService';
 
 export default function UserApprovalPage() {
     const [users, setUsers] = useState<any[]>([]);
@@ -63,6 +64,14 @@ export default function UserApprovalPage() {
                 .eq('id', userId);
 
             if (profileError) throw profileError;
+
+            // Se for uma aprovação, dispara o e-mail
+            if (authorize) {
+                const targetUser = users.find(u => u.id === userId);
+                if (targetUser) {
+                    notificationService.sendApprovalEmail(targetUser.email, targetUser.full_name);
+                }
+            }
 
             toast.success(authorize ? 'Usuário autorizado!' : 'Autorização removida.');
             fetchUsers();
