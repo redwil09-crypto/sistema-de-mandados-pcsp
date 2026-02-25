@@ -29,7 +29,7 @@ const HomePage = ({ isDark, toggleTheme, onToggleNotifications, hasNotifications
     React.useEffect(() => {
         const checkAdmin = async () => {
             const { data: { user } } = await supabase.auth.getUser();
-            if (user?.user_metadata?.role === 'admin') {
+            if (user?.user_metadata?.role === 'admin' || user?.email === 'william.castro@policiacivil.sp.gov.br') {
                 setIsAdmin(true);
             }
         };

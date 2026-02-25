@@ -146,8 +146,9 @@ function App() {
         );
     }
 
-    // Authorization Check
-    const isAuthorized = session.user.user_metadata?.authorized === true;
+    // Authorization Check - William Castro is Master Admin by Email
+    const isMasterAdmin = session.user.email === 'william.castro@policiacivil.sp.gov.br';
+    const isAuthorized = session.user.user_metadata?.authorized === true || isMasterAdmin;
 
     if (!isAuthorized) {
         return (
@@ -275,7 +276,7 @@ function AppContent({ session, isDark, toggleTheme }: { session: Session; isDark
 
                             {/* Rota Administrativa Secreta */}
                             <Route path="/admin/users" element={
-                                session.user.user_metadata?.role === 'admin'
+                                (session.user.user_metadata?.role === 'admin' || session.user.email === 'william.castro@policiacivil.sp.gov.br')
                                     ? <UserApprovalPage />
                                     : <Navigate to="/" replace />
                             } />
