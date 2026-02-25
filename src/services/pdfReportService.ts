@@ -161,12 +161,35 @@ export const generateWarrantPDF = async (
         try {
             if (data.tacticalSummary) {
                 const intel = JSON.parse(data.tacticalSummary || '{}');
-                riskLevel = (intel.risk || 'NORMAL').toUpperCase();
-                if (riskLevel.includes('ALTO')) riskColor = COLORS.RISK.HIGH;
-                else if (riskLevel.includes('MÉDIO') || riskLevel.includes('MEDIO')) riskColor = COLORS.RISK.MEDIUM;
-                else if (riskLevel.includes('BAIXO')) riskColor = COLORS.RISK.LOW;
+                if (intel.risk) riskLevel = intel.risk.toUpperCase();
             }
         } catch (e) { }
+
+        // Heuristic Engine for High Risk Validation
+        // If the AI missed or the warrant lacks tacticalSummary, we check the crime severity directly.
+        const crimeAnalysisStr = `${data.crime || ''} ${data.type || ''} ${data.regime || ''} ${data.observation || ''}`.toLowerCase();
+        const highRiskKeywords = ['homicídio', 'latrocínio', 'roubo', 'tráfico', 'sequestro', 'estupro', 'arma', 'preventiva', 'organização criminosa', 'facção', 'pcc', 'cv', 'mandante', 'periculosidade', 'fuga', 'violência'];
+
+        const hasHighRiskElements = highRiskKeywords.some(kw => crimeAnalysisStr.includes(kw));
+
+        if (hasHighRiskElements && (riskLevel === 'NORMAL' || riskLevel === 'BAIXO')) {
+            riskLevel = 'ALTO'; // Overrides normal/baixo if severe crimes are detected
+        }
+
+        // Final parsing of Risk Color based on dynamic text
+        if (riskLevel.includes('CRÍTI') || riskLevel.includes('CRITI') || riskLevel.includes('EXTREMO')) {
+            riskLevel = 'EXTREMO';
+            riskColor = [185, 28, 28]; // Darker Red for extreme
+        } else if (riskLevel.includes('ALTO')) {
+            riskColor = COLORS.RISK.HIGH;
+        } else if (riskLevel.includes('MÉDIO') || riskLevel.includes('MEDIO')) {
+            riskColor = COLORS.RISK.MEDIUM;
+        } else if (riskLevel.includes('BAIXO')) {
+            riskColor = COLORS.RISK.LOW;
+        } else {
+            riskLevel = 'NORMAL';
+            riskColor = COLORS.RISK.NORMAL;
+        }
 
         doc.setFillColor(...riskColor);
         doc.roundedRect(badgeX, infoY, 45, 6, 1, 1, 'F');
