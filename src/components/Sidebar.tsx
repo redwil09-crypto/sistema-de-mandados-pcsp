@@ -108,7 +108,6 @@ const Sidebar = ({ routeCount = 0, isCollapsed, toggleCollapse, isDark, toggleTh
         { icon: Activity, label: 'Log de Atividade', path: '/recents' },
         { icon: Database, label: 'Banco de Dados', path: '/ai-assistant?tab=database' },
         { icon: ShieldAlert, label: 'Auditoria', path: '/audit' },
-        ...(isAdmin ? [{ icon: Users, label: 'Gestão Acesso', path: '/admin/users', badge: pendingCount, isAlert: pendingCount > 0 }] : []),
     ];
 
     const NavGroup = ({ title, items }: { title?: string, items: { icon: any; label: string; path: string; badge?: number; isAlert?: boolean }[] }) => (
@@ -270,6 +269,23 @@ const Sidebar = ({ routeCount = 0, isCollapsed, toggleCollapse, isDark, toggleTh
                         >
                             {isDark ? <Sun size={20} /> : <Moon size={20} />}
                         </button>
+
+                        {/* Gestão de Acesso (Entre Tema e Sino) */}
+                        {isAdmin && (
+                            <NavLink
+                                to="/admin/users"
+                                className={({ isActive }) => `
+                                    p-2 rounded-lg transition-all border border-transparent hover:border-border-light dark:hover:border-white/10 group relative
+                                    ${isActive ? 'text-blue-600 bg-blue-500/10 border-blue-500/20' : 'text-slate-500 dark:text-zinc-400 hover:bg-slate-200 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white'}
+                                `}
+                                title="Gestão de Acesso"
+                            >
+                                <Users size={20} />
+                                {pendingCount > 0 && (
+                                    <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-red-500 rounded-full border border-white dark:border-[#09090b] animate-pulse shadow-sm shadow-red-500/50" />
+                                )}
+                            </NavLink>
+                        )}
 
                         <button
                             onClick={() => onToggleNotifications ? onToggleNotifications() : toast.info(hasNotifications ? 'Novas notificações' : 'Nenhuma notificação nova')}
