@@ -167,7 +167,7 @@ export default function Auth() {
 
                     <form className="space-y-4" onSubmit={handleAuth}>
                         {error && (
-                            <div className="bg-red-500/10 text-red-500 p-3 rounded-xl flex items-center gap-2 text-[foot-9px] font-black uppercase tracking-widest border border-red-500/20 animate-shake">
+                            <div className="bg-red-500/10 text-red-500 p-3 rounded-xl flex items-center gap-2 text-[9px] font-black uppercase tracking-widest border border-red-500/20 animate-shake">
                                 <AlertCircle size={16} />
                                 {error}
                             </div>
