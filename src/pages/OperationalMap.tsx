@@ -17,26 +17,26 @@ import PatrolMode from '../components/PatrolMode';
 const createPulseIcon = (colorClass: string, glowColor: string) => L.divIcon({
     className: 'custom-div-icon',
     html: `
-        <div class="relative flex items-center justify-center w-6 h-6">
-            <span class="absolute inline-flex h-full w-full rounded-full opacity-75 animate-pulse ${colorClass}" style="animation-duration: 3s; scale: 1.5;"></span>
-            <span class="relative inline-flex rounded-full h-3 w-3 ${colorClass}" style="box-shadow: 0 0 10px ${glowColor}"></span>
+        <div class="relative flex items-center justify-center w-8 h-8">
+            <span class="absolute inline-flex h-full w-full rounded-full opacity-50 animate-pulse ${colorClass}" style="animation-duration: 2s; scale: 1.8;"></span>
+            <span class="relative inline-flex rounded-full h-4 w-4 ${colorClass} border-2 border-white/30 shadow-lg" style="box-shadow: 0 0 15px ${glowColor}"></span>
         </div>
     `,
-    iconSize: [24, 24],
-    iconAnchor: [12, 12],
-    popupAnchor: [0, -12]
+    iconSize: [32, 32],
+    iconAnchor: [16, 16],
+    popupAnchor: [0, -16]
 });
 
 const createStaticIcon = (colorClass: string, glowColor: string) => L.divIcon({
     className: 'custom-div-icon',
     html: `
-        <div class="relative flex items-center justify-center w-6 h-6">
-            <span class="relative inline-flex rounded-full h-3 w-3 ${colorClass}" style="box-shadow: 0 0 8px ${glowColor}"></span>
+        <div class="relative flex items-center justify-center w-8 h-8">
+            <span class="relative inline-flex rounded-full h-4 w-4 ${colorClass} border-2 border-white/30 shadow-lg" style="box-shadow: 0 0 12px ${glowColor}"></span>
         </div>
     `,
-    iconSize: [24, 24],
-    iconAnchor: [12, 12],
-    popupAnchor: [0, -12]
+    iconSize: [32, 32],
+    iconAnchor: [16, 16],
+    popupAnchor: [0, -16]
 });
 
 const userIcon = L.divIcon({
@@ -231,14 +231,14 @@ const OperationalMap = () => {
                         center={center}
                         zoom={14}
                         scrollWheelZoom={true}
-                        style={{ height: '100%', width: '100%', background: '#09090b' }}
+                        style={{ height: '100%', width: '100%', background: '#f3f4f6' }}
                         zoomControl={false}
                         ref={(map) => { mapRef.current = map; }}
                     >
                         {/* Dark Matter Tiles (Tactical Look) */}
                         <TileLayer
                             attribution='&copy; <a href="https://carto.com/">CARTO</a>'
-                            url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+                            url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
                         />
 
                         {userLocation && (
