@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../supabaseClient';
-import { Shield, UserCheck, UserX, Search, Mail, Building2, UserCircle, BadgeCheck, Loader2 } from 'lucide-react';
+import { Shield, UserCheck, UserX, Trash2, Search, Mail, Building2, UserCircle, BadgeCheck, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import Header from '../components/Header';
 
@@ -57,7 +57,6 @@ export default function UserApprovalPage() {
 
     const handleApproval = async (userId: string, authorize: boolean) => {
         try {
-            // 1. Update the profiles table
             const { error: profileError } = await supabase
                 .from('profiles')
                 .update({ authorized: authorize })
@@ -65,14 +64,27 @@ export default function UserApprovalPage() {
 
             if (profileError) throw profileError;
 
-            // 2. Note: Updating auth.user_metadata requires admin privileges usually
-            // but if we have a trigger in Supabase (best practice), it's handled.
-            // Alternatively, we'll try to use a service role if available (not in client).
-
             toast.success(authorize ? 'Usuário autorizado!' : 'Autorização removida.');
             fetchUsers();
         } catch (err: any) {
             toast.error('Erro ao atualizar status: ' + err.message);
+        }
+    };
+
+    const handleDelete = async (userId: string) => {
+        if (!confirm('Deseja realmente excluir este registro de acesso?')) return;
+
+        try {
+            const { error } = await supabase
+                .from('profiles')
+                .delete()
+                .eq('id', userId);
+
+            if (error) throw error;
+            toast.success('Registro excluído com sucesso.');
+            fetchUsers();
+        } catch (err: any) {
+            toast.error('Erro ao excluir: ' + err.message);
         }
     };
 
@@ -220,7 +232,7 @@ on conflict (id) do nothing;`}
                                             {user.authorized ? (
                                                 <button
                                                     onClick={() => handleApproval(user.id, false)}
-                                                    className="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-2 bg-red-500/10 text-red-500 border border-red-500/20 rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-red-500/20 transition-all active:scale-95"
+                                                    className="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-2 bg-amber-500/10 text-amber-500 border border-amber-500/20 rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-amber-500/20 transition-all active:scale-95"
                                                 >
                                                     <UserX size={14} /> Revogar Acesso
                                                 </button>
@@ -229,9 +241,17 @@ on conflict (id) do nothing;`}
                                                     onClick={() => handleApproval(user.id, true)}
                                                     className="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-[#2eb872] text-white rounded-lg text-[10px] font-black uppercase tracking-widest shadow-lg shadow-[#2eb872]/20 hover:bg-[#259b5f] transition-all active:scale-95"
                                                 >
-                                                    <UserCheck size={14} /> Autorizar Acesso
+                                                    <UserCheck size={14} /> Autorizar
                                                 </button>
                                             )}
+
+                                            <button
+                                                onClick={() => handleDelete(user.id)}
+                                                className="p-3 bg-red-500/10 text-red-500 border border-red-500/20 rounded-lg hover:bg-red-500/20 transition-all active:scale-95"
+                                                title="Excluir Registro"
+                                            >
+                                                <Trash2 size={14} />
+                                            </button>
                                         </div>
                                     </div>
                                 </div>
