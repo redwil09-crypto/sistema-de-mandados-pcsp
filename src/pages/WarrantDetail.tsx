@@ -127,7 +127,6 @@ const WarrantDetail = () => {
     const data = useMemo(() => warrants.find(w => w.id === id), [warrants, id]);
 
     const [localData, setLocalData] = useState<Partial<Warrant>>({});
-    const [isConfirmSaveOpen, setIsConfirmSaveOpen] = useState(false);
     const [userId, setUserId] = useState<string | undefined>(undefined);
     const [isAdmin, setIsAdmin] = useState(false);
 
@@ -390,7 +389,6 @@ const WarrantDetail = () => {
         });
 
         if (Object.keys(updates).length === 0) {
-            setIsConfirmSaveOpen(false);
             return;
         }
 
@@ -416,7 +414,6 @@ const WarrantDetail = () => {
         const success = await updateWarrant(data.id, updates);
         if (success) {
             toast.success("Alterações salvas com sucesso!", { id: toastId });
-            setIsConfirmSaveOpen(false);
         } else {
             toast.error("Erro ao salvar alterações.", { id: toastId });
         }
@@ -3099,7 +3096,7 @@ Equipe de Capturas - DIG / PCSP
                                 </div>
                                 <div className="flex gap-3">
                                     <button onClick={handleCancelEdits} className="flex-1 py-3 px-4 rounded-xl font-black text-[10px] uppercase tracking-widest bg-black/20 text-white hover:bg-black/30 transition-colors">Descartar</button>
-                                    <button onClick={() => setIsConfirmSaveOpen(true)} className="flex-[2] py-3 px-4 rounded-xl font-black text-[10px] uppercase tracking-widest bg-white text-slate-900 shadow-lg hover:bg-slate-100 transition-all flex items-center justify-center gap-2 active:scale-95">
+                                    <button onClick={handleSaveChanges} className="flex-[2] py-3 px-4 rounded-xl font-black text-[10px] uppercase tracking-widest bg-white text-slate-900 shadow-lg hover:bg-slate-100 transition-all flex items-center justify-center gap-2 active:scale-95 shadow-[0_0_20px_rgba(255,255,255,0.3)]">
                                         <RefreshCw size={14} className="animate-spin-slow" /> SINCRONIZAR AGORA
                                     </button>
                                 </div>
@@ -3124,7 +3121,6 @@ Equipe de Capturas - DIG / PCSP
             </div >
 
             {/* Modals & Overlays */}
-            < ConfirmModal isOpen={isConfirmSaveOpen} onCancel={() => setIsConfirmSaveOpen(false)} onConfirm={handleSaveChanges} title="Sincronizar Protocolo" message="Deseja registrar as alterações no prontuário oficial deste alvo?" confirmText="Sincronizar" cancelText="Abortar" variant="primary" />
             <ConfirmModal isOpen={isReopenConfirmOpen} onCancel={() => setIsReopenConfirmOpen(false)} onConfirm={handleConfirmReopen} title="Reabrir Prontuário" message="Confirmar reabertura do status para 'EM ABERTO'?" confirmText="Reabrir" cancelText="Cancelar" variant="primary" />
             <ConfirmModal isOpen={isDeleteConfirmOpen} onCancel={() => setIsDeleteConfirmOpen(false)} onConfirm={handleConfirmDelete} title="Excluir Alvo" message="Deseja remover PERMANENTEMENTE este registro? Esta ação é irreversível." confirmText="Excluir" cancelText="Cancelar" variant="danger" />
 
