@@ -339,7 +339,8 @@ export const generateWarrantPDF = async (
         }
 
         toast.success(`Dossiê Tático de ${data.name} gerado com sucesso!`);
-        doc.save(`DOSSIÊ_TÁTICO_DIG_${data.name.replace(/\s+/g, '_').toUpperCase()}.pdf`);
+        const safeName = data.name.replace(/[^a-zA-Z0-9.-]/g, '_').toUpperCase();
+        doc.save(`DOSSIÊ_TÁTICO_DIG_${safeName}.pdf`);
 
         if (onUpdate) {
             const pdfBlob = doc.output('blob');
@@ -474,7 +475,8 @@ Ressalto que o descumprimento injustificado desta requisição poderá acarretar
         doc.text("Delegacia de Investigações Gerais de Jacareí", pageWidth / 2, y + 10, { align: 'center' });
 
         // Save
-        const fileName = `Oficio_iFood_${data.name.replace(/\s+/g, '_')}.pdf`;
+        const safeName = data.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+        const fileName = `Oficio_iFood_${safeName}.pdf`;
         doc.save(fileName);
         toast.success("Ofício iFood gerado com sucesso!");
 

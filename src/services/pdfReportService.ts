@@ -557,7 +557,7 @@ export const generateIfoodOfficePDF = async (
         doc.text(pageStr, dividerX + 5, footerY + 4);
 
         // Save
-        const fileName = `Oficio_iFood_${data.name.replace(/\s+/g, '_')}.pdf`;
+        const fileName = `Oficio_iFood_${data.name.replace(/[^a-zA-Z0-9.-]/g, '_')}.pdf`;
         doc.save(fileName);
         toast.success("Ofício iFood gerado com sucesso!");
 
@@ -869,7 +869,7 @@ export const generateCapturasReportPDF = async (
 
         doc.setLineDashPattern([], 0); // Reset dash
 
-        const fileName = `Relatorio_Capturas_${data.name.replace(/\s+/g, '_')}.pdf`;
+        const fileName = `Relatorio_Capturas_${data.name.replace(/[^a-zA-Z0-9.-]/g, '_')}.pdf`;
         doc.save(fileName);
         toast.success("Relatório de Capturas gerado com sucesso!");
 

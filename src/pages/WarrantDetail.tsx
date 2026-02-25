@@ -1909,7 +1909,8 @@ Equipe de Capturas - DIG / PCSP
                                     if (!file || !data) return;
                                     const tid = toast.loading("Subindo nova foto...");
                                     try {
-                                        const path = `photos/${data.id}/${Date.now()}_${file.name}`;
+                                        const cleanName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+                                        const path = `photos/${data.id}/${Date.now()}_${cleanName}`;
                                         const uploadedPath = await uploadFile(file, path);
                                         if (uploadedPath) {
                                             const url = getPublicUrl(uploadedPath);

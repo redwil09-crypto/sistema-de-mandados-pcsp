@@ -277,7 +277,8 @@ ${indent}Atenciosamente,`;
 
         const toastId = toast.loading("Salvando cópia no prontuário...");
         try {
-            const path = `attachments/ifood/${warrant.id}/${Date.now()}_Oficio_${officeNumber}.pdf`;
+            const cleanOffice = officeNumber.replace(/[^a-zA-Z0-9.-]/g, '_');
+            const path = `attachments/ifood/${warrant.id}/${Date.now()}_Oficio_${cleanOffice}.pdf`;
             const uploadedPath = await uploadFile(pdfFile, path);
 
             if (uploadedPath) {

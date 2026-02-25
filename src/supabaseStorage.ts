@@ -11,10 +11,15 @@ const BUCKET_NAME = 'warrants';
  */
 export const uploadFile = async (file: File, path: string): Promise<string | null> => {
     try {
-        console.log(`Starting upload for file: ${file.name} to path: ${path} in bucket: ${BUCKET_NAME}`);
+        // Sanitiza o caminho para remover caracteres especiais que causam erro "Invalid key" no Supabase (ex: [] )
+        const sanitizedPath = path.split('/').map(part =>
+            part.replace(/[^a-zA-Z0-9.-]/g, '_')
+        ).join('/');
+
+        console.log(`Starting upload for file: ${file.name} to path: ${sanitizedPath} (original: ${path}) in bucket: ${BUCKET_NAME}`);
         const { data, error } = await supabase.storage
             .from(BUCKET_NAME)
-            .upload(path, file, {
+            .upload(sanitizedPath, file, {
                 cacheControl: '3600',
                 upsert: true
             });
