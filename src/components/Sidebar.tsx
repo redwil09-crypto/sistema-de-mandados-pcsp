@@ -25,7 +25,8 @@ import {
     Settings,
     FileSearch,
     Database,
-    FileCheck
+    FileCheck,
+    Users
 } from 'lucide-react';
 import { supabase } from '../supabaseClient';
 import { toast } from 'sonner';
@@ -46,6 +47,8 @@ interface SidebarProps {
 
 const Sidebar = ({ routeCount = 0, isCollapsed, toggleCollapse, isDark, toggleTheme, hasNotifications = false, onToggleNotifications }: SidebarProps) => {
     const [isOpen, setIsOpen] = useState(false); // Mobile state
+    const [isAdmin, setIsAdmin] = useState(false);
+    const [pendingCount, setPendingCount] = useState(0);
     const location = useLocation();
 
     // Swipe to Open/Close Sidebar (Mobile)
@@ -55,8 +58,26 @@ const Sidebar = ({ routeCount = 0, isCollapsed, toggleCollapse, isDark, toggleTh
     });
 
     useEffect(() => {
-        // Add global touch listeners only for edge Swipe Right to open (optional, but let's keep it simple first)
-        // For now, we attach to container.
+        const checkAdminAndPending = async () => {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user?.user_metadata?.role === 'admin' || user?.email === 'william.castro@policiacivil.sp.gov.br') {
+                setIsAdmin(true);
+
+                // Count pending users
+                const { count, error } = await supabase
+                    .from('profiles')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('authorized', false);
+
+                if (!error) setPendingCount(count || 0);
+            }
+        };
+
+        checkAdminAndPending();
+
+        // Refresh count every 5 minutes
+        const interval = setInterval(checkAdminAndPending, 5 * 60 * 1000);
+        return () => clearInterval(interval);
     }, []);
 
     // Fecha a sidebar ao navegar em mobile
@@ -87,9 +108,10 @@ const Sidebar = ({ routeCount = 0, isCollapsed, toggleCollapse, isDark, toggleTh
         { icon: Activity, label: 'Log de Atividade', path: '/recents' },
         { icon: Database, label: 'Banco de Dados', path: '/ai-assistant?tab=database' },
         { icon: ShieldAlert, label: 'Auditoria', path: '/audit' },
+        ...(isAdmin ? [{ icon: Users, label: 'Gestão Acesso', path: '/admin/users', badge: pendingCount, isAlert: pendingCount > 0 }] : []),
     ];
 
-    const NavGroup = ({ title, items }: { title?: string, items: { icon: any; label: string; path: string; badge?: number }[] }) => (
+    const NavGroup = ({ title, items }: { title?: string, items: { icon: any; label: string; path: string; badge?: number; isAlert?: boolean }[] }) => (
         <div className="mb-4">
             {title && !isCollapsed && (
                 <h3 className="px-5 mb-2 text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] fade-in">
@@ -142,9 +164,9 @@ const Sidebar = ({ routeCount = 0, isCollapsed, toggleCollapse, isDark, toggleTh
 
                                 {item.badge ? (
                                     isCollapsed ? (
-                                        <div className="absolute top-2 right-2 h-2 w-2 rounded-full bg-red-500 shadow-md shadow-red-500/50" />
+                                        <div className={`absolute top-2 right-2 h-2.5 w-2.5 rounded-full ${item.isAlert ? 'bg-red-500 animate-pulse' : 'bg-blue-500'} shadow-md`} />
                                     ) : (
-                                        <span className="ml-auto relative z-10 flex h-5 w-5 items-center justify-center rounded-md bg-blue-500 text-[10px] font-bold text-white shadow-md shadow-blue-500/50">
+                                        <span className={`ml-auto relative z-10 flex h-5 w-5 items-center justify-center rounded-md ${item.isAlert ? 'bg-red-500 animate-pulse text-white' : 'bg-blue-500 text-white'} text-[10px] font-bold shadow-md`}>
                                             {item.badge}
                                         </span>
                                     )
