@@ -148,7 +148,8 @@ const Stats = () => {
                         label="Taxa de Êxito"
                         value={`${stats.successRate}%`}
                         icon={<Activity size={20} />}
-                        className="bg-indigo-500/5 text-indigo-400 border-indigo-500/20 shadow-[0_0_15px_rgba(99,102,241,0.1)]"
+                        className="bg-indigo-500/5 text-indigo-400 border-indigo-500/20 shadow-[0_0_15px_rgba(99,102,241,0.1)] cursor-pointer hover:bg-indigo-500/10"
+                        onClick={() => navigate('/warrant-list?status=CUMPRIDO')}
                     />
                 </div>
 
@@ -175,7 +176,7 @@ const Stats = () => {
                                                 key={`cell-${index}`}
                                                 fill={entry.color}
                                                 fillOpacity={0.8}
-                                                onClick={() => navigate(`/warrant-list?status=${entry.name.toUpperCase()}`)}
+                                                onClick={() => navigate(`/warrant-list?status=${entry.name === 'Cumpridos' ? 'CUMPRIDO' : 'EM ABERTO'}`)}
                                             />
                                         ))}
                                     </Bar>
@@ -251,7 +252,7 @@ const Stats = () => {
                                             <Cell
                                                 key={`cell-${index}`}
                                                 fill={entry.color}
-                                                onClick={() => navigate(`/warrant-list?q=${entry.name}`)}
+                                                onClick={() => navigate(`/warrant-list?q=${encodeURIComponent(entry.name)}&status=EM+ABERTO`)}
                                                 className="cursor-pointer outline-none"
                                             />
                                         ))}
@@ -260,8 +261,13 @@ const Stats = () => {
                                 </PieChart>
                             </ResponsiveContainer>
                             <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                                <span className="text-2xl font-black text-white">{stats.active}</span>
-                                <span className="text-[8px] text-white/40 uppercase font-bold tracking-widest">Ativos</span>
+                                <div
+                                    className="flex flex-col items-center justify-center pointer-events-auto cursor-pointer rounded-full w-24 h-24 hover:bg-white/5 transition-colors"
+                                    onClick={() => navigate('/warrant-list?status=EM ABERTO')}
+                                >
+                                    <span className="text-2xl font-black text-white">{stats.active}</span>
+                                    <span className="text-[8px] text-white/40 uppercase font-bold tracking-widest">Ativos</span>
+                                </div>
                             </div>
                         </div>
 
@@ -269,7 +275,7 @@ const Stats = () => {
                             {natureData.map((item, idx) => (
                                 <div
                                     key={idx}
-                                    onClick={() => navigate(`/warrant-list?q=${item.name}`)}
+                                    onClick={() => navigate(`/warrant-list?q=${encodeURIComponent(item.name)}&status=EM+ABERTO`)}
                                     className="flex items-center justify-between p-3 bg-white/5 rounded-xl border border-white/5 hover:bg-primary/10 transition-colors cursor-pointer group/item"
                                 >
                                     <div className="flex items-center gap-3">
@@ -286,7 +292,7 @@ const Stats = () => {
                 {/* 4. TACTICAL ANALYSIS & RISKS - Cyber Glows */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div
-                        onClick={() => navigate('/warrant-list?type=PRISÃO')}
+                        onClick={() => navigate('/warrant-list?type=PRISÃO&status=EM+ABERTO')}
                         className="bg-zinc-900/40 backdrop-blur-xl p-5 rounded-3xl border border-red-500/10 shadow-2xl relative overflow-hidden group border-l-4 border-l-red-500 cursor-pointer hover:bg-red-500/5 transition-all"
                     >
                         <div className="flex items-center justify-between relative z-10">
@@ -307,7 +313,7 @@ const Stats = () => {
                     </div>
 
                     <div
-                        onClick={() => navigate('/warrant-list?type=BUSCA')}
+                        onClick={() => navigate('/warrant-list?type=BUSCA&status=EM+ABERTO')}
                         className="bg-zinc-900/40 backdrop-blur-xl p-5 rounded-3xl border border-orange-500/10 shadow-2xl relative overflow-hidden group border-l-4 border-l-orange-500 cursor-pointer hover:bg-orange-500/5 transition-all"
                     >
                         <div className="flex items-center justify-between relative z-10">

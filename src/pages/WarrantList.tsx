@@ -43,6 +43,7 @@ const WarrantList = () => {
             (w.location && w.location.toLowerCase().includes(term)) ||
             (w.rg && w.rg.toLowerCase().includes(term)) ||
             w.type.toLowerCase().includes(term) ||
+            (w.crime && w.crime.toLowerCase().includes(term)) ||
             (w.description && w.description.toLowerCase().includes(term))
         );
 
