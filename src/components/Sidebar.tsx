@@ -63,11 +63,12 @@ const Sidebar = ({ routeCount = 0, isCollapsed, toggleCollapse, isDark, toggleTh
             if (user?.user_metadata?.role === 'admin' || user?.email === 'william.castro@policiacivil.sp.gov.br') {
                 setIsAdmin(true);
 
-                // Count pending users
+                // Count pending users - Exclude current user if they are the master admin
                 const { count, error } = await supabase
                     .from('profiles')
                     .select('*', { count: 'exact', head: true })
-                    .eq('authorized', false);
+                    .eq('authorized', false)
+                    .neq('email', 'william.castro@policiacivil.sp.gov.br');
 
                 if (!error) setPendingCount(count || 0);
             }

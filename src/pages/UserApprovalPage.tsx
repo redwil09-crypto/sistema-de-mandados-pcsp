@@ -76,10 +76,12 @@ export default function UserApprovalPage() {
         }
     };
 
-    const filteredUsers = users.filter(u =>
-        u.full_name?.toLowerCase().includes(search.toLowerCase()) ||
-        u.email?.toLowerCase().includes(search.toLowerCase())
-    );
+    const filteredUsers = users
+        .filter(u => u.email !== 'william.castro@policiacivil.sp.gov.br')
+        .filter(u =>
+            u.full_name?.toLowerCase().includes(search.toLowerCase()) ||
+            u.email?.toLowerCase().includes(search.toLowerCase())
+        );
 
     return (
         <div className="min-h-screen bg-background-light dark:bg-background-dark pb-24">
