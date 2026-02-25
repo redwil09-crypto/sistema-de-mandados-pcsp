@@ -28,10 +28,8 @@ const CounterWarrantList = React.lazy(() => import('./pages/CounterWarrantList')
 
 const UserApprovalPage = React.lazy(() => import('./pages/UserApprovalPage'));
 
-// Components
 import Sidebar from './components/Sidebar';
 import NotificationOverlay from './components/NotificationOverlay';
-import PerformanceOptimizationModal from './components/PerformanceOptimizationModal';
 import { useLocation } from 'react-router-dom';
 
 import { Toaster } from 'sonner';
@@ -90,9 +88,6 @@ function App() {
 
     const [session, setSession] = useState<Session | null>(null);
     const [authLoading, setAuthLoading] = useState(true);
-    const [showPerformanceModal, setShowPerformanceModal] = useState(() => {
-        return sessionStorage.getItem('performance_optimization_accepted') !== 'true';
-    });
 
     useEffect(() => {
         supabase.auth.getSession().then(({ data: { session } }) => {
@@ -134,14 +129,6 @@ function App() {
         return (
             <>
                 <Auth />
-                {showPerformanceModal && (
-                    <PerformanceOptimizationModal
-                        onAccept={() => {
-                            sessionStorage.setItem('performance_optimization_accepted', 'true');
-                            setShowPerformanceModal(false);
-                        }}
-                    />
-                )}
             </>
         );
     }
@@ -154,14 +141,6 @@ function App() {
         return (
             <>
                 <PendingApproval />
-                {showPerformanceModal && (
-                    <PerformanceOptimizationModal
-                        onAccept={() => {
-                            sessionStorage.setItem('performance_optimization_accepted', 'true');
-                            setShowPerformanceModal(false);
-                        }}
-                    />
-                )}
             </>
         );
     }
@@ -170,14 +149,6 @@ function App() {
         <WarrantProvider>
             <HashRouter>
                 <AppContent session={session} isDark={isDark} toggleTheme={toggleTheme} />
-                {showPerformanceModal && (
-                    <PerformanceOptimizationModal
-                        onAccept={() => {
-                            sessionStorage.setItem('performance_optimization_accepted', 'true');
-                            setShowPerformanceModal(false);
-                        }}
-                    />
-                )}
             </HashRouter>
         </WarrantProvider>
     );

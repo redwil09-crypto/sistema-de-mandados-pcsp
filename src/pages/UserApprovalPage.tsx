@@ -17,23 +17,24 @@ export default function UserApprovalPage() {
     const fetchUsers = async () => {
         setLoading(true);
         try {
-            // Note: Listing auth.users directly from client is not possible with anon keys.
-            // We usually store profile data in a 'profiles' table or similar.
-            // However, based on Auth.tsx, we are using user_metadata.
-            // For a robust system, we would need a supabase function, but 
-            // I'll try to fetch from a 'profiles' table if it exists, 
-            // or assume we need to create/manage this.
-
             const { data, error } = await supabase
-                .from('profiles') // Assuming there is a profiles table
+                .from('profiles')
                 .select('*')
                 .order('created_at', { ascending: false });
 
-            if (error) throw error;
-            setUsers(data || []);
+            if (error) {
+                if (error.code === '42P01') {
+                    // Table doesn't exist - this is handled in the UI
+                    setUsers([]);
+                } else {
+                    throw error;
+                }
+            } else {
+                setUsers(data || []);
+            }
         } catch (err: any) {
             console.error('Error fetching users:', err);
-            toast.error('Erro ao carregar usuários. Verifique as permissões da tabela "profiles".');
+            toast.error('Erro de conexão com a tabela de perfis.');
         } finally {
             setLoading(false);
         }
@@ -94,9 +95,60 @@ export default function UserApprovalPage() {
                 ) : (
                     <div className="grid grid-cols-1 gap-3">
                         {filteredUsers.length === 0 ? (
-                            <div className="text-center py-20 bg-surface-light dark:bg-surface-dark rounded-2xl border border-dashed border-border-light dark:border-border-dark">
-                                <UserCircle size={48} className="mx-auto text-white/10 mb-4" />
-                                <p className="text-sm text-white/40 font-bold uppercase tracking-widest">Nenhum registro encontrado</p>
+                            <div className="p-8 bg-surface-light dark:bg-surface-dark rounded-2xl border border-dashed border-amber-500/30 space-y-6">
+                                <div className="flex items-center gap-4 text-amber-500">
+                                    <Shield size={32} />
+                                    <h2 className="text-lg font-bold uppercase tracking-tight">Configuração Necessária</h2>
+                                </div>
+                                <p className="text-sm text-text-secondary-light dark:text-white/60 leading-relaxed font-medium">
+                                    A tabela de perfis não foi detectada. Para gerenciar usuários, execute o comando abaixo no <span className="text-white font-bold">SQL Editor</span> do seu painel Supabase:
+                                </p>
+                                <div className="bg-black/40 p-4 rounded-xl border border-white/5 font-mono text-[10px] text-primary/80 overflow-x-auto whitespace-pre">
+                                    {`-- 1. Criar tabela de perfis
+create table profiles (
+  id uuid references auth.users on delete cascade primary key,
+  email text,
+  full_name text,
+  rg text,
+  cargo text,
+  phone text,
+  workplace text,
+  role text default 'agente',
+  authorized boolean default false,
+  created_at timestamp with time zone default timezone('utc'::text, now())
+);
+
+-- 2. Habilitar RLS
+alter table profiles enable row level security;
+create policy "Admins podem ver tudo" on profiles for all using (true);
+
+-- 3. Trigger para novos cadastros
+create or replace function public.handle_new_user()
+returns trigger as $$
+begin
+  insert into public.profiles (id, email, full_name, rg, cargo, phone, workplace, role, authorized)
+  values (
+    new.id, 
+    new.email, 
+    new.raw_user_meta_data->>'full_name',
+    new.raw_user_meta_data->>'rg',
+    new.raw_user_meta_data->>'cargo',
+    new.raw_user_meta_data->>'phone',
+    new.raw_user_meta_data->>'workplace',
+    new.raw_user_meta_data->>'role',
+    coalesce((new.raw_user_meta_data->>'authorized')::boolean, false)
+  );
+  return new;
+end;
+$$ language plpgsql security definer;
+
+create trigger on_auth_user_created
+  after insert on auth.users
+  for each row execute procedure public.handle_new_user();`}
+                                </div>
+                                <p className="text-[10px] text-amber-500/50 italic font-bold">
+                                    * Após executar, recarregue esta página.
+                                </p>
                             </div>
                         ) : (
                             filteredUsers.map((user) => (
