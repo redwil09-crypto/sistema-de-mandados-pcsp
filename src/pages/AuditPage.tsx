@@ -29,8 +29,7 @@ export default function AuditPage() {
                 return;
             }
 
-            // 1. Check metadata
-            if (user.user_metadata?.role === 'admin') {
+            if (user.user_metadata?.role === 'admin' || user.email === 'william.castro@policiacivil.sp.gov.br') {
                 setIsAdmin(true);
                 await loadLogs();
                 return;
