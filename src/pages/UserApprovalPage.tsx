@@ -18,13 +18,16 @@ export default function UserApprovalPage() {
     const fetchUsers = async () => {
         setLoading(true);
         try {
+            // Tenta buscar com ordenação
             const { data, error } = await supabase
                 .from('profiles')
                 .select('*')
                 .order('created_at', { ascending: false });
 
             if (error) {
-                if (error.code === '42P01') {
+                // Erro 42P01: Tabela não existe
+                // Erro 42703: Coluna não existe (ex: created_at)
+                if (error.code === '42P01' || error.code === '42703') {
                     setTableExists(false);
                     setUsers([]);
                 } else {
@@ -36,10 +39,17 @@ export default function UserApprovalPage() {
             }
         } catch (err: any) {
             console.error('Error fetching users:', err);
-            // Don't toast on initial load if it's just a permissions issue we can handle
-            if (err.code !== '42P01') {
-                toast.error('Erro de conexão: ' + (err.message || 'Verifique as permissões.'));
-            }
+            // Se falhou por causa da coluna, vamos tentar sem ordenação apenas para mostrar algo
+            try {
+                const { data } = await supabase.from('profiles').select('*');
+                if (data) {
+                    setUsers(data);
+                    setTableExists(false); // Força mostrar o script de reparo pois faltam colunas
+                    return;
+                }
+            } catch (innerErr) { }
+
+            toast.error('Erro de conexão: ' + (err.message || 'Verifique as permissões.'));
         } finally {
             setLoading(false);
         }
@@ -111,17 +121,19 @@ export default function UserApprovalPage() {
                                 <div className="bg-black/40 p-4 rounded-xl border border-white/5 font-mono text-[10px] text-primary/80 overflow-x-auto whitespace-pre">
                                     {`-- 1. Garantir que a tabela e colunas existam
 create table if not exists profiles (
-  id uuid references auth.users on delete cascade primary key,
-  email text,
-  full_name text,
-  rg text,
-  cargo text,
-  phone text,
-  workplace text,
-  role text default 'agente',
-  authorized boolean default false,
-  created_at timestamp with time zone default timezone('utc'::text, now())
+  id uuid references auth.users on delete cascade primary key
 );
+
+-- Adicionar colunas individualmente (Caso a tabela já exista)
+alter table profiles add column if not exists email text;
+alter table profiles add column if not exists full_name text;
+alter table profiles add column if not exists rg text;
+alter table profiles add column if not exists cargo text;
+alter table profiles add column if not exists phone text;
+alter table profiles add column if not exists workplace text;
+alter table profiles add column if not exists role text default 'agente';
+alter table profiles add column if not exists authorized boolean default false;
+alter table profiles add column if not exists created_at timestamp with time zone default timezone('utc'::text, now());
 
 -- 2. Corrigir permissões (RLS)
 alter table profiles enable row level security;
@@ -160,7 +172,7 @@ create trigger on_auth_user_created
   after insert on auth.users
   for each row execute procedure public.handle_new_user();
 
--- OPCIONAL: Sincronizar usuários atuais
+-- Sincronizar usuários atuais
 insert into public.profiles (id, email, full_name, role, authorized)
 select id, email, raw_user_meta_data->>'full_name', 'agente', false
 from auth.users
