@@ -12,6 +12,7 @@ import WarrantCard from '../components/WarrantCard';
 import { formatDate } from '../utils/helpers';
 import { EXPIRING_WARRANTS } from '../data/mockData';
 import { useWarrants } from '../contexts/WarrantContext';
+import { supabase } from '../supabaseClient';
 
 interface HomePageProps {
     isDark: boolean;
@@ -23,6 +24,17 @@ interface HomePageProps {
 const HomePage = ({ isDark, toggleTheme, onToggleNotifications, hasNotifications }: HomePageProps) => {
     const { warrants, updateWarrant, deleteWarrant, routeWarrants, toggleRouteWarrant } = useWarrants();
     const navigate = useNavigate();
+    const [isAdmin, setIsAdmin] = useState(false);
+
+    React.useEffect(() => {
+        const checkAdmin = async () => {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user?.user_metadata?.role === 'admin') {
+                setIsAdmin(true);
+            }
+        };
+        checkAdmin();
+    }, []);
 
     const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === 'Enter') {
@@ -145,6 +157,19 @@ const HomePage = ({ isDark, toggleTheme, onToggleNotifications, hasNotifications
                             <p className="text-xs text-text-secondary-light/70 dark:text-text-dark/60 tracking-tight">Extração e Voz</p>
                         </div>
                     </Link>
+
+                    {/* Admin Access Control */}
+                    {isAdmin && (
+                        <Link to="/admin/users" className="group flex flex-col gap-3 rounded-2xl bg-surface-light p-4 shadow-md transition-all active:scale-[0.98] dark:bg-surface-dark border border-transparent hover:border-amber-500 hover:shadow-[0_0_25px_rgba(245,158,11,0.6)]">
+                            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-500 group-hover:shadow-neon-yellow-card transition-shadow">
+                                <Shield size={24} />
+                            </div>
+                            <div>
+                                <h3 className="font-bold text-text-light dark:text-text-dark">Gestão Acesso</h3>
+                                <p className="text-xs text-text-secondary-light/70 dark:text-text-dark/60">Aprovar Policiais</p>
+                            </div>
+                        </Link>
+                    )}
                 </div>
 
                 {/* Duty Summary Card */}

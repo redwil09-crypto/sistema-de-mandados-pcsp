@@ -26,6 +26,8 @@ const RoutePlanner = React.lazy(() => import('./pages/RoutePlanner'));
 const OperationalMap = React.lazy(() => import('./pages/OperationalMap'));
 const CounterWarrantList = React.lazy(() => import('./pages/CounterWarrantList'));
 
+const UserApprovalPage = React.lazy(() => import('./pages/UserApprovalPage'));
+
 // Components
 import Sidebar from './components/Sidebar';
 import NotificationOverlay from './components/NotificationOverlay';
@@ -48,53 +50,33 @@ function PendingApproval() {
     };
 
     return (
-        <div className="min-h-screen bg-[#f0f9f4] flex flex-col items-center justify-start pt-12 px-4 space-y-8">
-            <div className="w-full max-w-md bg-[#ff4b4b] text-white p-4 rounded-xl shadow-lg flex items-start gap-4 animate-in slide-in-from-top-4 duration-500">
+        <div className="min-h-screen bg-[#f0f9f4] flex flex-col items-center justify-center px-4 space-y-8">
+            <div className="w-full max-w-sm bg-[#ff4b4b] text-white p-6 rounded-2xl shadow-xl flex items-start gap-4 animate-in slide-in-from-top-6 duration-500">
                 <div className="mt-1">
-                    <AlertCircle size={24} />
+                    <AlertCircle size={28} />
                 </div>
                 <div>
-                    <h3 className="font-bold text-sm uppercase tracking-wider">Acesso recusado</h3>
-                    <p className="text-[11px] opacity-90 leading-relaxed mt-1">
-                        Seu acesso ainda não foi aprovado por um administrador.
+                    <h3 className="font-extrabold text-lg uppercase tracking-wider leading-none">Acesso recusado</h3>
+                    <p className="text-sm opacity-90 leading-relaxed mt-2 font-medium">
+                        Seu acesso ainda não foi aprovado por um administrador. Por favor, aguarde a liberação.
                     </p>
                 </div>
             </div>
 
-            <div className="w-full max-w-md bg-white rounded-[32px] p-10 shadow-xl text-center space-y-6">
-                <div className="flex justify-center gap-4 mb-4">
-                    <div className="w-12 h-12 text-[#2eb872] animate-bounce">
-                        <svg viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" />
-                        </svg>
-                    </div>
+            <div className="text-center space-y-6">
+                <div className="flex flex-col items-center gap-2">
+                    <div className="h-1 w-12 bg-[#2eb872] rounded-full animate-pulse"></div>
+                    <p className="text-[#2eb872] font-black uppercase tracking-[0.2em] text-[10px]">
+                        Status: Aguardando Validação
+                    </p>
                 </div>
 
-                <h1 className="text-4xl font-black text-[#1a4d33] leading-tight">
-                    Transforme seu lar em um jardim
-                </h1>
-
-                <p className="text-sm text-[#4a7a61] leading-relaxed">
-                    Descubra o prazer de cultivar plantas e flores. Dicas, cuidados e inspiração para criar seu próprio oásis verde.
-                </p>
-
-                <div className="grid grid-cols-2 gap-4 pt-4">
-                    <button className="bg-[#10a37f] text-white font-bold py-4 rounded-xl text-xs flex items-center justify-center gap-2">
-                        Começar Agora
-                    </button>
-                    <button className="bg-[#1a1c1e] text-white font-bold py-4 rounded-xl text-xs">
-                        Saiba Mais
-                    </button>
-                </div>
-
-                <div className="pt-8">
-                    <button
-                        onClick={handleSignOut}
-                        className="text-[10px] font-black uppercase tracking-widest text-[#ff4b4b] hover:underline flex items-center justify-center gap-2 mx-auto"
-                    >
-                        <LogOut size={14} /> Sair da conta
-                    </button>
-                </div>
+                <button
+                    onClick={handleSignOut}
+                    className="flex items-center gap-2 px-8 py-3 bg-[#1a1c1e] text-white rounded-xl text-xs font-bold hover:bg-black transition-all active:scale-95 shadow-lg"
+                >
+                    <LogOut size={16} /> Sair da Conta
+                </button>
             </div>
         </div>
     );
@@ -186,7 +168,7 @@ function App() {
     return (
         <WarrantProvider>
             <HashRouter>
-                <AppContent isDark={isDark} toggleTheme={toggleTheme} />
+                <AppContent session={session} isDark={isDark} toggleTheme={toggleTheme} />
                 {showPerformanceModal && (
                     <PerformanceOptimizationModal
                         onAccept={() => {
@@ -200,7 +182,7 @@ function App() {
     );
 }
 
-function AppContent({ isDark, toggleTheme }: { isDark: boolean; toggleTheme: () => void }) {
+function AppContent({ session, isDark, toggleTheme }: { session: Session; isDark: boolean; toggleTheme: () => void }) {
     const location = useLocation();
     const { routeWarrants, warrants, loading } = useWarrants();
     const [isCollapsed, setIsCollapsed] = useState(() => {
@@ -290,6 +272,14 @@ function AppContent({ isDark, toggleTheme }: { isDark: boolean; toggleTheme: () 
                             <Route path="/map" element={<OperationalMap />} />
                             <Route path="/warrant-detail/:id" element={<WarrantDetail />} />
                             <Route path="/new-warrant" element={<NewWarrant />} />
+
+                            {/* Rota Administrativa Secreta */}
+                            <Route path="/admin/users" element={
+                                session.user.user_metadata?.role === 'admin'
+                                    ? <UserApprovalPage />
+                                    : <Navigate to="/" replace />
+                            } />
+
                             <Route path="*" element={<Navigate to="/" replace />} />
                         </Routes>
                     </div>
