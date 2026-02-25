@@ -232,6 +232,7 @@ export const generateWarrantPDF = async (
             fields.forEach(([label, value], idx) => {
                 const val = value || "-";
                 const splitVal = doc.splitTextToSize(val, contentWidth - 55);
+                const isHighlight = label === "Infração Penal" || label === "Regime Prisional";
 
                 if (y + (splitVal.length * 5) > pageHeight - 20) {
                     doc.addPage();
@@ -249,9 +250,16 @@ export const generateWarrantPDF = async (
                 doc.setTextColor(...COLORS.SECONDARY);
                 doc.text(label.toUpperCase(), margin + 2, y);
 
-                doc.setFont('helvetica', 'normal');
+                // Highlight specific critical fields
+                if (isHighlight) {
+                    doc.setFont('helvetica', 'bold');
+                    doc.setTextColor(...COLORS.RISK.HIGH); // Using visual red for danger/attention
+                } else {
+                    doc.setFont('helvetica', 'normal');
+                    doc.setTextColor(...COLORS.TEXT);
+                }
+
                 doc.setFontSize(9);
-                doc.setTextColor(...COLORS.TEXT);
                 doc.text(splitVal, margin + 50, y);
                 y += (splitVal.length * 5) + 2;
             });
