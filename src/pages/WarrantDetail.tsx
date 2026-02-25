@@ -28,11 +28,10 @@ import FloatingDock from '../components/FloatingDock';
 import { analyzeRawDiligence, generateReportBody, analyzeDocumentStrategy, askAssistantStrategy, mergeIntelligence } from '../services/geminiService';
 import { extractPdfData } from '../services/pdfExtractionService';
 import { extractRawTextFromPdf, extractFromText } from '../pdfExtractor';
-import { CRIME_OPTIONS, REGIME_OPTIONS } from '../data/constants';
 import { useWarrants } from '../contexts/WarrantContext';
 
 const WarrantDetail = () => {
-    const { warrants, updateWarrant, deleteWarrant, routeWarrants, toggleRouteWarrant, refreshWarrants } = useWarrants();
+    const { warrants, updateWarrant, deleteWarrant, routeWarrants, toggleRouteWarrant, refreshWarrants, availableCrimes, availableRegimes } = useWarrants();
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
 
@@ -1985,26 +1984,30 @@ Equipe de Capturas - DIG / PCSP
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                                 <div className="bg-background-light dark:bg-white/5 border border-border-light dark:border-white/5 p-2 rounded-xl text-center flex flex-col items-center group/field">
                                     <p className="text-[9px] uppercase font-bold text-text-secondary-light dark:text-text-muted mb-0.5 tracking-tighter">Tipo Crime</p>
-                                    <select
-                                        className="w-full bg-transparent border-none text-xs font-black text-text-light dark:text-white outline-none text-center cursor-pointer appearance-none hover:text-primary transition-colors"
+                                    <input
+                                        list="crimes-list-detail"
+                                        className="w-full bg-transparent border-none text-xs font-black text-text-light dark:text-white outline-none text-center hover:text-primary transition-colors"
                                         value={localData.crime || ''}
                                         onChange={e => handleFieldChange('crime', e.target.value)}
-                                    >
-                                        <option value="" className="bg-white dark:bg-surface-dark text-slate-900 dark:text-white">Selecione...</option>
-                                        {CRIME_OPTIONS.map(opt => <option key={opt} value={opt} className="bg-white dark:bg-surface-dark text-slate-900 dark:text-white">{opt}</option>)}
-                                    </select>
+                                        placeholder="Selecione..."
+                                    />
+                                    <datalist id="crimes-list-detail">
+                                        {availableCrimes.map(opt => <option key={opt} value={opt} />)}
+                                    </datalist>
                                 </div>
                                 <div className="bg-background-light dark:bg-white/5 border border-border-light dark:border-white/5 p-2 rounded-xl text-center flex flex-col items-center group/field">
                                     <p className="text-[9px] uppercase font-bold text-text-secondary-light dark:text-text-muted mb-0.5 tracking-tighter">Regime Prisional</p>
-                                    <select
-                                        className="w-full bg-transparent border-none text-xs font-black text-text-light dark:text-white outline-none text-center cursor-pointer appearance-none hover:text-primary transition-colors"
+                                    <input
+                                        list="regime-list-detail"
+                                        className="w-full bg-transparent border-none text-xs font-black text-text-light dark:text-white outline-none text-center hover:text-primary transition-colors"
                                         value={localData.regime || ''}
                                         onChange={e => handleFieldChange('regime', e.target.value)}
-                                    >
-                                        <option value="" className="bg-white dark:bg-surface-dark text-slate-900 dark:text-white">Selecione...</option>
-                                        {REGIME_OPTIONS.map(opt => <option key={opt} value={opt} className="bg-white dark:bg-surface-dark text-slate-900 dark:text-white">{opt}</option>)}
-                                        <option value="Contramandado" className="bg-white dark:bg-surface-dark text-slate-900 dark:text-white font-bold text-emerald-500">Contramandado</option>
-                                    </select>
+                                        placeholder="Selecione..."
+                                    />
+                                    <datalist id="regime-list-detail">
+                                        {availableRegimes.map(opt => <option key={opt} value={opt} />)}
+                                        <option value="Contramandado" />
+                                    </datalist>
                                 </div>
                                 <div className="bg-background-light dark:bg-white/5 border border-border-light dark:border-white/5 p-2 rounded-xl text-center">
                                     <p className="text-[9px] uppercase font-bold text-text-secondary-light dark:text-gray-400 mb-0.5 tracking-tighter">Idade Captura</p>

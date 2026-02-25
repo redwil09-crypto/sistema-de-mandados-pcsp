@@ -9,6 +9,7 @@ import {
     deleteWarrant as deleteWarrantDb
 } from '../supabaseService';
 import { toast } from 'sonner';
+import { CRIME_OPTIONS, REGIME_OPTIONS } from '../data/constants';
 
 interface WarrantContextType {
     warrants: Warrant[];
@@ -33,6 +34,10 @@ interface WarrantContextType {
     prisonWarrants: Warrant[];
     searchWarrants: Warrant[];
     priorityWarrants: Warrant[];
+
+    // Dynamic Form Options
+    availableCrimes: string[];
+    availableRegimes: string[];
 }
 
 const WarrantContext = createContext<WarrantContextType | undefined>(undefined);
@@ -297,6 +302,22 @@ export const WarrantProvider = ({ children }: { children: ReactNode }) => {
         });
     }, [warrants]);
 
+    const availableCrimes = useMemo(() => {
+        const unique = new Set(CRIME_OPTIONS);
+        warrants.forEach(w => {
+            if (w.crime && w.crime.trim()) unique.add(w.crime.trim());
+        });
+        return Array.from(unique).sort((a, b) => a.localeCompare(b));
+    }, [warrants]);
+
+    const availableRegimes = useMemo(() => {
+        const unique = new Set(REGIME_OPTIONS);
+        warrants.forEach(w => {
+            if (w.regime && w.regime.trim()) unique.add(w.regime.trim());
+        });
+        return Array.from(unique).sort((a, b) => a.localeCompare(b));
+    }, [warrants]);
+
     return (
         <WarrantContext.Provider value={{
             warrants,
@@ -311,6 +332,8 @@ export const WarrantProvider = ({ children }: { children: ReactNode }) => {
             prisonWarrants,
             searchWarrants,
             priorityWarrants,
+            availableCrimes,
+            availableRegimes,
             isPatrolActive,
             startPatrol,
             stopPatrol,

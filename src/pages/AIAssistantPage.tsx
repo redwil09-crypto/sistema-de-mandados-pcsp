@@ -14,7 +14,6 @@ import Header from '../components/Header';
 import ConfirmModal from '../components/ConfirmModal';
 import { toast } from 'sonner';
 import { Warrant } from '../types';
-import { CRIME_OPTIONS } from '../data/constants';
 import { extractPdfData, extractFromText } from '../pdfExtractor';
 import { uploadFile, getPublicUrl } from '../supabaseStorage';
 import { analyzeWarrantData, isGeminiEnabled } from '../services/geminiService';
@@ -24,7 +23,7 @@ import BottomNav from '../components/BottomNav';
 
 
 const AIAssistantPage = () => {
-    const { addWarrant: onAdd, warrants } = useWarrants();
+    const { addWarrant: onAdd, warrants, availableCrimes } = useWarrants();
     const navigate = useNavigate();
     const [searchParams, setSearchParams] = useSearchParams();
     const [activeTab, setActiveTab] = useState<'extraction' | 'database'>((searchParams.get('tab') as any) || 'extraction');
@@ -1304,7 +1303,7 @@ const AIAssistantPage = () => {
                                             <label className="block text-[10px] font-black text-text-secondary-light dark:text-zinc-500 uppercase tracking-widest ml-1">Crime</label>
                                             <select value={filterCrime} onChange={e => setFilterCrime(e.target.value)} className="w-full rounded-xl border border-border-light dark:border-white/10 bg-white dark:bg-black/40 text-zinc-900 dark:text-zinc-200 text-xs p-3 outline-none focus:ring-2 focus:ring-primary/30 appearance-none transition-all">
                                                 <option value="" className="bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white">Todos os Crimes</option>
-                                                {CRIME_OPTIONS.map(c => <option key={c} value={c} className="bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white">{c}</option>)}
+                                                {availableCrimes.map(c => <option key={c} value={c} className="bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white">{c}</option>)}
                                             </select>
                                         </div>
                                         <div className="space-y-1.5">

@@ -9,7 +9,6 @@ import {
 import { toast } from 'sonner';
 import Header from '../components/Header';
 import { Warrant } from '../types';
-import { CRIME_OPTIONS, REGIME_OPTIONS } from '../data/constants';
 import { uploadFile, getPublicUrl } from '../supabaseStorage';
 import VoiceInput from '../components/VoiceInput';
 
@@ -20,7 +19,7 @@ import { formatDate, maskDate } from '../utils/helpers';
 import { useWarrants } from '../contexts/WarrantContext';
 
 const NewWarrant = () => {
-    const { addWarrant, updateWarrant, warrants } = useWarrants();
+    const { addWarrant, updateWarrant, warrants, availableCrimes, availableRegimes } = useWarrants();
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const editId = searchParams.get('edit');
@@ -487,31 +486,34 @@ const NewWarrant = () => {
                     </div>
                     <div>
                         <label className="block text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark mb-1">Crime / Infração</label>
-                        <select
+                        <input
                             name="crime"
+                            list="crimes-list"
                             value={formData.crime}
                             onChange={handleChange}
                             className="w-full rounded-lg border border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark p-2.5 text-sm text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none"
-                        >
-                            <option value="">Selecione o crime...</option>
-                            {CRIME_OPTIONS.map(c => <option key={c} value={c}>{c}</option>)}
-                            <option value="OUTRO">Outro (especificar nas observações)</option>
-                        </select>
+                            placeholder="Selecione ou digite um novo crime..."
+                        />
+                        <datalist id="crimes-list">
+                            {availableCrimes.map(c => <option key={c} value={c} />)}
+                        </datalist>
                     </div>
                     <div>
                         <label className="block text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark mb-1">Regime / Situação</label>
-                        <select
+                        <input
                             name="regime"
+                            list="regime-list"
                             value={formData.regime}
                             onChange={handleChange}
                             className="w-full rounded-lg border border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark p-2.5 text-sm text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none"
-                        >
-                            <option value="">Selecione a situação...</option>
-                            {REGIME_OPTIONS
+                            placeholder="Selecione ou digite a situação..."
+                        />
+                        <datalist id="regime-list">
+                            {availableRegimes
                                 .filter(r => type === 'search' || r !== "Audiência de Justificativa")
-                                .map(r => <option key={r} value={r}>{r}</option>)
+                                .map(r => <option key={r} value={r} />)
                             }
-                        </select>
+                        </datalist>
                     </div>
                 </div>
 

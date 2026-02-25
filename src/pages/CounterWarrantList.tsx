@@ -4,13 +4,12 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Search, Filter, Eye, FileCheck, CheckCircle2 } from 'lucide-react';
 import Header from '../components/Header';
 import WarrantCard from '../components/WarrantCard';
-import { CRIME_OPTIONS, REGIME_OPTIONS } from '../data/constants';
 
 import { generateWarrantPDF } from '../services/pdfReportService';
 import { useWarrants } from '../contexts/WarrantContext';
 
 const CounterWarrantList = () => {
-    const { warrants: allWarrants, updateWarrant, deleteWarrant, routeWarrants, toggleRouteWarrant } = useWarrants();
+    const { warrants: allWarrants, updateWarrant, deleteWarrant, routeWarrants, toggleRouteWarrant, availableCrimes } = useWarrants();
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const query = searchParams.get('q') || '';
@@ -124,7 +123,7 @@ const CounterWarrantList = () => {
                                     className="w-full rounded-lg border border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark p-2 text-sm text-text-light dark:text-text-dark focus:ring-2 focus:ring-emerald-500 outline-none"
                                 >
                                     <option value="">Todos</option>
-                                    {CRIME_OPTIONS.map(c => <option key={c} value={c}>{c}</option>)}
+                                    {availableCrimes.map(c => <option key={c} value={c}>{c}</option>)}
                                 </select>
                             </div>
                             <div>

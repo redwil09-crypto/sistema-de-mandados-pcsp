@@ -4,13 +4,12 @@ import { useSearchParams } from 'react-router-dom';
 import { Search, Filter, Eye } from 'lucide-react';
 import Header from '../components/Header';
 import WarrantCard from '../components/WarrantCard';
-import { CRIME_OPTIONS, REGIME_OPTIONS } from '../data/constants';
 import { generateWarrantPDF } from '../services/pdfReportService';
 import { maskDate } from '../utils/helpers';
 import { useWarrants } from '../contexts/WarrantContext';
 
 const AdvancedSearch = () => {
-    const { warrants, updateWarrant, deleteWarrant, routeWarrants, toggleRouteWarrant } = useWarrants();
+    const { warrants, updateWarrant, deleteWarrant, routeWarrants, toggleRouteWarrant, availableCrimes, availableRegimes } = useWarrants();
     const [searchParams] = useSearchParams();
     const query = searchParams.get('q') || '';
     const [searchTerm, setSearchTerm] = useState(query);
@@ -145,7 +144,7 @@ const AdvancedSearch = () => {
                                 className="w-full rounded-lg border border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark p-2 text-sm text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none"
                             >
                                 <option value="">Qualquer</option>
-                                {CRIME_OPTIONS.map(c => <option key={c} value={c}>{c}</option>)}
+                                {availableCrimes.map(c => <option key={c} value={c}>{c}</option>)}
                             </select>
                         </div>
                         <div>
@@ -156,7 +155,7 @@ const AdvancedSearch = () => {
                                 className="w-full rounded-lg border border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark p-2 text-sm text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none"
                             >
                                 <option value="">Qualquer</option>
-                                {REGIME_OPTIONS.map(r => <option key={r} value={r}>{r}</option>)}
+                                {availableRegimes.map(r => <option key={r} value={r}>{r}</option>)}
                             </select>
                         </div>
                     </div>
