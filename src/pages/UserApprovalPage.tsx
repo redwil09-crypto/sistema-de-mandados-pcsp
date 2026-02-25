@@ -9,6 +9,7 @@ export default function UserApprovalPage() {
     const [users, setUsers] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
+    const [tableExists, setTableExists] = useState(true);
 
     useEffect(() => {
         fetchUsers();
@@ -24,17 +25,21 @@ export default function UserApprovalPage() {
 
             if (error) {
                 if (error.code === '42P01') {
-                    // Table doesn't exist - this is handled in the UI
+                    setTableExists(false);
                     setUsers([]);
                 } else {
                     throw error;
                 }
             } else {
+                setTableExists(true);
                 setUsers(data || []);
             }
         } catch (err: any) {
             console.error('Error fetching users:', err);
-            toast.error('Erro de conexão com a tabela de perfis.');
+            // Don't toast on initial load if it's just a permissions issue we can handle
+            if (err.code !== '42P01') {
+                toast.error('Erro de conexão: ' + (err.message || 'Verifique as permissões.'));
+            }
         } finally {
             setLoading(false);
         }
@@ -94,7 +99,7 @@ export default function UserApprovalPage() {
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 gap-3">
-                        {filteredUsers.length === 0 ? (
+                        {!tableExists ? (
                             <div className="p-8 bg-surface-light dark:bg-surface-dark rounded-2xl border border-dashed border-amber-500/30 space-y-6">
                                 <div className="flex items-center gap-4 text-amber-500">
                                     <Shield size={32} />
@@ -153,11 +158,25 @@ $$ language plpgsql security definer;
 drop trigger if exists on_auth_user_created on auth.users;
 create trigger on_auth_user_created
   after insert on auth.users
-  for each row execute procedure public.handle_new_user();`}
+  for each row execute procedure public.handle_new_user();
+
+-- OPCIONAL: Sincronizar usuários atuais
+insert into public.profiles (id, email, full_name, role, authorized)
+select id, email, raw_user_meta_data->>'full_name', 'agente', false
+from auth.users
+on conflict (id) do nothing;`}
                                 </div>
                                 <p className="text-[10px] text-amber-500/50 italic font-bold">
                                     * Após executar, recarregue esta página.
                                 </p>
+                            </div>
+                        ) : filteredUsers.length === 0 ? (
+                            <div className="text-center py-20 bg-surface-light dark:bg-surface-dark rounded-2xl border border-dashed border-border-light dark:border-border-dark space-y-4">
+                                <UserCircle size={48} className="mx-auto text-white/10" />
+                                <div className="space-y-1">
+                                    <p className="text-sm text-white/40 font-bold uppercase tracking-widest">Nenhum policial pendente</p>
+                                    <p className="text-[10px] text-white/20 uppercase tracking-tight">Novos cadastros aparecerão aqui automaticamente</p>
+                                </div>
                             </div>
                         ) : (
                             filteredUsers.map((user) => (
