@@ -661,7 +661,7 @@ const AIAssistantPage = () => {
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                     <button
                                         onClick={handleVoiceAssistant}
-                                        className="col-span-2 py-4 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-xl shadow-lg border border-white/20 flex items-center justify-center gap-3 active:scale-95 transition-all text-sm font-bold"
+                                        className="col-span-1 sm:col-span-2 py-4 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-xl shadow-lg border border-white/20 flex items-center justify-center gap-3 active:scale-95 transition-all text-sm font-bold"
                                     >
                                         {isRecording ? <Mic className="animate-pulse" size={24} /> : <Mic size={24} />}
                                         {isRecording ? "OUVINDO..." : "CRIAR MANDADO POR VOZ"}
@@ -678,6 +678,17 @@ const AIAssistantPage = () => {
                                         <p className="font-bold text-text-light dark:text-text-dark text-[11px]">Tirar Foto</p>
                                         <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" accept="image/*" capture="environment" onChange={handleFileUpload} />
                                     </div>
+
+                                    <a
+                                        href="https://portalbnmp.cnj.jus.br/#/pesquisa-peca"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="col-span-1 sm:col-span-2 mt-1 py-4 bg-surface-light dark:bg-black/40 border border-border-light dark:border-white/10 rounded-xl flex items-center justify-center gap-3 hover:border-primary/50 dark:hover:border-primary/50 transition-all shadow-md active:scale-95 text-text-light dark:text-white font-black text-xs sm:text-sm uppercase tracking-widest group"
+                                    >
+                                        <Database size={20} className="text-primary group-hover:scale-110 transition-transform" />
+                                        <span>Consultar Base BNMP</span>
+                                        <ExternalLink size={14} className="opacity-50 ml-1 group-hover:opacity-100 transition-opacity" />
+                                    </a>
                                 </div>
 
 
