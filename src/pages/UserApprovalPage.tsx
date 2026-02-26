@@ -91,6 +91,10 @@ export default function UserApprovalPage() {
 
             if (error) throw error;
             toast.success('Registro excluído com sucesso.');
+            
+            // Helpful alert for the admin
+            alert("Atenção: O perfil foi excluído da lista de aprovação.\n\nSe você deseja que este policial consiga se cadastrar novamente do ZERO, é obrigatório excluir o e-mail dele também no painel oficial do Supabase (em Authentication -> Users).\n\nCaso contrário, o login antigo dele continuará existindo, mas sem autorização.");
+            
             fetchUsers();
         } catch (err: any) {
             toast.error('Erro ao excluir: ' + err.message);

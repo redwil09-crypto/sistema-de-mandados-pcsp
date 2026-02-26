@@ -95,15 +95,20 @@ function App() {
 
         const syncProfile = async (currentSession: Session) => {
             try {
-                let { data: profileData } = await supabase
+                let { data: profileData, error: selectError } = await supabase
                     .from('profiles')
                     .select('*')
                     .eq('id', currentSession.user.id)
                     .maybeSingle();
 
+                if (selectError && selectError.code !== 'PGRST116') {
+                    console.error("Profile select error:", selectError);
+                }
+
                 if (!profileData) {
+                    // Profile is missing, try to recreate it
                     const metadata = currentSession.user.user_metadata || {};
-                    const { data: newProfile } = await supabase.from('profiles').insert({
+                    const { data: newProfile, error: insertError } = await supabase.from('profiles').insert({
                         id: currentSession.user.id,
                         email: currentSession.user.email || metadata.email,
                         full_name: metadata.full_name,
@@ -115,16 +120,24 @@ function App() {
                         authorized: false
                     }).select().maybeSingle();
 
+                    if (insertError) {
+                        console.error("Profile insert error:", insertError);
+                        // We will use toast if available, or just alert to guarantee they see it
+                        alert(`Erro ao tentar restaurar perfil: ${insertError.message}`);
+                    }
+
                     if (newProfile) {
                         profileData = newProfile;
+                        alert("Seu cadastro foi restaurado com sucesso! O administrador já pode aprovar.");
                     }
                 }
 
                 if (mounted) {
                     setProfile(profileData);
                 }
-            } catch (err) {
+            } catch (err: any) {
                 console.error("Profile sync error:", err);
+                alert(`Erro crítico ao restaurar perfil: ${err.message}`);
             }
         };
 
