@@ -87,22 +87,78 @@ function App() {
     });
 
     const [session, setSession] = useState<Session | null>(null);
+    const [profile, setProfile] = useState<any>(null);
     const [authLoading, setAuthLoading] = useState(true);
 
     useEffect(() => {
-        supabase.auth.getSession().then(({ data: { session } }) => {
-            setSession(session);
-            setAuthLoading(false);
+        let mounted = true;
+
+        const syncProfile = async (currentSession: Session) => {
+            try {
+                let { data: profileData } = await supabase
+                    .from('profiles')
+                    .select('*')
+                    .eq('id', currentSession.user.id)
+                    .maybeSingle();
+
+                if (!profileData) {
+                    const metadata = currentSession.user.user_metadata || {};
+                    const { data: newProfile } = await supabase.from('profiles').insert({
+                        id: currentSession.user.id,
+                        email: currentSession.user.email || metadata.email,
+                        full_name: metadata.full_name,
+                        rg: metadata.rg,
+                        cargo: metadata.cargo,
+                        phone: metadata.phone,
+                        workplace: metadata.workplace,
+                        role: metadata.role || 'agente',
+                        authorized: false
+                    }).select().maybeSingle();
+
+                    if (newProfile) {
+                        profileData = newProfile;
+                    }
+                }
+
+                if (mounted) {
+                    setProfile(profileData);
+                }
+            } catch (err) {
+                console.error("Profile sync error:", err);
+            }
+        };
+
+        supabase.auth.getSession().then(({ data: { session: initialSession } }) => {
+            if (mounted) {
+                setSession(initialSession);
+                if (initialSession) {
+                    syncProfile(initialSession).finally(() => {
+                        if (mounted) setAuthLoading(false);
+                    });
+                } else {
+                    setAuthLoading(false);
+                }
+            }
         }).catch(err => {
             console.error("Auth Session Error:", err);
-            setAuthLoading(false);
+            if (mounted) setAuthLoading(false);
         });
 
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-            setSession(session);
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, newSession) => {
+            if (mounted) {
+                setSession(newSession);
+                if (newSession) {
+                    syncProfile(newSession);
+                } else {
+                    setProfile(null);
+                }
+            }
         });
 
-        return () => subscription.unsubscribe();
+        return () => {
+            mounted = false;
+            subscription.unsubscribe();
+        };
     }, []);
 
     useEffect(() => {
@@ -135,7 +191,10 @@ function App() {
 
     // Authorization Check - William Castro is Master Admin by Email
     const isMasterAdmin = session.user.email === 'william.castro@policiacivil.sp.gov.br';
-    const isAuthorized = session.user.user_metadata?.authorized === true || isMasterAdmin;
+
+    // Check both profile and user_metadata to be safe, but profile takes precedence if it exists
+    const isAuthorized = isMasterAdmin ||
+        (profile ? profile.authorized === true : session.user.user_metadata?.authorized === true);
 
     if (!isAuthorized) {
         return (
