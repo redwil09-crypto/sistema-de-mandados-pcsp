@@ -44,6 +44,7 @@ const AIAssistantPage = () => {
     const [filterCrime, setFilterCrime] = useState('');
     const [filterRegime, setFilterRegime] = useState('');
     const [filterStatus, setFilterStatus] = useState('');
+    const [filterDpRegion, setFilterDpRegion] = useState('');
     const [dateStart, setDateStart] = useState('');
     const [dateEnd, setDateEnd] = useState('');
     const [observationKeyword, setObservationKeyword] = useState('');
@@ -121,6 +122,7 @@ const AIAssistantPage = () => {
             const matchesCrime = filterCrime ? w.crime === filterCrime : true;
             const matchesRegime = filterRegime ? w.regime === filterRegime : true;
             const matchesStatus = filterStatus ? w.status === filterStatus : true;
+            const matchesDpRegion = filterDpRegion ? w.dpRegion === filterDpRegion : true;
 
             // Date comparison logic
             let matchesDate = true;
@@ -140,11 +142,11 @@ const AIAssistantPage = () => {
 
             const matchesObservation = observationKeyword ? (w.observation || '').toLowerCase().includes(observationKeyword.toLowerCase()) : true;
 
-            return matchesText && matchesCrime && matchesRegime && matchesStatus && matchesDate && matchesObservation;
+            return matchesText && matchesCrime && matchesRegime && matchesStatus && matchesDpRegion && matchesDate && matchesObservation;
         });
-    }, [warrants, searchTerm, filterCrime, filterRegime, filterStatus, dateStart, dateEnd, observationKeyword]);
+    }, [warrants, searchTerm, filterCrime, filterRegime, filterStatus, filterDpRegion, dateStart, dateEnd, observationKeyword]);
 
-    const hasActiveFilters = filterCrime || filterRegime || filterStatus || dateStart || dateEnd || observationKeyword || searchTerm;
+    const hasActiveFilters = filterCrime || filterRegime || filterStatus || filterDpRegion || dateStart || dateEnd || observationKeyword || searchTerm;
 
 
     const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -164,6 +166,7 @@ const AIAssistantPage = () => {
         setFilterCrime('');
         setFilterRegime('');
         setFilterStatus('');
+        setFilterDpRegion('');
         setDateStart('');
         setDateEnd('');
         setObservationKeyword('');
@@ -1327,7 +1330,7 @@ const AIAssistantPage = () => {
                                             </button>
                                         )}
                                     </div>
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
                                         <div className="space-y-1.5">
                                             <label className="block text-[10px] font-black text-text-secondary-light dark:text-zinc-500 uppercase tracking-widest ml-1">Crime</label>
                                             <select value={filterCrime} onChange={e => setFilterCrime(e.target.value)} className="w-full rounded-xl border border-border-light dark:border-white/10 bg-white dark:bg-black/40 text-zinc-900 dark:text-zinc-200 text-xs p-3 outline-none focus:ring-2 focus:ring-primary/30 appearance-none transition-all">
@@ -1342,6 +1345,17 @@ const AIAssistantPage = () => {
                                                 <option value="EM ABERTO" className="bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white">Em Aberto</option>
                                                 <option value="CUMPRIDO" className="bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white">Cumprido</option>
                                                 <option value="PRESO" className="bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white">Preso</option>
+                                            </select>
+                                        </div>
+                                        <div className="space-y-1.5">
+                                            <label className="block text-[10px] font-black text-text-secondary-light dark:text-zinc-500 uppercase tracking-widest ml-1">Região DP</label>
+                                            <select value={filterDpRegion} onChange={e => setFilterDpRegion(e.target.value)} className="w-full rounded-xl border border-border-light dark:border-white/10 bg-white dark:bg-black/40 text-zinc-900 dark:text-zinc-200 text-xs p-3 outline-none focus:ring-2 focus:ring-primary/30 appearance-none transition-all">
+                                                <option value="" className="bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white">Qualquer DP</option>
+                                                <option value="1º DP" className="bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white">1º DP</option>
+                                                <option value="2º DP" className="bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white">2º DP</option>
+                                                <option value="3º DP" className="bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white">3º DP</option>
+                                                <option value="4º DP" className="bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white">4º DP</option>
+                                                <option value="Outras Cidades" className="bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white">Outras Cidades</option>
                                             </select>
                                         </div>
                                     </div>

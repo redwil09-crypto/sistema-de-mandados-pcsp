@@ -132,10 +132,11 @@ const Stats = () => {
                             toast.loading("Analisando endereços e vinculando DPs...", { id: 'dp-update' });
 
                             for (const w of warrants) {
-                                if (!w.dpRegion && w.location) {
+                                if (w.location) {
                                     const detected = determineDpRegion(w.location);
 
-                                    if (detected) {
+                                    // if it's different from what's currently there, update it
+                                    if (detected && w.dpRegion !== detected) {
                                         await updateWarrant(w.id, { dpRegion: detected });
                                         updated++;
                                     }
