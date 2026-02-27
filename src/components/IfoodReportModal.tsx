@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import { jsPDF } from 'jspdf';
 import { Warrant } from '../types';
 import { uploadFile, getPublicUrl } from '../supabaseStorage';
+import { UserProfile } from '../services/pdfReportService';
 
 interface IfoodReportModalProps {
     isOpen: boolean;
@@ -13,9 +14,10 @@ interface IfoodReportModalProps {
     warrant: Warrant;
     type: 'ifood' | 'uber' | '99';
     updateWarrant: (id: string, data: Partial<Warrant>) => Promise<boolean>;
+    userProfile?: UserProfile | null;
 }
 
-const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, warrant, type: initialType, updateWarrant }) => {
+const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, warrant, type: initialType, updateWarrant, userProfile }) => {
     const [generatedText, setGeneratedText] = useState('');
     const [isProcessing, setIsProcessing] = useState(false);
     const [officeNumber, setOfficeNumber] = useState('');
@@ -84,8 +86,8 @@ ${indent}Em caso positivo, requer-se o envio das informações cadastrais fornec
 
 ${indent}As informações devem ser encaminhadas ao e-mail institucional do policial responsável pela investigação:
 
-${indent}william.castro@policiacivil.sp.gov.br
-${indent}William Campos de Assis Castro – Polícia Civil do Estado de São Paulo
+${indent}${userProfile?.email || 'william.castro@policiacivil.sp.gov.br'}
+${indent}${userProfile?.full_name || 'William Campos de Assis Castro'} – Polícia Civil do Estado de São Paulo
 
 ${indent}Pessoa de interesse para a investigação:
 
@@ -250,8 +252,8 @@ ${indent}Atenciosamente,`;
         }
 
         doc.setFont('helvetica', 'bold');
-        doc.text("Luiz Antônio Cunha dos Santos", pageWidth / 2, signatureNameY, { align: 'center' });
-        doc.text("Delegado de Polícia", pageWidth / 2, signatureTitleY, { align: 'center' });
+        doc.text(userProfile?.full_name || "Luiz Antônio Cunha dos Santos", pageWidth / 2, signatureNameY, { align: 'center' });
+        doc.text(userProfile?.cargo || "Delegado de Polícia", pageWidth / 2, signatureTitleY, { align: 'center' });
         doc.setFont('helvetica', 'normal');
         doc.text("Ao Ilustríssimo Senhor Responsável", margin, addresseeY);
         doc.setFont('helvetica', 'bold');

@@ -22,7 +22,7 @@ import WarrantAuditLog from '../components/WarrantAuditLog';
 import { formatDate, getStatusColor, maskDate } from '../utils/helpers';
 import { Warrant } from '../types';
 import { geocodeAddress } from '../services/geocodingService';
-import { generateWarrantPDF, generateIfoodOfficePDF } from '../services/pdfReportService';
+import { generateWarrantPDF, generateIfoodOfficePDF, UserProfile } from '../services/pdfReportService';
 import IfoodReportModal from '../components/IfoodReportModal';
 import FloatingDock from '../components/FloatingDock';
 import { analyzeRawDiligence, generateReportBody, analyzeDocumentStrategy, askAssistantStrategy, mergeIntelligence } from '../services/geminiService';
@@ -116,7 +116,7 @@ const WarrantDetail = () => {
         reportNumber: '',
         court: '',
         body: '',
-        signer: 'William Campos A. Castro',
+        signer: 'Policial',
         delegate: 'Luiz Antônio Cunha dos Santos',
         aiInstructions: ''
     });
@@ -127,6 +127,7 @@ const WarrantDetail = () => {
 
     const [localData, setLocalData] = useState<Partial<Warrant>>({});
     const [userId, setUserId] = useState<string | undefined>(undefined);
+    const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
     const [isAdmin, setIsAdmin] = useState(false);
 
     // -------------------------------------------------------------------------------- //
@@ -168,6 +169,38 @@ const WarrantDetail = () => {
             const { data: { user } } = await supabase.auth.getUser();
             if (user) {
                 setUserId(user.id);
+
+                // Load detailed profile
+                const { data: profile } = await supabase
+                    .from('profiles')
+                    .select('full_name, cargo, email')
+                    .eq('id', user.id)
+                    .single();
+
+                if (profile) {
+                    setUserProfile(profile);
+                    // Update signer in capturasData if it's still default
+                    setCapturasData(prev => ({
+                        ...prev,
+                        signer: profile.full_name
+                    }));
+                } else {
+                    // Fallback to metadata if profile table fails
+                    const metadata = user.user_metadata;
+                    if (metadata?.full_name) {
+                        const metaProfile = {
+                            full_name: metadata.full_name,
+                            cargo: metadata.cargo || 'Agente Policial',
+                            email: user.email
+                        };
+                        setUserProfile(metaProfile);
+                        setCapturasData(prev => ({
+                            ...prev,
+                            signer: metadata.full_name
+                        }));
+                    }
+                }
+
                 if (user.user_metadata?.role === 'admin') {
                     setIsAdmin(true);
                 }
@@ -673,7 +706,7 @@ const WarrantDetail = () => {
         const entry: any = {
             id: Date.now().toString(),
             date: new Date().toISOString(),
-            investigator: "Policial",
+            investigator: userProfile?.full_name || "Policial",
             notes: finalNotes,
             type: 'intelligence'
         };
@@ -1027,7 +1060,7 @@ Equipe de Capturas - DIG / PCSP
         if (!data) return;
         const toastId = toast.loading("Gerando Ofício iFood...");
         try {
-            await generateIfoodOfficePDF(data, updateWarrant);
+            await generateIfoodOfficePDF(data, updateWarrant, userProfile || undefined);
             toast.dismiss(toastId);
         } catch (error) {
             console.error(error);
@@ -1115,7 +1148,7 @@ Equipe de Capturas - DIG / PCSP
                     id: Date.now().toString(),
                     date: new Date().toISOString(),
                     notes: `[INTELIGÊNCIA PLATAFORMA] ${analysisSummary}`,
-                    investigator: 'Agente (Via Sistema)',
+                    investigator: userProfile?.full_name || 'Agente (Via Sistema)',
                     type: 'IFOOD_UBER' as const
                 };
 
@@ -1179,7 +1212,7 @@ Equipe de Capturas - DIG / PCSP
         if (!data) return;
         // Refresh data to ensure history is included
         await refreshWarrants(true);
-        await generateWarrantPDF(data, updateWarrant, aiTimeSuggestion);
+        await generateWarrantPDF(data, updateWarrant, aiTimeSuggestion, userProfile || undefined);
     };
 
     const handleGenerateIFoodReport = async () => {
@@ -1321,9 +1354,9 @@ Equipe de Capturas - DIG / PCSP
             y += (splitBody3.length * 5) + 2;
 
             doc.setFont('helvetica', 'bold');
-            doc.text("     william.castro@policiacivil.sp.gov.br", margin, y);
+            doc.text(`     ${userProfile?.email || 'william.castro@policiacivil.sp.gov.br'}`, margin, y);
             y += 5;
-            doc.text("     William Campos de Assis Castro – Polícia Civil do Estado de São Paulo", margin, y);
+            doc.text(`     ${userProfile?.full_name || 'William Campos de Assis Castro'} – Polícia Civil do Estado de São Paulo`, margin, y);
 
             y += 10; // Reduced spacing
 
@@ -1361,9 +1394,9 @@ Equipe de Capturas - DIG / PCSP
             // Position Signature at fixed bottom location
             y = signatureBlockY;
             doc.setFont('helvetica', 'bold');
-            doc.text("Luiz Antônio Cunha dos Santos", pageWidth / 2, y, { align: 'center' });
+            doc.text(userProfile?.full_name || "Luiz Antônio Cunha dos Santos", pageWidth / 2, y, { align: 'center' });
             y += 5;
-            doc.text("Delegado de Polícia", pageWidth / 2, y, { align: 'center' });
+            doc.text(userProfile?.cargo || "Delegado de Polícia", pageWidth / 2, y, { align: 'center' });
 
             // Position Addressee at fixed bottom location
             y = addresseeBlockY;
@@ -3191,6 +3224,7 @@ Equipe de Capturas - DIG / PCSP
                         warrant={data}
                         type={activeReportType}
                         updateWarrant={updateWarrant}
+                        userProfile={userProfile}
                     />
                 )
             }
