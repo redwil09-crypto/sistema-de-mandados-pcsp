@@ -107,7 +107,7 @@ const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, wa
         const contactEmail = currentUser?.email || 'william.castro@policiacivil.sp.gov.br';
         const contactName = currentUser?.name || 'William Campos de Assis Castro';
 
-        return `Ofício: nº.${officeNumber}/CAPT/2025
+        return `Ofício: nº.${officeNumber}/CAPT/2026
 Referência: PROC. Nº ${warrant.number}
 Natureza: Solicitação de Dados.
 
@@ -184,16 +184,15 @@ ${indent}Atenciosamente,`;
                 pdf.addImage(badgeImg, 'PNG', margin, y, badgeW, badgeH);
             }
             const textX = margin + 32;
-            pdf.setFont('helvetica', 'normal');
-            pdf.setFontSize(8);
+            pdf.setFont('helvetica', 'bold');
+            pdf.setFontSize(8.5);
             pdf.setTextColor(0, 0, 0);
             const headerLines = [
                 "SECRETARIA DA SEGURANÇA PÚBLICA",
                 "POLÍCIA CIVIL DO ESTADO DE SÃO PAULO",
                 "DEPARTAMENTO DE POLÍCIA JUDICIÁRIA DE SÃO PAULO INTERIOR",
                 "DEINTER 1 - SÃO JOSÉ DOS CAMPOS",
-                "DELEGACIA SECCIONAL DE POLÍCIA DE JACAREÍ –",
-                "“DELEGADO TALIS PRADO PINTO”",
+                "DELEGACIA SECCIONAL DE POLÍCIA DE JACAREÍ",
                 "DELEGACIA DE INVESTIGAÇÕES GERAIS DE JACAREÍ"
             ];
             let lineY = y + 3;
@@ -201,8 +200,14 @@ ${indent}Atenciosamente,`;
                 pdf.text(line, textX, lineY);
                 lineY += 3.5;
             });
+
+            // Linha separadora do cabeçalho
             const barY = lineY + 2;
-            pdf.setFillColor(200, 200, 200);
+            pdf.setDrawColor(0);
+            pdf.setLineWidth(0.5);
+            pdf.line(margin, barY - 1, margin + maxLineWidth, barY - 1);
+
+            pdf.setFillColor(240, 240, 240);
             pdf.rect(margin, barY, maxLineWidth, 6, 'F');
             pdf.setDrawColor(0);
             pdf.setLineWidth(0.1);
@@ -225,6 +230,10 @@ ${indent}Atenciosamente,`;
             const pageStr = `Página ${pageNum} de ${totalPages}`;
             const dividerX = pageWidth - margin - 35;
             pdf.setDrawColor(0);
+            pdf.setLineWidth(0.5);
+            pdf.line(margin, footerY - 5, margin + maxLineWidth, footerY - 5);
+
+            pdf.setLineWidth(0.1);
             pdf.line(dividerX, footerY - 2, dividerX, footerY + 8);
             pdf.text(addr1, dividerX - 5, footerY, { align: 'right' });
             const phonePart = "Tel-12-3951-1000 - E-mail - ";
@@ -271,7 +280,11 @@ ${indent}Atenciosamente,`;
 
                 const splitLine = doc.splitTextToSize(line, maxLineWidth);
                 doc.text(splitLine, margin, y);
-                y += (splitLine.length * 5) + 2;
+
+                // Reduzir espaçamento para as linhas de cabeçalho (Ofício, Referência, Natureza)
+                const lineSpacing = isImportant && (upperLine.startsWith("OFÍCIO:") || upperLine.startsWith("REFERÊNCIA:") || upperLine.startsWith("NATUREZA:")) ? 4.5 : 5;
+                const lineGap = isImportant && (upperLine.startsWith("OFÍCIO:") || upperLine.startsWith("REFERÊNCIA:") || upperLine.startsWith("NATUREZA:")) ? 1 : 2;
+                y += (splitLine.length * lineSpacing) + lineGap;
             }
         });
 
@@ -287,8 +300,9 @@ ${indent}Atenciosamente,`;
         }
 
         doc.setFont('helvetica', 'bold');
-        doc.text("Luiz Antônio Cunha dos Santos", pageWidth / 2, signatureNameY, { align: 'center' });
-        doc.text("Delegado de Polícia", pageWidth / 2, signatureTitleY, { align: 'center' });
+        const sigX = margin + 40; // Mais para a esquerda que o centro
+        doc.text("Luiz Antônio Cunha dos Santos", sigX, signatureNameY, { align: 'left' });
+        doc.text("Delegado de Polícia", sigX + 15, signatureTitleY, { align: 'left' });
         doc.setFont('helvetica', 'normal');
         doc.text("Ao Ilustríssimo Senhor Responsável", margin, addresseeY);
         doc.setFont('helvetica', 'bold');

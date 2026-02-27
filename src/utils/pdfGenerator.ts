@@ -408,7 +408,7 @@ export const generateIfoodOfficePDF = async (
 
             doc.setLineWidth(0.5);
             doc.line(margin, y + badgeH + 5, pageWidth - margin, y + badgeH + 5);
-            y += badgeH + 20;
+            y += badgeH + 12; // Reduced spacing
 
         } catch (e) {
             console.error("Badge load error", e);
@@ -465,14 +465,14 @@ Ressalto que o descumprimento injustificado desta requisição poderá acarretar
 
         // --- DATE AND SIGNATURE ---
         const today = new Date().toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' });
-        doc.text(`Jacareí, ${today}.`, margin, y);
+        doc.text(`Jacareí, ${today}.`, margin, y, { align: 'left' });
         y += 20;
 
-        doc.line(pageWidth / 2 - 40, y, pageWidth / 2 + 40, y);
+        const sigX = margin + 40;
         doc.setFont('helvetica', 'bold');
-        doc.text("Autoridade Policial", pageWidth / 2, y + 5, { align: 'center' });
+        doc.text("Autoridade Policial", sigX, y + 5, { align: 'left' });
         doc.setFont('helvetica', 'normal');
-        doc.text("Delegacia de Investigações Gerais de Jacareí", pageWidth / 2, y + 10, { align: 'center' });
+        doc.text("Delegacia de Investigações Gerais de Jacareí", sigX + 15, y + 10, { align: 'left' });
 
         // Save
         const safeName = data.name.replace(/[^a-zA-Z0-9.-]/g, '_');

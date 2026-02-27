@@ -510,7 +510,7 @@ export const generateIfoodOfficePDF = async (
 
             doc.setLineWidth(0.5);
             doc.line(margin, y + badgeH + 5, pageWidth - margin, y + badgeH + 5);
-            y += badgeH + 20;
+            y += badgeH + 12; // Reduced spacing
 
         } catch (e) {
             console.error("Badge load error", e);
@@ -574,14 +574,14 @@ export const generateIfoodOfficePDF = async (
 
         // --- DATE AND SIGNATURE ---
         const today = new Date().toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' });
-        doc.text(`Jacareí, ${today}.`, margin, y);
+        doc.text(`Jacareí, ${today}.`, margin, y, { align: 'left' });
         y += 20;
 
-        doc.line(pageWidth / 2 - 40, y, pageWidth / 2 + 40, y);
+        const sigX = margin + 40;
         doc.setFont('helvetica', 'bold');
-        doc.text("Luiz Antônio Cunha dos Santos", pageWidth / 2, y + 5, { align: 'center' });
+        doc.text("Luiz Antônio Cunha dos Santos", sigX, y + 5, { align: 'left' });
         doc.setFont('helvetica', 'normal');
-        doc.text("Delegado de Polícia", pageWidth / 2, y + 10, { align: 'center' });
+        doc.text("Delegado de Polícia", sigX + 15, y + 10, { align: 'left' });
 
         // --- FOOTER (New Model Style) ---
         const footerY = pageHeight - 15;
@@ -734,8 +734,8 @@ export const generateCapturasReportPDF = async (
         doc.text(`Relatório: ${capturasData.reportNumber || 'N/A'}`, margin, y);
 
         doc.setFont('helvetica', 'italic');
-        doc.text(dateStr, pageWidth - margin, y, { align: 'right' });
-        y += 6;
+        doc.text(dateStr, margin, y + 6, { align: 'left' });
+        y += 12;
 
         const isMinor = data?.type?.toLowerCase().includes('menores') || data?.type?.toLowerCase().includes('adolescente') || data?.type?.toLowerCase().includes('criança');
 

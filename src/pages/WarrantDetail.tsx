@@ -1277,19 +1277,19 @@ Equipe de Capturas - DIG / PCSP
             doc.setFont('helvetica', 'bold');
             doc.setFontSize(11);
             doc.text(`Ofício: ${officeId}`, margin, y);
-            y += 5;
+            y += 4.5;
             doc.text(`Referência: PROC. Nº ${data.number}`, margin, y);
-            y += 5;
+            y += 4.5;
             doc.text(`Natureza: Solicitação de Dados.`, margin, y);
 
-            y += 8; // Reduced spacing
+            y += 7; // Reduced spacing
 
             // Date
             const today = new Date();
             const months = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
             const formattedDate = `Jacareí, ${today.getDate()} de ${months[today.getMonth()]} de ${today.getFullYear()}.`;
             doc.setFont('helvetica', 'normal');
-            doc.text(formattedDate, pageWidth - margin, y, { align: 'right' });
+            doc.text(formattedDate, margin, y, { align: 'left' });
 
             y += 12; // Reduced spacing
 
@@ -1361,9 +1361,10 @@ Equipe de Capturas - DIG / PCSP
             // Position Signature at fixed bottom location
             y = signatureBlockY;
             doc.setFont('helvetica', 'bold');
-            doc.text("Luiz Antônio Cunha dos Santos", pageWidth / 2, y, { align: 'center' });
+            const sigX = margin + 40;
+            doc.text("Luiz Antônio Cunha dos Santos", sigX, y, { align: 'left' });
             y += 5;
-            doc.text("Delegado de Polícia", pageWidth / 2, y, { align: 'center' });
+            doc.text("Delegado de Polícia", sigX + 15, y, { align: 'left' });
 
             // Position Addressee at fixed bottom location
             y = addresseeBlockY;
