@@ -17,6 +17,11 @@ interface IfoodReportModalProps {
     userProfile?: UserProfile | null;
 }
 
+const AUTHORITIES = [
+    { name: "Luiz Antônio Cunha dos Santos", title: "Delegado de Polícia", email: "dig.jacarei@policiacivil.sp.gov.br" },
+    { name: "William Campos de Assis Castro", title: "Delegado de Polícia", email: "william.castro@policiacivil.sp.gov.br" }
+];
+
 const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, warrant, type: initialType, updateWarrant, userProfile }) => {
     const [generatedText, setGeneratedText] = useState('');
     const [isProcessing, setIsProcessing] = useState(false);
@@ -24,11 +29,15 @@ const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, wa
     const [step, setStep] = useState<'input' | 'processing' | 'result'>('input');
     const [badgeImg, setBadgeImg] = useState<HTMLImageElement | null>(null);
     const [selectedType, setSelectedType] = useState(initialType);
+    const [authorityIndex, setAuthorityIndex] = useState(0);
 
     // Update selectedType if props change (reset)
     useEffect(() => {
-        if (isOpen) setSelectedType(initialType);
-    }, [initialType, isOpen]);
+        if (isOpen) {
+            setSelectedType(initialType);
+            setAuthorityIndex(userProfile?.full_name?.includes('William') ? 1 : 0);
+        }
+    }, [initialType, isOpen, userProfile]);
 
 
     // Preload badge image
@@ -61,42 +70,38 @@ const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, wa
         }
     }, [isOpen]);
 
-    const generateTextForType = (currentType: 'ifood' | 'uber' | '99') => {
-        const months = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
-        const today = new Date();
-        const dateLine = `Jacareí, ${today.getDate().toString().padStart(2, '0')} de ${months[today.getMonth()]} de ${today.getFullYear()}.`;
+    const generateTextForType = useCallback((type: 'ifood' | 'uber' | '99', office: string, authIndex: number) => {
+        const auth = AUTHORITIES[authIndex];
+        const indent = "                "; // Same as old indent
+        const label = type === 'ifood' ? 'IFOOD' : type === 'uber' ? 'UBER' : '99';
 
-        let platformName = 'IFOOD';
-        if (currentType === 'uber') platformName = 'UBER';
-        if (currentType === '99') platformName = '99';
-
-        const indent = "          ";
-
-        return `Ofício: nº.${officeNumber}/CAPT/2025
+        return `Ofício: ${office}
 Referência: PROC. Nº ${warrant.number}
 Natureza: Solicitação de Dados.
 
-${dateLine}
+Jacareí, ${new Date().toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' })}.
 
 ILMO. SENHOR RESPONSÁVEL,
 
-${indent}Com a finalidade de instruir investigação policial em trâmite nesta unidade, solicito, respeitosamente, a gentileza de verificar se o indivíduo abaixo relacionado encontra-se cadastrado como usuário ou entregador da plataforma ${platformName}.
+${indent}Com a finalidade de instruir investigação policial em trâmite nesta unidade, solicito, respeitosamente, a gentileza de verificar se o indivíduo abaixo relacionado encontra-se cadastrado como usuário ou entregador da plataforma ${label}.
 
 ${indent}Em caso positivo, requer-se o envio das informações cadastrais fornecidas para habilitação na plataforma, incluindo, se disponíveis, nome completo, endereço(s), número(s) de telefone, e-mail(s) e demais dados vinculados à respectiva conta.
 
 ${indent}As informações devem ser encaminhadas ao e-mail institucional do policial responsável pela investigação:
 
-${indent}${userProfile?.email || 'william.castro@policiacivil.sp.gov.br'}
-${indent}${userProfile?.full_name || 'William Campos de Assis Castro'} – Polícia Civil do Estado de São Paulo
+${indent}${auth.email}
+${indent}${auth.name} – Polícia Civil do Estado de São Paulo
 
-${indent}Pessoa de interesse para a investigação:
-
-${indent}${warrant.name.toUpperCase()} – CPF ${warrant.cpf || warrant.rg || 'NÃO INFORMADO'}
+Pessoa de interesse para a investigação:
+${warrant.name.toUpperCase()} / CPF/RG: ${warrant.cpf || warrant.rg || 'N/I'}
 
 ${indent}Aproveito a oportunidade para renovar meus votos de elevada estima e consideração.
 
-${indent}Atenciosamente,`;
-    };
+Atenciosamente,
+
+${auth.name}
+${auth.title}`;
+    }, [warrant]);
 
     const handleGenerate = () => {
         if (!officeNumber.trim()) {

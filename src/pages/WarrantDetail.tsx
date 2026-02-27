@@ -727,7 +727,7 @@ const WarrantDetail = () => {
         const entry: any = {
             id: Date.now().toString(),
             date: new Date().toISOString(),
-            investigator: userProfile?.full_name || "Policial",
+            investigator: "Policial",
             notes: finalNotes,
             type: 'intelligence'
         };
@@ -1169,7 +1169,7 @@ Equipe de Capturas - DIG / PCSP
                     id: Date.now().toString(),
                     date: new Date().toISOString(),
                     notes: `[INTELIGÊNCIA PLATAFORMA] ${analysisSummary}`,
-                    investigator: userProfile?.full_name || 'Agente (Via Sistema)',
+                    investigator: 'Policial',
                     type: 'IFOOD_UBER' as const
                 };
 
