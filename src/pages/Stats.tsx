@@ -14,6 +14,7 @@ import Header from '../components/Header';
 import BottomNav from '../components/BottomNav';
 import { useWarrants } from '../contexts/WarrantContext';
 import { toast } from 'sonner';
+import { determineDpRegion } from '../pdfExtractor';
 
 const Stats = () => {
     const { warrants, updateWarrant } = useWarrants();
@@ -127,24 +128,12 @@ const Stats = () => {
                     <p className="text-[10px] text-white/50 uppercase tracking-widest font-bold">Ação Temporária do Administrador</p>
                     <button
                         onClick={async () => {
-                            const keywords1DP = ['BANDEIRA BRANCA', 'VARADOURO', 'RIO ABAIXO', 'SANTA MARIA', 'ITAMARATI', 'FRANCI', 'ANTONIO', 'COLONIAL'];
-                            const keywords2DP = ['IGARAPES', 'IGARAPE', 'SILVESTRE', 'PAGADOR', 'PARATEI', 'ESPERANCA', 'NOVA ESPERANCA', 'BAIXOS'];
-                            const keywords3DP = ['CENTRO', 'VILA BRANCA', 'FLORIDA', 'CALIFORNIA', 'SAO JOAO', 'S JOAO', 'S. JOAO', 'JACAREI', 'AVENIDA'];
-                            const keywords4DP = ['IGARATA', 'REMEDINHO', 'INDUSTRIAS', 'RURAL', 'CHACARAS', 'CASSUNUNGA'];
-
-                            const normalizeText = (text: string) => text ? text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase() : '';
-
                             let updated = 0;
                             toast.loading("Analisando endereços e vinculando DPs...", { id: 'dp-update' });
 
                             for (const w of warrants) {
                                 if (!w.dpRegion && w.location) {
-                                    const loc = normalizeText(w.location);
-                                    let detected = null;
-                                    if (keywords3DP.some(k => loc.includes(k))) detected = '3º DP';
-                                    else if (keywords1DP.some(k => loc.includes(k))) detected = '1º DP';
-                                    else if (keywords2DP.some(k => loc.includes(k))) detected = '2º DP';
-                                    else if (keywords4DP.some(k => loc.includes(k))) detected = '4º DP';
+                                    const detected = determineDpRegion(w.location);
 
                                     if (detected) {
                                         await updateWarrant(w.id, { dpRegion: detected });

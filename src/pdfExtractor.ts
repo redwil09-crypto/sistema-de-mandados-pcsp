@@ -39,19 +39,52 @@ export interface ExtractedData {
     dpRegion?: string;          // New: DP area derived from location
 }
 
-// Helper to determine DP based on address
+// Helper to determine DP based on address using comprehensive Jacareí neighborhood list
 export const determineDpRegion = (address: string): string => {
     if (!address) return '';
     const loc = address.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase();
 
-    const keywords1DP = ['BANDEIRA BRANCA', 'VARADOURO', 'RIO ABAIXO', 'SANTA MARIA', 'ITAMARATI', 'FRANCI', 'ANTONIO', 'COLONIAL'];
-    const keywords2DP = ['IGARAPES', 'IGARAPE', 'SILVESTRE', 'PAGADOR', 'PARATEI', 'ESPERANCA', 'NOVA ESPERANCA', 'BAIXOS'];
-    const keywords3DP = ['CENTRO', 'VILA BRANCA', 'FLORIDA', 'CALIFORNIA', 'SAO JOAO', 'S JOAO', 'S. JOAO', 'JACAREI', 'AVENIDA'];
-    const keywords4DP = ['IGARATA', 'REMEDINHO', 'INDUSTRIAS', 'RURAL', 'CHACARAS', 'CASSUNUNGA'];
+    const keywords1DP = [
+        'BANDEIRA BRANCA', 'VARADOURO', 'RIO ABAIXO', 'SANTA MARIA', 'ITAMARATI',
+        'COLONIA', 'PARAISO', 'YOLANDA', 'JARDIM DO VALE', 'SANTO ANTONIO', 'PITORESCO',
+        'MARISTER', 'EMILIA', 'TERRAS DA CONCEICAO', 'OLIVEIRAS', 'SINOS',
+        'CIDADE SALVADOR', 'JARDIM REAL', 'NOVO AMANHECER', 'AVAREI', 'CORREGO SECO'
+    ];
 
-    if (keywords3DP.some(k => loc.includes(k))) return '3º DP';
-    if (keywords1DP.some(k => loc.includes(k))) return '1º DP';
+    const keywords2DP = [
+        'SAO SILVESTRE', 'IGARAPES', 'JARDIM ESPERANCA', 'NOVA ESPERANCA', 'PAGADOR',
+        'DIDINHA', 'BELA VISTA', 'JARDIM BOA VISTA', 'NUCLEO BOA VISTA', 'AMERICA',
+        'PANORAMA', 'SAO LUIZ', 'JACINTO', 'PARQUE BRASIL', 'VILA GARCIA',
+        'SANTA CRUZ DOS LAZAROS', 'ALVORADA', 'VILA ITA'
+    ];
+
+    const keywords3DP = [
+        'CENTRO', 'VILA BRANCA', 'FLORIDA', 'CALIFORNIA', 'SAO JOAO', 'LEONIDIA',
+        'PARAIBA', 'MESQUITA', 'SANTA MARINA', 'APRAZIVEL', 'PINHEIRO', 'FORMOSA',
+        'ZEZE', 'MARCONDES', 'LUIZA', 'PEREIRA DO AMPARO', 'JARDIM ESPER',
+        'COLEGINHO', 'VILA MACHADO', 'VILA MARTINEZ', 'SANTA RITA'
+    ];
+
+    const keywords4DP = [
+        'INDUSTRIAS', 'AREA RURAL', 'REMEDIOS', 'REMEDINHO', 'PARATEI', 'IGARATA',
+        'MEIA LUA', 'LAGOA AZUL', 'CASSUNUNGA', 'ALTOS DE SANTANA', 'CONQUISTA',
+        'PRIMAVERA', 'RESIDENCIAL SAO PAULO', 'VERANEIO', 'CHACARA ITAPOA',
+        'RECANTO PASSAROS', 'BELA VISTA II', 'GUARAREMA', 'FOGACA', 'MIRANTE DO VALE',
+        'TERRAS DE SANTA CLARA', 'SUNSET GARDEN', 'VERT VILLE', 'VEM VIVER',
+        'ARAUCARIA', 'SAO BENEDITO', 'CEREJEIRA', 'PORTO VELHO', 'APRISCO DO VALE',
+        'BEIRA RIO', 'CENTRAL PARK', 'COLINAS', 'CRYSTAL PARK', 'DORA', 'ELZA MARIA',
+        'INDEPENDENCIA', 'LIBERDADE', 'MARIA AMELIA', 'OLYMPIA', 'PAULISTANO',
+        'PEDRA MAR', 'SAO GABRIEL', 'SAO JOSE', 'SIESTA', 'SANTA HELENA', 'VISTA VERDE',
+        'SOL NASCENTE', 'LAGO DOURADO', 'VILA ROMANA', 'DOS PRINCIPES', 'IMPERIAL',
+        'NOVA AMERICA', 'JEQUITIBA', 'PEDREGULHO', 'PINHO', 'PRIMEIRO DE MAIO',
+        'SANTA PAULA', 'SAO SEBASTIAO', 'SETOR 4', 'CELIO HONORATO', 'NOVA ALIANCA',
+        'SAO JUDAS TADEU', 'CHACARAS'
+    ];
+
+    // Priority matching logic
     if (keywords2DP.some(k => loc.includes(k))) return '2º DP';
+    if (keywords1DP.some(k => loc.includes(k))) return '1º DP';
+    if (keywords3DP.some(k => loc.includes(k))) return '3º DP';
     if (keywords4DP.some(k => loc.includes(k))) return '4º DP';
 
     return '';
