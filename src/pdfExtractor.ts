@@ -36,7 +36,26 @@ export interface ExtractedData {
     birthDate?: string;         // New: Data de Nascimento
     age?: string;               // New: Idade calculada
     issuingCourt?: string;      // New: Fórum/Vara Expedidora
+    dpRegion?: string;          // New: DP area derived from location
 }
+
+// Helper to determine DP based on address
+export const determineDpRegion = (address: string): string => {
+    if (!address) return '';
+    const loc = address.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase();
+
+    const keywords1DP = ['BANDEIRA BRANCA', 'VARADOURO', 'RIO ABAIXO', 'SANTA MARIA', 'ITAMARATI', 'FRANCI', 'ANTONIO', 'COLONIAL'];
+    const keywords2DP = ['IGARAPES', 'IGARAPE', 'SILVESTRE', 'PAGADOR', 'PARATEI', 'ESPERANCA', 'NOVA ESPERANCA', 'BAIXOS'];
+    const keywords3DP = ['CENTRO', 'VILA BRANCA', 'FLORIDA', 'CALIFORNIA', 'SAO JOAO', 'S JOAO', 'S. JOAO', 'JACAREI', 'AVENIDA'];
+    const keywords4DP = ['IGARATA', 'REMEDINHO', 'INDUSTRIAS', 'RURAL', 'CHACARAS', 'CASSUNUNGA'];
+
+    if (keywords3DP.some(k => loc.includes(k))) return '3º DP';
+    if (keywords1DP.some(k => loc.includes(k))) return '1º DP';
+    if (keywords2DP.some(k => loc.includes(k))) return '2º DP';
+    if (keywords4DP.some(k => loc.includes(k))) return '4º DP';
+
+    return '';
+};
 
 // Helper functions for parsing
 const extractName = (text: string): string => {
@@ -721,7 +740,8 @@ export const extractPdfData = async (file: File): Promise<ExtractedData> => {
                             autoPriority: aiData.tags || [],
                             birthDate: aiData.birthDate || '',
                             age: calculateAge(aiData.birthDate),
-                            issuingCourt: aiData.issuingCourt || ''
+                            issuingCourt: aiData.issuingCourt || '',
+                            dpRegion: aiData.addresses && aiData.addresses.length > 0 ? determineDpRegion(aiData.addresses.join(' ')) : ''
                         };
                     }
                 } catch (e) {
@@ -763,7 +783,8 @@ export const extractPdfData = async (file: File): Promise<ExtractedData> => {
                         autoPriority: aiData.tags || [],
                         birthDate: aiData.birthDate || '',
                         age: calculateAge(aiData.birthDate),
-                        issuingCourt: aiData.issuingCourt || ''
+                        issuingCourt: aiData.issuingCourt || '',
+                        dpRegion: aiData.addresses && aiData.addresses.length > 0 ? determineDpRegion(aiData.addresses.join(' ')) : ''
                     };
                 }
             } catch (aiError) {
@@ -814,7 +835,8 @@ export const extractPdfData = async (file: File): Promise<ExtractedData> => {
             autoPriority: determineAutoPriority(fullText, crime),
             birthDate,
             age: calculateAge(birthDate),
-            issuingCourt
+            issuingCourt,
+            dpRegion: addresses.length > 0 ? determineDpRegion(addresses.join(' ')) : ''
         };
     } catch (error: any) {
         console.error('Erro detalhado ao extrair PDF:', error);
@@ -887,7 +909,8 @@ export const extractFromText = async (text: string, sourceName: string): Promise
                     autoPriority: aiData.tags || [],
                     birthDate: aiData.birthDate || '',
                     age: calculateAge(aiData.birthDate),
-                    issuingCourt: aiData.issuingCourt || ''
+                    issuingCourt: aiData.issuingCourt || '',
+                    dpRegion: aiData.addresses && aiData.addresses.length > 0 ? determineDpRegion(aiData.addresses.join(' ')) : ''
                 };
             }
         } catch (aiError) {
@@ -938,7 +961,8 @@ export const extractFromText = async (text: string, sourceName: string): Promise
         autoPriority: determineAutoPriority(text, crime),
         birthDate,
         age: calculateAge(birthDate),
-        issuingCourt
+        issuingCourt,
+        dpRegion: addresses.length > 0 ? determineDpRegion(addresses.join(' ')) : ''
     };
 };
 

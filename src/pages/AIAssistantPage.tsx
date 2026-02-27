@@ -14,7 +14,7 @@ import Header from '../components/Header';
 import ConfirmModal from '../components/ConfirmModal';
 import { toast } from 'sonner';
 import { Warrant } from '../types';
-import { extractPdfData, extractFromText } from '../pdfExtractor';
+import { extractPdfData, extractFromText, determineDpRegion } from '../pdfExtractor';
 import { uploadFile, getPublicUrl } from '../supabaseStorage';
 import { analyzeWarrantData, isGeminiEnabled } from '../services/geminiService';
 import { geocodeAddress } from '../services/geocodingService';
@@ -430,7 +430,8 @@ const AIAssistantPage = () => {
                 age: extractedData.age,
                 issuingCourt: extractedData.issuingCourt,
                 latitude: extractedData.latitude,
-                longitude: extractedData.longitude
+                longitude: extractedData.longitude,
+                dpRegion: extractedData.dpRegion || ''
             };
 
             const { success, error, id } = await onAdd(newWarrant);
@@ -1032,6 +1033,17 @@ const AIAssistantPage = () => {
                                                                         <Search size={16} />
                                                                     </div>
                                                                 </div>
+                                                                <select
+                                                                    value={extractedData.dpRegion || ''}
+                                                                    onChange={(e) => handleExtractedDataChange('dpRegion', e.target.value)}
+                                                                    className="bg-white dark:bg-black/20 border border-border-light dark:border-border-dark rounded-xl p-3.5 text-sm text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary/30 outline-none shadow-sm cursor-pointer"
+                                                                >
+                                                                    <option value="">Sem DP</option>
+                                                                    <option value="1º DP">1º DP</option>
+                                                                    <option value="2º DP">2º DP</option>
+                                                                    <option value="3º DP">3º DP</option>
+                                                                    <option value="4º DP">4º DP</option>
+                                                                </select>
                                                                 <button
                                                                     type="button"
                                                                     onClick={async () => {
@@ -1044,13 +1056,18 @@ const AIAssistantPage = () => {
                                                                         const res = await geocodeAddress(address);
                                                                         if (res) {
                                                                             const results = [...batchResults];
+                                                                            const dpFound = determineDpRegion(address);
                                                                             results[currentIndex] = {
                                                                                 ...results[currentIndex],
                                                                                 latitude: res.lat,
-                                                                                longitude: res.lng
+                                                                                longitude: res.lng,
+                                                                                dpRegion: dpFound || results[currentIndex].dpRegion
                                                                             };
                                                                             setBatchResults(results);
                                                                             toast.success("Mapeado com sucesso!", { id: tid });
+                                                                            if (dpFound) {
+                                                                                toast.info(`Região identificada: ${dpFound}`);
+                                                                            }
                                                                         } else {
                                                                             toast.error("Endereço não localizado", { id: tid });
                                                                         }
