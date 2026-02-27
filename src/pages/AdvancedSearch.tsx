@@ -22,6 +22,7 @@ const AdvancedSearch = () => {
     const [dateStart, setDateStart] = useState('');
     const [dateEnd, setDateEnd] = useState('');
     const [observationKeyword, setObservationKeyword] = useState('');
+    const [filterDp, setFilterDp] = useState('');
 
     const statuses = useMemo(() => Array.from(new Set(warrants.map(w => w.status))).sort(), [warrants]);
 
@@ -48,24 +49,26 @@ const AdvancedSearch = () => {
         const matchesStatus = filterStatus ? w.status === filterStatus : true;
 
         // Date comparison logic
-        let matchesDate = true;
+        const matchesDate = true;
+        let matchesDateLocal = true;
         if (dateStart || dateEnd) {
             const wDateStr = w.date || '';
             const wDate = wDateStr.includes('-') ? wDateStr.split('T')[0] : (wDateStr.includes('/') ? wDateStr.split('/').reverse().join('-') : '');
 
             if (dateStart && dateStart.length === 10) {
                 const startISO = dateStart.split('/').reverse().join('-');
-                if (!wDate || wDate < startISO) matchesDate = false;
+                if (!wDate || wDate < startISO) matchesDateLocal = false;
             }
             if (dateEnd && dateEnd.length === 10) {
                 const endISO = dateEnd.split('/').reverse().join('-');
-                if (!wDate || wDate > endISO) matchesDate = false;
+                if (!wDate || wDate > endISO) matchesDateLocal = false;
             }
         }
 
         const matchesObservation = observationKeyword ? (w.observation || '').toLowerCase().includes(observationKeyword.toLowerCase()) : true;
+        const matchesDp = filterDp ? w.dpRegion === filterDp : true;
 
-        return matchesText && matchesCrime && matchesRegime && matchesStatus && matchesDate && matchesObservation;
+        return matchesText && matchesCrime && matchesRegime && matchesStatus && matchesDateLocal && matchesObservation && matchesDp;
     });
 
     const clearFilters = () => {
@@ -76,6 +79,7 @@ const AdvancedSearch = () => {
         setDateEnd('');
         setObservationKeyword('');
         setSearchTerm('');
+        setFilterDp('');
         setScope('all');
     };
 
@@ -171,6 +175,23 @@ const AdvancedSearch = () => {
                                 {statuses.map(s => <option key={s} value={s}>{s}</option>)}
                             </select>
                         </div>
+                        <div>
+                            <label className="block text-xs font-medium text-text-secondary-light dark:text-text-secondary-dark mb-1">Região (DP)</label>
+                            <select
+                                value={filterDp}
+                                onChange={(e) => setFilterDp(e.target.value)}
+                                className="w-full rounded-lg border border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark p-2 text-sm text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none"
+                            >
+                                <option value="">Qualquer DP</option>
+                                <option value="1º DP">1º DP</option>
+                                <option value="2º DP">2º DP</option>
+                                <option value="3º DP">3º DP</option>
+                                <option value="4º DP">4º DP</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
                         <div>
                             <label className="block text-xs font-medium text-text-secondary-light dark:text-text-secondary-dark mb-1">Observações (Palavra-chave)</label>
                             <div className="relative">
