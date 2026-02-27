@@ -18,13 +18,17 @@ const PatrolMode = ({ warrants: _, variant = 'fab' }: PatrolModeProps) => {
     const [radius, setRadius] = useState(500);
 
     const speak = (text: string) => {
-        if (!('speechSynthesis' in window)) return;
-        // Optimization: Cancel any ongoing speech before starting a new urgent alert
-        window.speechSynthesis.cancel();
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = 'pt-BR';
-        utterance.rate = 1.1; // Slightly faster for clarity
-        window.speechSynthesis.speak(utterance);
+        try {
+            if (!('speechSynthesis' in window)) return;
+            // Optimization: Cancel any ongoing speech before starting a new urgent alert
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'pt-BR';
+            utterance.rate = 1.1; // Slightly faster for clarity
+            window.speechSynthesis.speak(utterance);
+        } catch (error) {
+            console.error('Speech synthesis error:', error);
+        }
     };
 
     const lastAlertedIds = useRef(new Set<string>());
@@ -55,29 +59,43 @@ const PatrolMode = ({ warrants: _, variant = 'fab' }: PatrolModeProps) => {
             const w = item.warrant;
             if (!lastAlertedIds.current.has(w.id)) {
                 lastAlertedIds.current.add(w.id);
-                // Trigger a tactical alert
-                toast.error(`PROCIDADE: ${w.name}`, {
-                    duration: 10000,
-                    description: `Alvo a ${Math.round(item.distance)} metros de distância!`,
-                    action: {
-                        label: 'DETALHES',
-                        onClick: () => navigate(`/warrant-detail/${w.id}`)
-                    }
-                });
-                // System Level Notification
-                if ("Notification" in window && Notification.permission === "granted") {
-                    new Notification(`🚨 ALVO DETECTADO: ${w.name}`, {
-                        body: `Distância: ${Math.round(item.distance)} metros. Toque para ver detalhes.`,
-                        icon: 'https://img.icons8.com/color/512/police-badge.png',
-                        tag: w.id // Prevent duplicate notifications for the same ID
-                    }).onclick = () => {
-                        window.focus();
-                        navigate(`/warrant-detail/${w.id}`);
-                    };
+                try {
+                    // Trigger a tactical alert
+                    toast.error(`PROCURADO: ${w.name}`, {
+                        duration: 10000,
+                        description: `Alvo a ${Math.round(item.distance)} metros de distância!`,
+                        action: {
+                            label: 'DETALHES',
+                            onClick: () => navigate(`/warrant-detail/${w.id}`)
+                        }
+                    });
+                } catch (err) {
+                    console.error('Toast error:', err);
                 }
 
-                // Vibrate
-                if ('vibrate' in navigator) navigator.vibrate([500, 200, 500]);
+                try {
+                    // System Level Notification
+                    if ("Notification" in window && Notification.permission === "granted") {
+                        const notif = new Notification(`🚨 ALVO DETECTADO: ${w.name}`, {
+                            body: `Distância: ${Math.round(item.distance)} metros. Toque para ver detalhes.`,
+                            icon: 'https://img.icons8.com/color/512/police-badge.png',
+                            tag: w.id // Prevent duplicate notifications for the same ID
+                        });
+                        notif.onclick = () => {
+                            window.focus();
+                            navigate(`/warrant-detail/${w.id}`);
+                        };
+                    }
+                } catch (err) {
+                    console.error('Notification error:', err);
+                }
+
+                try {
+                    // Vibrate
+                    if ('vibrate' in navigator) navigator.vibrate([500, 200, 500]);
+                } catch (err) {
+                    console.error('Vibrate error:', err);
+                }
             }
 
             // Voice announcement specifically for < 200m

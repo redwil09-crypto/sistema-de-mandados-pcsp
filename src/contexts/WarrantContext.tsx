@@ -10,6 +10,8 @@ import {
 } from '../supabaseService';
 import { toast } from 'sonner';
 import { CRIME_OPTIONS, REGIME_OPTIONS } from '../data/constants';
+import { normalizeCrimeName } from '../utils/crimeUtils';
+import { determineAutoPriority } from '../pdfExtractor';
 
 interface WarrantContextType {
     warrants: Warrant[];
@@ -109,7 +111,57 @@ export const WarrantProvider = ({ children }: { children: ReactNode }) => {
         if (!silent) setLoading(true);
         try {
             const data = await getWarrants();
-            const formattedData = data || [];
+            let formattedData = data || [];
+
+            // Auto-normalizar e salvar no banco os crimes e recalcular TAGS táticas baseadas na IA e heurísticas
+            const fixesToApply: { id: string, updates: Partial<Warrant> }[] = [];
+
+            formattedData = formattedData.map(w => {
+                let changed = false;
+                let newCrime = w.crime;
+                let newTags = w.tags || [];
+
+                if (w.crime) {
+                    const clean = normalizeCrimeName(w.crime);
+                    if (clean !== w.crime) {
+                        changed = true;
+                        newCrime = clean;
+                    }
+                }
+
+                if (newCrime) {
+                    // Extrair contexto do mandado para gerar novas tags (se faltarem)
+                    const historyNotes = (w.diligentHistory || []).map(h => h.notes).join(' ');
+                    const rawObservation = w.observation || '';
+                    const combinedIntel = `${rawObservation} ${historyNotes} ${w.ifoodResult || ''} ${w.regime || ''}`.toLowerCase();
+
+                    const generatedTags = determineAutoPriority(combinedIntel, newCrime);
+
+                    if (generatedTags.length > 0) {
+                        const mergedSet = new Set([...newTags, ...generatedTags]);
+                        const mergedArray = Array.from(mergedSet);
+
+                        if (mergedArray.length !== newTags.length) {
+                            changed = true;
+                            newTags = mergedArray;
+                        }
+                    }
+                }
+
+                if (changed) {
+                    fixesToApply.push({ id: w.id, updates: { crime: newCrime, tags: newTags } });
+                    return { ...w, crime: newCrime, tags: newTags };
+                }
+
+                return w;
+            });
+
+            if (fixesToApply.length > 0) {
+                console.log(`Atualizando banco de dados em Background (Crimes/Tags) - ${fixesToApply.length} itens encontrados.`);
+                setTimeout(() => {
+                    fixesToApply.forEach(c => updateWarrantDb(c.id, c.updates).catch(e => console.error(e)));
+                }, 2000);
+            }
 
             // Check for warrants that need correction (Suspensão de Regime should be OPEN)
             const needsCorrection = formattedData.filter(w =>

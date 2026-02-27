@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { Briefcase, Gavel, MapPin, Calendar, Route as RouteIcon, Printer, CheckCircle, Trash2 } from 'lucide-react';
 import { Warrant } from '../types';
 import { formatDate } from '../utils/helpers';
+import { normalizeCrimeName } from '../utils/crimeUtils';
 
 interface WarrantCardProps {
     data: Warrant;
@@ -129,8 +130,8 @@ const WarrantCard = ({ data, onPrint, isPlanned, onRouteToggle, onFinalize, onDe
 
                         {(data.crime || data.regime) && (
                             <div className="flex flex-wrap gap-x-3 gap-y-1">
-                                {data.crime && <span className="text-[10px] text-slate-500 dark:text-slate-400">Art: <span className="text-text-secondary-light dark:text-text-secondary-dark">{data.crime}</span></span>}
-                                {data.regime && <span className="text-[10px] text-slate-500 dark:text-slate-400">Reg: <span className="text-text-secondary-light dark:text-text-secondary-dark">{data.regime}</span></span>}
+                                {data.crime && <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400">Natureza: <span className="text-text-secondary-light dark:text-text-secondary-dark">{normalizeCrimeName(data.crime)}</span></span>}
+                                {data.regime && <span className="text-[10px] text-slate-500 dark:text-slate-400">Regime: <span className="text-text-secondary-light dark:text-text-secondary-dark">{data.regime}</span></span>}
                             </div>
                         )}
                     </div>

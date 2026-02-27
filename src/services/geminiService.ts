@@ -271,8 +271,8 @@ export async function extractFullWarrantIntelligence(rawText: string): Promise<a
             "addresses": ["Endereço 1", "Endereço 2"],
             "issueDate": "AAAA-MM-DD",
             "expirationDate": "AAAA-MM-DD",
-            "observations": "Resumo tático das observações",
-            "tags": ["Urgente", "Risco de Fuga", etc]
+            "observations": "Resumo tático das observações. FOQUE se há restrições de saúde, se o alvo é perigoso, ou do crime organizado.",
+            "tags": ["Gerar tags táticas se presentes. Exemplos: 'Alta Periculosidade', 'Crime Organizado / Facção', 'Pena Definitiva', 'Alvo Reincidente', 'Alerta: Violência Doméstica', 'Possível Confronto Armado (P.C.A.)', 'Rompimento de Tornozeleira', 'Ofício de Cobrança', 'Urgente']
         }
     `;
 
@@ -318,8 +318,8 @@ export async function extractWarrantFromImage(base64Image: string, mimeType: str
             "addresses": ["Endereço 1", "Endereço 2"],
             "issueDate": "AAAA-MM-DD",
             "expirationDate": "AAAA-MM-DD",
-            "observations": "Dados visuais adicionais (tatuagens, marcas) ou observações do texto",
-            "tags": ["Urgente", "Risco de Fuga", etc],
+            "observations": "Dados visuais adicionais (tatuagens, marcas) ou observações do texto. Preste ESPECIAL atenção se o réu é perigoso, do crime organizado, ou tem pena alta.",
+            "tags": ["Gerar tags táticas. Use EXATAMENTE estas se aplicável: 'Alta Periculosidade', 'Crime Organizado / Facção', 'Pena Definitiva', 'Alvo Reincidente', 'Alerta: Violência Doméstica', 'Possível Confronto Armado (P.C.A.)', 'Rompimento de Tornozeleira', 'Ofício de Cobrança', 'Urgente'],
             "status": "EM ABERTO" ou "CUMPRIDO" (Se for Contramandado)
         }
     `;
@@ -462,15 +462,16 @@ export async function analyzeWarrantData(text: string) {
         Você é um analista de inteligência policial. 
         Analise o seguinte texto extraído de um mandado judicial ou histórico policial e extraia:
         1. Um resumo curto (máximo 2 linhas) do perigo ou modus operandi do alvo.
-        2. Tags de alerta (objetivas, ex: "Perigoso", "Risco de Fuga", "Armado", "Violência Doméstica").
+        2. Tags de alerta operacional EXTREMAMENTE relevantes para as equipes de rua:
+           [ "Alta Periculosidade", "Crime Organizado / Facção", "Possível Confronto Armado (P.C.A.)", "Alvo Reincidente", "Alerta Psiquiátrico / Risco Misto", "Rompimento de Tornozeleira", "Histórico de Fuga", "Alerta: Violência Doméstica" ]
 
         TEXTO:
         "${text}"
 
         Responda APENAS em formato JSON:
         {
-            "summary": "string",
-            "warnings": ["tag1", "tag2"]
+            "summary": "Resumo de 2 linhas focado no que importa pra quem vai invadir/prender",
+            "warnings": ["Tag Tática 1", "Tag Tática 2"]
         }
     `;
 

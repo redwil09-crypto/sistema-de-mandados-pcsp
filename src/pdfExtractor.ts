@@ -1,5 +1,6 @@
 // NOTE: pdfjs-dist is now dynamically imported to avoid top-level crashes
 import { extractFullWarrantIntelligence, isGeminiEnabled, extractWarrantFromImage } from './services/geminiService';
+import { normalizeCrimeName } from './utils/crimeUtils';
 
 const fileToBase64 = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
@@ -415,21 +416,21 @@ const extractCrime = (text: string): string => {
 
     if (articleMatch && articleMatch[1]) {
         const art = articleMatch[1];
-        if (art === '157') return "Roubo";
-        if (art === '155') return "Furto";
-        if (art === '33' || art === '35') return "Tráfico de Drogas";
-        if (art === '121') return "Homicídio";
-        if (art === '129') return "Lesão Corporal";
-        if (art === '213' || art === '217') return "Estupro / Crimes Sexuais";
-        if (art === '180') return "Receptação";
-        if (art === '171') return "Estelionato";
-        if (art === '147') return "Ameaça";
-        if (art === '158') return "Extorsão";
-        if (art === '159') return "Extorsão Mediante Sequestro";
-        if (art === '14' || art === '16') return "Posse/Porte de Arma";
-        if (art === '302' || art === '303') return "Crimes de Trânsito";
-        if (art === '331') return "Desacato";
-        if (art === '329') return "Resistência";
+        if (art === '157') return normalizeCrimeName("Roubo");
+        if (art === '155') return normalizeCrimeName("Furto");
+        if (art === '33' || art === '35') return normalizeCrimeName("Tráfico de Drogas");
+        if (art === '121') return normalizeCrimeName("Homicídio");
+        if (art === '129') return normalizeCrimeName("Lesão Corporal");
+        if (art === '213' || art === '217') return normalizeCrimeName("Estupro / Crimes Sexuais");
+        if (art === '180') return normalizeCrimeName("Receptação");
+        if (art === '171') return normalizeCrimeName("Estelionato");
+        if (art === '147') return normalizeCrimeName("Ameaça");
+        if (art === '158') return normalizeCrimeName("Extorsão");
+        if (art === '159') return normalizeCrimeName("Extorsão Mediante Sequestro");
+        if (art === '14' || art === '16') return normalizeCrimeName("Posse/Porte de Arma");
+        if (art === '302' || art === '303') return normalizeCrimeName("Crimes de Trânsito");
+        if (art === '331') return normalizeCrimeName("Desacato");
+        if (art === '329') return normalizeCrimeName("Resistência");
     }
 
     const specificRules = [
@@ -458,11 +459,11 @@ const extractCrime = (text: string): string => {
                     continue;
                 }
             }
-            return rule.crime;
+            return normalizeCrimeName(rule.crime);
         }
     }
 
-    return 'Outros';
+    return normalizeCrimeName('Outros');
 };
 
 const extractRegime = (text: string, category: 'prison' | 'search', crime: string): string => {
@@ -591,15 +592,66 @@ const extractSearchChecklist = (text: string, category: string): string[] => {
     return checklist.length > 0 ? checklist : ['Itens genéricos de busca'];
 };
 
-const determineAutoPriority = (text: string, crime: string): string[] => {
+export const determineAutoPriority = (text: string, crime: string): string[] => {
     const tags: string[] = [];
-    const highPriorityCrimes = ['Homicídio', 'Feminicídio', 'Roubo', 'Estupro / Crimes Sexuais', 'Tráfico de Drogas'];
+    const upperCrime = crime.toUpperCase();
+    const highPriorityCrimes = ['HOMICÍDIO', 'FEMINICÍDIO', 'ROUBO', 'ESTUPRO / CRIMES SEXUAIS', 'ESTUPRO DOS CRIMES SEXUAIS', 'TRÁFICO DE DROGAS', 'EXTORSÃO MEDIANTE SEQUESTRO', 'ORGANIZAÇÃO CRIMINOSA'];
 
-    if (highPriorityCrimes.includes(crime)) tags.push('Urgente');
-    if (text.toLowerCase().includes('prazo determinado') || text.toLowerCase().includes('imediato')) tags.push('Prioridade');
+    if (highPriorityCrimes.includes(upperCrime)) {
+        tags.push('Urgente');
+    }
 
-    if (crime === 'Pensão Alimentícia' && (text.toLowerCase().includes('cobrança') || text.toLowerCase().includes('ofício'))) {
+    if (text.toLowerCase().includes('prazo determinado') || text.toLowerCase().includes('imediato')) {
+        tags.push('Prioridade');
+    }
+
+    if (upperCrime === 'PENSÃO ALIMENTÍCIA' && (text.toLowerCase().includes('cobrança') || text.toLowerCase().includes('ofício'))) {
         tags.push('Ofício de Cobrança');
+    }
+
+    // Novas Heurísticas baseadas em análise tática (para restaurar e ampliar "Informações boas" sobre a equipe prestar atenção)
+    const lowerText = text.toLowerCase();
+
+    if (lowerText.includes('alta periculosidade') || lowerText.includes('fuga') || lowerText.includes('perigoso') || lowerText.includes('violento')) {
+        tags.push('Alta Periculosidade');
+    }
+    if (lowerText.includes('armado') || lowerText.includes('arma de fogo') || lowerText.includes('arsenal') || lowerText.includes('troca de tiros')) {
+        tags.push('Possível Confronto Armado (P.C.A.)');
+    }
+    if (lowerText.includes('violência doméstica') || lowerText.includes('medida protetiva') || lowerText.includes('maria da penha')) {
+        tags.push('Alerta: Violência Doméstica');
+    }
+    if (lowerText.includes('pcc') || lowerText.includes('comando') || lowerText.includes('facção') || lowerText.includes('faccionado') || lowerText.includes('organização criminosa') || lowerText.includes('milícia')) {
+        tags.push('Crime Organizado / Facção');
+    }
+    if (lowerText.includes('reincidente') || lowerText.includes('reincidência') || lowerText.includes('multireincidente')) {
+        tags.push('Alvo Reincidente');
+    }
+    if (lowerText.includes('rompimento') || lowerText.includes('tornozeleira') || lowerText.includes('monitoramento eletrônico')) {
+        tags.push('Rompimento de Tornozeleira');
+    }
+    if (lowerText.includes('foragido') || lowerText.includes('evadiu-se') || lowerText.includes('não localizado')) {
+        tags.push('Histórico de Fuga');
+    }
+    if (lowerText.includes('desacato') || lowerText.includes('resistência') || lowerText.includes('desobediência')) {
+        tags.push('Histórico de Resistência / Desacato');
+    }
+    if (lowerText.includes('transtorno mental') || lowerText.includes('suicídio') || lowerText.includes('psiquiátrico')) {
+        tags.push('Alerta Psiquiátrico / Risco Misto');
+    }
+    if (lowerText.includes('cautelar') || lowerText.includes('medida cautelar')) {
+        tags.push('Descumprimento de Cautelar');
+    }
+
+    // Tag de regime
+    if (lowerText.includes('definitiva') || lowerText.includes('pena definitiva')) {
+        tags.push('Pena Definitiva');
+    }
+    if (lowerText.includes('preventiva') || lowerText.includes('prisão preventiva')) {
+        tags.push('Prisão Preventiva');
+    }
+    if (lowerText.includes('temporária') || lowerText.includes('prisão temporária') || lowerText.includes('30 dias')) {
+        tags.push('Prisão Temporária');
     }
 
     return Array.from(new Set(tags));
@@ -663,7 +715,7 @@ export const extractPdfData = async (file: File): Promise<ExtractedData> => {
                             processNumber: aiData.processNumber || '',
                             type: aiData.type || 'MANDADO DE PRISÃO',
                             category: (aiData.type && aiData.type.includes('BUSCA')) ? 'search' : 'prison',
-                            crime: aiData.crime || 'Outros',
+                            crime: normalizeCrimeName(aiData.crime || 'Outros'),
                             regime: aiData.regime || 'Outro',
                             issueDate: aiData.issueDate || new Date().toISOString().split('T')[0],
                             expirationDate: aiData.expirationDate || '',
@@ -705,7 +757,7 @@ export const extractPdfData = async (file: File): Promise<ExtractedData> => {
                         processNumber: aiData.processNumber || '',
                         type: aiData.type || 'MANDADO DE PRISÃO',
                         category: (aiData.type && aiData.type.includes('BUSCA')) ? 'search' : 'prison',
-                        crime: aiData.crime || 'Outros',
+                        crime: normalizeCrimeName(aiData.crime || 'Outros'),
                         regime: aiData.regime || 'Outro',
                         issueDate: aiData.issueDate || new Date().toISOString().split('T')[0],
                         expirationDate: aiData.expirationDate || '',

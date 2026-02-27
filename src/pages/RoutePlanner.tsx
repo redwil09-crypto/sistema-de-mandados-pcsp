@@ -207,48 +207,53 @@ const RoutePlanner = () => {
                             })}
                         </div>
 
-                        {/* Actions Footer - Justified and smaller above BottomNav */}
-                        <div className="fixed bottom-16 left-0 right-0 p-3 bg-surface-light border-t border-border-light dark:bg-surface-dark dark:border-border-dark backdrop-blur-lg bg-opacity-95 dark:bg-opacity-95 z-40 shadow-[0_-10px_25px_rgba(0,0,0,0.1)]">
-                            <div className="max-w-md mx-auto grid grid-cols-4 gap-2">
-                                <button
-                                    onClick={handleOpenMap}
-                                    className="flex flex-col items-center justify-center gap-1 py-2 bg-indigo-600 text-white font-bold rounded-xl shadow-lg active:scale-95 transition-all hover:bg-indigo-700"
-                                >
-                                    <Map size={18} />
-                                    <span className="text-[10px] uppercase">Navegar</span>
-                                </button>
-
-                                <PatrolMode warrants={warrants} variant="button" />
-
-                                <button
-                                    onClick={() => navigate('/map')}
-                                    className="flex flex-col items-center justify-center gap-1 py-2 bg-gray-100 dark:bg-gray-800 text-text-light dark:text-text-dark font-bold rounded-xl active:scale-95 transition-all"
-                                >
-                                    <Map size={18} className="text-primary" />
-                                    <span className="text-[10px] uppercase">Mapa Ops</span>
-                                </button>
-
-                                <button
-                                    onClick={() => {
-                                        openConfirm(
-                                            "Limpar Roteiro",
-                                            "Tem certeza que deseja remover todos os itens do roteiro?",
-                                            () => {
-                                                warrants.forEach(w => toggleRouteWarrant(w.id));
-                                                toast.success("Roteiro limpo com sucesso!");
-                                            },
-                                            'danger'
-                                        );
-                                    }}
-                                    className="flex flex-col items-center justify-center gap-1 py-2 bg-red-100 dark:bg-red-900/20 text-red-600 dark:text-red-400 font-bold rounded-xl active:scale-95 transition-all"
-                                >
-                                    <Trash2 size={18} />
-                                    <span className="text-[10px] uppercase">Limpar</span>
-                                </button>
-                            </div>
-                        </div>
                     </>
                 )}
+            </div>
+
+            {/* Actions Footer - Always Active */}
+            <div className="fixed bottom-16 left-0 right-0 p-3 bg-surface-light border-t border-border-light dark:bg-surface-dark dark:border-border-dark backdrop-blur-lg bg-opacity-95 dark:bg-opacity-95 z-40 shadow-[0_-10px_25px_rgba(0,0,0,0.1)]">
+                <div className="max-w-md mx-auto grid grid-cols-4 gap-2">
+                    <button
+                        onClick={handleOpenMap}
+                        className={`flex flex-col items-center justify-center gap-1 py-2 font-bold rounded-xl transition-all ${warrants.length === 0 ? 'bg-gray-200 dark:bg-gray-800/50 text-gray-400 cursor-not-allowed opacity-50' : 'bg-indigo-600 text-white shadow-lg active:scale-95 hover:bg-indigo-700'}`}
+                        disabled={warrants.length === 0}
+                    >
+                        <Map size={18} />
+                        <span className="text-[10px] uppercase">Navegar</span>
+                    </button>
+
+                    <PatrolMode warrants={warrants} variant="button" />
+
+                    <button
+                        onClick={() => navigate('/map')}
+                        className="flex flex-col items-center justify-center gap-1 py-2 bg-gray-100 dark:bg-gray-800 text-text-light dark:text-text-dark font-bold rounded-xl active:scale-95 transition-all shadow-sm"
+                    >
+                        <Map size={18} className="text-primary" />
+                        <span className="text-[10px] uppercase">Mapa Ops</span>
+                    </button>
+
+                    <button
+                        onClick={() => {
+                            if (warrants.length > 0) {
+                                openConfirm(
+                                    "Limpar Roteiro",
+                                    "Tem certeza que deseja remover todos os itens do roteiro?",
+                                    () => {
+                                        warrants.forEach(w => toggleRouteWarrant(w.id));
+                                        toast.success("Roteiro limpo com sucesso!");
+                                    },
+                                    'danger'
+                                );
+                            }
+                        }}
+                        className={`flex flex-col items-center justify-center gap-1 py-2 font-bold rounded-xl transition-all ${warrants.length === 0 ? 'bg-gray-200 dark:bg-gray-800/50 text-gray-400 cursor-not-allowed opacity-50' : 'bg-red-100 dark:bg-red-900/20 text-red-600 dark:text-red-400 active:scale-95 shadow-sm'}`}
+                        disabled={warrants.length === 0}
+                    >
+                        <Trash2 size={18} />
+                        <span className="text-[10px] uppercase">Limpar</span>
+                    </button>
+                </div>
             </div>
 
             <ConfirmModal

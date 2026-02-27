@@ -148,6 +148,27 @@ const WarrantDetail = () => {
     // Swipe Navigation
     // -------------------------------------------------------------------------------- //
     // NEW: Add swipe gestures to switch tabs
+
+    // Tag Color Mapping
+    const getTagStyle = (tag: string) => {
+        const t = tag.toLowerCase();
+        if (t.includes('perigoso') || t.includes('periculosidade') || t.includes('armado') || t.includes('facção') || t.includes('pcc') || t.includes('suicídio')) {
+            return 'bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/30';
+        }
+        if (t.includes('urgente') || t.includes('fuga') || t.includes('resistência') || t.includes('desacato') || t.includes('psiquiátrico')) {
+            return 'bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-500/30';
+        }
+        if (t.includes('violência') || t.includes('penha') || t.includes('mulher')) {
+            return 'bg-pink-500/10 text-pink-600 dark:text-pink-400 border-pink-500/30';
+        }
+        if (t.includes('cobrança') || t.includes('cível') || t.includes('alimentos')) {
+            return 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30';
+        }
+        if (t.includes('preventiva') || t.includes('temporária') || t.includes('definitiva') || t.includes('reincidente')) {
+            return 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/30';
+        }
+        return 'bg-secondary/20 text-secondary border-secondary/30';
+    };
     const { onTouchStart, onTouchMove, onTouchEnd } = useSwipe({
         onSwipeLeft: () => {
             if (activeDetailTab === 'documents') setActiveDetailTab('investigation');
@@ -2054,7 +2075,7 @@ Equipe de Capturas - DIG / PCSP
 
                             <div className="flex flex-wrap justify-center sm:justify-start gap-2 pt-1">
                                 {data.tags?.map(tag => (
-                                    <span key={tag} className="text-[10px] font-black uppercase bg-secondary/20 text-secondary border border-secondary/30 px-3 py-1 rounded-full flex items-center gap-1.5 shadow-sm">
+                                    <span key={tag} className={`text-[10px] font-black uppercase border px-3 py-1 rounded-full flex items-center gap-1.5 shadow-sm ${getTagStyle(tag)}`}>
                                         <Zap size={10} className="fill-current" /> {tag}
                                     </span>
                                 ))}
