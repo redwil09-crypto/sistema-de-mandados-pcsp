@@ -32,7 +32,7 @@ import { useWarrants } from '../contexts/WarrantContext';
 
 const AUTHORITIES = [
     { name: "Luiz Antônio Cunha dos Santos", title: "Delegado de Polícia", email: "dig.jacarei@policiacivil.sp.gov.br" },
-    { name: "William Campos de Assis Castro", title: "Delegado de Polícia", email: "william.castro@policiacivil.sp.gov.br" }
+    { name: "Rodrigo Mambeli De Mendonça", title: "Delegado de Polícia", email: "dig.jacarei@policiacivil.sp.gov.br" }
 ];
 
 const WarrantDetail = () => {
@@ -2677,28 +2677,24 @@ Equipe de Capturas - DIG / PCSP
                                         </div>
                                     </div>
                                     <div className="flex flex-col sm:flex-row items-end gap-3 w-full sm:w-auto mt-2 sm:mt-0">
-                                        <div className="flex flex-col gap-1 w-full sm:w-auto">
-                                            <label className="text-[9px] font-black uppercase text-text-muted text-center">Autoridade:</label>
-                                            <div className="flex gap-1 bg-white/5 p-1 rounded-xl border border-white/5">
-                                                {AUTHORITIES.map((auth, idx) => (
-                                                    <button
-                                                        key={`ifood-auth-${idx}`}
-                                                        onClick={() => setAuthorityIndex(idx)}
-                                                        className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase transition-all ${authorityIndex === idx ? 'bg-indigo-600 text-white shadow-lg' : 'text-text-muted hover:bg-white/5'}`}
-                                                    >
-                                                        {auth.name.split(' ')[0]}
-                                                    </button>
-                                                ))}
-                                            </div>
+                                        <div className="flex flex-col gap-0.5 w-full sm:w-auto bg-white/5 p-3 rounded-xl border border-white/5">
+                                            <span className="text-[9px] font-black uppercase text-indigo-400">Assinatura:</span>
+                                            <span className="text-[10px] font-black text-white whitespace-nowrap">DR. LUIZ ANTÔNIO</span>
                                         </div>
                                         <button
-                                            onClick={handleGenerateIfoodOffice}
+                                            onClick={() => {
+                                                setAuthorityIndex(0); // Force index 0 for Luiz
+                                                handleGenerateIfoodOffice();
+                                            }}
                                             className="bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-tactic flex items-center gap-2 transition-all active:scale-95 border border-slate-500/30 w-full sm:w-auto"
                                         >
                                             <FileText size={14} /> Ofício Modelo Original
                                         </button>
                                         <button
-                                            onClick={() => setActiveReportType('ifood')}
+                                            onClick={() => {
+                                                setAuthorityIndex(0); // Force index 0 for Luiz
+                                                setActiveReportType('ifood');
+                                            }}
                                             className="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg flex items-center gap-2 transition-all active:scale-95 border border-indigo-500/30 w-full sm:w-auto"
                                         >
                                             <Bike size={14} /> GERAR OFÍCIO PLATAFORMA

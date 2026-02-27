@@ -18,8 +18,7 @@ interface IfoodReportModalProps {
 }
 
 const AUTHORITIES = [
-    { name: "Luiz Antônio Cunha dos Santos", title: "Delegado de Polícia", email: "dig.jacarei@policiacivil.sp.gov.br" },
-    { name: "William Campos de Assis Castro", title: "Delegado de Polícia", email: "william.castro@policiacivil.sp.gov.br" }
+    { name: "Luiz Antônio Cunha dos Santos", title: "Delegado de Polícia", email: "dig.jacarei@policiacivil.sp.gov.br" }
 ];
 
 const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, warrant, type: initialType, updateWarrant, userProfile }) => {
@@ -390,19 +389,13 @@ ${auth.title}`;
                                 />
                             </div>
 
-                            {/* Authority Selector */}
-                            <div className="w-full max-w-md space-y-3">
-                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 text-center block">Autoridade Signatária:</label>
-                                <div className="grid grid-cols-2 gap-2">
-                                    {AUTHORITIES.map((auth, idx) => (
-                                        <button
-                                            key={auth.name}
-                                            onClick={() => setAuthorityIndex(idx)}
-                                            className={`p-3 rounded-xl border text-[10px] font-black uppercase tracking-tight transition-all ${authorityIndex === idx ? 'bg-primary/10 border-primary text-primary shadow-sm' : 'bg-white/5 border-white/10 text-slate-500 hover:border-white/30'}`}
-                                        >
-                                            {auth.name.split(' ')[0]} {auth.name.split(' ').slice(-1)}
-                                        </button>
-                                    ))}
+                            <div className="w-full max-w-md bg-indigo-500/5 border border-indigo-500/10 rounded-2xl p-4 flex items-center justify-between">
+                                <div className="flex flex-col">
+                                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-0.5">Autoridade Signatária:</span>
+                                    <span className="text-sm font-black text-indigo-400">Dr. Luiz Antônio Cunha dos Santos</span>
+                                </div>
+                                <div className="w-10 h-10 rounded-full bg-indigo-500/10 flex items-center justify-center text-indigo-500">
+                                    <FileText size={20} />
                                 </div>
                             </div>
                             <button
