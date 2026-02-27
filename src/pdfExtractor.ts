@@ -594,13 +594,35 @@ const extractSearchChecklist = (text: string, category: string): string[] => {
 
 const determineAutoPriority = (text: string, crime: string): string[] => {
     const tags: string[] = [];
-    const highPriorityCrimes = ['Homicídio', 'Feminicídio', 'Roubo', 'Estupro / Crimes Sexuais', 'Tráfico de Drogas'];
+    const upperCrime = crime.toUpperCase();
+    const highPriorityCrimes = ['HOMICÍDIO', 'FEMINICÍDIO', 'ROUBO', 'ESTUPRO / CRIMES SEXUAIS', 'ESTUPRO DOS CRIMES SEXUAIS', 'TRÁFICO DE DROGAS', 'EXTORSÃO MEDIANTE SEQUESTRO', 'ORGANIZAÇÃO CRIMINOSA'];
 
-    if (highPriorityCrimes.includes(crime)) tags.push('Urgente');
-    if (text.toLowerCase().includes('prazo determinado') || text.toLowerCase().includes('imediato')) tags.push('Prioridade');
+    if (highPriorityCrimes.includes(upperCrime)) {
+        tags.push('Urgente');
+    }
 
-    if (crime === 'Pensão Alimentícia' && (text.toLowerCase().includes('cobrança') || text.toLowerCase().includes('ofício'))) {
+    if (text.toLowerCase().includes('prazo determinado') || text.toLowerCase().includes('imediato')) {
+        tags.push('Prioridade');
+    }
+
+    if (upperCrime === 'PENSÃO ALIMENTÍCIA' && (text.toLowerCase().includes('cobrança') || text.toLowerCase().includes('ofício'))) {
         tags.push('Ofício de Cobrança');
+    }
+
+    // Novas Heurísticas baseadas em análise tática (para restaurar "Informações boas" sobre a equipe prestar atenção)
+    if (text.toLowerCase().includes('alta periculosidade') || text.toLowerCase().includes('fuga') || text.toLowerCase().includes('perigoso')) {
+        tags.push('Alta Periculosidade');
+    }
+    if (text.toLowerCase().includes('armado') || text.toLowerCase().includes('arma de fogo')) {
+        tags.push('Possivelmente Armado');
+    }
+    if (text.toLowerCase().includes('violência doméstica') || text.toLowerCase().includes('medida protetiva')) {
+        tags.push('Alerta: Violência Doméstica');
+    }
+
+    // Tag de regime
+    if (text.toLowerCase().includes('definitiva') || text.toLowerCase().includes('pena definitiva')) {
+        tags.push('Pena Definitiva');
     }
 
     return Array.from(new Set(tags));
