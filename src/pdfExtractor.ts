@@ -592,7 +592,7 @@ const extractSearchChecklist = (text: string, category: string): string[] => {
     return checklist.length > 0 ? checklist : ['Itens genéricos de busca'];
 };
 
-const determineAutoPriority = (text: string, crime: string): string[] => {
+export const determineAutoPriority = (text: string, crime: string): string[] => {
     const tags: string[] = [];
     const upperCrime = crime.toUpperCase();
     const highPriorityCrimes = ['HOMICÍDIO', 'FEMINICÍDIO', 'ROUBO', 'ESTUPRO / CRIMES SEXUAIS', 'ESTUPRO DOS CRIMES SEXUAIS', 'TRÁFICO DE DROGAS', 'EXTORSÃO MEDIANTE SEQUESTRO', 'ORGANIZAÇÃO CRIMINOSA'];
