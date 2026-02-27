@@ -59,7 +59,7 @@ const NewWarrant = () => {
         tags: [] as string[],
         latitude: undefined as number | undefined,
         longitude: undefined as number | undefined,
-        tacticalSummary: '',
+        tacticalSummary: null as any,
         birthDate: '',
         age: '',
         issuingCourt: ''
@@ -89,8 +89,9 @@ const NewWarrant = () => {
         if (editId && warrants) {
             const existing = warrants.find(w => w.id === editId);
             if (existing) {
-                const isSearch = existing.type.toLowerCase().includes('busca');
-                setType(isSearch ? 'search' : 'prison');
+                const isSearch = existing.type?.toLowerCase().includes('busca');
+                const isCounter = existing.type?.toLowerCase().includes('contra');
+                setType(isSearch ? 'search' : (isCounter ? 'counter' : 'prison'));
 
                 setFormData({
                     name: existing.name || '',
@@ -115,7 +116,7 @@ const NewWarrant = () => {
                     tags: existing.tags || [],
                     latitude: existing.latitude,
                     longitude: existing.longitude,
-                    tacticalSummary: existing.tacticalSummary || '',
+                    tacticalSummary: existing.tacticalSummary,
                     birthDate: formatDate(existing.birthDate),
                     age: existing.age || '',
                     issuingCourt: existing.issuingCourt || ''
@@ -341,7 +342,7 @@ const NewWarrant = () => {
                 attachments: [...(formData.attachments || []), ...newAttachmentsUrls],
                 latitude: formData.latitude,
                 longitude: formData.longitude,
-                tacticalSummary: formData.tacticalSummary || '',
+                tacticalSummary: formData.tacticalSummary,
                 birthDate: formData.birthDate,
                 age: formData.age,
                 issuingCourt: formData.issuingCourt

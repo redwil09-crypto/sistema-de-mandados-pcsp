@@ -369,7 +369,7 @@ const AIAssistantPage = () => {
         setIsSaving(true);
         try {
             const warrantId = Date.now().toString();
-            let photoUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(extractedData.name)}&background=random&color=fff`;
+            let photoUrl = extractedData.img || `https://ui-avatars.com/api/?name=${encodeURIComponent(extractedData.name)}&background=random&color=fff`;
 
             if (photoFile) {
                 const ext = photoFile.name.split('.').pop();

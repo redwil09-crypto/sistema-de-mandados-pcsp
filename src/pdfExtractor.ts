@@ -597,14 +597,6 @@ export const determineAutoPriority = (text: string, crime: string): string[] => 
     const upperCrime = crime.toUpperCase();
     const highPriorityCrimes = ['HOMICÍDIO', 'FEMINICÍDIO', 'ROUBO', 'ESTUPRO / CRIMES SEXUAIS', 'ESTUPRO DOS CRIMES SEXUAIS', 'TRÁFICO DE DROGAS', 'EXTORSÃO MEDIANTE SEQUESTRO', 'ORGANIZAÇÃO CRIMINOSA'];
 
-    if (highPriorityCrimes.includes(upperCrime)) {
-        tags.push('Urgente');
-    }
-
-    if (text.toLowerCase().includes('prazo determinado') || text.toLowerCase().includes('imediato')) {
-        tags.push('Prioridade');
-    }
-
     if (upperCrime === 'PENSÃO ALIMENTÍCIA' && (text.toLowerCase().includes('cobrança') || text.toLowerCase().includes('ofício'))) {
         tags.push('Ofício de Cobrança');
     }
