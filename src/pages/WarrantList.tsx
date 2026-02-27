@@ -25,6 +25,7 @@ const WarrantList = () => {
     // Filter states
     const [filterCrime, setFilterCrime] = useState('');
     const [filterRegime, setFilterRegime] = useState('');
+    const [filterDpRegion, setFilterDpRegion] = useState('');
     const [filterStatus, setFilterStatus] = useState(initialStatus);
     const [dateStart, setDateStart] = useState('');
     const [dateEnd, setDateEnd] = useState('');
@@ -44,12 +45,14 @@ const WarrantList = () => {
             (w.rg && w.rg.toLowerCase().includes(term)) ||
             w.type.toLowerCase().includes(term) ||
             (w.crime && w.crime.toLowerCase().includes(term)) ||
-            (w.description && w.description.toLowerCase().includes(term))
+            (w.description && w.description.toLowerCase().includes(term)) ||
+            (w.dpRegion && w.dpRegion.toLowerCase().replace('º', '').replace(' ', '').includes(term.replace('º', '').replace(' ', '')))
         );
 
         // Advanced Filters
         const matchesCrime = filterCrime ? w.crime === filterCrime : true;
         const matchesRegime = filterRegime ? w.regime === filterRegime : true;
+        const matchesDpRegion = filterDpRegion ? w.dpRegion === filterDpRegion : true;
         const matchesStatus = filterStatus ? w.status === filterStatus : true;
         const matchesDate = (!dateStart || (w.date && w.date >= dateStart)) && (!dateEnd || (w.date && w.date <= dateEnd));
         const matchesObservation = observationKeyword ? (w.observation || '').toLowerCase().includes(observationKeyword.toLowerCase()) : true;
@@ -73,12 +76,13 @@ const WarrantList = () => {
             }
         }
 
-        return matchesText && matchesCrime && matchesRegime && matchesStatus && matchesDate && matchesObservation && matchesPriority && matchesExpired;
+        return matchesText && matchesCrime && matchesRegime && matchesDpRegion && matchesStatus && matchesDate && matchesObservation && matchesPriority && matchesExpired;
     }).sort((a, b) => a.name.localeCompare(b.name));
 
     const clearFilters = () => {
         setFilterCrime('');
         setFilterRegime('');
+        setFilterDpRegion('');
         setFilterStatus('');
         setDateStart('');
         setDateEnd('');
@@ -88,7 +92,7 @@ const WarrantList = () => {
         setFilterExpired(false);
     };
 
-    const hasActiveFilters = filterCrime || filterRegime || filterStatus || dateStart || dateEnd || observationKeyword;
+    const hasActiveFilters = filterCrime || filterRegime || filterDpRegion || filterStatus || dateStart || dateEnd || observationKeyword;
 
     return (
         <div className="min-h-screen pb-20 bg-background-light dark:bg-background-dark">
@@ -153,6 +157,20 @@ const WarrantList = () => {
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
                             <div>
+                                <label className="block text-xs font-medium text-text-secondary-light dark:text-text-secondary-dark mb-1">Região DP</label>
+                                <select
+                                    value={filterDpRegion}
+                                    onChange={(e) => setFilterDpRegion(e.target.value)}
+                                    className="w-full rounded-lg border border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark p-2 text-sm text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none"
+                                >
+                                    <option value="">Todas</option>
+                                    <option value="1º DP">1º DP</option>
+                                    <option value="2º DP">2º DP</option>
+                                    <option value="3º DP">3º DP</option>
+                                    <option value="4º DP">4º DP</option>
+                                </select>
+                            </div>
+                            <div>
                                 <label className="block text-xs font-medium text-text-secondary-light dark:text-text-secondary-dark mb-1">Status</label>
                                 <select
                                     value={filterStatus}
@@ -163,6 +181,8 @@ const WarrantList = () => {
                                     {statuses.map(s => <option key={s} value={s}>{s}</option>)}
                                 </select>
                             </div>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
                             <div>
                                 <label className="block text-xs font-medium text-text-secondary-light dark:text-text-secondary-dark mb-1">Observações (Palavra-chave)</label>
                                 <div className="relative">

@@ -18,6 +18,7 @@ export interface Warrant {
     crime?: string;
     regime?: string;
     observation?: string;
+    dpRegion?: string; // 1DP, 2DP, 3DP, 4DP
 
     // Detailed View Fields
     cpf?: string;

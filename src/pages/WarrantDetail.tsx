@@ -1982,7 +1982,7 @@ Equipe de Capturas - DIG / PCSP
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                            <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
                                 <div className="bg-background-light dark:bg-white/5 border border-border-light dark:border-white/5 p-2 rounded-xl text-center flex flex-col items-center group/field">
                                     <p className="text-[9px] uppercase font-bold text-text-secondary-light dark:text-text-muted mb-0.5 tracking-tighter">Tipo Crime</p>
                                     <input
@@ -2009,6 +2009,20 @@ Equipe de Capturas - DIG / PCSP
                                         {availableRegimes.map(opt => <option key={opt} value={opt} />)}
                                         <option value="Contramandado" />
                                     </datalist>
+                                </div>
+                                <div className="bg-background-light dark:bg-white/5 border border-border-light dark:border-white/5 p-2 rounded-xl text-center flex flex-col items-center group/field">
+                                    <p className="text-[9px] uppercase font-bold text-text-secondary-light dark:text-text-muted mb-0.5 tracking-tighter">Região DP</p>
+                                    <select
+                                        className="w-full bg-transparent border-none text-xs font-black text-text-light dark:text-white outline-none text-center hover:text-primary transition-colors cursor-pointer appearance-none"
+                                        value={localData.dpRegion || ''}
+                                        onChange={e => handleFieldChange('dpRegion', e.target.value)}
+                                    >
+                                        <option value="" className="text-black dark:text-white bg-white dark:bg-slate-900">Selecione...</option>
+                                        <option value="1º DP" className="text-black dark:text-white bg-white dark:bg-slate-900">1º DP</option>
+                                        <option value="2º DP" className="text-black dark:text-white bg-white dark:bg-slate-900">2º DP</option>
+                                        <option value="3º DP" className="text-black dark:text-white bg-white dark:bg-slate-900">3º DP</option>
+                                        <option value="4º DP" className="text-black dark:text-white bg-white dark:bg-slate-900">4º DP</option>
+                                    </select>
                                 </div>
                                 <div className="bg-background-light dark:bg-white/5 border border-border-light dark:border-white/5 p-2 rounded-xl text-center">
                                     <p className="text-[9px] uppercase font-bold text-text-secondary-light dark:text-gray-400 mb-0.5 tracking-tighter">Idade Captura</p>
