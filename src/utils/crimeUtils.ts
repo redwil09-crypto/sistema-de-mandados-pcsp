@@ -83,17 +83,7 @@ export const normalizeCrimeName = (crime: string): string => {
     }
 
     // Se o crime virou uma string muito curta ou vazia
-    if (!finalCrime || finalCrime.length < 3) return 'Outros';
+    if (!finalCrime || finalCrime.length < 3) return 'OUTROS';
 
-    // Capitalize as first letter, lower rest for better aesthetics like "Roubo", "Furto", etc.
-    const toCamelCase = (str: string) => {
-        return str.split(/(\s+|\/|-)/).map(word => {
-            if (!word.trim()) return word; // Mantenha separadores e espaços exatos
-            if (word.length <= 2 && word !== 'DA' && word !== 'DE' && word !== 'DO') return word;
-            if (['DE', 'DA', 'DO', 'DOS', 'DAS', 'E'].includes(word)) return word.toLowerCase();
-            return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
-        }).join('');
-    };
-
-    return toCamelCase(finalCrime);
+    return finalCrime.toUpperCase();
 };
