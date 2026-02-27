@@ -1,5 +1,6 @@
 // NOTE: pdfjs-dist is now dynamically imported to avoid top-level crashes
 import { extractFullWarrantIntelligence, isGeminiEnabled, extractWarrantFromImage } from './services/geminiService';
+import { normalizeCrimeName } from './utils/crimeUtils';
 
 const fileToBase64 = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
@@ -415,21 +416,21 @@ const extractCrime = (text: string): string => {
 
     if (articleMatch && articleMatch[1]) {
         const art = articleMatch[1];
-        if (art === '157') return "Roubo";
-        if (art === '155') return "Furto";
-        if (art === '33' || art === '35') return "Tráfico de Drogas";
-        if (art === '121') return "Homicídio";
-        if (art === '129') return "Lesão Corporal";
-        if (art === '213' || art === '217') return "Estupro / Crimes Sexuais";
-        if (art === '180') return "Receptação";
-        if (art === '171') return "Estelionato";
-        if (art === '147') return "Ameaça";
-        if (art === '158') return "Extorsão";
-        if (art === '159') return "Extorsão Mediante Sequestro";
-        if (art === '14' || art === '16') return "Posse/Porte de Arma";
-        if (art === '302' || art === '303') return "Crimes de Trânsito";
-        if (art === '331') return "Desacato";
-        if (art === '329') return "Resistência";
+        if (art === '157') return normalizeCrimeName("Roubo");
+        if (art === '155') return normalizeCrimeName("Furto");
+        if (art === '33' || art === '35') return normalizeCrimeName("Tráfico de Drogas");
+        if (art === '121') return normalizeCrimeName("Homicídio");
+        if (art === '129') return normalizeCrimeName("Lesão Corporal");
+        if (art === '213' || art === '217') return normalizeCrimeName("Estupro / Crimes Sexuais");
+        if (art === '180') return normalizeCrimeName("Receptação");
+        if (art === '171') return normalizeCrimeName("Estelionato");
+        if (art === '147') return normalizeCrimeName("Ameaça");
+        if (art === '158') return normalizeCrimeName("Extorsão");
+        if (art === '159') return normalizeCrimeName("Extorsão Mediante Sequestro");
+        if (art === '14' || art === '16') return normalizeCrimeName("Posse/Porte de Arma");
+        if (art === '302' || art === '303') return normalizeCrimeName("Crimes de Trânsito");
+        if (art === '331') return normalizeCrimeName("Desacato");
+        if (art === '329') return normalizeCrimeName("Resistência");
     }
 
     const specificRules = [
@@ -458,11 +459,11 @@ const extractCrime = (text: string): string => {
                     continue;
                 }
             }
-            return rule.crime;
+            return normalizeCrimeName(rule.crime);
         }
     }
 
-    return 'Outros';
+    return normalizeCrimeName('Outros');
 };
 
 const extractRegime = (text: string, category: 'prison' | 'search', crime: string): string => {
@@ -663,7 +664,7 @@ export const extractPdfData = async (file: File): Promise<ExtractedData> => {
                             processNumber: aiData.processNumber || '',
                             type: aiData.type || 'MANDADO DE PRISÃO',
                             category: (aiData.type && aiData.type.includes('BUSCA')) ? 'search' : 'prison',
-                            crime: aiData.crime || 'Outros',
+                            crime: normalizeCrimeName(aiData.crime || 'Outros'),
                             regime: aiData.regime || 'Outro',
                             issueDate: aiData.issueDate || new Date().toISOString().split('T')[0],
                             expirationDate: aiData.expirationDate || '',
@@ -705,7 +706,7 @@ export const extractPdfData = async (file: File): Promise<ExtractedData> => {
                         processNumber: aiData.processNumber || '',
                         type: aiData.type || 'MANDADO DE PRISÃO',
                         category: (aiData.type && aiData.type.includes('BUSCA')) ? 'search' : 'prison',
-                        crime: aiData.crime || 'Outros',
+                        crime: normalizeCrimeName(aiData.crime || 'Outros'),
                         regime: aiData.regime || 'Outro',
                         issueDate: aiData.issueDate || new Date().toISOString().split('T')[0],
                         expirationDate: aiData.expirationDate || '',

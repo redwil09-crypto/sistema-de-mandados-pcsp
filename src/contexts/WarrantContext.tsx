@@ -10,6 +10,7 @@ import {
 } from '../supabaseService';
 import { toast } from 'sonner';
 import { CRIME_OPTIONS, REGIME_OPTIONS } from '../data/constants';
+import { normalizeCrimeName } from '../utils/crimeUtils';
 
 interface WarrantContextType {
     warrants: Warrant[];
@@ -109,7 +110,27 @@ export const WarrantProvider = ({ children }: { children: ReactNode }) => {
         if (!silent) setLoading(true);
         try {
             const data = await getWarrants();
-            const formattedData = data || [];
+            let formattedData = data || [];
+
+            // Auto-normalizar e salvar no banco os crimes que estiverem fora do padrao (Art. 33, Alimentos sujos, etc)
+            const crimesToFix: { id: string, newCrime: string }[] = [];
+            formattedData = formattedData.map(w => {
+                if (w.crime) {
+                    const clean = normalizeCrimeName(w.crime);
+                    if (clean !== w.crime) {
+                        crimesToFix.push({ id: w.id, newCrime: clean });
+                        return { ...w, crime: clean };
+                    }
+                }
+                return w;
+            });
+
+            if (crimesToFix.length > 0) {
+                console.log(`Normalizando nomes de crime em db (Background) - ${crimesToFix.length} itens encontrados.`);
+                setTimeout(() => {
+                    crimesToFix.forEach(c => updateWarrantDb(c.id, { crime: c.newCrime }).catch(e => console.error(e)));
+                }, 2000);
+            }
 
             // Check for warrants that need correction (Suspensão de Regime should be OPEN)
             const needsCorrection = formattedData.filter(w =>
