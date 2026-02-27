@@ -683,11 +683,11 @@ const AIAssistantPage = () => {
                                         href="https://portalbnmp.cnj.jus.br/#/pesquisa-peca"
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="col-span-1 sm:col-span-2 mt-1 py-4 bg-surface-light dark:bg-black/40 border border-border-light dark:border-white/10 rounded-xl flex items-center justify-center gap-3 hover:border-primary/50 dark:hover:border-primary/50 transition-all shadow-md active:scale-95 text-text-light dark:text-white font-black text-xs sm:text-sm uppercase tracking-widest group"
+                                        className="col-span-1 sm:col-span-2 mt-1 py-4 bg-gradient-to-r from-emerald-700 to-teal-600 hover:from-emerald-600 hover:to-teal-500 text-white border border-emerald-400/30 rounded-xl flex items-center justify-center gap-3 transition-all shadow-lg active:scale-95 font-black text-xs sm:text-sm uppercase tracking-widest group"
                                     >
-                                        <Database size={20} className="text-primary group-hover:scale-110 transition-transform" />
+                                        <Database size={20} className="text-emerald-100 group-hover:scale-110 transition-transform" />
                                         <span>Consultar Base BNMP</span>
-                                        <ExternalLink size={14} className="opacity-50 ml-1 group-hover:opacity-100 transition-opacity" />
+                                        <ExternalLink size={14} className="opacity-70 ml-1 group-hover:opacity-100 transition-opacity" />
                                     </a>
                                 </div>
 
