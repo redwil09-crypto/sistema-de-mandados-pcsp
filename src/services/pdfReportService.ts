@@ -5,17 +5,10 @@ import { Warrant } from '../types';
 import { uploadFile, getPublicUrl } from '../supabaseStorage';
 import { formatDate } from '../utils/helpers';
 
-export interface UserProfile {
-    full_name: string;
-    cargo: string;
-    email?: string;
-}
-
 export const generateWarrantPDF = async (
     data: Warrant,
     onUpdate?: (id: string, updates: Partial<Warrant>) => Promise<boolean>,
-    aiTimeSuggestion?: { suggestion: string; confidence: string; reason: string } | null,
-    userProfile?: UserProfile
+    aiTimeSuggestion?: { suggestion: string; confidence: string; reason: string } | null
 ) => {
     if (!data) return;
     try {
@@ -469,8 +462,7 @@ export const generateWarrantPDF = async (
 
 export const generateIfoodOfficePDF = async (
     data: Warrant,
-    onUpdate?: (id: string, updates: Partial<Warrant>) => Promise<boolean>,
-    userProfile?: UserProfile
+    onUpdate?: (id: string, updates: Partial<Warrant>) => Promise<boolean>
 ) => {
     if (!data) return;
     try {
@@ -587,9 +579,9 @@ export const generateIfoodOfficePDF = async (
 
         doc.line(pageWidth / 2 - 40, y, pageWidth / 2 + 40, y);
         doc.setFont('helvetica', 'bold');
-        doc.text(userProfile?.full_name || "Luiz Antônio Cunha dos Santos", pageWidth / 2, y + 5, { align: 'center' });
+        doc.text("Luiz Antônio Cunha dos Santos", pageWidth / 2, y + 5, { align: 'center' });
         doc.setFont('helvetica', 'normal');
-        doc.text(userProfile?.cargo || "Delegado de Polícia", pageWidth / 2, y + 10, { align: 'center' });
+        doc.text("Delegado de Polícia", pageWidth / 2, y + 10, { align: 'center' });
 
         // --- FOOTER (New Model Style) ---
         const footerY = pageHeight - 15;
@@ -656,8 +648,7 @@ export const generateCapturasReportPDF = async (
         signer: string;
         delegate: string;
     },
-    onUpdate?: (id: string, updates: Partial<Warrant>) => Promise<boolean>,
-    userProfile?: UserProfile
+    onUpdate?: (id: string, updates: Partial<Warrant>) => Promise<boolean>
 ) => {
     try {
         const doc = new jsPDF();

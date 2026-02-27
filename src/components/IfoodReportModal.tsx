@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 import { jsPDF } from 'jspdf';
 import { Warrant } from '../types';
 import { uploadFile, getPublicUrl } from '../supabaseStorage';
-import { UserProfile } from '../services/pdfReportService';
+import { supabase } from '../supabaseClient';
 
 interface IfoodReportModalProps {
     isOpen: boolean;
@@ -14,29 +14,21 @@ interface IfoodReportModalProps {
     warrant: Warrant;
     type: 'ifood' | 'uber' | '99';
     updateWarrant: (id: string, data: Partial<Warrant>) => Promise<boolean>;
-    userProfile?: UserProfile | null;
 }
 
-const AUTHORITIES = [
-    { name: "Luiz Antônio Cunha dos Santos", title: "Delegado de Polícia", email: "dig.jacarei@policiacivil.sp.gov.br" }
-];
-
-const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, warrant, type: initialType, updateWarrant, userProfile }) => {
+const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, warrant, type: initialType, updateWarrant }) => {
     const [generatedText, setGeneratedText] = useState('');
     const [isProcessing, setIsProcessing] = useState(false);
     const [officeNumber, setOfficeNumber] = useState('');
     const [step, setStep] = useState<'input' | 'processing' | 'result'>('input');
     const [badgeImg, setBadgeImg] = useState<HTMLImageElement | null>(null);
     const [selectedType, setSelectedType] = useState(initialType);
-    const [authorityIndex, setAuthorityIndex] = useState(0);
+    const [currentUser, setCurrentUser] = useState<{ name: string; email: string } | null>(null);
 
     // Update selectedType if props change (reset)
     useEffect(() => {
-        if (isOpen) {
-            setSelectedType(initialType);
-            setAuthorityIndex(userProfile?.full_name?.includes('William') ? 1 : 0);
-        }
-    }, [initialType, isOpen, userProfile]);
+        if (isOpen) setSelectedType(initialType);
+    }, [initialType, isOpen]);
 
 
     // Preload badge image
@@ -66,45 +58,84 @@ const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, wa
             setStep('input');
             setGeneratedText('');
             setOfficeNumber('');
+        } else {
+            // Fetch current user info when modal opens
+            const fetchUser = async () => {
+                const { data: { user } } = await supabase.auth.getUser();
+                if (user) {
+                    try {
+                        const { data: profile } = await supabase
+                            .from('profiles')
+                            .select('full_name, email')
+                            .eq('id', user.id)
+                            .single();
+
+                        if (profile) {
+                            setCurrentUser({
+                                name: profile.full_name,
+                                email: profile.email
+                            });
+                        } else {
+                            setCurrentUser({
+                                name: user.user_metadata?.full_name || 'Policial',
+                                email: user.email || ''
+                            });
+                        }
+                    } catch (e) {
+                        setCurrentUser({
+                            name: user.user_metadata?.full_name || 'Policial',
+                            email: user.email || ''
+                        });
+                    }
+                }
+            };
+            fetchUser();
         }
     }, [isOpen]);
 
-    const generateTextForType = useCallback((type: 'ifood' | 'uber' | '99', office: string, authIndex: number) => {
-        const auth = AUTHORITIES[authIndex];
-        const indent = "                "; // Same as old indent
-        const label = type === 'ifood' ? 'IFOOD' : type === 'uber' ? 'UBER' : '99';
+    const generateTextForType = (currentType: 'ifood' | 'uber' | '99') => {
+        const months = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+        const today = new Date();
+        const dateLine = `Jacareí, ${today.getDate().toString().padStart(2, '0')} de ${months[today.getMonth()]} de ${today.getFullYear()}.`;
 
-        return `Ofício: ${office}
+        let platformName = 'IFOOD';
+        if (currentType === 'uber') platformName = 'UBER';
+        if (currentType === '99') platformName = '99';
+
+        const indent = "          ";
+
+        const contactEmail = currentUser?.email || 'william.castro@policiacivil.sp.gov.br';
+        const contactName = currentUser?.name || 'William Campos de Assis Castro';
+
+        return `Ofício: nº.${officeNumber}/CAPT/2025
 Referência: PROC. Nº ${warrant.number}
 Natureza: Solicitação de Dados.
 
-Jacareí, ${new Date().toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' })}.
+${dateLine}
 
 ILMO. SENHOR RESPONSÁVEL,
 
-${indent}Com a finalidade de instruir investigação policial em trâmite nesta unidade, solicito, respeitosamente, a gentileza de verificar se o indivíduo abaixo relacionado encontra-se cadastrado como usuário ou entregador da plataforma ${label}.
+${indent}Com a finalidade de instruir investigação policial em trâmite nesta unidade, solicito, respeitosamente, a gentileza de verificar se o indivíduo abaixo relacionado encontra-se cadastrado como usuário ou entregador da plataforma ${platformName}.
 
 ${indent}Em caso positivo, requer-se o envio das informações cadastrais fornecidas para habilitação na plataforma, incluindo, se disponíveis, nome completo, endereço(s), número(s) de telefone, e-mail(s) e demais dados vinculados à respectiva conta.
 
 ${indent}As informações devem ser encaminhadas ao e-mail institucional do policial responsável pela investigação:
 
-${indent}${auth.email}
-${indent}${auth.name} – Polícia Civil do Estado de São Paulo
+${indent}${contactEmail}
+${indent}${contactName} – Polícia Civil do Estado de São Paulo
 
-Pessoa de interesse para a investigação:
-${warrant.name.toUpperCase()} / CPF/RG: ${warrant.cpf || warrant.rg || 'N/I'}
+${indent}Pessoa de interesse para a investigação:
+
+${indent}${warrant.name.toUpperCase()} – CPF ${warrant.cpf || warrant.rg || 'NÃO INFORMADO'}
 
 ${indent}Aproveito a oportunidade para renovar meus votos de elevada estima e consideração.
 
-Atenciosamente,
-
-${auth.name}
-${auth.title}`;
-    }, [warrant]);
+${indent}Atenciosamente,`;
+    };
 
     const handleGenerate = () => {
         if (!officeNumber.trim()) {
-            toast.error("Número do ofício obrigatório.");
+            toast.error("Por favor, informe o número do ofício.");
             return;
         }
 
@@ -112,29 +143,20 @@ ${auth.title}`;
         setIsProcessing(true);
 
         setTimeout(() => {
-            const text = generateTextForType(selectedType, officeNumber, authorityIndex);
+            const text = generateTextForType(selectedType);
             setGeneratedText(text);
             setStep('result');
             setIsProcessing(false);
         }, 300);
     };
 
-    // When switching types or authority in result mode, regenerate text immediately
+    // When switching types in result mode, regenerate text immediately
     const handleTypeSwitch = (newType: 'ifood' | 'uber' | '99') => {
         setSelectedType(newType);
         if (step === 'result') {
-            const text = generateTextForType(newType, officeNumber, authorityIndex);
+            const text = generateTextForType(newType);
             setGeneratedText(text);
             toast.success(`Modelo alterado para ${newType.toUpperCase()}`);
-        }
-    };
-
-    const handleAuthoritySwitch = (index: number) => {
-        setAuthorityIndex(index);
-        if (step === 'result') {
-            const text = generateTextForType(selectedType, officeNumber, index);
-            setGeneratedText(text);
-            toast.success(`Autoridade alterada para ${AUTHORITIES[index].name.split(' ')[0]}`);
         }
     };
 
@@ -146,7 +168,6 @@ ${auth.title}`;
     const handleDownloadPDF = async () => {
         if (!generatedText) return;
 
-        const auth = AUTHORITIES[authorityIndex];
         const doc = new jsPDF();
         const pageWidth = doc.internal.pageSize.getWidth();
         const pageHeight = doc.internal.pageSize.getHeight();
@@ -266,8 +287,8 @@ ${auth.title}`;
         }
 
         doc.setFont('helvetica', 'bold');
-        doc.text(auth.name, pageWidth / 2, signatureNameY, { align: 'center' });
-        doc.text(auth.title, pageWidth / 2, signatureTitleY, { align: 'center' });
+        doc.text("Luiz Antônio Cunha dos Santos", pageWidth / 2, signatureNameY, { align: 'center' });
+        doc.text("Delegado de Polícia", pageWidth / 2, signatureTitleY, { align: 'center' });
         doc.setFont('helvetica', 'normal');
         doc.text("Ao Ilustríssimo Senhor Responsável", margin, addresseeY);
         doc.setFont('helvetica', 'bold');
@@ -388,16 +409,6 @@ ${auth.title}`;
                                     onKeyDown={(e) => e.key === 'Enter' && handleGenerate()}
                                 />
                             </div>
-
-                            <div className="w-full max-w-md bg-indigo-500/5 border border-indigo-500/10 rounded-2xl p-4 flex items-center justify-between">
-                                <div className="flex flex-col">
-                                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-0.5">Autoridade Signatária:</span>
-                                    <span className="text-sm font-black text-indigo-400">Dr. Luiz Antônio Cunha dos Santos</span>
-                                </div>
-                                <div className="w-10 h-10 rounded-full bg-indigo-500/10 flex items-center justify-center text-indigo-500">
-                                    <FileText size={20} />
-                                </div>
-                            </div>
                             <button
                                 onClick={handleGenerate}
                                 className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 rounded-xl font-black uppercase tracking-widest shadow-lg shadow-indigo-900/40 transition-all active:scale-95 flex items-center gap-2"
@@ -419,26 +430,11 @@ ${auth.title}`;
 
                     {step === 'result' && (
                         <>
-                            <div className="flex-1 relative flex flex-col overflow-hidden">
-                                <textarea
-                                    className="flex-1 w-full bg-white text-slate-900 p-8 rounded-lg shadow-inner overflow-y-auto font-serif whitespace-pre-wrap leading-relaxed border-4 border-slate-200 text-sm md:text-base selection:bg-indigo-100 animate-in fade-in zoom-in-95 resize-none focus:outline-none focus:border-indigo-400 transition-colors"
-                                    value={generatedText}
-                                    onChange={(e) => setGeneratedText(e.target.value)}
-                                />
-
-                                {/* Quick Switch Authority in Result Mode */}
-                                <div className="absolute top-4 right-4 flex gap-1">
-                                    {AUTHORITIES.map((auth, idx) => (
-                                        <button
-                                            key={auth.name}
-                                            onClick={() => handleAuthoritySwitch(idx)}
-                                            className={`px-3 py-1.5 rounded-lg border text-[9px] font-black uppercase tracking-tighter transition-all ${authorityIndex === idx ? 'bg-primary text-white shadow-lg' : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-50'}`}
-                                        >
-                                            Dr. {auth.name.split(' ')[0]}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
+                            <textarea
+                                className="flex-1 w-full bg-white text-slate-900 p-8 rounded-lg shadow-inner overflow-y-auto font-serif whitespace-pre-wrap leading-relaxed border-4 border-slate-200 text-sm md:text-base selection:bg-indigo-100 animate-in fade-in zoom-in-95 resize-none focus:outline-none focus:border-indigo-400 transition-colors"
+                                value={generatedText}
+                                onChange={(e) => setGeneratedText(e.target.value)}
+                            />
                             <div className="flex justify-between items-center bg-slate-100 dark:bg-slate-800/80 p-4 rounded-xl border border-slate-200 dark:border-slate-700 backdrop-blur">
                                 <p className="text-xs text-text-secondary-light dark:text-slate-400 font-medium italic">Edite o texto acima conforme necessário.</p>
                                 <div className="flex gap-3">

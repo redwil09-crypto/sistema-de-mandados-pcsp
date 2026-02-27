@@ -22,7 +22,7 @@ import WarrantAuditLog from '../components/WarrantAuditLog';
 import { formatDate, getStatusColor, maskDate } from '../utils/helpers';
 import { Warrant } from '../types';
 import { geocodeAddress } from '../services/geocodingService';
-import { generateWarrantPDF, generateIfoodOfficePDF, UserProfile } from '../services/pdfReportService';
+import { generateWarrantPDF, generateIfoodOfficePDF } from '../services/pdfReportService';
 import IfoodReportModal from '../components/IfoodReportModal';
 import FloatingDock from '../components/FloatingDock';
 import { analyzeRawDiligence, generateReportBody, analyzeDocumentStrategy, askAssistantStrategy, mergeIntelligence } from '../services/geminiService';
@@ -30,18 +30,10 @@ import { extractPdfData } from '../services/pdfExtractionService';
 import { extractRawTextFromPdf, extractFromText } from '../pdfExtractor';
 import { useWarrants } from '../contexts/WarrantContext';
 
-const AUTHORITIES = [
-    { name: "Luiz Antônio Cunha dos Santos", title: "Delegado de Polícia", email: "dig.jacarei@policiacivil.sp.gov.br" },
-    { name: "Rodrigo Mambeli De Mendonça", title: "Delegado de Polícia", email: "dig.jacarei@policiacivil.sp.gov.br" }
-];
-
 const WarrantDetail = () => {
     const { warrants, updateWarrant, deleteWarrant, routeWarrants, toggleRouteWarrant, refreshWarrants, availableCrimes, availableRegimes } = useWarrants();
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
-
-    // ... (states)
-    const [authorityIndex, setAuthorityIndex] = useState(0);
 
     // URL Persistence
     const [searchParams, setSearchParams] = useSearchParams();
@@ -124,8 +116,8 @@ const WarrantDetail = () => {
         reportNumber: '',
         court: '',
         body: '',
-        signerIndex: 0,
-        delegateIndex: 0,
+        signer: 'William Campos A. Castro',
+        delegate: 'Luiz Antônio Cunha dos Santos',
         aiInstructions: ''
     });
     const [isGeneratingAiReport, setIsGeneratingAiReport] = useState(false);
@@ -135,7 +127,6 @@ const WarrantDetail = () => {
 
     const [localData, setLocalData] = useState<Partial<Warrant>>({});
     const [userId, setUserId] = useState<string | undefined>(undefined);
-    const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
     const [isAdmin, setIsAdmin] = useState(false);
 
     // -------------------------------------------------------------------------------- //
@@ -156,27 +147,6 @@ const WarrantDetail = () => {
     // Swipe Navigation
     // -------------------------------------------------------------------------------- //
     // NEW: Add swipe gestures to switch tabs
-
-    // Tag Color Mapping
-    const getTagStyle = (tag: string) => {
-        const t = tag.toLowerCase();
-        if (t.includes('perigoso') || t.includes('periculosidade') || t.includes('armado') || t.includes('facção') || t.includes('pcc') || t.includes('suicídio')) {
-            return 'bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/30';
-        }
-        if (t.includes('urgente') || t.includes('fuga') || t.includes('resistência') || t.includes('desacato') || t.includes('psiquiátrico')) {
-            return 'bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-500/30';
-        }
-        if (t.includes('violência') || t.includes('penha') || t.includes('mulher')) {
-            return 'bg-pink-500/10 text-pink-600 dark:text-pink-400 border-pink-500/30';
-        }
-        if (t.includes('cobrança') || t.includes('cível') || t.includes('alimentos')) {
-            return 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30';
-        }
-        if (t.includes('preventiva') || t.includes('temporária') || t.includes('definitiva') || t.includes('reincidente')) {
-            return 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/30';
-        }
-        return 'bg-secondary/20 text-secondary border-secondary/30';
-    };
     const { onTouchStart, onTouchMove, onTouchEnd } = useSwipe({
         onSwipeLeft: () => {
             if (activeDetailTab === 'documents') setActiveDetailTab('investigation');
@@ -198,38 +168,6 @@ const WarrantDetail = () => {
             const { data: { user } } = await supabase.auth.getUser();
             if (user) {
                 setUserId(user.id);
-
-                // Load detailed profile
-                const { data: profile } = await supabase
-                    .from('profiles')
-                    .select('full_name, cargo, email')
-                    .eq('id', user.id)
-                    .single();
-
-                if (profile) {
-                    setUserProfile(profile);
-                    // Update signer in capturasData if it's still default
-                    setCapturasData(prev => ({
-                        ...prev,
-                        signer: profile.full_name
-                    }));
-                } else {
-                    // Fallback to metadata if profile table fails
-                    const metadata = user.user_metadata;
-                    if (metadata?.full_name) {
-                        const metaProfile = {
-                            full_name: metadata.full_name,
-                            cargo: metadata.cargo || 'Agente Policial',
-                            email: user.email
-                        };
-                        setUserProfile(metaProfile);
-                        setCapturasData(prev => ({
-                            ...prev,
-                            signer: metadata.full_name
-                        }));
-                    }
-                }
-
                 if (user.user_metadata?.role === 'admin') {
                     setIsAdmin(true);
                 }
@@ -1089,7 +1027,7 @@ Equipe de Capturas - DIG / PCSP
         if (!data) return;
         const toastId = toast.loading("Gerando Ofício iFood...");
         try {
-            await generateIfoodOfficePDF(data, updateWarrant, userProfile || undefined);
+            await generateIfoodOfficePDF(data, updateWarrant);
             toast.dismiss(toastId);
         } catch (error) {
             console.error(error);
@@ -1177,7 +1115,7 @@ Equipe de Capturas - DIG / PCSP
                     id: Date.now().toString(),
                     date: new Date().toISOString(),
                     notes: `[INTELIGÊNCIA PLATAFORMA] ${analysisSummary}`,
-                    investigator: 'Policial',
+                    investigator: 'Agente (Via Sistema)',
                     type: 'IFOOD_UBER' as const
                 };
 
@@ -1241,7 +1179,7 @@ Equipe de Capturas - DIG / PCSP
         if (!data) return;
         // Refresh data to ensure history is included
         await refreshWarrants(true);
-        await generateWarrantPDF(data, updateWarrant, aiTimeSuggestion, userProfile || undefined);
+        await generateWarrantPDF(data, updateWarrant, aiTimeSuggestion);
     };
 
     const handleGenerateIFoodReport = async () => {
@@ -1383,9 +1321,9 @@ Equipe de Capturas - DIG / PCSP
             y += (splitBody3.length * 5) + 2;
 
             doc.setFont('helvetica', 'bold');
-            doc.text(`     ${userProfile?.email || 'william.castro@policiacivil.sp.gov.br'}`, margin, y);
+            doc.text("     william.castro@policiacivil.sp.gov.br", margin, y);
             y += 5;
-            doc.text(`     ${userProfile?.full_name || 'William Campos de Assis Castro'} – Polícia Civil do Estado de São Paulo`, margin, y);
+            doc.text("     William Campos de Assis Castro – Polícia Civil do Estado de São Paulo", margin, y);
 
             y += 10; // Reduced spacing
 
@@ -1421,12 +1359,11 @@ Equipe de Capturas - DIG / PCSP
             }
 
             // Position Signature at fixed bottom location
-            const authority = AUTHORITIES[authorityIndex];
             y = signatureBlockY;
             doc.setFont('helvetica', 'bold');
-            doc.text(authority.name, pageWidth / 2, y, { align: 'center' });
+            doc.text("Luiz Antônio Cunha dos Santos", pageWidth / 2, y, { align: 'center' });
             y += 5;
-            doc.text(authority.title, pageWidth / 2, y, { align: 'center' });
+            doc.text("Delegado de Polícia", pageWidth / 2, y, { align: 'center' });
 
             // Position Addressee at fixed bottom location
             y = addresseeBlockY;
@@ -1825,9 +1762,7 @@ Equipe de Capturas - DIG / PCSP
                 y = 40;
             }
 
-            const signer = AUTHORITIES[capturasData.signerIndex];
-            const delegate = AUTHORITIES[capturasData.delegateIndex];
-            const signerName = signer.name;
+            const signerName = capturasData.signer || "Investigador de Polícia";
 
             // Position signature on the right 
             const sigX = pageWidth - margin - 40;
@@ -1854,7 +1789,7 @@ Equipe de Capturas - DIG / PCSP
             doc.setFont('helvetica', 'bolditalic');
             doc.text("Excelentíssimo Doutor", margin, dY);
             dY += 5;
-            doc.text(delegate.name, margin, dY);
+            doc.text(capturasData.delegate || "Delegado Titular", margin, dY);
             dY += 5;
             doc.text("Delegado de Polícia Titular", margin, dY);
             dY += 5;
@@ -2086,7 +2021,7 @@ Equipe de Capturas - DIG / PCSP
 
                             <div className="flex flex-wrap justify-center sm:justify-start gap-2 pt-1">
                                 {data.tags?.map(tag => (
-                                    <span key={tag} className={`text-[10px] font-black uppercase border px-3 py-1 rounded-full flex items-center gap-1.5 shadow-sm ${getTagStyle(tag)}`}>
+                                    <span key={tag} className="text-[10px] font-black uppercase bg-secondary/20 text-secondary border border-secondary/30 px-3 py-1 rounded-full flex items-center gap-1.5 shadow-sm">
                                         <Zap size={10} className="fill-current" /> {tag}
                                     </span>
                                 ))}
@@ -2676,26 +2611,16 @@ Equipe de Capturas - DIG / PCSP
                                             <p className="text-[10px] text-text-muted font-bold uppercase">Rastreamento de Pedidos e Corridas</p>
                                         </div>
                                     </div>
-                                    <div className="flex flex-col sm:flex-row items-end gap-3 w-full sm:w-auto mt-2 sm:mt-0">
-                                        <div className="flex flex-col gap-0.5 w-full sm:w-auto bg-white/5 p-3 rounded-xl border border-white/5">
-                                            <span className="text-[9px] font-black uppercase text-indigo-400">Assinatura:</span>
-                                            <span className="text-[10px] font-black text-white whitespace-nowrap">DR. LUIZ ANTÔNIO</span>
-                                        </div>
+                                    <button
+                                        onClick={handleGenerateIfoodOffice}
+                                        className="bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-tactic flex items-center gap-2 transition-all active:scale-95 border border-slate-500/30"
+                                    >
+                                        <FileText size={14} /> Gerar Ofício Padrão (Modelo Antigo)
+                                    </button>
+                                    <div className="flex justify-end w-full sm:w-auto">
                                         <button
-                                            onClick={() => {
-                                                setAuthorityIndex(0); // Force index 0 for Luiz
-                                                handleGenerateIfoodOffice();
-                                            }}
-                                            className="bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-tactic flex items-center gap-2 transition-all active:scale-95 border border-slate-500/30 w-full sm:w-auto"
-                                        >
-                                            <FileText size={14} /> Ofício Modelo Original
-                                        </button>
-                                        <button
-                                            onClick={() => {
-                                                setAuthorityIndex(0); // Force index 0 for Luiz
-                                                setActiveReportType('ifood');
-                                            }}
-                                            className="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg flex items-center gap-2 transition-all active:scale-95 border border-indigo-500/30 w-full sm:w-auto"
+                                            onClick={() => setActiveReportType('ifood')}
+                                            className="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg flex items-center gap-2 transition-all active:scale-95 border border-indigo-500/30"
                                         >
                                             <Bike size={14} /> GERAR OFÍCIO PLATAFORMA
                                         </button>
@@ -3212,53 +3137,8 @@ Equipe de Capturas - DIG / PCSP
                             </div>
                             <div className="flex-1 overflow-y-auto p-6 space-y-6 scrollbar-none">
                                 <div className="grid grid-cols-2 gap-4">
-                                    <div className="space-y-1">
-                                        <label className="text-[10px] font-black text-primary uppercase tracking-widest">Identificador Relatório</label>
-                                        <input
-                                            className="w-full bg-background-light dark:bg-white/5 border border-border-light dark:border-white/10 rounded-xl p-3 text-sm text-text-light dark:text-white"
-                                            value={capturasData.reportNumber}
-                                            onChange={e => setCapturasData({ ...capturasData, reportNumber: e.target.value })}
-                                        />
-                                    </div>
-                                    <div className="space-y-1">
-                                        <label className="text-[10px] font-black text-primary uppercase tracking-widest">Comarca Judiciária</label>
-                                        <input
-                                            className="w-full bg-background-light dark:bg-white/5 border border-border-light dark:border-white/10 rounded-xl p-3 text-sm text-text-light dark:text-white"
-                                            value={capturasData.court}
-                                            onChange={e => setCapturasData({ ...capturasData, court: e.target.value })}
-                                        />
-                                    </div>
-                                </div>
-
-                                <div className="grid grid-cols-2 gap-4 bg-white/5 p-4 rounded-2xl border border-white/5">
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] font-black text-text-muted uppercase tracking-widest">Signatário (Assinatura)</label>
-                                        <div className="flex flex-col gap-1">
-                                            {AUTHORITIES.map((auth, idx) => (
-                                                <button
-                                                    key={`signer-${idx}`}
-                                                    onClick={() => setCapturasData({ ...capturasData, signerIndex: idx })}
-                                                    className={`px-3 py-2 rounded-lg text-[10px] font-black uppercase text-left transition-all ${capturasData.signerIndex === idx ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'bg-white/5 text-text-muted hover:bg-white/10'}`}
-                                                >
-                                                    Dr. {auth.name.split(' ')[0]}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </div>
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] font-black text-text-muted uppercase tracking-widest">Autoridade Destinatária</label>
-                                        <div className="flex flex-col gap-1">
-                                            {AUTHORITIES.map((auth, idx) => (
-                                                <button
-                                                    key={`delegate-${idx}`}
-                                                    onClick={() => setCapturasData({ ...capturasData, delegateIndex: idx })}
-                                                    className={`px-3 py-2 rounded-lg text-[10px] font-black uppercase text-left transition-all ${capturasData.delegateIndex === idx ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' : 'bg-white/5 text-text-muted hover:bg-white/10'}`}
-                                                >
-                                                    Dr. {auth.name.split(' ')[0]}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </div>
+                                    <div className="space-y-1"><label className="text-[10px] font-black text-primary uppercase tracking-widest">Identificador Relatório</label><input className="w-full bg-background-light dark:bg-white/5 border border-border-light dark:border-white/10 rounded-xl p-3 text-sm text-text-light dark:text-white" value={capturasData.reportNumber} onChange={e => setCapturasData({ ...capturasData, reportNumber: e.target.value })} /></div>
+                                    <div className="space-y-1"><label className="text-[10px] font-black text-primary uppercase tracking-widest">Comarca Judiciária</label><input className="w-full bg-background-light dark:bg-white/5 border border-border-light dark:border-white/10 rounded-xl p-3 text-sm text-text-light dark:text-white" value={capturasData.court} onChange={e => setCapturasData({ ...capturasData, court: e.target.value })} /></div>
                                 </div>
                                 <div className="bg-indigo-500/5 border border-indigo-500/20 rounded-2xl p-5 space-y-4">
                                     <div className="flex items-center gap-2"><Cpu size={16} className="text-indigo-400" /><span className="text-[10px] font-black uppercase tracking-widest text-indigo-400">Prompt de Refinamento IA</span></div>
@@ -3311,7 +3191,6 @@ Equipe de Capturas - DIG / PCSP
                         warrant={data}
                         type={activeReportType}
                         updateWarrant={updateWarrant}
-                        userProfile={userProfile}
                     />
                 )
             }
