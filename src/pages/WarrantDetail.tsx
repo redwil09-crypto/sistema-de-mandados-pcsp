@@ -2022,6 +2022,7 @@ Equipe de Capturas - DIG / PCSP
                                         <option value="2º DP" className="text-black dark:text-white bg-white dark:bg-slate-900">2º DP</option>
                                         <option value="3º DP" className="text-black dark:text-white bg-white dark:bg-slate-900">3º DP</option>
                                         <option value="4º DP" className="text-black dark:text-white bg-white dark:bg-slate-900">4º DP</option>
+                                        <option value="Outras Cidades" className="text-black dark:text-white bg-white dark:bg-slate-900">Outras Cidades</option>
                                     </select>
                                 </div>
                                 <div className="bg-background-light dark:bg-white/5 border border-border-light dark:border-white/5 p-2 rounded-xl text-center">

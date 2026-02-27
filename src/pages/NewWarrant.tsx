@@ -637,6 +637,7 @@ const NewWarrant = () => {
                                     <option value="2º DP">02º D.P. JACAREÍ</option>
                                     <option value="3º DP">03º D.P. JACAREÍ</option>
                                     <option value="4º DP">04º D.P. JACAREÍ</option>
+                                    <option value="Outras Cidades">Outras Cidades</option>
                                 </select>
                             </div>
                         </div>

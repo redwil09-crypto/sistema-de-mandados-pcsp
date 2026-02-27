@@ -145,7 +145,7 @@ const Stats = () => {
                         }}
                         className="bg-primary/20 hover:bg-primary/40 text-primary px-6 py-2 rounded-lg font-bold text-xs uppercase transition-all"
                     >
-                        Auto-Vincular Mandados Antigos para 1º, 2º, 3º e 4º DP
+                        Auto-Vincular Mandados Antigos para DPs (e Outras Cidades)
                     </button>
                     <p className="text-[9px] text-white/30 max-w-sm">Esta ação vai varrer o acervo e cruzar os endereços usando a nova inteligência de poligonais (Região de cada Delegacia).</p>
                 </div>

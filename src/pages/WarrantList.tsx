@@ -168,6 +168,7 @@ const WarrantList = () => {
                                     <option value="2º DP">2º DP</option>
                                     <option value="3º DP">3º DP</option>
                                     <option value="4º DP">4º DP</option>
+                                    <option value="Outras Cidades">Outras Cidades</option>
                                 </select>
                             </div>
                             <div>

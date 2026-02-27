@@ -44,6 +44,35 @@ export const determineDpRegion = (address: string): string => {
     if (!address) return '';
     const loc = address.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase();
 
+    // --- 1. DETECT OTHER CITIES & STATES ---
+    // Extract state suffix like "- SP", "- MG" etc.
+    const stateMatch = loc.match(/-\s*([A-Z]{2})\b/);
+    if (stateMatch && stateMatch[1] !== 'SP') {
+        return 'Outras Cidades'; // Definitivamente outro estado
+    }
+
+    // If it's explicitly SP but no mention of Jacareí or Igaratá (which are our local targets)
+    if (stateMatch && stateMatch[1] === 'SP') {
+        if (!loc.includes('JACAREI') && !loc.includes('IGARATA')) {
+            return 'Outras Cidades';
+        }
+    }
+
+    // Explicit check for known neighboring or major cities without a Jacareí mention
+    const explicitOtherCity = [
+        'SAO JOSE DOS CAMPOS', 'SAO PAULO', 'CAMPINAS', 'TAUBATE', 'CACAPAVA',
+        'PINDAMONHANGABA', 'GUARATINGUETA', 'LORENA', 'CARAGUATATUBA', 'UBATUBA',
+        'SAO SEBASTIAO', 'ILHABELA', 'SANTA BRANCA', 'PARAIBUNA', 'JAMBEIRO',
+        'GUARULHOS', 'MOGI DAS CRUZES', 'SUZANO', 'SOROCABA', 'RIBEIRAO PRETO',
+        'BAURU', 'FRANCA', 'SANTOS', 'SAO VICENTE', 'GUARUJA', 'PRAIA GRANDE',
+        'BELO HORIZONTE', 'RIO DE JANEIRO', 'CURITIBA', 'BRASILIA'
+    ].some(city => loc.includes(city));
+
+    if (explicitOtherCity && !loc.includes('JACAREI')) {
+        return 'Outras Cidades';
+    }
+    // ---------------------------------------
+
     const keywords1DP = [
         'BANDEIRA BRANCA', 'VARADOURO', 'RIO ABAIXO', 'SANTA MARIA', 'ITAMARATI',
         'COLONIA', 'PARAISO', 'YOLANDA', 'JARDIM DO VALE', 'SANTO ANTONIO', 'PITORESCO',
