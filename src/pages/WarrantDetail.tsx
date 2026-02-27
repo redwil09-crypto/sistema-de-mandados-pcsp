@@ -30,10 +30,18 @@ import { extractPdfData } from '../services/pdfExtractionService';
 import { extractRawTextFromPdf, extractFromText } from '../pdfExtractor';
 import { useWarrants } from '../contexts/WarrantContext';
 
+const AUTHORITIES = [
+    { name: "Luiz Antônio Cunha dos Santos", title: "Delegado de Polícia", email: "dig.jacarei@policiacivil.sp.gov.br" },
+    { name: "William Campos de Assis Castro", title: "Delegado de Polícia", email: "william.castro@policiacivil.sp.gov.br" }
+];
+
 const WarrantDetail = () => {
     const { warrants, updateWarrant, deleteWarrant, routeWarrants, toggleRouteWarrant, refreshWarrants, availableCrimes, availableRegimes } = useWarrants();
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
+
+    // ... (states)
+    const [authorityIndex, setAuthorityIndex] = useState(0);
 
     // URL Persistence
     const [searchParams, setSearchParams] = useSearchParams();
@@ -116,8 +124,8 @@ const WarrantDetail = () => {
         reportNumber: '',
         court: '',
         body: '',
-        signer: 'Policial',
-        delegate: 'Luiz Antônio Cunha dos Santos',
+        signerIndex: 0,
+        delegateIndex: 0,
         aiInstructions: ''
     });
     const [isGeneratingAiReport, setIsGeneratingAiReport] = useState(false);
@@ -1413,11 +1421,12 @@ Equipe de Capturas - DIG / PCSP
             }
 
             // Position Signature at fixed bottom location
+            const authority = AUTHORITIES[authorityIndex];
             y = signatureBlockY;
             doc.setFont('helvetica', 'bold');
-            doc.text(userProfile?.full_name || "Luiz Antônio Cunha dos Santos", pageWidth / 2, y, { align: 'center' });
+            doc.text(authority.name, pageWidth / 2, y, { align: 'center' });
             y += 5;
-            doc.text(userProfile?.cargo || "Delegado de Polícia", pageWidth / 2, y, { align: 'center' });
+            doc.text(authority.title, pageWidth / 2, y, { align: 'center' });
 
             // Position Addressee at fixed bottom location
             y = addresseeBlockY;
@@ -1816,7 +1825,9 @@ Equipe de Capturas - DIG / PCSP
                 y = 40;
             }
 
-            const signerName = capturasData.signer || "Investigador de Polícia";
+            const signer = AUTHORITIES[capturasData.signerIndex];
+            const delegate = AUTHORITIES[capturasData.delegateIndex];
+            const signerName = signer.name;
 
             // Position signature on the right 
             const sigX = pageWidth - margin - 40;
@@ -1843,7 +1854,7 @@ Equipe de Capturas - DIG / PCSP
             doc.setFont('helvetica', 'bolditalic');
             doc.text("Excelentíssimo Doutor", margin, dY);
             dY += 5;
-            doc.text(capturasData.delegate || "Delegado Titular", margin, dY);
+            doc.text(delegate.name, margin, dY);
             dY += 5;
             doc.text("Delegado de Polícia Titular", margin, dY);
             dY += 5;
@@ -2665,16 +2676,30 @@ Equipe de Capturas - DIG / PCSP
                                             <p className="text-[10px] text-text-muted font-bold uppercase">Rastreamento de Pedidos e Corridas</p>
                                         </div>
                                     </div>
-                                    <button
-                                        onClick={handleGenerateIfoodOffice}
-                                        className="bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-tactic flex items-center gap-2 transition-all active:scale-95 border border-slate-500/30"
-                                    >
-                                        <FileText size={14} /> Gerar Ofício Padrão (Modelo Antigo)
-                                    </button>
-                                    <div className="flex justify-end w-full sm:w-auto">
+                                    <div className="flex flex-col sm:flex-row items-end gap-3 w-full sm:w-auto mt-2 sm:mt-0">
+                                        <div className="flex flex-col gap-1 w-full sm:w-auto">
+                                            <label className="text-[9px] font-black uppercase text-text-muted text-center">Autoridade:</label>
+                                            <div className="flex gap-1 bg-white/5 p-1 rounded-xl border border-white/5">
+                                                {AUTHORITIES.map((auth, idx) => (
+                                                    <button
+                                                        key={`ifood-auth-${idx}`}
+                                                        onClick={() => setAuthorityIndex(idx)}
+                                                        className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase transition-all ${authorityIndex === idx ? 'bg-indigo-600 text-white shadow-lg' : 'text-text-muted hover:bg-white/5'}`}
+                                                    >
+                                                        {auth.name.split(' ')[0]}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                        <button
+                                            onClick={handleGenerateIfoodOffice}
+                                            className="bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-tactic flex items-center gap-2 transition-all active:scale-95 border border-slate-500/30 w-full sm:w-auto"
+                                        >
+                                            <FileText size={14} /> Ofício Modelo Original
+                                        </button>
                                         <button
                                             onClick={() => setActiveReportType('ifood')}
-                                            className="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg flex items-center gap-2 transition-all active:scale-95 border border-indigo-500/30"
+                                            className="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg flex items-center gap-2 transition-all active:scale-95 border border-indigo-500/30 w-full sm:w-auto"
                                         >
                                             <Bike size={14} /> GERAR OFÍCIO PLATAFORMA
                                         </button>
@@ -3191,8 +3216,53 @@ Equipe de Capturas - DIG / PCSP
                             </div>
                             <div className="flex-1 overflow-y-auto p-6 space-y-6 scrollbar-none">
                                 <div className="grid grid-cols-2 gap-4">
-                                    <div className="space-y-1"><label className="text-[10px] font-black text-primary uppercase tracking-widest">Identificador Relatório</label><input className="w-full bg-background-light dark:bg-white/5 border border-border-light dark:border-white/10 rounded-xl p-3 text-sm text-text-light dark:text-white" value={capturasData.reportNumber} onChange={e => setCapturasData({ ...capturasData, reportNumber: e.target.value })} /></div>
-                                    <div className="space-y-1"><label className="text-[10px] font-black text-primary uppercase tracking-widest">Comarca Judiciária</label><input className="w-full bg-background-light dark:bg-white/5 border border-border-light dark:border-white/10 rounded-xl p-3 text-sm text-text-light dark:text-white" value={capturasData.court} onChange={e => setCapturasData({ ...capturasData, court: e.target.value })} /></div>
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] font-black text-primary uppercase tracking-widest">Identificador Relatório</label>
+                                        <input
+                                            className="w-full bg-background-light dark:bg-white/5 border border-border-light dark:border-white/10 rounded-xl p-3 text-sm text-text-light dark:text-white"
+                                            value={capturasData.reportNumber}
+                                            onChange={e => setCapturasData({ ...capturasData, reportNumber: e.target.value })}
+                                        />
+                                    </div>
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] font-black text-primary uppercase tracking-widest">Comarca Judiciária</label>
+                                        <input
+                                            className="w-full bg-background-light dark:bg-white/5 border border-border-light dark:border-white/10 rounded-xl p-3 text-sm text-text-light dark:text-white"
+                                            value={capturasData.court}
+                                            onChange={e => setCapturasData({ ...capturasData, court: e.target.value })}
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-4 bg-white/5 p-4 rounded-2xl border border-white/5">
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black text-text-muted uppercase tracking-widest">Signatário (Assinatura)</label>
+                                        <div className="flex flex-col gap-1">
+                                            {AUTHORITIES.map((auth, idx) => (
+                                                <button
+                                                    key={`signer-${idx}`}
+                                                    onClick={() => setCapturasData({ ...capturasData, signerIndex: idx })}
+                                                    className={`px-3 py-2 rounded-lg text-[10px] font-black uppercase text-left transition-all ${capturasData.signerIndex === idx ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'bg-white/5 text-text-muted hover:bg-white/10'}`}
+                                                >
+                                                    Dr. {auth.name.split(' ')[0]}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black text-text-muted uppercase tracking-widest">Autoridade Destinatária</label>
+                                        <div className="flex flex-col gap-1">
+                                            {AUTHORITIES.map((auth, idx) => (
+                                                <button
+                                                    key={`delegate-${idx}`}
+                                                    onClick={() => setCapturasData({ ...capturasData, delegateIndex: idx })}
+                                                    className={`px-3 py-2 rounded-lg text-[10px] font-black uppercase text-left transition-all ${capturasData.delegateIndex === idx ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' : 'bg-white/5 text-text-muted hover:bg-white/10'}`}
+                                                >
+                                                    Dr. {auth.name.split(' ')[0]}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
                                 </div>
                                 <div className="bg-indigo-500/5 border border-indigo-500/20 rounded-2xl p-5 space-y-4">
                                     <div className="flex items-center gap-2"><Cpu size={16} className="text-indigo-400" /><span className="text-[10px] font-black uppercase tracking-widest text-indigo-400">Prompt de Refinamento IA</span></div>

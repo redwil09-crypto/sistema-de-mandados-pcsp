@@ -105,7 +105,7 @@ ${auth.title}`;
 
     const handleGenerate = () => {
         if (!officeNumber.trim()) {
-            toast.error("Por favor, informe o número do ofício.");
+            toast.error("Número do ofício obrigatório.");
             return;
         }
 
@@ -113,20 +113,29 @@ ${auth.title}`;
         setIsProcessing(true);
 
         setTimeout(() => {
-            const text = generateTextForType(selectedType);
+            const text = generateTextForType(selectedType, officeNumber, authorityIndex);
             setGeneratedText(text);
             setStep('result');
             setIsProcessing(false);
         }, 300);
     };
 
-    // When switching types in result mode, regenerate text immediately
+    // When switching types or authority in result mode, regenerate text immediately
     const handleTypeSwitch = (newType: 'ifood' | 'uber' | '99') => {
         setSelectedType(newType);
         if (step === 'result') {
-            const text = generateTextForType(newType);
+            const text = generateTextForType(newType, officeNumber, authorityIndex);
             setGeneratedText(text);
             toast.success(`Modelo alterado para ${newType.toUpperCase()}`);
+        }
+    };
+
+    const handleAuthoritySwitch = (index: number) => {
+        setAuthorityIndex(index);
+        if (step === 'result') {
+            const text = generateTextForType(selectedType, officeNumber, index);
+            setGeneratedText(text);
+            toast.success(`Autoridade alterada para ${AUTHORITIES[index].name.split(' ')[0]}`);
         }
     };
 
@@ -138,6 +147,7 @@ ${auth.title}`;
     const handleDownloadPDF = async () => {
         if (!generatedText) return;
 
+        const auth = AUTHORITIES[authorityIndex];
         const doc = new jsPDF();
         const pageWidth = doc.internal.pageSize.getWidth();
         const pageHeight = doc.internal.pageSize.getHeight();
@@ -257,8 +267,8 @@ ${auth.title}`;
         }
 
         doc.setFont('helvetica', 'bold');
-        doc.text(userProfile?.full_name || "Luiz Antônio Cunha dos Santos", pageWidth / 2, signatureNameY, { align: 'center' });
-        doc.text(userProfile?.cargo || "Delegado de Polícia", pageWidth / 2, signatureTitleY, { align: 'center' });
+        doc.text(auth.name, pageWidth / 2, signatureNameY, { align: 'center' });
+        doc.text(auth.title, pageWidth / 2, signatureTitleY, { align: 'center' });
         doc.setFont('helvetica', 'normal');
         doc.text("Ao Ilustríssimo Senhor Responsável", margin, addresseeY);
         doc.setFont('helvetica', 'bold');
@@ -379,6 +389,22 @@ ${auth.title}`;
                                     onKeyDown={(e) => e.key === 'Enter' && handleGenerate()}
                                 />
                             </div>
+
+                            {/* Authority Selector */}
+                            <div className="w-full max-w-md space-y-3">
+                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 text-center block">Autoridade Signatária:</label>
+                                <div className="grid grid-cols-2 gap-2">
+                                    {AUTHORITIES.map((auth, idx) => (
+                                        <button
+                                            key={auth.name}
+                                            onClick={() => setAuthorityIndex(idx)}
+                                            className={`p-3 rounded-xl border text-[10px] font-black uppercase tracking-tight transition-all ${authorityIndex === idx ? 'bg-primary/10 border-primary text-primary shadow-sm' : 'bg-white/5 border-white/10 text-slate-500 hover:border-white/30'}`}
+                                        >
+                                            {auth.name.split(' ')[0]} {auth.name.split(' ').slice(-1)}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
                             <button
                                 onClick={handleGenerate}
                                 className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 rounded-xl font-black uppercase tracking-widest shadow-lg shadow-indigo-900/40 transition-all active:scale-95 flex items-center gap-2"
@@ -400,11 +426,26 @@ ${auth.title}`;
 
                     {step === 'result' && (
                         <>
-                            <textarea
-                                className="flex-1 w-full bg-white text-slate-900 p-8 rounded-lg shadow-inner overflow-y-auto font-serif whitespace-pre-wrap leading-relaxed border-4 border-slate-200 text-sm md:text-base selection:bg-indigo-100 animate-in fade-in zoom-in-95 resize-none focus:outline-none focus:border-indigo-400 transition-colors"
-                                value={generatedText}
-                                onChange={(e) => setGeneratedText(e.target.value)}
-                            />
+                            <div className="flex-1 relative flex flex-col overflow-hidden">
+                                <textarea
+                                    className="flex-1 w-full bg-white text-slate-900 p-8 rounded-lg shadow-inner overflow-y-auto font-serif whitespace-pre-wrap leading-relaxed border-4 border-slate-200 text-sm md:text-base selection:bg-indigo-100 animate-in fade-in zoom-in-95 resize-none focus:outline-none focus:border-indigo-400 transition-colors"
+                                    value={generatedText}
+                                    onChange={(e) => setGeneratedText(e.target.value)}
+                                />
+
+                                {/* Quick Switch Authority in Result Mode */}
+                                <div className="absolute top-4 right-4 flex gap-1">
+                                    {AUTHORITIES.map((auth, idx) => (
+                                        <button
+                                            key={auth.name}
+                                            onClick={() => handleAuthoritySwitch(idx)}
+                                            className={`px-3 py-1.5 rounded-lg border text-[9px] font-black uppercase tracking-tighter transition-all ${authorityIndex === idx ? 'bg-primary text-white shadow-lg' : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-50'}`}
+                                        >
+                                            Dr. {auth.name.split(' ')[0]}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
                             <div className="flex justify-between items-center bg-slate-100 dark:bg-slate-800/80 p-4 rounded-xl border border-slate-200 dark:border-slate-700 backdrop-blur">
                                 <p className="text-xs text-text-secondary-light dark:text-slate-400 font-medium italic">Edite o texto acima conforme necessário.</p>
                                 <div className="flex gap-3">
