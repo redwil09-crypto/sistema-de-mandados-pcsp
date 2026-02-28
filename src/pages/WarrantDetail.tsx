@@ -442,6 +442,47 @@ const WarrantDetail = () => {
         }
     };
 
+    const handleLocationBlur = async () => {
+        const currentLoc = localData.location || '';
+        if (currentLoc && currentLoc !== data?.location) {
+            const geocodeMsg = toast.loading("Mapeando novo endereço com IA...");
+            const geoResult = await geocodeAddress(currentLoc);
+
+            if (geoResult) {
+                setLocalData(prev => ({
+                    ...prev,
+                    latitude: geoResult.lat,
+                    longitude: geoResult.lng
+                }));
+                toast.success(`Coordenadas fixadas: ${geoResult.displayName}`, { id: geocodeMsg });
+
+                try {
+                    const dp = await inferDPRegion(currentLoc, geoResult.lat, geoResult.lng);
+                    if (dp) {
+                        setLocalData(prev => ({ ...prev, dpRegion: dp }));
+                        toast.success(`Setor de DP atualizado: ${dp}`);
+                    }
+                } catch (e) {
+                    console.error("Erro DP dinâmico:", e);
+                }
+            } else {
+                toast.error("Não pudemos encontrar as coordenadas exatas no mapa.", { id: geocodeMsg });
+
+                // Manda só o texto já que geolocalização falhou
+                try {
+                    toast.loading("Tentando deduzir Setor DP...", { id: 'dp-deduzir' });
+                    const dp = await inferDPRegion(currentLoc, undefined, undefined);
+                    if (dp) {
+                        setLocalData(prev => ({ ...prev, dpRegion: dp }));
+                        toast.success(`Setor de DP inferido pelo nome do bairro: ${dp}`, { id: 'dp-deduzir' });
+                    }
+                } catch (e) {
+                    console.error("Erro DP fallback dinâmico:", e);
+                }
+            }
+        }
+    };
+
     // Warn on unsaved changes when closing/reloading tab
     useEffect(() => {
         const handleBeforeUnload = (e: BeforeUnloadEvent) => {
@@ -2244,6 +2285,7 @@ Equipe de Capturas - DIG / PCSP
                                     className="w-full bg-background-light dark:bg-white/5 border border-border-light dark:border-white/10 rounded-xl p-4 text-sm text-text-light dark:text-white outline-none focus:ring-2 focus:ring-primary/20 transition-all resize-none h-[95px]"
                                     value={localData.location || ''}
                                     onChange={e => handleFieldChange('location', e.target.value)}
+                                    onBlur={handleLocationBlur}
                                     placeholder="Endereço de diligência..."
                                 />
                                 <div className="flex gap-2">
