@@ -1870,8 +1870,8 @@ Equipe de Capturas - DIG / PCSP
     };
 
     const handleBack = () => {
-        // Force navigate to Home Screen as requested
-        navigate('/');
+        // Return to previous screen
+        navigate(-1);
     };
 
     // Determine Theme Colors based on Type
@@ -3132,7 +3132,7 @@ Equipe de Capturas - DIG / PCSP
                     {/* Tactical Tool Bar - Integrated into Flow with same width as Tabs */}
                     <div className="w-full mt-4">
                         <FloatingDock
-                            onBack={() => navigate('/')}
+                            onBack={handleBack}
                             onHome={() => navigate('/')}
                             onSave={() => navigate(`/new-warrant?edit=${data.id}`)}
                             onPrint={() => generateWarrantPDF(localData as any)}
