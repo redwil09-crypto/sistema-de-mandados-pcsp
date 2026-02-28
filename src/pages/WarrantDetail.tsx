@@ -41,7 +41,7 @@ const WarrantDetail = () => {
 
     // Persistence Effect
     useEffect(() => {
-        setSearchParams({ tab: activeDetailTab });
+        setSearchParams({ tab: activeDetailTab }, { replace: true });
     }, [activeDetailTab, setSearchParams]);
 
     // New Document Form Local State
