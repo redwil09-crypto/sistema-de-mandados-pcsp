@@ -28,10 +28,11 @@ import FloatingDock from '../components/FloatingDock';
 import { analyzeRawDiligence, generateReportBody, analyzeDocumentStrategy, askAssistantStrategy, mergeIntelligence } from '../services/geminiService';
 import { extractPdfData } from '../services/pdfExtractionService';
 import { extractRawTextFromPdf, extractFromText } from '../pdfExtractor';
+import { CRIME_OPTIONS, REGIME_OPTIONS } from '../data/constants';
 import { useWarrants } from '../contexts/WarrantContext';
 
 const WarrantDetail = () => {
-    const { warrants, updateWarrant, deleteWarrant, routeWarrants, toggleRouteWarrant, refreshWarrants, availableCrimes, availableRegimes } = useWarrants();
+    const { warrants, updateWarrant, deleteWarrant, routeWarrants, toggleRouteWarrant, refreshWarrants } = useWarrants();
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
 
@@ -41,7 +42,7 @@ const WarrantDetail = () => {
 
     // Persistence Effect
     useEffect(() => {
-        setSearchParams({ tab: activeDetailTab }, { replace: true });
+        setSearchParams({ tab: activeDetailTab });
     }, [activeDetailTab, setSearchParams]);
 
     // New Document Form Local State
@@ -126,11 +127,11 @@ const WarrantDetail = () => {
     const data = useMemo(() => warrants.find(w => w.id === id), [warrants, id]);
 
     const [localData, setLocalData] = useState<Partial<Warrant>>({});
+    const [isConfirmSaveOpen, setIsConfirmSaveOpen] = useState(false);
     const [userId, setUserId] = useState<string | undefined>(undefined);
     const [isAdmin, setIsAdmin] = useState(false);
 
-
-
+    // Removed popstate intercept block as per user request to allow normal back navigation.
     // Swipe Navigation
     // -------------------------------------------------------------------------------- //
     // NEW: Add swipe gestures to switch tabs
@@ -180,8 +181,9 @@ const WarrantDetail = () => {
     const hasChanges = useMemo(() => {
         if (!data) return false;
         const fields: (keyof Warrant)[] = [
-            'name', 'type', 'rg', 'cpf', 'number', 'crime', 'regime', 'location', 'img', 'priority',
-            'ifoodNumber', 'ifoodResult', 'digOffice', 'observation', 'age', 'issuingCourt', 'tacticalSummary', 'fulfillmentDetails'
+            'name', 'type', 'rg', 'cpf', 'number', 'crime', 'regime', 'location',
+            'ifoodNumber', 'ifoodResult', 'digOffice', 'observation', 'age', 'issuingCourt',
+            'tacticalSummary', 'fulfillmentDetails', 'dpRegion', 'priority', 'status'
         ];
 
         const basicChanges = fields.some(key => localData[key] !== data[key]);
@@ -361,11 +363,12 @@ const WarrantDetail = () => {
         // Extract only changed fields to send to updateWarrant
         const updates: Partial<Warrant> = {};
         const fields: (keyof Warrant)[] = [
-            'name', 'type', 'rg', 'cpf', 'number', 'crime', 'regime', 'img', 'priority',
+            'name', 'type', 'rg', 'cpf', 'number', 'crime', 'regime',
             'location', 'ifoodNumber', 'ifoodResult', 'digOffice',
             'issueDate', 'entryDate', 'expirationDate', 'dischargeDate', 'observation',
             'status', 'fulfillmentResult', 'fulfillmentReport', 'latitude', 'longitude',
-            'tacticalSummary', 'tags', 'birthDate', 'age', 'issuingCourt', 'fulfillmentDetails'
+            'tacticalSummary', 'tags', 'birthDate', 'age', 'issuingCourt', 'fulfillmentDetails',
+            'dpRegion', 'priority'
         ];
 
         fields.forEach(key => {
@@ -375,6 +378,7 @@ const WarrantDetail = () => {
         });
 
         if (Object.keys(updates).length === 0) {
+            setIsConfirmSaveOpen(false);
             return;
         }
 
@@ -400,6 +404,7 @@ const WarrantDetail = () => {
         const success = await updateWarrant(data.id, updates);
         if (success) {
             toast.success("Alterações salvas com sucesso!", { id: toastId });
+            setIsConfirmSaveOpen(false);
         } else {
             toast.error("Erro ao salvar alterações.", { id: toastId });
         }
@@ -1264,19 +1269,19 @@ Equipe de Capturas - DIG / PCSP
             doc.setFont('helvetica', 'bold');
             doc.setFontSize(11);
             doc.text(`Ofício: ${officeId}`, margin, y);
-            y += 4.5;
+            y += 5;
             doc.text(`Referência: PROC. Nº ${data.number}`, margin, y);
-            y += 4.5;
+            y += 5;
             doc.text(`Natureza: Solicitação de Dados.`, margin, y);
 
-            y += 7; // Reduced spacing
+            y += 8; // Reduced spacing
 
             // Date
             const today = new Date();
             const months = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
             const formattedDate = `Jacareí, ${today.getDate()} de ${months[today.getMonth()]} de ${today.getFullYear()}.`;
             doc.setFont('helvetica', 'normal');
-            doc.text(formattedDate, margin, y, { align: 'left' });
+            doc.text(formattedDate, pageWidth - margin, y, { align: 'right' });
 
             y += 12; // Reduced spacing
 
@@ -1348,10 +1353,9 @@ Equipe de Capturas - DIG / PCSP
             // Position Signature at fixed bottom location
             y = signatureBlockY;
             doc.setFont('helvetica', 'bold');
-            const sigX = margin + 40;
-            doc.text("Luiz Antônio Cunha dos Santos", sigX, y, { align: 'left' });
+            doc.text("Luiz Antônio Cunha dos Santos", pageWidth / 2, y, { align: 'center' });
             y += 5;
-            doc.text("Delegado de Polícia", sigX + 15, y, { align: 'left' });
+            doc.text("Delegado de Polícia", pageWidth / 2, y, { align: 'center' });
 
             // Position Addressee at fixed bottom location
             y = addresseeBlockY;
@@ -1837,7 +1841,8 @@ Equipe de Capturas - DIG / PCSP
     };
 
     const handleBack = () => {
-        navigate(-1);
+        // Force navigate to Home Screen as requested
+        navigate('/');
     };
 
     // Determine Theme Colors based on Type
@@ -1856,7 +1861,7 @@ Equipe de Capturas - DIG / PCSP
                 <div className="absolute inset-0 tactical-glow"></div>
             </div>
 
-            <Header title="Dossiê Tático" back onBack={handleBack} showHome />
+            <Header title="Dossiê Tático" back showHome />
 
 
 
@@ -1892,8 +1897,7 @@ Equipe de Capturas - DIG / PCSP
                                     if (!file || !data) return;
                                     const tid = toast.loading("Subindo nova foto...");
                                     try {
-                                        const cleanName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
-                                        const path = `photos/${data.id}/${Date.now()}_${cleanName}`;
+                                        const path = `photos/${data.id}/${Date.now()}_${file.name}`;
                                         const uploadedPath = await uploadFile(file, path);
                                         if (uploadedPath) {
                                             const url = getPublicUrl(uploadedPath);
@@ -1968,47 +1972,60 @@ Equipe de Capturas - DIG / PCSP
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                                 <div className="bg-background-light dark:bg-white/5 border border-border-light dark:border-white/5 p-2 rounded-xl text-center flex flex-col items-center group/field">
                                     <p className="text-[9px] uppercase font-bold text-text-secondary-light dark:text-text-muted mb-0.5 tracking-tighter">Tipo Crime</p>
-                                    <input
-                                        list="crimes-list-detail"
-                                        className="w-full bg-transparent border-none text-xs font-black text-text-light dark:text-white outline-none text-center hover:text-primary transition-colors"
+                                    <select
+                                        className="w-full bg-transparent border-none text-xs font-black text-text-light dark:text-white outline-none text-center cursor-pointer hover:text-primary transition-colors"
                                         value={localData.crime || ''}
                                         onChange={e => handleFieldChange('crime', e.target.value)}
-                                        placeholder="Selecione..."
-                                    />
-                                    <datalist id="crimes-list-detail">
-                                        {availableCrimes.map(opt => <option key={opt} value={opt} />)}
-                                    </datalist>
+                                    >
+                                        <option value="" className="bg-white dark:bg-surface-dark text-slate-900 dark:text-white">Selecione...</option>
+                                        {CRIME_OPTIONS.map(opt => <option key={opt} value={opt} className="bg-white dark:bg-surface-dark text-slate-900 dark:text-white">{opt}</option>)}
+                                    </select>
                                 </div>
                                 <div className="bg-background-light dark:bg-white/5 border border-border-light dark:border-white/5 p-2 rounded-xl text-center flex flex-col items-center group/field">
                                     <p className="text-[9px] uppercase font-bold text-text-secondary-light dark:text-text-muted mb-0.5 tracking-tighter">Regime Prisional</p>
-                                    <input
-                                        list="regime-list-detail"
-                                        className="w-full bg-transparent border-none text-xs font-black text-text-light dark:text-white outline-none text-center hover:text-primary transition-colors"
+                                    <select
+                                        className="w-full bg-transparent border-none text-xs font-black text-text-light dark:text-white outline-none text-center cursor-pointer hover:text-primary transition-colors"
                                         value={localData.regime || ''}
                                         onChange={e => handleFieldChange('regime', e.target.value)}
-                                        placeholder="Selecione..."
-                                    />
-                                    <datalist id="regime-list-detail">
-                                        {availableRegimes.map(opt => <option key={opt} value={opt} />)}
-                                        <option value="Contramandado" />
-                                    </datalist>
+                                    >
+                                        <option value="" className="bg-white dark:bg-surface-dark text-slate-900 dark:text-white">Selecione...</option>
+                                        {REGIME_OPTIONS.map(opt => <option key={opt} value={opt} className="bg-white dark:bg-surface-dark text-slate-900 dark:text-white">{opt}</option>)}
+                                        <option value="Contramandado" className="bg-white dark:bg-surface-dark text-slate-900 dark:text-white font-bold text-emerald-500">Contramandado</option>
+                                    </select>
+                                </div>
+                                <div className="bg-background-light dark:bg-white/5 border border-border-light dark:border-white/5 p-2 rounded-xl text-center flex flex-col items-center group/field">
+                                    <p className="text-[9px] uppercase font-bold text-text-secondary-light dark:text-text-muted mb-0.5 tracking-tighter">Prioridade</p>
+                                    <select
+                                        className="w-full bg-transparent border-none text-xs font-black text-text-light dark:text-white outline-none text-center cursor-pointer hover:text-primary transition-colors"
+                                        value={localData.priority || ''}
+                                        onChange={e => handleFieldChange('priority', e.target.value)}
+                                    >
+                                        <option value="" className="bg-white dark:bg-surface-dark text-slate-900 dark:text-white">Auto</option>
+                                        <option value="Normal" className="bg-white dark:bg-surface-dark text-slate-900 dark:text-white text-blue-500">Normal</option>
+                                        <option value="Urgente" className="bg-white dark:bg-surface-dark text-slate-900 dark:text-white text-orange-500">Urgente</option>
+                                        <option value="Risco de Fuga" className="bg-white dark:bg-surface-dark text-slate-900 dark:text-white text-red-500">Risco de Fuga</option>
+                                        <option value="Periculoso" className="bg-white dark:bg-surface-dark text-slate-900 dark:text-white text-purple-600">Periculoso</option>
+                                    </select>
                                 </div>
                                 <div className="bg-background-light dark:bg-white/5 border border-border-light dark:border-white/5 p-2 rounded-xl text-center flex flex-col items-center group/field">
                                     <p className="text-[9px] uppercase font-bold text-text-secondary-light dark:text-text-muted mb-0.5 tracking-tighter">Região DP</p>
                                     <select
-                                        className="w-full bg-transparent border-none text-xs font-black text-text-light dark:text-white outline-none text-center hover:text-primary transition-colors cursor-pointer appearance-none"
+                                        className="w-full bg-transparent border-none text-xs font-black text-text-light dark:text-white outline-none text-center cursor-pointer hover:text-primary transition-colors"
                                         value={localData.dpRegion || ''}
                                         onChange={e => handleFieldChange('dpRegion', e.target.value)}
                                     >
-                                        <option value="" className="text-black dark:text-white bg-white dark:bg-slate-900">Selecione...</option>
-                                        <option value="1º DP" className="text-black dark:text-white bg-white dark:bg-slate-900">1º DP</option>
-                                        <option value="2º DP" className="text-black dark:text-white bg-white dark:bg-slate-900">2º DP</option>
-                                        <option value="3º DP" className="text-black dark:text-white bg-white dark:bg-slate-900">3º DP</option>
-                                        <option value="4º DP" className="text-black dark:text-white bg-white dark:bg-slate-900">4º DP</option>
-                                        <option value="Outras Cidades" className="text-black dark:text-white bg-white dark:bg-slate-900">Outras Cidades</option>
+                                        <option value="" className="bg-white dark:bg-surface-dark text-slate-900 dark:text-white">Setor...</option>
+                                        <option value="1DP" className="bg-white dark:bg-surface-dark text-slate-900 dark:text-white">1º DP</option>
+                                        <option value="2DP" className="bg-white dark:bg-surface-dark text-slate-900 dark:text-white">2º DP</option>
+                                        <option value="3DP" className="bg-white dark:bg-surface-dark text-slate-900 dark:text-white">3º DP</option>
+                                        <option value="4DP" className="bg-white dark:bg-surface-dark text-slate-900 dark:text-white">4º DP</option>
+                                        <option value="DIG" className="bg-white dark:bg-surface-dark text-slate-900 dark:text-white">DIG</option>
+                                        <option value="DISE" className="bg-white dark:bg-surface-dark text-slate-900 dark:text-white">DISE</option>
+                                        <option value="DDM" className="bg-white dark:bg-surface-dark text-slate-900 dark:text-white">DDM</option>
+                                        <option value="Plantão" className="bg-white dark:bg-surface-dark text-slate-900 dark:text-white">Plantão</option>
                                     </select>
                                 </div>
                                 <div className="bg-background-light dark:bg-white/5 border border-border-light dark:border-white/5 p-2 rounded-xl text-center">
@@ -3092,7 +3109,7 @@ Equipe de Capturas - DIG / PCSP
                     )}
 
                     {/* Sticky Tactical Confirmation Bar */}
-                    {hasChanges && createPortal(
+                    {hasChanges && (
                         <div className="fixed bottom-24 left-1/2 -translate-x-1/2 w-full max-w-md px-4 z-[1001] animate-in slide-in-from-bottom duration-500">
                             <div className="bg-amber-500/95 backdrop-blur-xl border border-white/20 rounded-2xl p-4 shadow-tactic flex flex-col gap-3">
                                 <div className="flex items-center gap-2 mb-1">
@@ -3101,19 +3118,18 @@ Equipe de Capturas - DIG / PCSP
                                 </div>
                                 <div className="flex gap-3">
                                     <button onClick={handleCancelEdits} className="flex-1 py-3 px-4 rounded-xl font-black text-[10px] uppercase tracking-widest bg-black/20 text-white hover:bg-black/30 transition-colors">Descartar</button>
-                                    <button onClick={handleSaveChanges} className="flex-[2] py-3 px-4 rounded-xl font-black text-[10px] uppercase tracking-widest bg-white text-slate-900 shadow-lg hover:bg-slate-100 transition-all flex items-center justify-center gap-2 active:scale-95 shadow-[0_0_20px_rgba(255,255,255,0.3)]">
+                                    <button onClick={() => setIsConfirmSaveOpen(true)} className="flex-[2] py-3 px-4 rounded-xl font-black text-[10px] uppercase tracking-widest bg-white text-slate-900 shadow-lg hover:bg-slate-100 transition-all flex items-center justify-center gap-2 active:scale-95">
                                         <RefreshCw size={14} className="animate-spin-slow" /> SINCRONIZAR AGORA
                                     </button>
                                 </div>
                             </div>
-                        </div>,
-                        document.body
+                        </div>
                     )}
 
                     {/* Tactical Tool Bar - Integrated into Flow with same width as Tabs */}
                     <div className="w-full mt-4">
                         <FloatingDock
-                            onBack={handleBack}
+                            onBack={() => navigate(-1)}
                             onHome={() => navigate('/')}
                             onSave={() => navigate(`/new-warrant?edit=${data.id}`)}
                             onPrint={() => generateWarrantPDF(localData as any)}
@@ -3126,6 +3142,7 @@ Equipe de Capturas - DIG / PCSP
             </div >
 
             {/* Modals & Overlays */}
+            < ConfirmModal isOpen={isConfirmSaveOpen} onCancel={() => setIsConfirmSaveOpen(false)} onConfirm={handleSaveChanges} title="Sincronizar Protocolo" message="Deseja registrar as alterações no prontuário oficial deste alvo?" confirmText="Sincronizar" cancelText="Abortar" variant="primary" />
             <ConfirmModal isOpen={isReopenConfirmOpen} onCancel={() => setIsReopenConfirmOpen(false)} onConfirm={handleConfirmReopen} title="Reabrir Prontuário" message="Confirmar reabertura do status para 'EM ABERTO'?" confirmText="Reabrir" cancelText="Cancelar" variant="primary" />
             <ConfirmModal isOpen={isDeleteConfirmOpen} onCancel={() => setIsDeleteConfirmOpen(false)} onConfirm={handleConfirmDelete} title="Excluir Alvo" message="Deseja remover PERMANENTEMENTE este registro? Esta ação é irreversível." confirmText="Excluir" cancelText="Cancelar" variant="danger" />
 
@@ -3166,7 +3183,7 @@ Equipe de Capturas - DIG / PCSP
                                 <div className="space-y-1"><label className="text-[10px] font-black text-text-muted uppercase tracking-widest">Data Cumprimento</label><input type="date" className="w-full bg-background-light dark:bg-white/5 border border-border-light dark:border-white/10 rounded-xl p-3 text-text-light dark:text-white" value={finalizeFormData.date} onChange={e => setFinalizeFormData({ ...finalizeFormData, date: e.target.value })} /></div>
                                 <div className="space-y-1"><label className="text-[10px] font-black text-text-muted uppercase tracking-widest">Ofício DIG Vinculado</label><input type="text" className="w-full bg-background-light dark:bg-white/5 border border-border-light dark:border-white/10 rounded-xl p-3 text-text-light dark:text-white" value={finalizeFormData.digOffice} onChange={e => setFinalizeFormData({ ...finalizeFormData, digOffice: e.target.value })} /></div>
                                 <div className="space-y-1"><label className="text-[10px] font-black text-text-muted uppercase tracking-widest text-[lime]">Circunstanciado (O que, Por que, Onde)</label><textarea className="w-full bg-background-light dark:bg-white/5 border border-border-light dark:border-lime-500/30 rounded-xl p-3 text-sm text-text-light dark:text-white min-h-[80px] focus:ring-1 focus:ring-lime-500" placeholder="Ex: CAPTURA DO RÉU EM SUA RESIDÊNCIA APÓS VIGILÂNCIA..." value={finalizeFormData.details} onChange={e => setFinalizeFormData({ ...finalizeFormData, details: e.target.value })} /></div>
-                                <div className="space-y-1"><label className="text-[10px] font-black text-text-muted uppercase tracking-widest">Resultado Final</label><select className="w-full bg-background-light dark:bg-white/5 border border-border-light dark:border-white/10 rounded-xl p-3 text-text-light dark:text-white appearance-none" value={finalizeFormData.result} onChange={e => setFinalizeFormData({ ...finalizeFormData, result: e.target.value })}>{['PRESO', 'NEGATIVO', 'ENCAMINHADO', 'ÓBITO', 'CONTRAMANDADO', 'LOCALIZADO'].map(opt => <option key={opt} value={opt} className="bg-surface-light dark:bg-surface-dark text-text-light dark:text-white">{opt}</option>)}</select></div>
+                                <div className="space-y-1"><label className="text-[10px] font-black text-text-muted uppercase tracking-widest">Resultado Final</label><select className="w-full bg-background-light dark:bg-white/5 border border-border-light dark:border-white/10 rounded-xl p-3 text-text-light dark:text-white" value={finalizeFormData.result} onChange={e => setFinalizeFormData({ ...finalizeFormData, result: e.target.value })}>{['PRESO', 'NEGATIVO', 'ENCAMINHADO', 'ÓBITO', 'CONTRAMANDADO', 'LOCALIZADO'].map(opt => <option key={opt} value={opt} className="bg-surface-light dark:bg-surface-dark text-text-light dark:text-white">{opt}</option>)}</select></div>
                             </div>
                             <div className="flex gap-3">
                                 <button onClick={() => setIsFinalizeModalOpen(false)} className="flex-1 py-3.5 rounded-2xl font-black text-[10px] uppercase tracking-widest bg-white/5 text-white hover:bg-white/10 transition-all">Cancelar</button>
