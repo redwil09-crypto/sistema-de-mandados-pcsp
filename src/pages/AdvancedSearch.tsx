@@ -1,5 +1,5 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Search, Filter, Eye } from 'lucide-react';
 import Header from '../components/Header';
@@ -12,17 +12,37 @@ const AdvancedSearch = () => {
     const { warrants, updateWarrant, deleteWarrant, routeWarrants, toggleRouteWarrant, availableCrimes, availableRegimes } = useWarrants();
     const [searchParams] = useSearchParams();
     const query = searchParams.get('q') || '';
-    const [searchTerm, setSearchTerm] = useState(query);
-    const [scope, setScope] = useState<'all' | 'arrest' | 'seizure' | 'counter'>('all');
 
-    // Filter states
-    const [filterCrime, setFilterCrime] = useState('');
-    const [filterRegime, setFilterRegime] = useState('');
-    const [filterStatus, setFilterStatus] = useState('');
-    const [dateStart, setDateStart] = useState('');
-    const [dateEnd, setDateEnd] = useState('');
-    const [observationKeyword, setObservationKeyword] = useState('');
-    const [filterDp, setFilterDp] = useState('');
+    // Resume states from session storage
+    const [searchTerm, setSearchTerm] = useState(() => sessionStorage.getItem('adv_searchTerm') || query);
+    const [scope, setScope] = useState<'all' | 'arrest' | 'seizure' | 'counter'>(() => (sessionStorage.getItem('adv_scope') as any) || 'all');
+    const [filterCrime, setFilterCrime] = useState(() => sessionStorage.getItem('adv_filterCrime') || '');
+    const [filterRegime, setFilterRegime] = useState(() => sessionStorage.getItem('adv_filterRegime') || '');
+    const [filterStatus, setFilterStatus] = useState(() => sessionStorage.getItem('adv_filterStatus') || '');
+    const [dateStart, setDateStart] = useState(() => sessionStorage.getItem('adv_dateStart') || '');
+    const [dateEnd, setDateEnd] = useState(() => sessionStorage.getItem('adv_dateEnd') || '');
+    const [observationKeyword, setObservationKeyword] = useState(() => sessionStorage.getItem('adv_observationKeyword') || '');
+    const [filterDp, setFilterDp] = useState(() => sessionStorage.getItem('adv_filterDp') || '');
+
+    // Allow incoming ?q= URL parameters to override current search term
+    useEffect(() => {
+        if (query && query !== searchTerm) {
+            setSearchTerm(query);
+        }
+    }, [query]);
+
+    // Save state changes directly to sessionStorage
+    useEffect(() => {
+        sessionStorage.setItem('adv_searchTerm', searchTerm);
+        sessionStorage.setItem('adv_scope', scope);
+        sessionStorage.setItem('adv_filterCrime', filterCrime);
+        sessionStorage.setItem('adv_filterRegime', filterRegime);
+        sessionStorage.setItem('adv_filterStatus', filterStatus);
+        sessionStorage.setItem('adv_dateStart', dateStart);
+        sessionStorage.setItem('adv_dateEnd', dateEnd);
+        sessionStorage.setItem('adv_observationKeyword', observationKeyword);
+        sessionStorage.setItem('adv_filterDp', filterDp);
+    }, [searchTerm, scope, filterCrime, filterRegime, filterStatus, dateStart, dateEnd, observationKeyword, filterDp]);
 
     const statuses = useMemo(() => Array.from(new Set(warrants.map(w => w.status))).sort(), [warrants]);
 
