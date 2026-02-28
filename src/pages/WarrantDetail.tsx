@@ -181,10 +181,16 @@ const WarrantDetail = () => {
         if (!data) return false;
         const fields: (keyof Warrant)[] = [
             'name', 'type', 'rg', 'cpf', 'number', 'crime', 'regime', 'location', 'img', 'priority',
-            'ifoodNumber', 'ifoodResult', 'digOffice', 'observation', 'age', 'issuingCourt', 'tacticalSummary', 'fulfillmentDetails'
+            'ifoodNumber', 'ifoodResult', 'digOffice', 'observation', 'age', 'issuingCourt', 'tacticalSummary', 'fulfillmentDetails',
+            'dpRegion', 'latitude', 'longitude', 'tags', 'status'
         ];
 
-        const basicChanges = fields.some(key => localData[key] !== data[key]);
+        const basicChanges = fields.some(key => {
+            if (Array.isArray(localData[key]) || Array.isArray(data[key])) {
+                return JSON.stringify(localData[key] || []) !== JSON.stringify(data[key] || []);
+            }
+            return localData[key] !== data[key];
+        });
         if (basicChanges) return true;
 
         const dateFields: (keyof Warrant)[] = [
@@ -3118,16 +3124,23 @@ Equipe de Capturas - DIG / PCSP
 
                     {/* Sticky Tactical Confirmation Bar */}
                     {hasChanges && createPortal(
-                        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 w-full max-w-md px-4 z-[1001] animate-in slide-in-from-bottom duration-500">
-                            <div className="bg-amber-500/95 backdrop-blur-xl border border-white/20 rounded-2xl p-4 shadow-tactic flex flex-col gap-3">
-                                <div className="flex items-center gap-2 mb-1">
-                                    <AlertTriangle size={16} className="text-white animate-pulse" />
-                                    <span className="text-[10px] font-black text-white uppercase tracking-widest">Aviso: Alterações táticas pendentes de sincronização</span>
+                        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 w-[90%] max-w-lg z-[1001] animate-in zoom-in-95 fade-in duration-300">
+                            <div className="bg-surface-dark/95 backdrop-blur-xl border border-primary/30 rounded-2xl p-4 shadow-[0_0_30px_rgba(37,99,235,0.2)] flex flex-col gap-4 relative overflow-hidden group">
+                                <div className="absolute top-0 left-0 w-1/2 h-[2px] bg-gradient-to-r from-transparent via-primary to-transparent animate-pulse"></div>
+                                <div className="absolute bottom-0 right-0 w-1/2 h-[2px] bg-gradient-to-l from-transparent via-cyan-500 to-transparent animate-pulse delay-75"></div>
+                                <div className="flex items-center gap-3">
+                                    <div className="p-2 bg-primary/20 rounded-lg shadow-[0_0_15px_rgba(37,99,235,0.4)]">
+                                        <AlertTriangle size={20} className="text-primary animate-pulse" />
+                                    </div>
+                                    <div className="flex flex-col">
+                                        <span className="text-xs font-black text-white uppercase tracking-[0.2em] shadow-black">Alterações Detectadas</span>
+                                        <span className="text-[9px] font-bold text-white/50 uppercase tracking-widest mt-0.5">Sincronização com o servidor pendente</span>
+                                    </div>
                                 </div>
                                 <div className="flex gap-3">
-                                    <button onClick={handleCancelEdits} className="flex-1 py-3 px-4 rounded-xl font-black text-[10px] uppercase tracking-widest bg-black/20 text-white hover:bg-black/30 transition-colors">Descartar</button>
-                                    <button onClick={handleSaveChanges} className="flex-[2] py-3 px-4 rounded-xl font-black text-[10px] uppercase tracking-widest bg-white text-slate-900 shadow-lg hover:bg-slate-100 transition-all flex items-center justify-center gap-2 active:scale-95 shadow-[0_0_20px_rgba(255,255,255,0.3)]">
-                                        <RefreshCw size={14} className="animate-spin-slow" /> SINCRONIZAR AGORA
+                                    <button onClick={handleCancelEdits} className="flex-1 py-3 px-4 rounded-xl font-black text-[10px] uppercase tracking-widest bg-white/5 border border-white/10 text-white/70 hover:bg-white/10 hover:text-white transition-all active:scale-95">Descartar</button>
+                                    <button onClick={handleSaveChanges} className="flex-[2] py-3 px-4 rounded-xl font-black text-[10px] uppercase tracking-widest bg-gradient-to-r from-primary to-blue-600 text-white shadow-[0_0_20px_rgba(37,99,235,0.4)] hover:shadow-[0_0_30px_rgba(37,99,235,0.6)] transition-all flex items-center justify-center gap-2 active:scale-95 hover:brightness-110">
+                                        <RefreshCw size={14} className="group-hover:animate-spin-slow" /> SINCRONIZAR DADOS
                                     </button>
                                 </div>
                             </div>
