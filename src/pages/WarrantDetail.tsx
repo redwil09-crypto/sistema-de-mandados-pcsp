@@ -129,20 +129,7 @@ const WarrantDetail = () => {
     const [userId, setUserId] = useState<string | undefined>(undefined);
     const [isAdmin, setIsAdmin] = useState(false);
 
-    // -------------------------------------------------------------------------------- //
-    // Intercept back gesture/button to always go to home
-    useEffect(() => {
-        const handlePopState = (event: PopStateEvent) => {
-            // When user triggers back (gesture or button), force go to home
-            navigate('/', { replace: true });
-        };
 
-        window.addEventListener('popstate', handlePopState);
-
-        return () => {
-            window.removeEventListener('popstate', handlePopState);
-        };
-    }, [navigate]);
 
     // Swipe Navigation
     // -------------------------------------------------------------------------------- //
