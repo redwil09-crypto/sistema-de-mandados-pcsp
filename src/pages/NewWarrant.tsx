@@ -336,6 +336,31 @@ const NewWarrant = () => {
                 }
             }
 
+            let updatedLatitude = formData.latitude;
+            let updatedLongitude = formData.longitude;
+            let updatedDpRegion = formData.dpRegion;
+
+            if (formData.location && (!updatedLatitude || !updatedLongitude || !updatedDpRegion)) {
+                try {
+                    toast.info("Geolocalizando em background...");
+                    const geoResult = await geocodeAddress(formData.location);
+                    if (geoResult) {
+                        updatedLatitude = geoResult.lat;
+                        updatedLongitude = geoResult.lng;
+
+                        if (!updatedDpRegion) {
+                            const dp = await inferDPRegion(formData.location, geoResult.lat, geoResult.lng);
+                            if (dp) updatedDpRegion = dp;
+                        }
+                    } else if (!updatedDpRegion) {
+                        const dp = await inferDPRegion(formData.location);
+                        if (dp) updatedDpRegion = dp;
+                    }
+                } catch (e) {
+                    console.error("Auto geocoding failed on save", e);
+                }
+            }
+
             const warrantData: Partial<Warrant> = {
                 name: formData.name,
                 type: type === 'prison' ? 'MANDADO DE PRISÃO' : (type === 'search' ? 'BUSCA E APREENSÃO' : 'CONTRAMANDADO DE PRISÃO'),
@@ -353,13 +378,13 @@ const NewWarrant = () => {
                 ifoodResult: formData.ifoodResult,
                 digOffice: formData.digOffice,
                 observation: formData.observation,
-                dpRegion: formData.dpRegion,
+                dpRegion: updatedDpRegion,
                 tags: formData.tags,
                 img: photoUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(formData.name)}&background=random&color=fff`,
                 reports: [...(formData.reports || []), ...newReportsUrls],
                 attachments: [...(formData.attachments || []), ...newAttachmentsUrls],
-                latitude: formData.latitude,
-                longitude: formData.longitude,
+                latitude: updatedLatitude,
+                longitude: updatedLongitude,
                 tacticalSummary: formData.tacticalSummary,
                 birthDate: formData.birthDate,
                 age: formData.age,
