@@ -14,7 +14,7 @@ import Header from '../components/Header';
 import BottomNav from '../components/BottomNav';
 import { useWarrants } from '../contexts/WarrantContext';
 import { toast } from 'sonner';
-import { determineDpRegion } from '../pdfExtractor';
+import { inferDPRegion } from '../services/geminiService';
 
 const Stats = () => {
     const { warrants, updateWarrant } = useWarrants();
@@ -125,30 +125,52 @@ const Stats = () => {
 
                 {/* TEMPORARY DEV BUTTON */}
                 <div className="bg-dashed border border-white/10 rounded-xl p-4 flex flex-col items-center justify-center text-center gap-3">
-                    <p className="text-[10px] text-white/50 uppercase tracking-widest font-bold">Ação Temporária do Administrador</p>
+                    <p className="text-[10px] text-white/50 uppercase tracking-widest font-bold">Inteligência Artificial - Acervo em Lote</p>
                     <button
                         onClick={async () => {
                             let updated = 0;
-                            toast.loading("Analisando endereços e vinculando DPs...", { id: 'dp-update' });
+                            let processed = 0;
+                            toast.loading("Iniciando análise com IA dos endereços...", { id: 'dp-update' });
 
-                            for (const w of warrants) {
-                                if (w.location) {
-                                    const detected = determineDpRegion(w.location);
+                            const validDps = ["1DP", "2DP", "3DP", "4DP", "1º DP", "2º DP", "3º DP", "4º DP", "DIG", "DISE", "DDM", "Plantão", "Outras Cidades"];
+                            const toProcess = warrants.filter(w => w.location && !validDps.includes(w.dpRegion || ""));
 
-                                    // if it's different from what's currently there, update it
+                            if (toProcess.length === 0) {
+                                toast.success("Todos os mandados já possuem DP definido corretamente.", { id: 'dp-update' });
+                                return;
+                            }
+
+                            for (const w of toProcess) {
+                                processed++;
+                                toast.loading(`IA Analisando: ${processed}/${toProcess.length} mandados (RG: ${w.rg || w.name.split(' ')[0]})...`, { id: 'dp-update' });
+
+                                try {
+                                    let detected = await inferDPRegion(w.location || '', w.latitude, w.longitude);
+
+                                    // Map raw AI result to formatted string in our system
+                                    if (detected === "1DP") detected = "1º DP";
+                                    else if (detected === "2DP") detected = "2º DP";
+                                    else if (detected === "3DP") detected = "3º DP";
+                                    else if (detected === "4DP") detected = "4º DP";
+
                                     if (detected && w.dpRegion !== detected) {
                                         await updateWarrant(w.id, { dpRegion: detected });
                                         updated++;
                                     }
+
+                                    // 1s delay to respect rate limits of standard API keys
+                                    await new Promise(r => setTimeout(r, 1000));
+                                } catch (e) {
+                                    console.error("Erro inferindo DP no lote:", e);
                                 }
                             }
-                            toast.success(`Concluído! ${updated} mandados atualizados com a Região DP.`, { id: 'dp-update' });
+                            toast.success(`Concluído! A IA inferiu a Região DP de ${updated} mandados antigos com sucesso.`, { id: 'dp-update' });
                         }}
                         className="bg-primary/20 hover:bg-primary/40 text-primary px-6 py-2 rounded-lg font-bold text-xs uppercase transition-all"
                     >
-                        Auto-Vincular Mandados Antigos para DPs (e Outras Cidades)
+                        Auto-Vincular Mandados Sem DP (Usar IA Gemini)
                     </button>
-                    <p className="text-[9px] text-white/30 max-w-sm">Esta ação vai varrer o acervo e cruzar os endereços usando a nova inteligência de poligonais (Região de cada Delegacia).</p>
+                    <p className="text-[9px] text-white/30 max-w-sm">Esta ação vai acionar a Inteligência Artificial para ler coordenadas e endereços de mandados que ainda não possuem Setor DP, decidindo a jurisdição automaticamente.</p>
                 </div>
 
                 {/* 1. Main Metrics Grid - Cyber Style */}
