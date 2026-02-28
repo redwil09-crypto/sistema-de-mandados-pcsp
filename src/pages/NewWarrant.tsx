@@ -490,34 +490,30 @@ const NewWarrant = () => {
                     </div>
                     <div>
                         <label className="block text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark mb-1">Crime / Infração</label>
-                        <input
+                        <select
                             name="crime"
-                            list="crimes-list"
                             value={formData.crime}
-                            onChange={handleChange}
-                            className="w-full rounded-lg border border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark p-2.5 text-sm text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none"
-                            placeholder="Selecione ou digite um novo crime..."
-                        />
-                        <datalist id="crimes-list">
-                            {availableCrimes.map(c => <option key={c} value={c} />)}
-                        </datalist>
+                            onChange={handleChange as any}
+                            className="w-full rounded-lg border border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark p-2.5 text-sm text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none cursor-pointer"
+                        >
+                            <option value="">Selecione um crime...</option>
+                            {availableCrimes.map(c => <option key={c} value={c}>{c}</option>)}
+                        </select>
                     </div>
                     <div>
                         <label className="block text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark mb-1">Regime / Situação</label>
-                        <input
+                        <select
                             name="regime"
-                            list="regime-list"
                             value={formData.regime}
-                            onChange={handleChange}
-                            className="w-full rounded-lg border border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark p-2.5 text-sm text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none"
-                            placeholder="Selecione ou digite a situação..."
-                        />
-                        <datalist id="regime-list">
+                            onChange={handleChange as any}
+                            className="w-full rounded-lg border border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark p-2.5 text-sm text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary outline-none cursor-pointer"
+                        >
+                            <option value="">Selecione a situação...</option>
                             {availableRegimes
                                 .filter(r => type === 'search' || r !== "Audiência de Justificativa")
-                                .map(r => <option key={r} value={r} />)
+                                .map(r => <option key={r} value={r}>{r}</option>)
                             }
-                        </datalist>
+                        </select>
                     </div>
                 </div>
 
