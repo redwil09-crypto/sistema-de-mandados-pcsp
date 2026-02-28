@@ -25,7 +25,7 @@ import { geocodeAddress } from '../services/geocodingService';
 import { generateWarrantPDF, generateIfoodOfficePDF } from '../services/pdfReportService';
 import IfoodReportModal from '../components/IfoodReportModal';
 import FloatingDock from '../components/FloatingDock';
-import { analyzeRawDiligence, generateReportBody, analyzeDocumentStrategy, askAssistantStrategy, mergeIntelligence } from '../services/geminiService';
+import { analyzeRawDiligence, generateReportBody, analyzeDocumentStrategy, askAssistantStrategy, mergeIntelligence, inferDPRegion } from '../services/geminiService';
 import { extractPdfData } from '../services/pdfExtractionService';
 import { extractRawTextFromPdf, extractFromText } from '../pdfExtractor';
 import { useWarrants } from '../contexts/WarrantContext';
@@ -391,9 +391,33 @@ const WarrantDetail = () => {
                     updates.latitude = geoResult.lat;
                     updates.longitude = geoResult.lng;
                     toast.success(`Geolocalização capturada: ${geoResult.displayName}`, { duration: 3000 });
+
+                    // Auto-infer DP region silently based on new coordinates and location
+                    if (!updates.dpRegion && !localData.dpRegion) {
+                        try {
+                            const dp = await inferDPRegion(locationToGeocode || '', geoResult.lat, geoResult.lng);
+                            if (dp) {
+                                updates.dpRegion = dp;
+                                toast.success(`Setor de DP inferido pela IA: ${dp}`, { duration: 3000 });
+                            }
+                        } catch (e) {
+                            console.error("Erro inferindo DP Region na geolocalização:", e);
+                        }
+                    }
                 }
             } catch (error) {
                 console.error("Erro ao geocodificar automaticamente:", error);
+            }
+        } else if (updates.location && !updates.dpRegion && !localData.dpRegion) {
+            // Also infer if we have a location change but didn't recalculate lat/lng just now
+            try {
+                const dp = await inferDPRegion(updates.location, updates.latitude || localData.latitude, updates.longitude || localData.longitude);
+                if (dp) {
+                    updates.dpRegion = dp;
+                    toast.success(`Setor de DP inferido pela IA: ${dp}`, { duration: 3000 });
+                }
+            } catch (e) {
+                console.error("Erro inferindo DP Region apenas com location: ", e);
             }
         }
 
@@ -2001,6 +2025,7 @@ Equipe de Capturas - DIG / PCSP
                                     <select
                                         className="w-full bg-transparent border-none text-xs font-black text-text-light dark:text-white outline-none text-center hover:text-primary transition-colors cursor-pointer appearance-none"
                                         value={localData.dpRegion || ''}
+
                                         onChange={e => handleFieldChange('dpRegion', e.target.value)}
                                     >
                                         <option value="" className="text-black dark:text-white bg-white dark:bg-slate-900">Selecione...</option>

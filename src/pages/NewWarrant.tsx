@@ -14,7 +14,7 @@ import VoiceInput from '../components/VoiceInput';
 
 import { geocodeAddress, fetchAddressSuggestions, GeocodingResult } from '../services/geocodingService';
 import { fetchAddressByCep } from '../services/cepService';
-import { isGeminiEnabled } from '../services/geminiService';
+import { isGeminiEnabled, inferDPRegion } from '../services/geminiService';
 import { formatDate, maskDate } from '../utils/helpers';
 import { useWarrants } from '../contexts/WarrantContext';
 
@@ -237,6 +237,13 @@ const NewWarrant = () => {
                         latitude: geo.lat,
                         longitude: geo.lng
                     }));
+
+                    try {
+                        const dp = await inferDPRegion(addressData.fullAddress, geo.lat, geo.lng);
+                        if (dp) {
+                            setFormData(prev => ({ ...prev, dpRegion: dp }));
+                        }
+                    } catch (e) { /* ignore */ }
                 }
             }
         } catch (err) {
@@ -246,7 +253,7 @@ const NewWarrant = () => {
         }
     };
 
-    const handleSelectSuggestion = (suggestion: GeocodingResult) => {
+    const handleSelectSuggestion = async (suggestion: GeocodingResult) => {
         setFormData(prev => ({
             ...prev,
             location: suggestion.displayName,
@@ -256,6 +263,17 @@ const NewWarrant = () => {
         setSuggestions([]);
         setShowSuggestions(false);
         toast.success("Localização selecionada e mapeada!");
+
+        try {
+            const tid = toast.loading("Inferindo DP...");
+            const dp = await inferDPRegion(suggestion.displayName, suggestion.lat, suggestion.lng);
+            if (dp) {
+                setFormData(prev => ({ ...prev, dpRegion: dp }));
+                toast.success(`Setor DP Inferido: ${dp}`, { id: tid });
+            } else {
+                toast.dismiss(tid);
+            }
+        } catch (e) { /* ignore */ }
     };
 
     const handleTagToggle = (tag: string) => {
@@ -588,6 +606,14 @@ const NewWarrant = () => {
                                             if (res) {
                                                 setFormData(prev => ({ ...prev, latitude: res.lat, longitude: res.lng }));
                                                 toast.success("Mapeado com sucesso!", { id: tid });
+
+                                                try {
+                                                    const dp = await inferDPRegion(formData.location, res.lat, res.lng);
+                                                    if (dp) {
+                                                        setFormData(prev => ({ ...prev, dpRegion: dp }));
+                                                        toast.success(`Setor DP Inferido: ${dp}`);
+                                                    }
+                                                } catch (e) { }
                                             } else {
                                                 toast.error("Endereço não localizado", { id: tid });
                                             }

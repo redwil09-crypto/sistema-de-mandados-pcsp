@@ -674,3 +674,53 @@ export async function adaptDocumentToTarget(warrantData: any, templateText: stri
         return `Erro ao processar documento: ${error.message}`;
     }
 }
+
+export async function inferDPRegion(address: string, lat?: number, lng?: number): Promise<string | null> {
+    if (!(await isGeminiEnabled())) return null;
+
+    const prompt = `
+        VOCÊ É UM INVESTIGADOR POLICIAL EM JACAREÍ/SP, ESPECIALISTA EM JURISDIÇÃO E TERRITÓRIOS.
+        SUA MISSÃO: Determinar qual Delegacia de Polícia (Região) atende prioritariamente o local fornecido.
+
+        LOCAL: ${address}
+        COORDENADAS (se disponíveis): ${lat || 'Não informada'}, ${lng || 'Não informada'}
+
+        DIRETRIZES TÁTICAS (JACAREÍ/SP E ARREDORES):
+        - O município de Jacareí possui as seguintes divisões básicas: 1º DP, 2º DP, 3º DP, 4º DP.
+        - Analise o bairro e as coordenadas.
+        - Se for outra cidade, retorne "Outras Cidades" ou o nome do distrito se tiver certeza, mas foque nas opções padrão.
+        
+        A SUA RESPOSTA DEVE SER ESTRITAMENTE UMA DAS OPÇÕES ABAIXO (A MELHOR CORRESPONDÊNCIA):
+        "1DP"
+        "2DP"
+        "3DP"
+        "4DP"
+        "DIG"
+        "DISE"
+        "DDM"
+        "Plantão"
+
+        NÃO RESPONDA NADA ALÉM DA OPÇÃO EXATA (SEM PONTOS, SEM EXPLICAÇÕES). Se você não tiver certeza de qual DP de Jacareí atende, pode retornar "1DP" como fallback central, ou tente acertar. Se for flagrantemente em São José dos Campos, retorne vazio ou tente inferir.
+        
+        Resposta:
+    `;
+
+    try {
+        const text = await tryGenerateContent(prompt);
+        const result = text.trim();
+        // Fallback cleanup
+        if (result.includes("1")) return "1DP";
+        if (result.includes("2")) return "2DP";
+        if (result.includes("3")) return "3DP";
+        if (result.includes("4")) return "4DP";
+        if (result.includes("DIG")) return "DIG";
+        if (result.includes("DISE")) return "DISE";
+        if (result.includes("DDM")) return "DDM";
+        if (result.includes("Plantão") || result.includes("Plantao")) return "Plantão";
+
+        return null;
+    } catch (error) {
+        console.error("Erro ao inferir Região do DP:", error);
+        return null;
+    }
+}
