@@ -15,6 +15,7 @@ import BottomNav from '../components/BottomNav';
 import { useWarrants } from '../contexts/WarrantContext';
 import { toast } from 'sonner';
 import { inferDPRegion } from '../services/geminiService';
+import { geocodeAddress } from '../services/geocodingService';
 
 const Stats = () => {
     const { warrants, updateWarrant } = useWarrants();
@@ -130,47 +131,79 @@ const Stats = () => {
                         onClick={async () => {
                             let updated = 0;
                             let processed = 0;
-                            toast.loading("Iniciando análise com IA dos endereços...", { id: 'dp-update' });
+                            toast.loading("Iniciando análise com IA dos endereços e coordenadas...", { id: 'dp-update' });
 
                             const validDps = ["1DP", "2DP", "3DP", "4DP", "1º DP", "2º DP", "3º DP", "4º DP", "DIG", "DISE", "DDM", "Plantão", "Outras Cidades"];
-                            const toProcess = warrants.filter(w => w.location && !validDps.includes(w.dpRegion || ""));
+                            // Include warrants that have a location but are MISSING coordinates OR a valid DP region
+                            const toProcess = warrants.filter(w =>
+                                w.location &&
+                                (!w.latitude || !w.longitude || !validDps.includes(w.dpRegion || ""))
+                            );
 
                             if (toProcess.length === 0) {
-                                toast.success("Todos os mandados já possuem DP definido corretamente.", { id: 'dp-update' });
+                                toast.success("Todos os mandados com endereço já possuem Coordenadas e DP definidos corretamente.", { id: 'dp-update' });
                                 return;
                             }
 
                             for (const w of toProcess) {
                                 processed++;
-                                toast.loading(`IA Analisando: ${processed}/${toProcess.length} mandados (RG: ${w.rg || w.name.split(' ')[0]})...`, { id: 'dp-update' });
+                                toast.loading(`IA Analisando: ${processed}/${toProcess.length} mandados (Nome: ${w.name.substring(0, 15)}...)...`, { id: 'dp-update' });
 
                                 try {
-                                    let detected = await inferDPRegion(w.location || '', w.latitude, w.longitude);
+                                    let currentLat = w.latitude;
+                                    let currentLng = w.longitude;
+                                    let currentDp = w.dpRegion;
+                                    let needsUpdate = false;
 
-                                    // Map raw AI result to formatted string in our system
-                                    if (detected === "1DP") detected = "1º DP";
-                                    else if (detected === "2DP") detected = "2º DP";
-                                    else if (detected === "3DP") detected = "3º DP";
-                                    else if (detected === "4DP") detected = "4º DP";
+                                    const updates: any = {};
 
-                                    if (detected && w.dpRegion !== detected) {
-                                        await updateWarrant(w.id, { dpRegion: detected });
-                                        updated++;
+                                    // 1. If missing coordinates, try to geocode first
+                                    if (!currentLat || !currentLng) {
+                                        const geoResult = await geocodeAddress(w.location);
+                                        if (geoResult) {
+                                            currentLat = geoResult.lat;
+                                            currentLng = geoResult.lng;
+                                            updates.latitude = currentLat;
+                                            updates.longitude = currentLng;
+                                            needsUpdate = true;
+                                        }
+                                        // Wait slightly to respect Nominatim API rate limits
+                                        await new Promise(r => setTimeout(r, 1000));
                                     }
 
-                                    // 1s delay to respect rate limits of standard API keys
-                                    await new Promise(r => setTimeout(r, 1000));
+                                    // 2. If missing a valid DP region, try to infer it
+                                    if (!validDps.includes(currentDp || "")) {
+                                        let detected = await inferDPRegion(w.location, currentLat, currentLng);
+
+                                        // Map raw AI result to formatted string in our system
+                                        if (detected === "1DP") detected = "1º DP";
+                                        else if (detected === "2DP") detected = "2º DP";
+                                        else if (detected === "3DP") detected = "3º DP";
+                                        else if (detected === "4DP") detected = "4º DP";
+
+                                        if (detected && currentDp !== detected) {
+                                            updates.dpRegion = detected;
+                                            needsUpdate = true;
+                                        }
+                                        // Wait slightly to respect Gemini rate limits
+                                        await new Promise(r => setTimeout(r, 1000));
+                                    }
+
+                                    if (needsUpdate) {
+                                        await updateWarrant(w.id, updates);
+                                        updated++;
+                                    }
                                 } catch (e) {
-                                    console.error("Erro inferindo DP no lote:", e);
+                                    console.error("Erro processando lote:", e);
                                 }
                             }
-                            toast.success(`Concluído! A IA inferiu a Região DP de ${updated} mandados antigos com sucesso.`, { id: 'dp-update' });
+                            toast.success(`Concluído! A IA atualizou Coordenadas/DP de ${updated} mandados antigos com sucesso.`, { id: 'dp-update' });
                         }}
                         className="bg-primary/20 hover:bg-primary/40 text-primary px-6 py-2 rounded-lg font-bold text-xs uppercase transition-all"
                     >
-                        Auto-Vincular Mandados Sem DP (Usar IA Gemini)
+                        Auto-Vincular Coordenadas e DPs (Com IA Gemini)
                     </button>
-                    <p className="text-[9px] text-white/30 max-w-sm">Esta ação vai acionar a Inteligência Artificial para ler coordenadas e endereços de mandados que ainda não possuem Setor DP, decidindo a jurisdição automaticamente.</p>
+                    <p className="text-[9px] text-white/30 max-w-sm">Esta ação vai varrer o acervo buscando mandados sem coordenadas exatas ou sem Jurisdição. Ele tentará geocodificar o local e acionará a Inteligência Artificial para decidir o Setor DP automaticamente.</p>
                 </div>
 
                 {/* 1. Main Metrics Grid - Cyber Style */}
