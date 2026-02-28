@@ -1837,8 +1837,16 @@ Equipe de Capturas - DIG / PCSP
     };
 
     const handleBack = () => {
-        // Return to previous screen
+        const currentHash = window.location.hash;
         navigate(-1);
+
+        // Fallback for cases where navigate(-1) does not work (e.g. empty hash history)
+        setTimeout(() => {
+            if (window.location.hash === currentHash) {
+                // If the URL didn't change, force fallback
+                navigate('/warrant-list');
+            }
+        }, 150);
     };
 
     // Determine Theme Colors based on Type

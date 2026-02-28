@@ -18,12 +18,16 @@ const Header = ({ title, back = false, onBack, action, showHome = false }: Heade
         if (onBack) {
             onBack();
         } else {
-            // If we have history, go back, otherwise go home
-            if (window.history.length > 1) {
-                navigate(-1);
-            } else {
-                navigate('/');
-            }
+            const currentHash = window.location.hash;
+            navigate(-1);
+
+            // Tenta voltar e, se o roteador não responder (ex: histórico vazio no webview),
+            // força navegação segura para a Home.
+            setTimeout(() => {
+                if (window.location.hash === currentHash) {
+                    navigate('/');
+                }
+            }, 150);
         }
     };
 
