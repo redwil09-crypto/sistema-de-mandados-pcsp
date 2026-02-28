@@ -686,9 +686,10 @@ export async function inferDPRegion(address: string, lat?: number, lng?: number)
         COORDENADAS (se disponíveis): ${lat || 'Não informada'}, ${lng || 'Não informada'}
 
         DIRETRIZES TÁTICAS (JACAREÍ/SP E ARREDORES):
-        - O município de Jacareí possui as seguintes divisões básicas: 1º DP, 2º DP, 3º DP, 4º DP.
-        - Analise o bairro e as coordenadas.
-        - Se for outra cidade, retorne "Outras Cidades" ou o nome do distrito se tiver certeza, mas foque nas opções padrão.
+        1. O município de Jacareí possui as seguintes divisões básicas: 1º DP, 2º DP, 3º DP, 4º DP.
+        2. Analise o bairro e a cidade do endereço.
+        3. SE A CIDADE FOR DIFERENTE DE JACAREÍ (ex: São José dos Campos, Santa Branca, Paraibuna, etc.), você DEVE OBRIGATORIAMENTE retornar "Outras Cidades". NÃO INVENTE UM DP DE JACAREÍ PARA OUTRA CIDADE.
+        4. Se for comprovadamente em Jacareí, escolha o DP correto. Se não tiver certeza de qual DP de Jacareí, pode usar "1DP" como fallback central.
         
         A SUA RESPOSTA DEVE SER ESTRITAMENTE UMA DAS OPÇÕES ABAIXO (A MELHOR CORRESPONDÊNCIA):
         "1DP"
@@ -699,8 +700,9 @@ export async function inferDPRegion(address: string, lat?: number, lng?: number)
         "DISE"
         "DDM"
         "Plantão"
+        "Outras Cidades"
 
-        NÃO RESPONDA NADA ALÉM DA OPÇÃO EXATA (SEM PONTOS, SEM EXPLICAÇÕES). Se você não tiver certeza de qual DP de Jacareí atende, pode retornar "1DP" como fallback central, ou tente acertar. Se for flagrantemente em São José dos Campos, retorne vazio ou tente inferir.
+        NÃO RESPONDA NADA ALÉM DA OPÇÃO EXATA (SEM PONTOS, SEM EXPLICAÇÕES).
         
         Resposta:
     `;
@@ -709,6 +711,7 @@ export async function inferDPRegion(address: string, lat?: number, lng?: number)
         const text = await tryGenerateContent(prompt);
         const result = text.trim();
         // Fallback cleanup
+        if (result.includes("Outras") || result.includes("Cidades")) return "Outras Cidades";
         if (result.includes("1")) return "1DP";
         if (result.includes("2")) return "2DP";
         if (result.includes("3")) return "3DP";

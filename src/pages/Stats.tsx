@@ -134,11 +134,8 @@ const Stats = () => {
                             toast.loading("Iniciando análise com IA dos endereços e coordenadas...", { id: 'dp-update' });
 
                             const validDps = ["1DP", "2DP", "3DP", "4DP", "1º DP", "2º DP", "3º DP", "4º DP", "DIG", "DISE", "DDM", "Plantão", "Outras Cidades"];
-                            // Include warrants that have a location but are MISSING coordinates OR a valid DP region
-                            const toProcess = warrants.filter(w =>
-                                w.location &&
-                                (!w.latitude || !w.longitude || !validDps.includes(w.dpRegion || ""))
-                            );
+                            // Force re-evaluate ALL warrants to fix previously incorrect mappings (like 1DP for other cities)
+                            const toProcess = warrants.filter(w => w.location);
 
                             if (toProcess.length === 0) {
                                 toast.success("Todos os mandados com endereço já possuem Coordenadas e DP definidos corretamente.", { id: 'dp-update' });
@@ -171,23 +168,21 @@ const Stats = () => {
                                         await new Promise(r => setTimeout(r, 1000));
                                     }
 
-                                    // 2. If missing a valid DP region, try to infer it
-                                    if (!validDps.includes(currentDp || "")) {
-                                        let detected = await inferDPRegion(w.location, currentLat, currentLng);
+                                    // 2. FORCE RE-INFERENCE FOR ALL to correct previous mistakes
+                                    let detected = await inferDPRegion(w.location, currentLat, currentLng);
 
-                                        // Map raw AI result to formatted string in our system
-                                        if (detected === "1DP") detected = "1º DP";
-                                        else if (detected === "2DP") detected = "2º DP";
-                                        else if (detected === "3DP") detected = "3º DP";
-                                        else if (detected === "4DP") detected = "4º DP";
+                                    // Map raw AI result to formatted string in our system
+                                    if (detected === "1DP") detected = "1º DP";
+                                    else if (detected === "2DP") detected = "2º DP";
+                                    else if (detected === "3DP") detected = "3º DP";
+                                    else if (detected === "4DP") detected = "4º DP";
 
-                                        if (detected && currentDp !== detected) {
-                                            updates.dpRegion = detected;
-                                            needsUpdate = true;
-                                        }
-                                        // Wait slightly to respect Gemini rate limits
-                                        await new Promise(r => setTimeout(r, 1000));
+                                    if (detected && currentDp !== detected) {
+                                        updates.dpRegion = detected;
+                                        needsUpdate = true;
                                     }
+                                    // Wait slightly to respect Gemini rate limits
+                                    await new Promise(r => setTimeout(r, 1000));
 
                                     if (needsUpdate) {
                                         await updateWarrant(w.id, updates);
