@@ -13,9 +13,11 @@ import {
 import Header from '../components/Header';
 import BottomNav from '../components/BottomNav';
 import { useWarrants } from '../contexts/WarrantContext';
+import { toast } from 'sonner';
+import { determineDpRegion } from '../pdfExtractor';
 
 const Stats = () => {
-    const { warrants } = useWarrants();
+    const { warrants, updateWarrant } = useWarrants();
     const navigate = useNavigate();
 
     // Data Processing
@@ -120,6 +122,34 @@ const Stats = () => {
             <Header title="Estatísticas Operacionais" back showHome />
 
             <main className="p-4 md:p-6 space-y-6 max-w-7xl mx-auto relative z-10">
+
+                {/* TEMPORARY DEV BUTTON */}
+                <div className="bg-dashed border border-white/10 rounded-xl p-4 flex flex-col items-center justify-center text-center gap-3">
+                    <p className="text-[10px] text-white/50 uppercase tracking-widest font-bold">Ação Temporária do Administrador</p>
+                    <button
+                        onClick={async () => {
+                            let updated = 0;
+                            toast.loading("Analisando endereços e vinculando DPs...", { id: 'dp-update' });
+
+                            for (const w of warrants) {
+                                if (w.location) {
+                                    const detected = determineDpRegion(w.location);
+
+                                    // if it's different from what's currently there, update it
+                                    if (detected && w.dpRegion !== detected) {
+                                        await updateWarrant(w.id, { dpRegion: detected });
+                                        updated++;
+                                    }
+                                }
+                            }
+                            toast.success(`Concluído! ${updated} mandados atualizados com a Região DP.`, { id: 'dp-update' });
+                        }}
+                        className="bg-primary/20 hover:bg-primary/40 text-primary px-6 py-2 rounded-lg font-bold text-xs uppercase transition-all"
+                    >
+                        Auto-Vincular Mandados Antigos para DPs (e Outras Cidades)
+                    </button>
+                    <p className="text-[9px] text-white/30 max-w-sm">Esta ação vai varrer o acervo e cruzar os endereços usando a nova inteligência de poligonais (Região de cada Delegacia).</p>
+                </div>
 
                 {/* 1. Main Metrics Grid - Cyber Style */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

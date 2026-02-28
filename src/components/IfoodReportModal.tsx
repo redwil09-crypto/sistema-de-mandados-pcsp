@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import { jsPDF } from 'jspdf';
 import { Warrant } from '../types';
 import { uploadFile, getPublicUrl } from '../supabaseStorage';
+import { supabase } from '../supabaseClient';
 
 interface IfoodReportModalProps {
     isOpen: boolean;
@@ -22,6 +23,7 @@ const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, wa
     const [step, setStep] = useState<'input' | 'processing' | 'result'>('input');
     const [badgeImg, setBadgeImg] = useState<HTMLImageElement | null>(null);
     const [selectedType, setSelectedType] = useState(initialType);
+    const [currentUser, setCurrentUser] = useState<{ name: string; email: string } | null>(null);
 
     // Update selectedType if props change (reset)
     useEffect(() => {
@@ -56,6 +58,38 @@ const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, wa
             setStep('input');
             setGeneratedText('');
             setOfficeNumber('');
+        } else {
+            // Fetch current user info when modal opens
+            const fetchUser = async () => {
+                const { data: { user } } = await supabase.auth.getUser();
+                if (user) {
+                    try {
+                        const { data: profile } = await supabase
+                            .from('profiles')
+                            .select('full_name, email')
+                            .eq('id', user.id)
+                            .single();
+
+                        if (profile) {
+                            setCurrentUser({
+                                name: profile.full_name,
+                                email: profile.email
+                            });
+                        } else {
+                            setCurrentUser({
+                                name: user.user_metadata?.full_name || 'Policial',
+                                email: user.email || ''
+                            });
+                        }
+                    } catch (e) {
+                        setCurrentUser({
+                            name: user.user_metadata?.full_name || 'Policial',
+                            email: user.email || ''
+                        });
+                    }
+                }
+            };
+            fetchUser();
         }
     }, [isOpen]);
 
@@ -70,7 +104,10 @@ const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, wa
 
         const indent = "          ";
 
-        return `Ofício: nº.${officeNumber}/CAPT/2025
+        const contactEmail = currentUser?.email || 'william.castro@policiacivil.sp.gov.br';
+        const contactName = currentUser?.name || 'William Campos de Assis Castro';
+
+        return `Ofício: nº.${officeNumber}/CAPT/2026
 Referência: PROC. Nº ${warrant.number}
 Natureza: Solicitação de Dados.
 
@@ -84,8 +121,8 @@ ${indent}Em caso positivo, requer-se o envio das informações cadastrais fornec
 
 ${indent}As informações devem ser encaminhadas ao e-mail institucional do policial responsável pela investigação:
 
-${indent}william.castro@policiacivil.sp.gov.br
-${indent}William Campos de Assis Castro – Polícia Civil do Estado de São Paulo
+${indent}${contactEmail}
+${indent}${contactName} – Polícia Civil do Estado de São Paulo
 
 ${indent}Pessoa de interesse para a investigação:
 
@@ -147,16 +184,15 @@ ${indent}Atenciosamente,`;
                 pdf.addImage(badgeImg, 'PNG', margin, y, badgeW, badgeH);
             }
             const textX = margin + 32;
-            pdf.setFont('helvetica', 'normal');
-            pdf.setFontSize(8);
+            pdf.setFont('helvetica', 'bold');
+            pdf.setFontSize(8.5);
             pdf.setTextColor(0, 0, 0);
             const headerLines = [
                 "SECRETARIA DA SEGURANÇA PÚBLICA",
                 "POLÍCIA CIVIL DO ESTADO DE SÃO PAULO",
                 "DEPARTAMENTO DE POLÍCIA JUDICIÁRIA DE SÃO PAULO INTERIOR",
                 "DEINTER 1 - SÃO JOSÉ DOS CAMPOS",
-                "DELEGACIA SECCIONAL DE POLÍCIA DE JACAREÍ –",
-                "“DELEGADO TALIS PRADO PINTO”",
+                "DELEGACIA SECCIONAL DE POLÍCIA DE JACAREÍ",
                 "DELEGACIA DE INVESTIGAÇÕES GERAIS DE JACAREÍ"
             ];
             let lineY = y + 3;
@@ -164,8 +200,14 @@ ${indent}Atenciosamente,`;
                 pdf.text(line, textX, lineY);
                 lineY += 3.5;
             });
+
+            // Linha separadora do cabeçalho
             const barY = lineY + 2;
-            pdf.setFillColor(200, 200, 200);
+            pdf.setDrawColor(0);
+            pdf.setLineWidth(0.5);
+            pdf.line(margin, barY - 1, margin + maxLineWidth, barY - 1);
+
+            pdf.setFillColor(240, 240, 240);
             pdf.rect(margin, barY, maxLineWidth, 6, 'F');
             pdf.setDrawColor(0);
             pdf.setLineWidth(0.1);
@@ -188,6 +230,10 @@ ${indent}Atenciosamente,`;
             const pageStr = `Página ${pageNum} de ${totalPages}`;
             const dividerX = pageWidth - margin - 35;
             pdf.setDrawColor(0);
+            pdf.setLineWidth(0.5);
+            pdf.line(margin, footerY - 5, margin + maxLineWidth, footerY - 5);
+
+            pdf.setLineWidth(0.1);
             pdf.line(dividerX, footerY - 2, dividerX, footerY + 8);
             pdf.text(addr1, dividerX - 5, footerY, { align: 'right' });
             const phonePart = "Tel-12-3951-1000 - E-mail - ";
@@ -234,7 +280,11 @@ ${indent}Atenciosamente,`;
 
                 const splitLine = doc.splitTextToSize(line, maxLineWidth);
                 doc.text(splitLine, margin, y);
-                y += (splitLine.length * 5) + 2;
+
+                // Reduzir espaçamento para as linhas de cabeçalho (Ofício, Referência, Natureza)
+                const lineSpacing = isImportant && (upperLine.startsWith("OFÍCIO:") || upperLine.startsWith("REFERÊNCIA:") || upperLine.startsWith("NATUREZA:")) ? 4.5 : 5;
+                const lineGap = isImportant && (upperLine.startsWith("OFÍCIO:") || upperLine.startsWith("REFERÊNCIA:") || upperLine.startsWith("NATUREZA:")) ? 1 : 2;
+                y += (splitLine.length * lineSpacing) + lineGap;
             }
         });
 
@@ -250,8 +300,9 @@ ${indent}Atenciosamente,`;
         }
 
         doc.setFont('helvetica', 'bold');
-        doc.text("Luiz Antônio Cunha dos Santos", pageWidth / 2, signatureNameY, { align: 'center' });
-        doc.text("Delegado de Polícia", pageWidth / 2, signatureTitleY, { align: 'center' });
+        const sigX = margin + 40; // Mais para a esquerda que o centro
+        doc.text("Luiz Antônio Cunha dos Santos", sigX, signatureNameY, { align: 'left' });
+        doc.text("Delegado de Polícia", sigX + 15, signatureTitleY, { align: 'left' });
         doc.setFont('helvetica', 'normal');
         doc.text("Ao Ilustríssimo Senhor Responsável", margin, addresseeY);
         doc.setFont('helvetica', 'bold');

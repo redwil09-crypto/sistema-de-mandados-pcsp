@@ -29,6 +29,7 @@ const dbToWarrant = (dbWarrant: any): Warrant => {
         location: dbWarrant.location,
         description: dbWarrant.description,
         observation: dbWarrant.observation,
+        dpRegion: dbWarrant.dp_region,
         img: dbWarrant.img,
         priority: dbWarrant.priority,
         age: dbWarrant.age,
@@ -73,6 +74,7 @@ const warrantToDb = (warrant: Partial<Warrant>) => {
     if (warrant.location !== undefined) dbObj.location = warrant.location;
     if (warrant.description !== undefined) dbObj.description = warrant.description;
     if (warrant.observation !== undefined) dbObj.observation = warrant.observation;
+    if (warrant.dpRegion !== undefined) dbObj.dp_region = warrant.dpRegion;
     if (warrant.img !== undefined) dbObj.img = warrant.img;
     if (warrant.priority !== undefined) dbObj.priority = warrant.priority;
     if (warrant.age !== undefined) dbObj.age = warrant.age;
@@ -341,6 +343,8 @@ export const translateField = (field: string) => {
         father_name: 'Nome do Pai',
         description: 'Descrição',
         observation: 'Observação',
+        dp_region: 'Região DP',
+        dpRegion: 'Região DP',
         priority: 'Prioridade',
         tags: 'Tags',
         img: 'Foto',

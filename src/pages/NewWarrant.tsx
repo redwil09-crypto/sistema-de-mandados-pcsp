@@ -52,13 +52,14 @@ const NewWarrant = () => {
         ifoodResult: '',
         digOffice: '',
         observation: '',
+        dpRegion: '',
         img: '',
         reports: [] as string[],
         attachments: [] as string[],
         tags: [] as string[],
         latitude: undefined as number | undefined,
         longitude: undefined as number | undefined,
-        tacticalSummary: '',
+        tacticalSummary: null as any,
         birthDate: '',
         age: '',
         issuingCourt: ''
@@ -88,8 +89,9 @@ const NewWarrant = () => {
         if (editId && warrants) {
             const existing = warrants.find(w => w.id === editId);
             if (existing) {
-                const isSearch = existing.type.toLowerCase().includes('busca');
-                setType(isSearch ? 'search' : 'prison');
+                const isSearch = existing.type?.toLowerCase().includes('busca');
+                const isCounter = existing.type?.toLowerCase().includes('contra');
+                setType(isSearch ? 'search' : (isCounter ? 'counter' : 'prison'));
 
                 setFormData({
                     name: existing.name || '',
@@ -107,13 +109,14 @@ const NewWarrant = () => {
                     ifoodResult: existing.ifoodResult || '',
                     digOffice: existing.digOffice || '',
                     observation: existing.observation || '',
+                    dpRegion: existing.dpRegion || '',
                     img: existing.img || '',
                     reports: existing.reports || [],
                     attachments: existing.attachments || [],
                     tags: existing.tags || [],
                     latitude: existing.latitude,
                     longitude: existing.longitude,
-                    tacticalSummary: existing.tacticalSummary || '',
+                    tacticalSummary: existing.tacticalSummary,
                     birthDate: formatDate(existing.birthDate),
                     age: existing.age || '',
                     issuingCourt: existing.issuingCourt || ''
@@ -332,13 +335,14 @@ const NewWarrant = () => {
                 ifoodResult: formData.ifoodResult,
                 digOffice: formData.digOffice,
                 observation: formData.observation,
+                dpRegion: formData.dpRegion,
                 tags: formData.tags,
                 img: photoUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(formData.name)}&background=random&color=fff`,
                 reports: [...(formData.reports || []), ...newReportsUrls],
                 attachments: [...(formData.attachments || []), ...newAttachmentsUrls],
                 latitude: formData.latitude,
                 longitude: formData.longitude,
-                tacticalSummary: formData.tacticalSummary || '',
+                tacticalSummary: formData.tacticalSummary,
                 birthDate: formData.birthDate,
                 age: formData.age,
                 issuingCourt: formData.issuingCourt
@@ -560,63 +564,82 @@ const NewWarrant = () => {
                     </div>
 
                     <div className="p-5 space-y-6">
-                        <div className="space-y-2 relative">
-                            <label className="text-[10px] font-black text-text-secondary-light dark:text-text-secondary-dark/50 uppercase tracking-widest px-1">Endereço de Diligência</label>
-                            <div className="flex gap-3 items-center">
-                                <div className="relative flex-1 group">
-                                    <input
-                                        name="location"
-                                        value={formData.location}
-                                        onChange={handleChange}
-                                        onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
-                                        onFocus={() => formData.location.length > 3 && setShowSuggestions(true)}
-                                        type="text"
-                                        className="w-full rounded-xl border border-border-light dark:border-border-dark bg-white dark:bg-black/20 p-3.5 text-sm text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none transition-all shadow-sm"
-                                        placeholder="Rua, Número, Bairro, Cidade ou CEP"
-                                    />
-                                    <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none opacity-20 group-focus-within:opacity-50 transition-opacity">
-                                        {isSearchingCep ? <RefreshCw size={16} className="animate-spin" /> : <Search size={16} />}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="space-y-2 relative">
+                                <label className="text-[10px] font-black text-text-secondary-light dark:text-text-secondary-dark/50 uppercase tracking-widest px-1">Endereço de Diligência</label>
+                                <div className="flex gap-3 items-center">
+                                    <div className="relative flex-1 group">
+                                        <input
+                                            name="location"
+                                            value={formData.location}
+                                            onChange={handleChange}
+                                            onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+                                            onFocus={() => formData.location.length > 3 && setShowSuggestions(true)}
+                                            type="text"
+                                            className="w-full rounded-xl border border-border-light dark:border-border-dark bg-white dark:bg-black/20 p-3.5 text-sm text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none transition-all shadow-sm"
+                                            placeholder="Rua, Número, Bairro, Cidade ou CEP"
+                                        />
+                                        <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none opacity-20 group-focus-within:opacity-50 transition-opacity">
+                                            {isSearchingCep ? <RefreshCw size={16} className="animate-spin" /> : <Search size={16} />}
+                                        </div>
                                     </div>
+                                    <button
+                                        type="button"
+                                        onClick={async () => {
+                                            if (!formData.location) return toast.error("Informe um endereço primeiro");
+                                            const tid = toast.loading("Buscando coordenadas...");
+                                            const res = await geocodeAddress(formData.location);
+                                            if (res) {
+                                                setFormData(prev => ({ ...prev, latitude: res.lat, longitude: res.lng }));
+                                                toast.success("Mapeado com sucesso!", { id: tid });
+                                            } else {
+                                                toast.error("Endereço não localizado", { id: tid });
+                                            }
+                                        }}
+                                        className="bg-primary hover:bg-primary-dark text-white p-3.5 rounded-xl transition-all active:scale-95 shrink-0 shadow-lg shadow-primary/30 flex items-center justify-center"
+                                        title="Mapear Endereço"
+                                    >
+                                        <RefreshCw size={20} />
+                                    </button>
                                 </div>
-                                <button
-                                    type="button"
-                                    onClick={async () => {
-                                        if (!formData.location) return toast.error("Informe um endereço primeiro");
-                                        const tid = toast.loading("Buscando coordenadas...");
-                                        const res = await geocodeAddress(formData.location);
-                                        if (res) {
-                                            setFormData(prev => ({ ...prev, latitude: res.lat, longitude: res.lng }));
-                                            toast.success("Mapeado com sucesso!", { id: tid });
-                                        } else {
-                                            toast.error("Endereço não localizado", { id: tid });
-                                        }
-                                    }}
-                                    className="bg-primary hover:bg-primary-dark text-white p-3.5 rounded-xl transition-all active:scale-95 shrink-0 shadow-lg shadow-primary/30 flex items-center justify-center"
-                                    title="Mapear Endereço"
-                                >
-                                    <RefreshCw size={20} />
-                                </button>
+
+                                {showSuggestions && suggestions.length > 0 && (
+                                    <div className="absolute z-50 left-0 right-14 mt-1 bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-xl shadow-xl max-h-60 overflow-y-auto animate-in fade-in slide-in-from-top-2">
+                                        {suggestions.map((s, i) => (
+                                            <button
+                                                key={i}
+                                                type="button"
+                                                onClick={() => handleSelectSuggestion(s)}
+                                                className="w-full text-left p-3 hover:bg-primary/5 dark:hover:bg-primary/10 border-b border-border-light/50 dark:border-border-dark/50 last:border-0 flex flex-col gap-0.5"
+                                            >
+                                                <span className="text-sm font-bold text-text-light dark:text-text-dark truncate">
+                                                    {s.displayName.split(',')[0]}
+                                                </span>
+                                                <span className="text-[10px] text-text-secondary-light dark:text-text-secondary-dark truncate">
+                                                    {s.displayName}
+                                                </span>
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
 
-                            {showSuggestions && suggestions.length > 0 && (
-                                <div className="absolute z-50 left-0 right-14 mt-1 bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-xl shadow-xl max-h-60 overflow-y-auto animate-in fade-in slide-in-from-top-2">
-                                    {suggestions.map((s, i) => (
-                                        <button
-                                            key={i}
-                                            type="button"
-                                            onClick={() => handleSelectSuggestion(s)}
-                                            className="w-full text-left p-3 hover:bg-primary/5 dark:hover:bg-primary/10 border-b border-border-light/50 dark:border-border-dark/50 last:border-0 flex flex-col gap-0.5"
-                                        >
-                                            <span className="text-sm font-bold text-text-light dark:text-text-dark truncate">
-                                                {s.displayName.split(',')[0]}
-                                            </span>
-                                            <span className="text-[10px] text-text-secondary-light dark:text-text-secondary-dark truncate">
-                                                {s.displayName}
-                                            </span>
-                                        </button>
-                                    ))}
-                                </div>
-                            )}
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black text-text-secondary-light dark:text-text-secondary-dark/50 uppercase tracking-widest px-1">Região da Delegacia (DP)</label>
+                                <select
+                                    name="dpRegion"
+                                    value={formData.dpRegion}
+                                    onChange={handleChange as any}
+                                    className="w-full rounded-xl border border-border-light dark:border-border-dark bg-white dark:bg-black/20 p-3.5 text-sm text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none transition-all shadow-sm"
+                                >
+                                    <option value="">Selecione a Região DP...</option>
+                                    <option value="1º DP">01º D.P. JACAREÍ</option>
+                                    <option value="2º DP">02º D.P. JACAREÍ</option>
+                                    <option value="3º DP">03º D.P. JACAREÍ</option>
+                                    <option value="4º DP">04º D.P. JACAREÍ</option>
+                                    <option value="Outras Cidades">Outras Cidades</option>
+                                </select>
+                            </div>
                         </div>
 
                         <div className="pt-4 border-t border-dashed border-border-light dark:border-border-dark">

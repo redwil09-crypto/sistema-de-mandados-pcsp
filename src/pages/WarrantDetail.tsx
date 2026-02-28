@@ -147,27 +147,6 @@ const WarrantDetail = () => {
     // Swipe Navigation
     // -------------------------------------------------------------------------------- //
     // NEW: Add swipe gestures to switch tabs
-
-    // Tag Color Mapping
-    const getTagStyle = (tag: string) => {
-        const t = tag.toLowerCase();
-        if (t.includes('perigoso') || t.includes('periculosidade') || t.includes('armado') || t.includes('facção') || t.includes('pcc') || t.includes('suicídio')) {
-            return 'bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/30';
-        }
-        if (t.includes('urgente') || t.includes('fuga') || t.includes('resistência') || t.includes('desacato') || t.includes('psiquiátrico')) {
-            return 'bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-500/30';
-        }
-        if (t.includes('violência') || t.includes('penha') || t.includes('mulher')) {
-            return 'bg-pink-500/10 text-pink-600 dark:text-pink-400 border-pink-500/30';
-        }
-        if (t.includes('cobrança') || t.includes('cível') || t.includes('alimentos')) {
-            return 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30';
-        }
-        if (t.includes('preventiva') || t.includes('temporária') || t.includes('definitiva') || t.includes('reincidente')) {
-            return 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/30';
-        }
-        return 'bg-secondary/20 text-secondary border-secondary/30';
-    };
     const { onTouchStart, onTouchMove, onTouchEnd } = useSwipe({
         onSwipeLeft: () => {
             if (activeDetailTab === 'documents') setActiveDetailTab('investigation');
@@ -1298,19 +1277,19 @@ Equipe de Capturas - DIG / PCSP
             doc.setFont('helvetica', 'bold');
             doc.setFontSize(11);
             doc.text(`Ofício: ${officeId}`, margin, y);
-            y += 5;
+            y += 4.5;
             doc.text(`Referência: PROC. Nº ${data.number}`, margin, y);
-            y += 5;
+            y += 4.5;
             doc.text(`Natureza: Solicitação de Dados.`, margin, y);
 
-            y += 8; // Reduced spacing
+            y += 7; // Reduced spacing
 
             // Date
             const today = new Date();
             const months = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
             const formattedDate = `Jacareí, ${today.getDate()} de ${months[today.getMonth()]} de ${today.getFullYear()}.`;
             doc.setFont('helvetica', 'normal');
-            doc.text(formattedDate, pageWidth - margin, y, { align: 'right' });
+            doc.text(formattedDate, margin, y, { align: 'left' });
 
             y += 12; // Reduced spacing
 
@@ -1382,9 +1361,10 @@ Equipe de Capturas - DIG / PCSP
             // Position Signature at fixed bottom location
             y = signatureBlockY;
             doc.setFont('helvetica', 'bold');
-            doc.text("Luiz Antônio Cunha dos Santos", pageWidth / 2, y, { align: 'center' });
+            const sigX = margin + 40;
+            doc.text("Luiz Antônio Cunha dos Santos", sigX, y, { align: 'left' });
             y += 5;
-            doc.text("Delegado de Polícia", pageWidth / 2, y, { align: 'center' });
+            doc.text("Delegado de Polícia", sigX + 15, y, { align: 'left' });
 
             // Position Addressee at fixed bottom location
             y = addresseeBlockY;
@@ -2002,7 +1982,7 @@ Equipe de Capturas - DIG / PCSP
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                            <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
                                 <div className="bg-background-light dark:bg-white/5 border border-border-light dark:border-white/5 p-2 rounded-xl text-center flex flex-col items-center group/field">
                                     <p className="text-[9px] uppercase font-bold text-text-secondary-light dark:text-text-muted mb-0.5 tracking-tighter">Tipo Crime</p>
                                     <input
@@ -2030,6 +2010,21 @@ Equipe de Capturas - DIG / PCSP
                                         <option value="Contramandado" />
                                     </datalist>
                                 </div>
+                                <div className="bg-background-light dark:bg-white/5 border border-border-light dark:border-white/5 p-2 rounded-xl text-center flex flex-col items-center group/field">
+                                    <p className="text-[9px] uppercase font-bold text-text-secondary-light dark:text-text-muted mb-0.5 tracking-tighter">Região DP</p>
+                                    <select
+                                        className="w-full bg-transparent border-none text-xs font-black text-text-light dark:text-white outline-none text-center hover:text-primary transition-colors cursor-pointer appearance-none"
+                                        value={localData.dpRegion || ''}
+                                        onChange={e => handleFieldChange('dpRegion', e.target.value)}
+                                    >
+                                        <option value="" className="text-black dark:text-white bg-white dark:bg-slate-900">Selecione...</option>
+                                        <option value="1º DP" className="text-black dark:text-white bg-white dark:bg-slate-900">1º DP</option>
+                                        <option value="2º DP" className="text-black dark:text-white bg-white dark:bg-slate-900">2º DP</option>
+                                        <option value="3º DP" className="text-black dark:text-white bg-white dark:bg-slate-900">3º DP</option>
+                                        <option value="4º DP" className="text-black dark:text-white bg-white dark:bg-slate-900">4º DP</option>
+                                        <option value="Outras Cidades" className="text-black dark:text-white bg-white dark:bg-slate-900">Outras Cidades</option>
+                                    </select>
+                                </div>
                                 <div className="bg-background-light dark:bg-white/5 border border-border-light dark:border-white/5 p-2 rounded-xl text-center">
                                     <p className="text-[9px] uppercase font-bold text-text-secondary-light dark:text-gray-400 mb-0.5 tracking-tighter">Idade Captura</p>
                                     <p className="text-xs font-black text-text-light dark:text-white">{localData.age || 'N/I'}</p>
@@ -2042,7 +2037,7 @@ Equipe de Capturas - DIG / PCSP
 
                             <div className="flex flex-wrap justify-center sm:justify-start gap-2 pt-1">
                                 {data.tags?.map(tag => (
-                                    <span key={tag} className={`text-[10px] font-black uppercase border px-3 py-1 rounded-full flex items-center gap-1.5 shadow-sm ${getTagStyle(tag)}`}>
+                                    <span key={tag} className="text-[10px] font-black uppercase bg-secondary/20 text-secondary border border-secondary/30 px-3 py-1 rounded-full flex items-center gap-1.5 shadow-sm">
                                         <Zap size={10} className="fill-current" /> {tag}
                                     </span>
                                 ))}

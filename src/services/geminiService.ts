@@ -272,7 +272,7 @@ export async function extractFullWarrantIntelligence(rawText: string): Promise<a
             "issueDate": "AAAA-MM-DD",
             "expirationDate": "AAAA-MM-DD",
             "observations": "Resumo tático das observações. FOQUE se há restrições de saúde, se o alvo é perigoso, ou do crime organizado.",
-            "tags": ["Gerar tags táticas se presentes. Exemplos: 'Alta Periculosidade', 'Crime Organizado / Facção', 'Pena Definitiva', 'Alvo Reincidente', 'Alerta: Violência Doméstica', 'Possível Confronto Armado (P.C.A.)', 'Rompimento de Tornozeleira', 'Ofício de Cobrança', 'Urgente']
+            "tags": ["Gerar tags táticas se presentes. Exemplos: 'Alta Periculosidade', 'Crime Organizado / Facção', 'Pena Definitiva', 'Alvo Reincidente', 'Alerta: Violência Doméstica', 'Possível Confronto Armado (P.C.A.)', 'Rompimento de Tornozeleira', 'Ofício de Cobrança']
         }
     `;
 
@@ -319,7 +319,7 @@ export async function extractWarrantFromImage(base64Image: string, mimeType: str
             "issueDate": "AAAA-MM-DD",
             "expirationDate": "AAAA-MM-DD",
             "observations": "Dados visuais adicionais (tatuagens, marcas) ou observações do texto. Preste ESPECIAL atenção se o réu é perigoso, do crime organizado, ou tem pena alta.",
-            "tags": ["Gerar tags táticas. Use EXATAMENTE estas se aplicável: 'Alta Periculosidade', 'Crime Organizado / Facção', 'Pena Definitiva', 'Alvo Reincidente', 'Alerta: Violência Doméstica', 'Possível Confronto Armado (P.C.A.)', 'Rompimento de Tornozeleira', 'Ofício de Cobrança', 'Urgente'],
+            "tags": ["Gerar tags táticas. Use EXATAMENTE estas se aplicável: 'Alta Periculosidade', 'Crime Organizado / Facção', 'Pena Definitiva', 'Alvo Reincidente', 'Alerta: Violência Doméstica', 'Possível Confronto Armado (P.C.A.)', 'Rompimento de Tornozeleira', 'Ofício de Cobrança'],
             "status": "EM ABERTO" ou "CUMPRIDO" (Se for Contramandado)
         }
     `;

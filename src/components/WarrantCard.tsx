@@ -103,6 +103,11 @@ const WarrantCard = ({ data, onPrint, isPlanned, onRouteToggle, onFinalize, onDe
                             </div>
 
                             {/* Status Badge */}
+                            {data.dpRegion && (
+                                <span className="text-[9px] font-mono font-bold px-2 py-0.5 rounded border bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20 mr-1">
+                                    {data.dpRegion}
+                                </span>
+                            )}
                             <span className={`text-[9px] font-mono font-bold px-2 py-0.5 rounded border ${data.status === 'EM ABERTO' ? 'bg-risk-high/10 text-rose-600 dark:text-risk-high border-risk-high/20' :
                                 data.status === 'CUMPRIDO' ? 'bg-success/10 text-emerald-600 dark:text-success border-success/20' :
                                     'bg-risk-med/10 text-amber-600 dark:text-risk-med border-risk-med/20'
