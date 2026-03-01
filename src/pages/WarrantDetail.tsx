@@ -477,6 +477,7 @@ const WarrantDetail = () => {
                 } catch (e) {
                     console.error("Erro DP dinâmico:", e);
                 }
+            } else {
                 toast.error("Não pudemos encontrar as coordenadas exatas no mapa.", { id: geocodeMsg });
 
                 // Manda só o texto já que geolocalização falhou
