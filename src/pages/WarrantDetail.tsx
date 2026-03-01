@@ -410,12 +410,19 @@ const WarrantDetail = () => {
                             console.error("Erro inferindo DP Region na geolocalização:", e);
                         }
                     }
+                } else {
+                    updates.latitude = null;
+                    updates.longitude = null;
+                    updates.dpRegion = '';
+                    if (localData.dpRegion || localData.latitude || localData.longitude) {
+                        toast.error(`Coordenadas não encontradas. Mapeamento removido.`);
+                    }
                 }
             } catch (error) {
                 console.error("Erro ao geocodificar automaticamente:", error);
             }
-        } else if (updates.location && !updates.dpRegion && !localData.dpRegion) {
-            // Also infer if we have a location change but didn't recalculate lat/lng just now
+        } else if (updates.location && updates.latitude && updates.longitude && !updates.dpRegion && !localData.dpRegion) {
+            // Also infer if we have a location change but didn't recalculate lat/lng just now, ONLY IF WE HAVE LAT/LNG
             try {
                 const dp = await inferDPRegion(updates.location, updates.latitude || localData.latitude, updates.longitude || localData.longitude);
                 if (dp) {
@@ -425,6 +432,11 @@ const WarrantDetail = () => {
             } catch (e) {
                 console.error("Erro inferindo DP Region apenas com location: ", e);
             }
+        } else if (updates.location && !updates.latitude && !updates.longitude && (!localData.latitude || !localData.longitude)) {
+            // If we arrive here, address was changed but it has no valid lat/lng and wasn't found in geocode
+            updates.latitude = null;
+            updates.longitude = null;
+            updates.dpRegion = '';
         }
 
         const success = await updateWarrant(data.id, updates);
@@ -465,20 +477,15 @@ const WarrantDetail = () => {
                 } catch (e) {
                     console.error("Erro DP dinâmico:", e);
                 }
-            } else {
                 toast.error("Não pudemos encontrar as coordenadas exatas no mapa.", { id: geocodeMsg });
 
                 // Manda só o texto já que geolocalização falhou
-                try {
-                    toast.loading("Tentando deduzir Setor DP...", { id: 'dp-deduzir' });
-                    const dp = await inferDPRegion(currentLoc, undefined, undefined);
-                    if (dp) {
-                        setLocalData(prev => ({ ...prev, dpRegion: dp }));
-                        toast.success(`Setor de DP inferido pelo nome do bairro: ${dp}`, { id: 'dp-deduzir' });
-                    }
-                } catch (e) {
-                    console.error("Erro DP fallback dinâmico:", e);
-                }
+                setLocalData(prev => ({
+                    ...prev,
+                    latitude: null,
+                    longitude: null,
+                    dpRegion: ''
+                }));
             }
         }
     };

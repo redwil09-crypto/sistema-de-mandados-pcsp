@@ -39,80 +39,8 @@ export interface ExtractedData {
     dpRegion?: string;          // New: DP area derived from location
 }
 
-// Helper to determine DP based on address using comprehensive Jacareí neighborhood list
+// Helper disabled: DP should ONLY be assigned through AI Geocoding upon saving with real coordinates
 export const determineDpRegion = (address: string): string => {
-    if (!address) return '';
-    const loc = address.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase();
-
-    if (loc.includes('NAO INFORMADO') || loc.includes('SEM ENDERECO')) {
-        return '';
-    }
-
-    // --- 1. DETECT OTHER CITIES & STATES ---
-    // Extract state suffix like "- SP", "- MG" etc.
-    const stateMatch = loc.match(/-\s*([A-Z]{2})\b/);
-    if (stateMatch && stateMatch[1] !== 'SP') {
-        return 'Outras Cidades'; // Definitivamente outro estado
-    }
-
-    // If it's explicitly SP but no mention of Jacareí or Igaratá (which are our local targets)
-    if (stateMatch && stateMatch[1] === 'SP') {
-        if (!loc.includes('JACAREI') && !loc.includes('IGARATA')) {
-            return 'Outras Cidades';
-        }
-    }
-
-    // Explicit check for known neighboring or major cities without a Jacareí mention
-    const explicitOtherCity = [
-        'SAO JOSE DOS CAMPOS', 'SAO PAULO', 'CAMPINAS', 'TAUBATE', 'CACAPAVA',
-        'PINDAMONHANGABA', 'GUARATINGUETA', 'LORENA', 'CARAGUATATUBA', 'UBATUBA',
-        'SAO SEBASTIAO', 'ILHABELA', 'SANTA BRANCA', 'PARAIBUNA', 'JAMBEIRO',
-        'GUARULHOS', 'MOGI DAS CRUZES', 'SUZANO', 'SOROCABA', 'RIBEIRAO PRETO',
-        'BAURU', 'FRANCA', 'SANTOS', 'SAO VICENTE', 'GUARUJA', 'PRAIA GRANDE',
-        'BELO HORIZONTE', 'RIO DE JANEIRO', 'CURITIBA', 'BRASILIA'
-    ].some(city => loc.includes(city));
-
-    if (explicitOtherCity && !loc.includes('JACAREI')) {
-        return 'Outras Cidades';
-    }
-    // ---------------------------------------
-
-    const keywords1DP = [
-        'CIDADE SALVADOR', 'MIRANTE DO VALE', 'ALTOS DE SANTANA', 'COLONIA',
-        'INDUSTRIAS', 'MARQUES', 'JARDIM DO VALE', 'DORA', 'MARIA AMELIA',
-        'OLYMPIA', 'PARAISO', 'JARDIM REAL', 'PEDREGULHO', 'SANTA MARINA',
-        'SANTO ANTONIO', 'YOLANDA', 'VILLA BRANCA', 'VILA BRANCA', 'PARQUE CALIFORNIA',
-        'PARQUE DOS PRINCIPES', 'ITAMARATI', 'SANTA PAULA', 'RIO COMPRIDO',
-        'SAO JUDAS', 'VILA ZEZE', 'VILA VINTEM', 'NOVO AMANHECER', 'PORTAL',
-        'PANORAMA', 'DIDINHA'
-    ];
-
-    const keywords2DP = [
-        'BANDEIRA BRANCA', 'BELA VISTA', 'CEREJEIRA', 'GUANABARA', 'IGARAPES',
-        'SANTA MARIA', 'CIDADE NOVA', 'LAGO DOURADO', 'LAGOINHA', 'ESCADA',
-        'LUIZA', 'JARDIM SANTANA', 'SAO LUIZ', 'PARATEI', 'AGRINCO', 'IMPERIAL',
-        'JEQUITIBA', 'SAO SILVESTRE', 'IJAL', 'IRAJA'
-    ];
-
-    const keywords3DP = [
-        'CIDADE SALVADOR', 'ZEZE', 'PRINCIPES', 'PARAIBA',
-        'SANTA MARINA', 'VILA GARCIA', 'PINHEIRO', 'SAO JOAO', 'SAO SIMAO',
-        'MARILIA', 'BRASILIA', 'BOA VISTA', 'ESPER',
-        'GUARANI', 'SAO GABRIEL', 'CALIFORNIA', 'SAO SILVESTRE',
-        'LOURDES', 'EMIDA COSTA', 'LEONIDIA', 'PITORESCO', 'VILA REAL', 'AMPARO'
-    ];
-
-    const keywords4DP = [
-        'REMEDIOS', 'REMEDINHO', 'PARATEI', 'LAGOINHA', 'PAGADOR', 'ANDRADE',
-        'MEIA LUA', 'PRIMEIRO DE MAIO', 'RIO ABAIXO', 'LAGOA AZUL'
-    ];
-
-    // Priority matching logic
-    if (keywords1DP.some(k => loc.includes(k))) return '1º DP';
-    if (keywords2DP.some(k => loc.includes(k))) return '2º DP';
-    if (keywords3DP.some(k => loc.includes(k))) return '3º DP';
-    if (keywords4DP.some(k => loc.includes(k))) return '4º DP';
-
     return '';
 };
 

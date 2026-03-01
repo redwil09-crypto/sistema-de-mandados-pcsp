@@ -167,6 +167,7 @@ const Stats = () => {
                                         }
                                     } else {
                                         // 1. If missing coordinates, try to geocode first
+                                        let geoFailed = false;
                                         if (!currentLat || !currentLng) {
                                             const geoResult = await geocodeAddress(w.location);
                                             if (geoResult) {
@@ -175,26 +176,39 @@ const Stats = () => {
                                                 updates.latitude = currentLat;
                                                 updates.longitude = currentLng;
                                                 needsUpdate = true;
+                                            } else {
+                                                geoFailed = true;
                                             }
                                             // Wait slightly to respect Nominatim API rate limits
                                             await new Promise(r => setTimeout(r, 1000));
                                         }
 
-                                        // 2. FORCE RE-INFERENCE FOR ALL to correct previous mistakes
-                                        let detected = await inferDPRegion(w.location, currentLat, currentLng);
+                                        if (geoFailed || !currentLat || !currentLng) {
+                                            // Se não encontrou as coordenadas, não deve ter DP também!
+                                            if (currentDp || currentLat || currentLng) {
+                                                updates.latitude = null;
+                                                updates.longitude = null;
+                                                updates.dpRegion = '';
+                                                needsUpdate = true;
+                                            }
+                                        } else {
+                                            // 2. FORCE RE-INFERENCE FOR ALL to correct previous mistakes
+                                            // SÓ FARÁ INFERÊNCIA SE TIVER COORDENADAS REAIS PASSADAS NO PARÂMETRO
+                                            let detected = await inferDPRegion(w.location, currentLat, currentLng);
 
-                                        // Map raw AI result to formatted string in our system
-                                        if (detected === "1DP") detected = "1º DP";
-                                        else if (detected === "2DP") detected = "2º DP";
-                                        else if (detected === "3DP") detected = "3º DP";
-                                        else if (detected === "4DP") detected = "4º DP";
+                                            // Map raw AI result to formatted string in our system
+                                            if (detected === "1DP") detected = "1º DP";
+                                            else if (detected === "2DP") detected = "2º DP";
+                                            else if (detected === "3DP") detected = "3º DP";
+                                            else if (detected === "4DP") detected = "4º DP";
 
-                                        if (detected && currentDp !== detected) {
-                                            updates.dpRegion = detected;
-                                            needsUpdate = true;
+                                            if (detected && currentDp !== detected) {
+                                                updates.dpRegion = detected;
+                                                needsUpdate = true;
+                                            }
+                                            // Wait slightly to respect Gemini rate limits
+                                            await new Promise(r => setTimeout(r, 1000));
                                         }
-                                        // Wait slightly to respect Gemini rate limits
-                                        await new Promise(r => setTimeout(r, 1000));
                                     }
 
                                     if (needsUpdate) {
