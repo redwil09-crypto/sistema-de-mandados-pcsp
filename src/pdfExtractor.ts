@@ -44,6 +44,10 @@ export const determineDpRegion = (address: string): string => {
     if (!address) return '';
     const loc = address.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase();
 
+    if (loc.includes('NAO INFORMADO') || loc.includes('SEM ENDERECO')) {
+        return '';
+    }
+
     // --- 1. DETECT OTHER CITIES & STATES ---
     // Extract state suffix like "- SP", "- MG" etc.
     const stateMatch = loc.match(/-\s*([A-Z]{2})\b/);

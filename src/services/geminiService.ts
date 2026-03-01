@@ -675,7 +675,14 @@ export async function adaptDocumentToTarget(warrantData: any, templateText: stri
     }
 }
 
-export async function inferDPRegion(address: string, lat?: number, lng?: number): Promise<string | null> {
+export const inferDPRegion = async (address: string, lat?: number, lng?: number): Promise<string | null> => {
+    if (!address || typeof address !== 'string') return null;
+
+    const locLower = address.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    if (locLower.includes('nao informado') || locLower.includes('sem endereco')) {
+        return null;
+    }
+
     if (!(await isGeminiEnabled())) return null;
 
     const prompt = `
