@@ -125,8 +125,8 @@ const Stats = () => {
             <main className="p-4 md:p-6 space-y-6 max-w-7xl mx-auto relative z-10">
 
                 {/* TEMPORARY DEV BUTTON */}
-                <div className="bg-dashed border border-white/10 rounded-xl p-4 flex flex-col items-center justify-center text-center gap-3">
-                    <p className="text-[10px] text-white/50 uppercase tracking-widest font-bold">Inteligência Artificial - Acervo em Lote</p>
+                <div className="bg-dashed border border-black/10 dark:border-white/10 rounded-xl p-4 flex flex-col items-center justify-center text-center gap-3">
+                    <p className="text-[10px] text-black/50 dark:text-white/50 uppercase tracking-widest font-bold">Inteligência Artificial - Acervo em Lote</p>
                     <button
                         onClick={async () => {
                             let updated = 0;
@@ -211,7 +211,7 @@ const Stats = () => {
                     >
                         Auto-Vincular Coordenadas e DPs (Com IA Gemini)
                     </button>
-                    <p className="text-[9px] text-white/30 max-w-sm">Esta ação vai varrer o acervo buscando mandados sem coordenadas exatas ou sem Jurisdição. Ele tentará geocodificar o local e acionará a Inteligência Artificial para decidir o Setor DP automaticamente.</p>
+                    <p className="text-[9px] text-black/40 dark:text-white/30 max-w-sm">Esta ação vai varrer o acervo buscando mandados sem coordenadas exatas ou sem Jurisdição. Ele tentará geocodificar o local e acionará a Inteligência Artificial para decidir o Setor DP automaticamente.</p>
                 </div>
 
                 {/* 1. Main Metrics Grid - Cyber Style */}
@@ -220,36 +220,36 @@ const Stats = () => {
                         label="Total Acervo"
                         value={stats.total}
                         icon={<Database size={20} />}
-                        className="bg-blue-500/5 text-blue-400 border-blue-500/20 shadow-[0_0_15px_rgba(59,130,246,0.1)] cursor-pointer hover:bg-blue-500/10"
+                        className="bg-blue-500/5 text-blue-600 dark:text-blue-400 border-blue-500/20 shadow-[0_0_15px_rgba(59,130,246,0.1)] cursor-pointer hover:bg-blue-500/10"
                         onClick={() => navigate('/warrant-list')}
                     />
                     <StatCard
                         label="Em Aberto"
                         value={stats.active}
                         icon={<AlertTriangle size={20} />}
-                        className="bg-red-500/5 text-red-400 border-red-500/20 shadow-[0_0_15px_rgba(239,68,68,0.1)] cursor-pointer hover:bg-red-500/10"
+                        className="bg-red-500/5 text-red-600 dark:text-red-400 border-red-500/20 shadow-[0_0_15px_rgba(239,68,68,0.1)] cursor-pointer hover:bg-red-500/10"
                         onClick={() => navigate('/warrant-list?status=EM ABERTO')}
                     />
                     <StatCard
                         label="Cumpridos"
                         value={stats.done}
                         icon={<CheckCircle2 size={20} />}
-                        className="bg-emerald-500/5 text-emerald-400 border-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.1)] cursor-pointer hover:bg-emerald-500/10"
+                        className="bg-emerald-500/5 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.1)] cursor-pointer hover:bg-emerald-500/10"
                         onClick={() => navigate('/warrant-list?status=CUMPRIDO')}
                     />
                     <StatCard
                         label="Taxa de Êxito"
                         value={`${stats.successRate}%`}
                         icon={<Activity size={20} />}
-                        className="bg-indigo-500/5 text-indigo-400 border-indigo-500/20 shadow-[0_0_15px_rgba(99,102,241,0.1)] cursor-pointer hover:bg-indigo-500/10"
+                        className="bg-indigo-500/5 text-indigo-600 dark:text-indigo-400 border-indigo-500/20 shadow-[0_0_15px_rgba(99,102,241,0.1)] cursor-pointer hover:bg-indigo-500/10"
                         onClick={() => navigate('/warrant-list?status=CUMPRIDO')}
                     />
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     {/* General Status Chart - Glassmorphism */}
-                    <div className="lg:col-span-2 bg-surface-light/40 dark:bg-zinc-900/40 backdrop-blur-xl p-6 rounded-3xl border border-white/5 shadow-2xl">
-                        <h3 className="font-bold text-[10px] uppercase tracking-[0.3em] text-white/40 mb-8 flex items-center gap-3">
+                    <div className="lg:col-span-2 bg-white/60 dark:bg-zinc-900/40 backdrop-blur-xl p-6 rounded-3xl border border-black/5 dark:border-white/5 shadow-xl dark:shadow-2xl">
+                        <h3 className="font-bold text-[10px] uppercase tracking-[0.3em] text-black/40 dark:text-white/40 mb-8 flex items-center gap-3">
                             <span className="w-1.5 h-1.5 bg-primary rounded-full animate-pulse"></span>
                             Distribuição de Status
                         </h3>
@@ -257,11 +257,11 @@ const Stats = () => {
                             <ResponsiveContainer width="100%" height="100%">
                                 <BarChart data={chartData} barSize={40}>
                                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#ffffff" opacity={0.03} />
-                                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#ffffff40', fontWeight: 'bold' }} />
-                                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#ffffff40' }} />
+                                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#888', fontWeight: 'bold' }} />
+                                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#888' }} />
                                     <Tooltip
-                                        contentStyle={{ backgroundColor: '#09090b', borderRadius: '12px', border: '1px solid #ffffff10', color: '#fff' }}
-                                        cursor={{ fill: 'rgba(255,255,255,0.03)' }}
+                                        contentStyle={{ backgroundColor: 'rgba(9, 9, 11, 0.8)', borderRadius: '12px', border: '1px solid rgba(128,128,128,0.2)', backdropFilter: 'blur(8px)' }}
+                                        cursor={{ fill: 'rgba(128,128,128,0.05)' }}
                                     />
                                     <Bar dataKey="value" radius={[4, 4, 0, 0]} cursor="pointer">
                                         {chartData.map((entry, index) => (
@@ -279,9 +279,9 @@ const Stats = () => {
                     </div>
 
                     {/* Heatmap Tático - Idea 3 implementation */}
-                    <div className="bg-surface-light/40 dark:bg-zinc-900/40 backdrop-blur-xl p-6 rounded-3xl border border-white/5 shadow-2xl relative overflow-hidden group">
+                    <div className="bg-white/60 dark:bg-zinc-900/40 backdrop-blur-xl p-6 rounded-3xl border border-black/5 dark:border-white/5 shadow-xl dark:shadow-2xl relative overflow-hidden group">
                         <div className="absolute -right-8 -top-8 w-32 h-32 bg-primary/5 rounded-full blur-3xl transition-all group-hover:bg-primary/10"></div>
-                        <h3 className="font-bold text-[10px] uppercase tracking-[0.3em] text-white/40 mb-8 flex items-center gap-3">
+                        <h3 className="font-bold text-[10px] uppercase tracking-[0.3em] text-black/40 dark:text-white/40 mb-8 flex items-center gap-3">
                             <Siren size={14} className="text-primary" />
                             Mapa de Calor Tático
                         </h3>
@@ -290,17 +290,17 @@ const Stats = () => {
                             {heatmapData.map((item, idx) => (
                                 <div
                                     key={idx}
-                                    className="space-y-2 cursor-pointer hover:bg-white/5 p-2 rounded-lg transition-colors group/row"
+                                    className="space-y-2 cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 p-2 rounded-lg transition-colors group/row"
                                     onClick={() => navigate(`/warrant-list?city=${item.name}`)}
                                 >
                                     <div className="flex justify-between items-end">
-                                        <span className="text-xs font-black text-white/70 uppercase tracking-wider group-hover/row:text-primary transition-colors">{item.name}</span>
+                                        <span className="text-xs font-black text-black/70 dark:text-white/70 uppercase tracking-wider group-hover/row:text-primary transition-colors">{item.name}</span>
                                         <div className="flex items-center gap-2">
                                             <span className="text-[10px] font-bold text-primary">{item.value} mandados</span>
                                             <span className="px-1.5 py-0.5 rounded bg-primary/10 text-primary text-[8px] font-black">{item.intensity}%</span>
                                         </div>
                                     </div>
-                                    <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
+                                    <div className="w-full h-1.5 bg-black/5 dark:bg-white/5 rounded-full overflow-hidden">
                                         <div
                                             className="h-full bg-gradient-to-r from-blue-600 to-primary rounded-full shadow-[0_0_10px_rgba(37,99,235,0.4)] transition-all duration-1000"
                                             style={{ width: `${item.intensity}%` }}
@@ -310,21 +310,21 @@ const Stats = () => {
                             ))}
 
                             {heatmapData.length === 0 && (
-                                <div className="h-40 flex items-center justify-center text-white/20 text-[10px] font-bold uppercase tracking-widest border border-dashed border-white/5 rounded-2xl">
+                                <div className="h-40 flex items-center justify-center text-black/40 dark:text-white/20 text-[10px] font-bold uppercase tracking-widest border border-dashed border-black/10 dark:border-white/5 rounded-2xl">
                                     Aguardando Dados Geográficos...
                                 </div>
                             )}
                         </div>
 
-                        <div className="mt-8 pt-6 border-t border-white/5 text-center">
+                        <div className="mt-8 pt-6 border-t border-black/5 dark:border-white/5 text-center">
                             <p className="text-[8px] font-black text-primary/50 uppercase tracking-[0.2em]">Zonas de maior incidência operacional</p>
                         </div>
                     </div>
                 </div>
 
                 {/* 3. Crimes & Nature Section - Glassmorphism */}
-                <div className="bg-surface-light/40 dark:bg-zinc-900/40 backdrop-blur-xl p-6 rounded-3xl border border-white/5 shadow-2xl relative overflow-hidden group">
-                    <h3 className="font-bold text-[10px] uppercase tracking-[0.3em] text-white/40 mb-8 flex items-center gap-3">
+                <div className="bg-white/60 dark:bg-zinc-900/40 backdrop-blur-xl p-6 rounded-3xl border border-black/5 dark:border-white/5 shadow-xl dark:shadow-2xl relative overflow-hidden group">
+                    <h3 className="font-bold text-[10px] uppercase tracking-[0.3em] text-black/40 dark:text-white/40 mb-8 flex items-center gap-3">
                         <Shield size={14} className="text-primary" />
                         Top 5 Naturezas Criminais
                     </h3>
@@ -350,16 +350,16 @@ const Stats = () => {
                                             />
                                         ))}
                                     </Pie>
-                                    <Tooltip contentStyle={{ backgroundColor: '#09090b', borderRadius: '12px', border: '1px solid #ffffff10', color: '#fff' }} />
+                                    <Tooltip contentStyle={{ backgroundColor: 'rgba(9, 9, 11, 0.8)', borderRadius: '12px', border: '1px solid rgba(128,128,128,0.2)', backdropFilter: 'blur(8px)' }} />
                                 </PieChart>
                             </ResponsiveContainer>
                             <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                                 <div
-                                    className="flex flex-col items-center justify-center pointer-events-auto cursor-pointer rounded-full w-24 h-24 hover:bg-white/5 transition-colors"
+                                    className="flex flex-col items-center justify-center pointer-events-auto cursor-pointer rounded-full w-24 h-24 hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
                                     onClick={() => navigate('/warrant-list?status=EM ABERTO')}
                                 >
-                                    <span className="text-2xl font-black text-white">{stats.active}</span>
-                                    <span className="text-[8px] text-white/40 uppercase font-bold tracking-widest">Ativos</span>
+                                    <span className="text-2xl font-black text-black dark:text-white">{stats.active}</span>
+                                    <span className="text-[8px] text-black/50 dark:text-white/40 uppercase font-bold tracking-widest">Ativos</span>
                                 </div>
                             </div>
                         </div>
@@ -369,11 +369,11 @@ const Stats = () => {
                                 <div
                                     key={idx}
                                     onClick={() => navigate(`/warrant-list?q=${encodeURIComponent(item.name)}&status=EM+ABERTO`)}
-                                    className="flex items-center justify-between p-3 bg-white/5 rounded-xl border border-white/5 hover:bg-primary/10 transition-colors cursor-pointer group/item"
+                                    className="flex items-center justify-between p-3 bg-black/5 dark:bg-white/5 rounded-xl border border-black/5 dark:border-white/5 hover:bg-primary/10 transition-colors cursor-pointer group/item"
                                 >
                                     <div className="flex items-center gap-3">
                                         <div className="w-2 h-2 rounded-full shadow-[0_0_8px_currentColor]" style={{ color: item.color, backgroundColor: item.color }} />
-                                        <span className="text-xs font-bold text-white/70 group-hover/item:text-white transition-colors uppercase tracking-tight">{item.name}</span>
+                                        <span className="text-xs font-bold text-black/70 dark:text-white/70 group-hover/item:text-black dark:group-hover/item:text-white transition-colors uppercase tracking-tight">{item.name}</span>
                                     </div>
                                     <span className="text-sm font-black text-primary">{item.value}</span>
                                 </div>
@@ -386,7 +386,7 @@ const Stats = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div
                         onClick={() => navigate('/warrant-list?type=PRISÃO&status=EM+ABERTO')}
-                        className="bg-zinc-900/40 backdrop-blur-xl p-5 rounded-3xl border border-red-500/10 shadow-2xl relative overflow-hidden group border-l-4 border-l-red-500 cursor-pointer hover:bg-red-500/5 transition-all"
+                        className="bg-white/60 dark:bg-zinc-900/40 backdrop-blur-xl p-5 rounded-3xl border border-red-500/10 shadow-2xl relative overflow-hidden group border-l-4 border-l-red-500 cursor-pointer hover:bg-red-500/5 transition-all"
                     >
                         <div className="flex items-center justify-between relative z-10">
                             <div className="flex items-center gap-4">
@@ -394,20 +394,20 @@ const Stats = () => {
                                     <Lock size={24} />
                                 </div>
                                 <div>
-                                    <h3 className="font-black text-white text-lg tracking-tight uppercase">Prisão</h3>
-                                    <p className="text-[10px] font-bold text-white/30 uppercase tracking-widest">Mandados de Captura</p>
+                                    <h3 className="font-black text-black dark:text-white text-lg tracking-tight uppercase">Prisão</h3>
+                                    <p className="text-[10px] font-bold text-black/40 dark:text-white/30 uppercase tracking-widest">Mandados de Captura</p>
                                 </div>
                             </div>
                             <div className="text-right">
                                 <span className="block text-4xl font-black text-red-500 drop-shadow-[0_0_8px_rgba(239,68,68,0.4)]">{stats.prison}</span>
-                                <span className="text-[9px] font-black text-white/20 uppercase tracking-widest">{stats.prisonPct}% Carga</span>
+                                <span className="text-[9px] font-black text-black/50 dark:text-white/20 uppercase tracking-widest">{stats.prisonPct}% Carga</span>
                             </div>
                         </div>
                     </div>
 
                     <div
                         onClick={() => navigate('/warrant-list?type=BUSCA&status=EM+ABERTO')}
-                        className="bg-zinc-900/40 backdrop-blur-xl p-5 rounded-3xl border border-orange-500/10 shadow-2xl relative overflow-hidden group border-l-4 border-l-orange-500 cursor-pointer hover:bg-orange-500/5 transition-all"
+                        className="bg-white/60 dark:bg-zinc-900/40 backdrop-blur-xl p-5 rounded-3xl border border-orange-500/10 shadow-2xl relative overflow-hidden group border-l-4 border-l-orange-500 cursor-pointer hover:bg-orange-500/5 transition-all"
                     >
                         <div className="flex items-center justify-between relative z-10">
                             <div className="flex items-center gap-4">
@@ -415,13 +415,13 @@ const Stats = () => {
                                     <Search size={24} />
                                 </div>
                                 <div>
-                                    <h3 className="font-black text-white text-lg tracking-tight uppercase">Busca</h3>
-                                    <p className="text-[10px] font-bold text-white/30 uppercase tracking-widest">Busca e Apreensão</p>
+                                    <h3 className="font-black text-black dark:text-white text-lg tracking-tight uppercase">Busca</h3>
+                                    <p className="text-[10px] font-bold text-black/40 dark:text-white/30 uppercase tracking-widest">Busca e Apreensão</p>
                                 </div>
                             </div>
                             <div className="text-right">
                                 <span className="block text-4xl font-black text-orange-500 drop-shadow-[0_0_8px_rgba(249,115,22,0.4)]">{stats.search}</span>
-                                <span className="text-[9px] font-black text-white/20 uppercase tracking-widest">{stats.searchPct}% Carga</span>
+                                <span className="text-[9px] font-black text-black/50 dark:text-white/20 uppercase tracking-widest">{stats.searchPct}% Carga</span>
                             </div>
                         </div>
                     </div>
@@ -431,23 +431,23 @@ const Stats = () => {
                 <div className="grid grid-cols-2 gap-4">
                     <div
                         onClick={() => navigate('/warrant-list?priority=urgent')}
-                        className={`p-6 rounded-3xl border-2 flex flex-col items-center justify-center text-center gap-3 transition-all duration-500 cursor-pointer ${stats.urgent > 0 ? 'bg-red-500/10 border-red-500/50 shadow-[0_0_30px_rgba(239,68,68,0.2)] animate-pulse hover:bg-red-500/20' : 'bg-zinc-900/40 border-white/5 hover:bg-white/5'}`}
+                        className={`p-6 rounded-3xl border-2 flex flex-col items-center justify-center text-center gap-3 transition-all duration-500 cursor-pointer ${stats.urgent > 0 ? 'bg-red-500/10 border-red-500/50 shadow-[0_0_30px_rgba(239,68,68,0.2)] animate-pulse hover:bg-red-500/20' : 'bg-white/60 dark:bg-zinc-900/40 border-black/5 dark:border-white/5 hover:bg-black/5 dark:hover:bg-white/5'}`}
                     >
-                        <Siren size={32} className={`${stats.urgent > 0 ? 'text-red-500' : 'text-white/10'}`} />
+                        <Siren size={32} className={`${stats.urgent > 0 ? 'text-red-500' : 'text-black/20 dark:text-white/10'}`} />
                         <div>
-                            <span className={`block text-3xl font-black mb-1 ${stats.urgent > 0 ? 'text-red-500' : 'text-white/20'}`}>{stats.urgent}</span>
-                            <span className="text-[9px] font-black uppercase tracking-[0.2em] text-white/40">Alta Periculosidade</span>
+                            <span className={`block text-3xl font-black mb-1 ${stats.urgent > 0 ? 'text-red-500' : 'text-black/50 dark:text-white/20'}`}>{stats.urgent}</span>
+                            <span className="text-[9px] font-black uppercase tracking-[0.2em] text-black/50 dark:text-white/40">Alta Periculosidade</span>
                         </div>
                     </div>
 
                     <div
                         onClick={() => navigate('/warrant-list?expired=true')}
-                        className={`p-6 rounded-3xl border-2 flex flex-col items-center justify-center text-center gap-3 transition-all duration-500 cursor-pointer ${stats.expired > 0 ? 'bg-amber-500/10 border-amber-500/50 shadow-[0_0_30px_rgba(245,158,11,0.2)] hover:bg-amber-500/20' : 'bg-zinc-900/40 border-white/5 hover:bg-white/5'}`}
+                        className={`p-6 rounded-3xl border-2 flex flex-col items-center justify-center text-center gap-3 transition-all duration-500 cursor-pointer ${stats.expired > 0 ? 'bg-amber-500/10 border-amber-500/50 shadow-[0_0_30px_rgba(245,158,11,0.2)] hover:bg-amber-500/20' : 'bg-white/60 dark:bg-zinc-900/40 border-black/5 dark:border-white/5 hover:bg-black/5 dark:hover:bg-white/5'}`}
                     >
-                        <Clock size={32} className={`${stats.expired > 0 ? 'text-amber-500' : 'text-white/10'}`} />
+                        <Clock size={32} className={`${stats.expired > 0 ? 'text-amber-500' : 'text-black/20 dark:text-white/10'}`} />
                         <div>
-                            <span className={`block text-3xl font-black mb-1 ${stats.expired > 0 ? 'text-amber-500' : 'text-white/20'}`}>{stats.expired}</span>
-                            <span className="text-[9px] font-black uppercase tracking-[0.2em] text-white/40">Prazos Expirados</span>
+                            <span className={`block text-3xl font-black mb-1 ${stats.expired > 0 ? 'text-amber-500' : 'text-black/50 dark:text-white/20'}`}>{stats.expired}</span>
+                            <span className="text-[9px] font-black uppercase tracking-[0.2em] text-black/50 dark:text-white/40">Prazos Expirados</span>
                         </div>
                     </div>
                 </div>
