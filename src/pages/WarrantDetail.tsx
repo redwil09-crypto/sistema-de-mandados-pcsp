@@ -371,7 +371,8 @@ const WarrantDetail = () => {
             'location', 'ifoodNumber', 'ifoodResult', 'digOffice',
             'issueDate', 'entryDate', 'expirationDate', 'dischargeDate', 'observation',
             'status', 'fulfillmentResult', 'fulfillmentReport', 'latitude', 'longitude',
-            'tacticalSummary', 'tags', 'birthDate', 'age', 'issuingCourt', 'fulfillmentDetails'
+            'tacticalSummary', 'tags', 'birthDate', 'age', 'issuingCourt', 'fulfillmentDetails',
+            'dpRegion'
         ];
 
         fields.forEach(key => {
