@@ -4,7 +4,6 @@ import { toast } from 'sonner';
 import { Warrant } from '../types';
 import { uploadFile, getPublicUrl } from '../supabaseStorage';
 import { formatDate } from '../utils/helpers';
-import { determineDpRegion } from '../pdfExtractor';
 
 export const generateWarrantPDF = async (
     data: Warrant,
@@ -104,6 +103,7 @@ export const generateWarrantPDF = async (
             doc.setLineWidth(0.1);
             doc.line(margin, y + badgeH + 5, pageWidth - margin, y + badgeH + 5);
             y += badgeH + 12;
+
         } catch (e) {
             console.error("Header error", e);
             y += 30;
@@ -152,7 +152,7 @@ export const generateWarrantPDF = async (
         doc.roundedRect(badgeX, infoY + 2, 35, 6, 1, 1, 'F');
         doc.setTextColor(...COLORS.WHITE);
         doc.setFontSize(8);
-        doc.text(data.status || 'EM ABERTO', badgeX + 17.5, infoY + 6, { align: 'center' });
+        doc.text(data.status || 'EM ABERTO', badgeX + 17.5, infoY + 6.2, { align: 'center' });
         badgeX += 40;
 
         // Tactical Intelligence Parsing for Risk
@@ -195,13 +195,8 @@ export const generateWarrantPDF = async (
             doc.setFillColor(...riskColor);
             doc.roundedRect(badgeX, infoY + 2, 35, 6, 1, 1, 'F');
             doc.setTextColor(...COLORS.WHITE);
-            doc.text(`RISCO: ${riskLevel}`, badgeX + 17.5, infoY + 6, { align: 'center' });
+            doc.text(`RISCO: ${riskLevel}`, badgeX + 17.5, infoY + 6.2, { align: 'center' });
             badgeX += 40;
-        }
-
-        // Auto-infer DP Region if it's missing in data but address (location) exists
-        if (!data.dpRegion && data.location) {
-            data.dpRegion = determineDpRegion(data.location);
         }
 
         // DP Region Badge
@@ -210,7 +205,7 @@ export const generateWarrantPDF = async (
             doc.roundedRect(badgeX, infoY + 2, 40, 6, 1, 1, 'F');
             doc.setTextColor(...COLORS.WHITE);
             doc.setFontSize(8);
-            doc.text(`DP: ${data.dpRegion.toUpperCase()}`, badgeX + 20, infoY + 6, { align: 'center' });
+            doc.text(`DP: ${data.dpRegion.toUpperCase()}`, badgeX + 20, infoY + 6.2, { align: 'center' });
         }
 
         infoY += 12;
@@ -234,19 +229,15 @@ export const generateWarrantPDF = async (
             doc.setTextColor(...COLORS.PRIMARY);
 
             // Fix: Wrap long text (especially ADDRESS/LOCATION)
-            const labelWidth = 25;
-            const maxWidth = contentWidth - photoW - labelWidth - 10;
+            const maxWidth = contentWidth - photoW - 45; // Calculate remaining width
             const valStr = String(value).toUpperCase();
             const valLines = doc.splitTextToSize(valStr, maxWidth);
 
-            doc.text(valLines, infoX + labelWidth, infoY);
-            infoY += (valLines.length * 6) + 1; // 6 instead of 5 for better vertical breathing
+            doc.text(valLines, infoX + 30, infoY);
+            infoY += (valLines.length * 5) + 2; // Dynamic spacing based on lines
         });
 
-        // Ensure the next section starts after both the photo and the identifier text
-        // Ensure the next section starts after both the photo and the long identifier text
-        y = Math.max(y + photoH + 5, infoY + 15);
-        doc.setTextColor(...COLORS.TEXT);
+        y += photoH + 5;
 
         // --- DATA SECTIONS ---
         const drawFields = (fields: [string, string][]) => {
