@@ -2046,6 +2046,14 @@ Equipe de Capturas - DIG / PCSP
                                             Status: Foragido
                                         </span>
                                     )}
+                                    {localData.status === 'CUMPRIDO' && (
+                                        <button
+                                            onClick={handleReopen}
+                                            className="text-[10px] font-black uppercase tracking-[0.1em] text-amber-500 bg-amber-500/10 px-3 py-1 rounded border border-amber-500/30 hover:bg-amber-500 hover:text-white transition-all flex items-center gap-2 shadow-lg shadow-amber-500/10 animate-in fade-in zoom-in-95 duration-500"
+                                        >
+                                            <RotateCcw size={12} /> REABRIR MANDADO
+                                        </button>
+                                    )}
                                 </div>
                                 <input
                                     className={`text-2xl font-black text-text-light dark:text-white leading-tight uppercase bg-transparent border-none outline-none focus:ring-1 focus:ring-primary/40 rounded-lg px-2 -ml-2 w-full transition-all hover:text-${themeColor.replace('text-', '')} placeholder:text-text-secondary-light/50 dark:placeholder:text-white/20`}
@@ -3247,6 +3255,7 @@ Equipe de Capturas - DIG / PCSP
                             onSave={() => navigate(`/new-warrant?edit=${data.id}`)}
                             onPrint={() => generateWarrantPDF(localData as any)}
                             onFinalize={() => setIsFinalizeModalOpen(true)}
+                            onReopen={handleReopen}
                             onDelete={() => setIsDeleteConfirmOpen(true)}
                             status={localData.status}
                         />

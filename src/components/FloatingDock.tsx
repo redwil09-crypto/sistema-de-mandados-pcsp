@@ -11,12 +11,13 @@ interface FloatingDockProps {
     onSave?: () => void;
     onPrint?: () => void;
     onFinalize?: () => void;
+    onReopen?: () => void;
     onDelete?: () => void;
     status?: string;
 }
 
 const FloatingDock = ({
-    onBack, onHome, onSave, onPrint, onFinalize, onDelete, status
+    onBack, onHome, onSave, onPrint, onFinalize, onReopen, onDelete, status
 }: FloatingDockProps) => {
 
     return (
@@ -64,10 +65,19 @@ const FloatingDock = ({
                     </button>
                 )}
 
-                {onFinalize && (
+                {(onFinalize || onReopen) && (
                     <button
-                        onClick={onFinalize}
-                        className="relative flex flex-col items-center justify-center gap-1 transition-all text-text-secondary-light dark:text-zinc-500 hover:text-text-light dark:hover:text-white group"
+                        onClick={() => {
+                            if (status === 'CUMPRIDO') {
+                                onReopen?.();
+                            } else {
+                                onFinalize?.();
+                            }
+                        }}
+                        className={`relative flex flex-col items-center justify-center gap-1 transition-all group ${status === 'CUMPRIDO'
+                            ? 'text-amber-600 dark:text-amber-500 hover:text-amber-400'
+                            : 'text-text-secondary-light dark:text-zinc-500 hover:text-text-light dark:hover:text-white'
+                            }`}
                     >
                         {status === 'CUMPRIDO' ? <RotateCcw size={18} /> : <CheckCircle size={18} />}
                         <span className="text-[9px] font-black tracking-widest uppercase font-display">
