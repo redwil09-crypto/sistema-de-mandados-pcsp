@@ -675,50 +675,218 @@ export async function adaptDocumentToTarget(warrantData: any, templateText: stri
     }
 }
 
-export async function inferDPRegion(address: string, lat?: number, lng?: number): Promise<string | null> {
+const normalizeText = (text: string): string => {
+    if (!text) return "";
+    return text
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "") // Remove accents
+        .replace(/[^a-z0-9]/g, " ")     // Keep alphanumeric only
+        .replace(/\s+/g, " ")           // Single spaces
+        .trim();
+};
+
+const NEIGHBORHOOD_TO_DP: { [key: string]: string } = {
+    // 1º DP (SUL / LESTE - Sede: Jd. Esper)
+    "cidade salvador": "1º DP",
+    "novo amanhecer": "1º DP",
+    "jardim novo amanhecer": "1º DP",
+    "santa maria": "1º DP",
+    "jardim santa maria": "1º DP",
+    "santa marina": "1º DP",
+    "santa paula": "1º DP",
+    "rio comprido": "1º DP",
+    "bandeira branca": "1º DP",
+    "varadouro": "1º DP",
+    "rio abaixo": "1º DP",
+    "esper": "1º DP",
+    "vila branca": "1º DP",
+    "jardim esper": "1º DP",
+    "jardim luiza": "1º DP",
+    "cerejeira": "1º DP",
+    "guanabara": "1º DP",
+    "jardim guanabara": "1º DP",
+    "colonial": "1º DP",
+    "jardim colonial": "1º DP",
+    "jardim do vale": "1º DP",
+    "jardim das industrias": "1º DP",
+    "altos de santana": "1º DP",
+    "jardim paraiso": "1º DP",
+    "maria amelia": "1º DP",
+    "olympia": "1º DP",
+    "jardim olympia": "1º DP",
+    "jardim real": "1º DP",
+    "pedregulho": "1º DP",
+    "vila zeze": "1º DP",
+    "didinha": "1º DP",
+    "jardim didinha": "1º DP",
+    "itamarati": "1º DP",
+    "mirante do vale": "1º DP",
+    "jardim yolanda": "1º DP",
+    "sao judas": "1º DP",
+    "portal": "1º DP",
+    "panorama": "1º DP",
+    "colonia": "1º DP",
+    "jardim colonia": "1º DP",
+    "vila vintem": "1º DP",
+    "terra de santa clara": "1º DP",
+
+    // 2º DP (OESTE - Sede: Jd. Flórida)
+    "jardim florida": "2º DP",
+    "bela vista": "2º DP",
+    "jardim bela vista": "2º DP",
+    "igarapes": "2º DP",
+    "sao silvestre": "2º DP",
+    "pagador andrade": "2º DP",
+    "cidade nova": "2º DP",
+    "jacarei cidade nova": "2º DP",
+    "lago dourado": "2º DP",
+    "lagoinha": "2º DP",
+    "jardim santana": "2º DP",
+    "sao luiz": "2º DP",
+    "agrinco": "2º DP",
+    "imperial": "2º DP",
+    "jequitiba": "2º DP",
+    "ijal": "2º DP",
+    "iraja": "2º DP",
+    "nova esperanca": "2º DP",
+    "jardim nova esperanca": "2º DP",
+    "sao joaquim": "2º DP",
+    "esperanca": "2º DP",
+    "jardim esperanca": "2º DP",
+    "jardim alvorada": "2º DP",
+    "baixos": "2º DP",
+    "escada": "2º DP",
+    "jardim siesta": "2º DP",
+
+    // 3º DP (CENTRO / CENTRAL - Sede: Centro)
+    "centro": "3º DP",
+    "jardim california": "3º DP",
+    "parque california": "3º DP",
+    "sao joao": "3º DP",
+    "zeze": "3º DP",
+    "principes": "3º DP",
+    "parque dos principes": "3º DP",
+    "paraiba": "3º DP",
+    "jardim paraiba": "3º DP",
+    "vila garcia": "3º DP",
+    "pinheiro": "3º DP",
+    "vila pinheiro": "3º DP",
+    "jardim pinheiros": "3º DP",
+    "sao simao": "3º DP",
+    "marilia": "3º DP",
+    "brasilia": "3º DP",
+    "boa vista": "3º DP",
+    "jardim boa vista": "3º DP",
+    "guarani": "3º DP",
+    "jardim guarani": "3º DP",
+    "sao gabriel": "3º DP",
+    "jardim sao gabriel": "3º DP",
+    "lourdes": "3º DP",
+    "jardim lourdes": "3º DP",
+    "emida costa": "3º DP",
+    "leonidia": "3º DP",
+    "pitoresco": "3º DP",
+    "vila real": "3º DP",
+    "amparo": "3º DP",
+    "perreira do amparo": "3º DP",
+    "avenida": "3º DP",
+    "jardim jacinto": "3º DP",
+    "parque santo antonio": "3º DP",
+    "avarei": "3º DP",
+    "jardim emilia": "3º DP",
+    "vila ita": "3º DP",
+    "parque brasil": "3º DP",
+
+    // 4º DP (NORTE / MEIA LUA - Sede: Meia Lua)
+    "parque meia lua": "4º DP",
+    "meia lua": "4º DP",
+    "jardim meia lua": "4º DP",
+    "primeiro de maio": "4º DP",
+    "conjunto primeiro de maio": "4º DP",
+    "lagoa azul": "4º DP",
+    "remedinhos": "4º DP",
+    "pagador": "4º DP",
+    "andrade": "4º DP",
+    "cassununga": "4º DP",
+    "chacaras rural": "4º DP",
+    "rural": "4º DP"
+};
+
+const DP_SITES = [
+    { id: "1º DP", lat: -23.3006, lng: -45.9525, name: "1º DP (Siqueira Campos)" },
+    { id: "2º DP", lat: -23.3213, lng: -45.9717, name: "2º DP (Pensilvânia)" },
+    { id: "3º DP", lat: -23.3061, lng: -45.9667, name: "3º DP (Prudente de Moraes)" },
+    { id: "4º DP", lat: -23.2754, lng: -45.9255, name: "4º DP (Meia Lua)" }
+];
+
+export const inferDPRegion = async (address: string, lat?: number, lng?: number): Promise<string | null> => {
+    if (!address || typeof address !== 'string') return null;
+
+    const normalized = normalizeText(address);
+    if (normalized.includes('nao informado') || normalized.includes('sem endereco')) {
+        return null;
+    }
+
+    // 1. Check Hardcoded Map FIRST (Speed and Accuracy for known Jacareí neighborhoods)
+    for (const [neighborhood, dp] of Object.entries(NEIGHBORHOOD_TO_DP)) {
+        if (normalized.includes(neighborhood)) {
+            console.log(`[DP INFERENCE] Match found via Map: ${neighborhood} -> ${dp}`);
+            return dp;
+        }
+    }
+
+    // 2. Intelligent Distance Hint (if coordinates present)
+    let distanceHint = "";
+    if (lat && lng) {
+        const sortedDps = [...DP_SITES].sort((a, b) => {
+            const distA = Math.sqrt(Math.pow(lat - a.lat, 2) + Math.pow(lng - a.lng, 2));
+            const distB = Math.sqrt(Math.pow(lat - b.lat, 2) + Math.pow(lng - b.lng, 2));
+            return distA - distB;
+        });
+        distanceHint = `GEOLOCALIZAÇÃO: Este ponto está FISICAMENTE mais próximo da sede do ${sortedDps[0].id}. Use esta informação como prioridade máxima de decisão regional.`;
+    }
+
+    // 3. Fallback to Gemini for complex addresses or unknown areas
     if (!(await isGeminiEnabled())) return null;
 
     const prompt = `
         VOCÊ É UM INVESTIGADOR POLICIAL EM JACAREÍ/SP, ESPECIALISTA EM JURISDIÇÃO E TERRITÓRIOS.
         SUA MISSÃO: Determinar qual Delegacia de Polícia (Região) atende prioritariamente o local fornecido.
-
+        
+        AVISO: NÃO SEJA PREGUICOSO. O ENDEREÇO E AS COORDENADAS SÃO REAIS E DEFINEM O DP.
+        
         LOCAL: ${address}
-        COORDENADAS (se disponíveis): ${lat || 'Não informada'}, ${lng || 'Não informada'}
+        COORDENADAS: ${lat || 'Não informada'}, ${lng || 'Não informada'}
+        ${distanceHint}
 
-        DIRETRIZES TÁTICAS (JACAREÍ/SP E ARREDORES):
-        1. O município de Jacareí possui as seguintes divisões básicas: 1º DP, 2º DP, 3º DP, 4º DP.
-        2. Analise o bairro e a cidade do endereço.
-        3. SE A CIDADE FOR DIFERENTE DE JACAREÍ (ex: São José dos Campos, Santa Branca, Paraibuna, etc.), você DEVE OBRIGATORIAMENTE retornar "Outras Cidades". NÃO INVENTE UM DP DE JACAREÍ PARA OUTRA CIDADE.
-        4. Se for comprovadamente em Jacareí, escolha o DP correto. Se não tiver certeza de qual DP de Jacareí, pode usar "1DP" como fallback central.
+        DIRETRIZES TÁTICAS (JACAREÍ/SP):
+        1. CIDADE SALVADOR, NOVO AMANHECER E VILA BRANCA SÃO 1º DP.
+        2. AS COORDENADAS SÃO O FATOR DE DESEMPATE FINAL.
+        3. SE A CIDADE NÃO FOR JACAREÍ, retorne "Outras Cidades".
         
-        A SUA RESPOSTA DEVE SER ESTRITAMENTE UMA DAS OPÇÕES ABAIXO (A MELHOR CORRESPONDÊNCIA):
-        "1DP"
-        "2DP"
-        "3DP"
-        "4DP"
-        "DIG"
-        "DISE"
-        "DDM"
-        "Plantão"
-        "Outras Cidades"
+        JURISDIÇÃO (REFERÊNCIA):
+        * 1º DP: Cidade Salvador, Santa Maria, Novo Amanhecer, Vila Branca, Cerejeira, Luiza, Rio Comprido, Jd. Esper.
+        * 2º DP: Bela Vista, Igarapés, São Silvestre, Cidade Nova, Pagador de Andrade.
+        * 3º DP: Centro, Jd. Califórnia, São João, Zezé, Santa Paula.
+        * 4º DP: Meia Lua, Primeiro de Maio, Lagoa Azul.
 
-        NÃO RESPONDA NADA ALÉM DA OPÇÃO EXATA (SEM PONTOS, SEM EXPLICAÇÕES).
-        
+        RESPOSTA ESTRITA (APENAS UM DESSES): "1º DP", "2º DP", "3º DP", "4º DP", "DIG", "DISE", "DDM", "Plantão", "Outras Cidades".
         Resposta:
     `;
 
     try {
         const text = await tryGenerateContent(prompt);
         const result = text.trim();
-        // Fallback cleanup
+
         if (result.includes("Outras") || result.includes("Cidades")) return "Outras Cidades";
-        if (result.includes("1")) return "1DP";
-        if (result.includes("2")) return "2DP";
-        if (result.includes("3")) return "3DP";
-        if (result.includes("4")) return "4DP";
         if (result.includes("DIG")) return "DIG";
         if (result.includes("DISE")) return "DISE";
         if (result.includes("DDM")) return "DDM";
+        if (result.includes("4")) return "4º DP";
+        if (result.includes("3")) return "3º DP";
+        if (result.includes("2")) return "2º DP";
+        if (result.includes("1")) return "1º DP";
         if (result.includes("Plantão") || result.includes("Plantao")) return "Plantão";
 
         return null;

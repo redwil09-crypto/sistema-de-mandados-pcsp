@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '../supabaseClient';
-import { uploadFile, getPublicUrl } from '../supabaseStorage';
+import { uploadFile, getPublicUrl, deleteFile } from '../supabaseStorage';
 import Header from '../components/Header';
 import ConfirmModal from '../components/ConfirmModal';
 import VoiceInput from '../components/VoiceInput';
@@ -181,10 +181,16 @@ const WarrantDetail = () => {
         if (!data) return false;
         const fields: (keyof Warrant)[] = [
             'name', 'type', 'rg', 'cpf', 'number', 'crime', 'regime', 'location', 'img', 'priority',
-            'ifoodNumber', 'ifoodResult', 'digOffice', 'observation', 'age', 'issuingCourt', 'tacticalSummary', 'fulfillmentDetails'
+            'ifoodNumber', 'ifoodResult', 'digOffice', 'observation', 'age', 'issuingCourt', 'tacticalSummary', 'fulfillmentDetails',
+            'dpRegion', 'latitude', 'longitude', 'tags', 'status'
         ];
 
-        const basicChanges = fields.some(key => localData[key] !== data[key]);
+        const basicChanges = fields.some(key => {
+            if (Array.isArray(localData[key]) || Array.isArray(data[key])) {
+                return JSON.stringify(localData[key] || []) !== JSON.stringify(data[key] || []);
+            }
+            return localData[key] !== data[key];
+        });
         if (basicChanges) return true;
 
         const dateFields: (keyof Warrant)[] = [
@@ -365,7 +371,8 @@ const WarrantDetail = () => {
             'location', 'ifoodNumber', 'ifoodResult', 'digOffice',
             'issueDate', 'entryDate', 'expirationDate', 'dischargeDate', 'observation',
             'status', 'fulfillmentResult', 'fulfillmentReport', 'latitude', 'longitude',
-            'tacticalSummary', 'tags', 'birthDate', 'age', 'issuingCourt', 'fulfillmentDetails'
+            'tacticalSummary', 'tags', 'birthDate', 'age', 'issuingCourt', 'fulfillmentDetails',
+            'dpRegion'
         ];
 
         fields.forEach(key => {
@@ -404,12 +411,19 @@ const WarrantDetail = () => {
                             console.error("Erro inferindo DP Region na geolocalização:", e);
                         }
                     }
+                } else {
+                    updates.latitude = null;
+                    updates.longitude = null;
+                    updates.dpRegion = '';
+                    if (localData.dpRegion || localData.latitude || localData.longitude) {
+                        toast.error(`Coordenadas não encontradas. Mapeamento removido.`);
+                    }
                 }
             } catch (error) {
                 console.error("Erro ao geocodificar automaticamente:", error);
             }
-        } else if (updates.location && !updates.dpRegion && !localData.dpRegion) {
-            // Also infer if we have a location change but didn't recalculate lat/lng just now
+        } else if (updates.location && updates.latitude && updates.longitude && !updates.dpRegion && !localData.dpRegion) {
+            // Also infer if we have a location change but didn't recalculate lat/lng just now, ONLY IF WE HAVE LAT/LNG
             try {
                 const dp = await inferDPRegion(updates.location, updates.latitude || localData.latitude, updates.longitude || localData.longitude);
                 if (dp) {
@@ -419,6 +433,11 @@ const WarrantDetail = () => {
             } catch (e) {
                 console.error("Erro inferindo DP Region apenas com location: ", e);
             }
+        } else if (updates.location && !updates.latitude && !updates.longitude && (!localData.latitude || !localData.longitude)) {
+            // If we arrive here, address was changed but it has no valid lat/lng and wasn't found in geocode
+            updates.latitude = null;
+            updates.longitude = null;
+            updates.dpRegion = '';
         }
 
         const success = await updateWarrant(data.id, updates);
@@ -433,6 +452,43 @@ const WarrantDetail = () => {
         if (data) {
             setLocalData(data);
             toast.info("Edições descartadas.");
+        }
+    };
+
+    const handleLocationBlur = async () => {
+        const currentLoc = localData.location || '';
+        if (currentLoc && currentLoc !== data?.location) {
+            const geocodeMsg = toast.loading("Mapeando novo endereço com IA...");
+            const geoResult = await geocodeAddress(currentLoc);
+
+            if (geoResult) {
+                setLocalData(prev => ({
+                    ...prev,
+                    latitude: geoResult.lat,
+                    longitude: geoResult.lng
+                }));
+                toast.success(`Coordenadas fixadas: ${geoResult.displayName}`, { id: geocodeMsg });
+
+                try {
+                    const dp = await inferDPRegion(currentLoc, geoResult.lat, geoResult.lng);
+                    if (dp) {
+                        setLocalData(prev => ({ ...prev, dpRegion: dp }));
+                        toast.success(`Setor de DP atualizado: ${dp}`);
+                    }
+                } catch (e) {
+                    console.error("Erro DP dinâmico:", e);
+                }
+            } else {
+                toast.error("Não pudemos encontrar as coordenadas exatas no mapa.", { id: geocodeMsg });
+
+                // Manda só o texto já que geolocalização falhou
+                setLocalData(prev => ({
+                    ...prev,
+                    latitude: null,
+                    longitude: null,
+                    dpRegion: ''
+                }));
+            }
         }
     };
 
@@ -1019,20 +1075,34 @@ Equipe de Capturas - DIG / PCSP
         const confirmResult = window.confirm("Tem certeza que deseja excluir este documento?");
         if (!confirmResult) return;
 
-        const updatedAttachments = (data.attachments || []).filter(url => url !== urlToDelete);
-        const updatedReports = (data.reports || []).filter(url => url !== urlToDelete);
+        const tid = toast.loading("Removendo arquivo...");
 
-        const success = await updateWarrant(data.id, {
-            attachments: updatedAttachments,
-            reports: updatedReports
-        });
+        try {
+            // Remove do storage
+            await deleteFile(urlToDelete);
 
-        if (success) {
-            toast.success("Documento excluído com sucesso!");
-        } else {
-            toast.error("Erro ao excluir documento.");
+            // Remove do banco de dados
+            const updatedAttachments = (data.attachments || []).filter(url => url !== urlToDelete);
+            const updatedReports = (data.reports || []).filter(url => url !== urlToDelete);
+            const updatedIfoodDocs = (data.ifoodDocs || []).filter(url => url !== urlToDelete);
+
+            const success = await updateWarrant(data.id, {
+                attachments: updatedAttachments,
+                reports: updatedReports,
+                ifoodDocs: updatedIfoodDocs
+            });
+
+            if (success) {
+                toast.success("Documento excluído!", { id: tid });
+            } else {
+                toast.error("Erro ao atualizar registro.", { id: tid });
+            }
+        } catch (error) {
+            console.error("Erro ao excluir anexo:", error);
+            toast.error("Erro ao processar exclusão.", { id: tid });
         }
     };
+
 
     const handleGenerateIfoodOffice = async () => {
         if (!data) return;
@@ -2238,6 +2308,7 @@ Equipe de Capturas - DIG / PCSP
                                     className="w-full bg-background-light dark:bg-white/5 border border-border-light dark:border-white/10 rounded-xl p-4 text-sm text-text-light dark:text-white outline-none focus:ring-2 focus:ring-primary/20 transition-all resize-none h-[95px]"
                                     value={localData.location || ''}
                                     onChange={e => handleFieldChange('location', e.target.value)}
+                                    onBlur={handleLocationBlur}
                                     placeholder="Endereço de diligência..."
                                 />
                                 <div className="flex gap-2">
@@ -2313,7 +2384,8 @@ Equipe de Capturas - DIG / PCSP
                                                         const extension = file.name.split('.').pop();
                                                         const cleanSource = newDocSource.replace(/[^a-zA-Z0-9]/g, '');
                                                         const cleanNum = newDocNumber.replace(/[^a-zA-Z0-9]/g, '');
-                                                        const finalName = `${newDocType}_${cleanSource}_${cleanNum}_${Date.now()}.${extension}`;
+                                                        const cleanType = newDocType.replace(/\s+/g, '_');
+                                                        const finalName = `${cleanType}_${cleanSource}_${cleanNum}_${Date.now()}.${extension}`;
                                                         const renamedFile = new File([file], finalName, { type: file.type });
                                                         const mockEvent = { target: { files: [renamedFile] } } as any;
                                                         handleAttachFile(mockEvent, 'attachments');
@@ -2327,35 +2399,57 @@ Equipe de Capturas - DIG / PCSP
                                     </div>
                                 </div>
 
-                                {data.attachments && Array.isArray(data.attachments) && data.attachments.length > 0 ? (
+                                {((data.attachments || []).length > 0 || (data.reports || []).length > 0 || (data.ifoodDocs || []).length > 0) ? (
                                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                                        {data.attachments.map((file: string, idx: number) => {
+                                        {[...(data.attachments || []), ...(data.reports || []), ...(data.ifoodDocs || [])].map((file: string, idx: number) => {
                                             if (!file || typeof file !== 'string') return null;
+                                            const isReport = file.includes('/reports/');
+                                            const isIfood = file.includes('/ifoodDocs/');
+
                                             return (
-                                                <div key={idx} className="bg-background-light dark:bg-white/5 border border-border-light dark:border-white/5 rounded-xl p-3 flex items-center justify-between group hover:bg-black/5 dark:hover:bg-white/10 transition-all">
-                                                    <div className="flex items-center gap-3 min-w-0">
-                                                        <div className="p-2 bg-primary/20 rounded-lg text-primary">
+                                                <div key={idx} className="bg-background-light dark:bg-white/5 border border-border-light dark:border-white/5 rounded-xl flex items-center justify-between group hover:bg-black/5 dark:hover:bg-white/10 transition-all overflow-hidden">
+                                                    <a
+                                                        href={getPublicUrl(file)}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="flex-1 flex items-center gap-3 p-3 min-w-0"
+                                                    >
+                                                        <div className={`p-2 rounded-lg ${isIfood ? 'bg-emerald-500/20 text-emerald-500' : (isReport ? 'bg-orange-500/20 text-orange-500' : 'bg-primary/20 text-primary')}`}>
                                                             <FileText size={16} />
                                                         </div>
-                                                        <span className="text-[11px] font-bold text-text-light dark:text-white truncate max-w-[120px]">
-                                                            {(() => {
-                                                                try {
-                                                                    const parts = file.split('/').pop()?.split('_') || [];
-                                                                    if (parts.length >= 4 && (parts[0] === 'Mandado' || parts[0] === 'IFFO' || parts[0] === 'Oficio')) {
-                                                                        return `${parts[0]} ${parts[2] || ''}`;
-                                                                    }
-                                                                    return file.split('/').pop()?.replace(/^\d+_/, '') || 'Documento';
-                                                                } catch (e) { return 'Documento'; }
-                                                            })()}
-                                                        </span>
-                                                    </div>
-                                                    <div className="flex items-center gap-1">
-                                                        <a href={getPublicUrl(file)} target="_blank" rel="noopener noreferrer" className="p-2 text-text-muted hover:text-white" title="Visualizar"><Eye size={14} /></a>
-                                                        <a href={getPublicUrl(file)} target="_blank" rel="noopener noreferrer" className="p-2 text-text-muted hover:text-white hidden" title="Abrir Link"><ExternalLink size={14} /></a>
-                                                        <button onClick={() => handleDeleteAttachment(file)} className="p-2 text-red-500 hover:text-red-400" title="Excluir"><Trash2 size={14} /></button>
+                                                        <div className="flex flex-col min-w-0">
+                                                            <span className="text-[11px] font-bold text-text-light dark:text-white truncate max-w-[150px]">
+                                                                {(() => {
+                                                                    try {
+                                                                        const parts = file.split('/').pop()?.split('_') || [];
+                                                                        if (parts.length >= 4 && (parts[0] === 'Mandado' || parts[0] === 'IFFO' || parts[0] === 'Oficio')) {
+                                                                            return `${parts[0]} ${parts[2] || ''}`;
+                                                                        }
+                                                                        return decodeURIComponent(file.split('/').pop()?.replace(/^\d+_/, '') || 'Documento');
+                                                                    } catch (e) { return 'Documento'; }
+                                                                })()}
+                                                            </span>
+                                                            <span className="text-[8px] uppercase font-black opacity-40">
+                                                                {isIfood ? 'Ofício iFood' : (isReport ? 'Relatório' : 'Anexo')}
+                                                            </span>
+                                                        </div>
+                                                    </a>
+                                                    <div className="flex items-center gap-1 pr-2">
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.preventDefault();
+                                                                e.stopPropagation();
+                                                                handleDeleteAttachment(file);
+                                                            }}
+                                                            className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
+                                                            title="Excluir"
+                                                        >
+                                                            <Trash2 size={14} />
+                                                        </button>
                                                     </div>
                                                 </div>
                                             );
+
                                         })}
                                     </div>
                                 ) : (
@@ -2364,6 +2458,7 @@ Equipe de Capturas - DIG / PCSP
                                         <p className="text-[10px] font-black uppercase tracking-widest">Vazio</p>
                                     </div>
                                 )}
+
                             </div>
                         </div>
                     )}
@@ -3118,16 +3213,23 @@ Equipe de Capturas - DIG / PCSP
 
                     {/* Sticky Tactical Confirmation Bar */}
                     {hasChanges && createPortal(
-                        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 w-full max-w-md px-4 z-[1001] animate-in slide-in-from-bottom duration-500">
-                            <div className="bg-amber-500/95 backdrop-blur-xl border border-white/20 rounded-2xl p-4 shadow-tactic flex flex-col gap-3">
-                                <div className="flex items-center gap-2 mb-1">
-                                    <AlertTriangle size={16} className="text-white animate-pulse" />
-                                    <span className="text-[10px] font-black text-white uppercase tracking-widest">Aviso: Alterações táticas pendentes de sincronização</span>
+                        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 w-[90%] max-w-lg z-[1001] animate-in zoom-in-95 fade-in duration-300">
+                            <div className="bg-surface-dark/95 backdrop-blur-xl border border-primary/30 rounded-2xl p-4 shadow-[0_0_30px_rgba(37,99,235,0.2)] flex flex-col gap-4 relative overflow-hidden group">
+                                <div className="absolute top-0 left-0 w-1/2 h-[2px] bg-gradient-to-r from-transparent via-primary to-transparent animate-pulse"></div>
+                                <div className="absolute bottom-0 right-0 w-1/2 h-[2px] bg-gradient-to-l from-transparent via-cyan-500 to-transparent animate-pulse delay-75"></div>
+                                <div className="flex items-center gap-3">
+                                    <div className="p-2 bg-primary/20 rounded-lg shadow-[0_0_15px_rgba(37,99,235,0.4)]">
+                                        <AlertTriangle size={20} className="text-primary animate-pulse" />
+                                    </div>
+                                    <div className="flex flex-col">
+                                        <span className="text-xs font-black text-white uppercase tracking-[0.2em] shadow-black">Alterações Detectadas</span>
+                                        <span className="text-[9px] font-bold text-white/50 uppercase tracking-widest mt-0.5">Sincronização com o servidor pendente</span>
+                                    </div>
                                 </div>
                                 <div className="flex gap-3">
-                                    <button onClick={handleCancelEdits} className="flex-1 py-3 px-4 rounded-xl font-black text-[10px] uppercase tracking-widest bg-black/20 text-white hover:bg-black/30 transition-colors">Descartar</button>
-                                    <button onClick={handleSaveChanges} className="flex-[2] py-3 px-4 rounded-xl font-black text-[10px] uppercase tracking-widest bg-white text-slate-900 shadow-lg hover:bg-slate-100 transition-all flex items-center justify-center gap-2 active:scale-95 shadow-[0_0_20px_rgba(255,255,255,0.3)]">
-                                        <RefreshCw size={14} className="animate-spin-slow" /> SINCRONIZAR AGORA
+                                    <button onClick={handleCancelEdits} className="flex-1 py-3 px-4 rounded-xl font-black text-[10px] uppercase tracking-widest bg-white/5 border border-white/10 text-white/70 hover:bg-white/10 hover:text-white transition-all active:scale-95">Descartar</button>
+                                    <button onClick={handleSaveChanges} className="flex-[2] py-3 px-4 rounded-xl font-black text-[10px] uppercase tracking-widest bg-gradient-to-r from-primary to-blue-600 text-white shadow-[0_0_20px_rgba(37,99,235,0.4)] hover:shadow-[0_0_30px_rgba(37,99,235,0.6)] transition-all flex items-center justify-center gap-2 active:scale-95 hover:brightness-110">
+                                        <RefreshCw size={14} className="group-hover:animate-spin-slow" /> SINCRONIZAR DADOS
                                     </button>
                                 </div>
                             </div>

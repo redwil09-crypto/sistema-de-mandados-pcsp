@@ -4,19 +4,27 @@ import { toast } from 'sonner';
 const BUCKET_NAME = 'warrants';
 
 /**
- * Realiza o upload de um arquivo para o Supabase Storage
- * @param file O arquivo a ser enviado
- * @param path Caminho dentro do bucket (ex: 'photos/id.jpg')
- * @returns O caminho do arquivo no bucket ou null em caso de erro
+ * Sanitiza o caminho para remover caracteres especiais.
+ * Aplicado apenas no momento do UPLOAD para novos arquivos.
+ */
+const sanitizePath = (path: string): string => {
+    if (!path) return '';
+    return path.split('/').map(part =>
+        part.normalize('NFD') // Decompõe acentos
+            .replace(/[\u0300-\u036f]/g, "") // Remove acentos
+            .replace(/[^a-zA-Z0-9._-]/g, '_') // Mantém apenas alfanuméricos, ponto, underscore e traço
+            .replace(/__+/g, '_') // Evita múltiplos underscores seguidos
+    ).join('/');
+};
+
+/**
+ * Realiza o upload de um arquivo para o Supabase Storage.
  */
 export const uploadFile = async (file: File, path: string): Promise<string | null> => {
     try {
-        // Sanitiza o caminho para remover caracteres especiais que causam erro "Invalid key" no Supabase (ex: [] )
-        const sanitizedPath = path.split('/').map(part =>
-            part.replace(/[^a-zA-Z0-9.-]/g, '_')
-        ).join('/');
+        const sanitizedPath = sanitizePath(path);
+        console.log(`[Storage] Upload: ${file.name} -> ${sanitizedPath}`);
 
-        console.log(`Starting upload for file: ${file.name} to path: ${sanitizedPath} (original: ${path}) in bucket: ${BUCKET_NAME}`);
         const { data, error } = await supabase.storage
             .from(BUCKET_NAME)
             .upload(sanitizedPath, file, {
@@ -25,53 +33,91 @@ export const uploadFile = async (file: File, path: string): Promise<string | nul
             });
 
         if (error) {
-            console.error('Supabase upload error object:', error);
-            toast.error(`Erro no Upload: ${error.message}`);
-            throw error;
+            console.error('[Storage] Erro no upload:', error);
+            return null;
         }
 
-        console.log('Upload successful, data:', data);
         return data.path;
     } catch (error: any) {
-        console.error('Erro no upload de arquivo (catch block):', error);
-        // Toast already shown if it was a supabase error, but if it came from elsewhere:
-        if (!error.message?.includes('Upload')) {
-            toast.error(`Erro inesperado no upload: ${error.message || 'Erro desconhecido'}`);
-        }
+        console.error('[Storage] Erro inesperado no upload:', error);
         return null;
     }
 };
 
 /**
- * Obtém a URL pública de um arquivo no storage
- * @param path Caminho do arquivo no bucket
- * @returns A URL pública do arquivo
+ * Obtém a URL pública de um arquivo com encoding robusto para o navegador.
  */
 export const getPublicUrl = (path: string): string => {
     if (!path) return '';
-    if (path.startsWith('http')) return path;
 
+    let pathForClient = path;
+
+    // 1. Se for uma URL completa, extrai a parte relativa para podermos recodificar corretamente
+    if (path.startsWith('http')) {
+        const publicPrefix = `/storage/v1/object/public/${BUCKET_NAME}/`;
+        const index = path.indexOf(publicPrefix);
+        if (index !== -1) {
+            pathForClient = path.substring(index + publicPrefix.length);
+        } else {
+            // URL externa? Garante apenas espaços limpos
+            return path.replace(/ /g, '%20');
+        }
+    }
+
+    // 2. Remove query params (?t=...) e decodifica para obter o nome literal real (ex: "resumo peca (36).pdf")
+    const cleanPath = pathForClient.split('?')[0];
+    let literalName = cleanPath;
+    try {
+        literalName = decodeURIComponent(cleanPath);
+        // Proteção contra double-encoding (%2520 -> %20 -> " ")
+        if (literalName.includes('%')) {
+            literalName = decodeURIComponent(literalName);
+        }
+    } catch (e) {
+        console.warn("[Storage] Erro ao decodificar path:", cleanPath);
+    }
+
+    // 3. Deixa o cliente do Supabase gerar a URL pública a partir do nome real
     const { data } = supabase.storage
         .from(BUCKET_NAME)
-        .getPublicUrl(path);
+        .getPublicUrl(literalName);
 
-    return data.publicUrl;
+    // 4. CORREÇÃO CRÍTICA: O Supabase as vezes gera URLs com ( ) sem codificar.
+    // Navegadores/Servidores PCSP podem rejeitar links com caracteres especiais soltos.
+    // Vamos garantir que espaços, parênteses e outros sejam codificados de forma amigável para o Gateway.
+    return data.publicUrl
+        .replace(/ /g, '%20')      // Espaço
+        .replace(/\(/g, '%28')    // Abre parênteses
+        .replace(/\)/g, '%29');   // Fecha parênteses
 };
 
 /**
- * Remove um arquivo do storage
- * @param path Caminho do arquivo no bucket
+ * Exclui um arquivo do storage.
  */
 export const deleteFile = async (path: string): Promise<boolean> => {
     try {
+        let finalPath = path;
+
+        if (path.startsWith('http')) {
+            const publicPrefix = `/storage/v1/object/public/${BUCKET_NAME}/`;
+            const index = path.indexOf(publicPrefix);
+            if (index !== -1) {
+                finalPath = path.substring(index + publicPrefix.length);
+            }
+        }
+
+        // Decodifica para passar o nome real ao método remove
+        const decodedPath = decodeURIComponent(finalPath.split('?')[0]);
+        console.log(`[Storage] Deletando: ${decodedPath}`);
+
         const { error } = await supabase.storage
             .from(BUCKET_NAME)
-            .remove([path]);
+            .remove([decodedPath]);
 
         if (error) throw error;
         return true;
     } catch (error) {
-        console.error('Erro ao deletar arquivo:', error);
+        console.error('[Storage] Erro ao deletar arquivo:', error);
         return false;
     }
 };

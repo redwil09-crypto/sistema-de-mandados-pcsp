@@ -86,7 +86,9 @@ const AdvancedSearch = () => {
         }
 
         const matchesObservation = observationKeyword ? (w.observation || '').toLowerCase().includes(observationKeyword.toLowerCase()) : true;
-        const matchesDp = filterDp ? w.dpRegion === filterDp : true;
+        const matchesDp = filterDp
+            ? (filterDp === 'Não Mapeado' ? (!w.dpRegion || w.dpRegion.trim() === '') : w.dpRegion === filterDp)
+            : true;
 
         return matchesText && matchesCrime && matchesRegime && matchesStatus && matchesDateLocal && matchesObservation && matchesDp;
     });
@@ -208,6 +210,7 @@ const AdvancedSearch = () => {
                                 <option value="3º DP">3º DP</option>
                                 <option value="4º DP">4º DP</option>
                                 <option value="Outras Cidades">Outras Cidades</option>
+                                <option value="Não Mapeado">Não Mapeado / Sem DP</option>
                             </select>
                         </div>
                     </div>

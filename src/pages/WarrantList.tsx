@@ -52,7 +52,11 @@ const WarrantList = () => {
         // Advanced Filters
         const matchesCrime = filterCrime ? w.crime === filterCrime : true;
         const matchesRegime = filterRegime ? w.regime === filterRegime : true;
-        const matchesDpRegion = filterDpRegion ? w.dpRegion === filterDpRegion : true;
+
+        const matchesDpRegion = filterDpRegion
+            ? (filterDpRegion === 'Não Mapeado' ? (!w.dpRegion || w.dpRegion.trim() === '') : w.dpRegion === filterDpRegion)
+            : true;
+
         const matchesStatus = filterStatus ? w.status === filterStatus : true;
         const matchesDate = (!dateStart || (w.date && w.date >= dateStart)) && (!dateEnd || (w.date && w.date <= dateEnd));
         const matchesObservation = observationKeyword ? (w.observation || '').toLowerCase().includes(observationKeyword.toLowerCase()) : true;
@@ -169,6 +173,7 @@ const WarrantList = () => {
                                     <option value="3º DP">3º DP</option>
                                     <option value="4º DP">4º DP</option>
                                     <option value="Outras Cidades">Outras Cidades</option>
+                                    <option value="Não Mapeado">Não Mapeado / Sem DP</option>
                                 </select>
                             </div>
                             <div>

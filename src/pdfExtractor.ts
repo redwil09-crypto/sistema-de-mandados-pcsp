@@ -1,5 +1,5 @@
 // NOTE: pdfjs-dist is now dynamically imported to avoid top-level crashes
-import { extractFullWarrantIntelligence, isGeminiEnabled, extractWarrantFromImage } from './services/geminiService';
+import { extractFullWarrantIntelligence, isGeminiEnabled, extractWarrantFromImage, inferDPRegion } from './services/geminiService';
 import { normalizeCrimeName } from './utils/crimeUtils';
 
 const fileToBase64 = (file: File): Promise<string> => {
@@ -39,78 +39,7 @@ export interface ExtractedData {
     dpRegion?: string;          // New: DP area derived from location
 }
 
-// Helper to determine DP based on address using comprehensive Jacareí neighborhood list
-export const determineDpRegion = (address: string): string => {
-    if (!address) return '';
-    const loc = address.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase();
-
-    // --- 1. DETECT OTHER CITIES & STATES ---
-    // Extract state suffix like "- SP", "- MG" etc.
-    const stateMatch = loc.match(/-\s*([A-Z]{2})\b/);
-    if (stateMatch && stateMatch[1] !== 'SP') {
-        return 'Outras Cidades'; // Definitivamente outro estado
-    }
-
-    // If it's explicitly SP but no mention of Jacareí or Igaratá (which are our local targets)
-    if (stateMatch && stateMatch[1] === 'SP') {
-        if (!loc.includes('JACAREI') && !loc.includes('IGARATA')) {
-            return 'Outras Cidades';
-        }
-    }
-
-    // Explicit check for known neighboring or major cities without a Jacareí mention
-    const explicitOtherCity = [
-        'SAO JOSE DOS CAMPOS', 'SAO PAULO', 'CAMPINAS', 'TAUBATE', 'CACAPAVA',
-        'PINDAMONHANGABA', 'GUARATINGUETA', 'LORENA', 'CARAGUATATUBA', 'UBATUBA',
-        'SAO SEBASTIAO', 'ILHABELA', 'SANTA BRANCA', 'PARAIBUNA', 'JAMBEIRO',
-        'GUARULHOS', 'MOGI DAS CRUZES', 'SUZANO', 'SOROCABA', 'RIBEIRAO PRETO',
-        'BAURU', 'FRANCA', 'SANTOS', 'SAO VICENTE', 'GUARUJA', 'PRAIA GRANDE',
-        'BELO HORIZONTE', 'RIO DE JANEIRO', 'CURITIBA', 'BRASILIA'
-    ].some(city => loc.includes(city));
-
-    if (explicitOtherCity && !loc.includes('JACAREI')) {
-        return 'Outras Cidades';
-    }
-    // ---------------------------------------
-
-    const keywords1DP = [
-        'CIDADE SALVADOR', 'MIRANTE DO VALE', 'ALTOS DE SANTANA', 'COLONIA',
-        'INDUSTRIAS', 'MARQUES', 'JARDIM DO VALE', 'DORA', 'MARIA AMELIA',
-        'OLYMPIA', 'PARAISO', 'JARDIM REAL', 'PEDREGULHO', 'SANTA MARINA',
-        'SANTO ANTONIO', 'YOLANDA', 'VILLA BRANCA', 'VILA BRANCA', 'PARQUE CALIFORNIA',
-        'PARQUE DOS PRINCIPES', 'ITAMARATI', 'SANTA PAULA', 'RIO COMPRIDO',
-        'SAO JUDAS', 'VILA ZEZE', 'VILA VINTEM', 'NOVO AMANHECER', 'PORTAL',
-        'PANORAMA', 'DIDINHA'
-    ];
-
-    const keywords2DP = [
-        'BANDEIRA BRANCA', 'BELA VISTA', 'CEREJEIRA', 'GUANABARA', 'IGARAPES',
-        'SANTA MARIA', 'CIDADE NOVA', 'LAGO DOURADO', 'LAGOINHA', 'ESCADA',
-        'LUIZA', 'JARDIM SANTANA', 'SAO LUIZ', 'PARATEI', 'AGRINCO', 'IMPERIAL',
-        'JEQUITIBA', 'SAO SILVESTRE', 'IJAL', 'IRAJA'
-    ];
-
-    const keywords3DP = [
-        'CIDADE SALVADOR', 'ZEZE', 'PRINCIPES', 'PARAIBA',
-        'SANTA MARINA', 'VILA GARCIA', 'PINHEIRO', 'SAO JOAO', 'SAO SIMAO',
-        'MARILIA', 'BRASILIA', 'BOA VISTA', 'ESPER',
-        'GUARANI', 'SAO GABRIEL', 'CALIFORNIA', 'SAO SILVESTRE',
-        'LOURDES', 'EMIDA COSTA', 'LEONIDIA', 'PITORESCO', 'VILA REAL', 'AMPARO'
-    ];
-
-    const keywords4DP = [
-        'REMEDIOS', 'REMEDINHO', 'PARATEI', 'LAGOINHA', 'PAGADOR', 'ANDRADE',
-        'MEIA LUA', 'PRIMEIRO DE MAIO', 'RIO ABAIXO', 'LAGOA AZUL'
-    ];
-
-    // Priority matching logic
-    if (keywords1DP.some(k => loc.includes(k))) return '1º DP';
-    if (keywords2DP.some(k => loc.includes(k))) return '2º DP';
-    if (keywords3DP.some(k => loc.includes(k))) return '3º DP';
-    if (keywords4DP.some(k => loc.includes(k))) return '4º DP';
-
-    return '';
-};
+// DP region inference is now handled by the asynchronous inferDPRegion in geminiService.ts
 
 // Helper functions for parsing
 const extractName = (text: string): string => {
@@ -667,61 +596,11 @@ const extractSearchChecklist = (text: string, category: string): string[] => {
 };
 
 export const determineAutoPriority = (text: string, crime: string): string[] => {
-    const tags: string[] = [];
-    const upperCrime = crime.toUpperCase();
-    const highPriorityCrimes = ['HOMICÍDIO', 'FEMINICÍDIO', 'ROUBO', 'ESTUPRO / CRIMES SEXUAIS', 'ESTUPRO DOS CRIMES SEXUAIS', 'TRÁFICO DE DROGAS', 'EXTORSÃO MEDIANTE SEQUESTRO', 'ORGANIZAÇÃO CRIMINOSA'];
-
-    if (upperCrime === 'PENSÃO ALIMENTÍCIA' && (text.toLowerCase().includes('cobrança') || text.toLowerCase().includes('ofício'))) {
-        tags.push('Ofício de Cobrança');
-    }
-
-    // Novas Heurísticas baseadas em análise tática (para restaurar e ampliar "Informações boas" sobre a equipe prestar atenção)
-    const lowerText = text.toLowerCase();
-
-    if (lowerText.includes('alta periculosidade') || lowerText.includes('fuga') || lowerText.includes('perigoso') || lowerText.includes('violento')) {
-        tags.push('Alta Periculosidade');
-    }
-    if (lowerText.includes('armado') || lowerText.includes('arma de fogo') || lowerText.includes('arsenal') || lowerText.includes('troca de tiros')) {
-        tags.push('Possível Confronto Armado (P.C.A.)');
-    }
-    if (lowerText.includes('violência doméstica') || lowerText.includes('medida protetiva') || lowerText.includes('maria da penha')) {
-        tags.push('Alerta: Violência Doméstica');
-    }
-    if (lowerText.includes('pcc') || lowerText.includes('comando') || lowerText.includes('facção') || lowerText.includes('faccionado') || lowerText.includes('organização criminosa') || lowerText.includes('milícia')) {
-        tags.push('Crime Organizado / Facção');
-    }
-    if (lowerText.includes('reincidente') || lowerText.includes('reincidência') || lowerText.includes('multireincidente')) {
-        tags.push('Alvo Reincidente');
-    }
-    if (lowerText.includes('rompimento') || lowerText.includes('tornozeleira') || lowerText.includes('monitoramento eletrônico')) {
-        tags.push('Rompimento de Tornozeleira');
-    }
-    if (lowerText.includes('foragido') || lowerText.includes('evadiu-se') || lowerText.includes('não localizado')) {
-        tags.push('Histórico de Fuga');
-    }
-    if (lowerText.includes('desacato') || lowerText.includes('resistência') || lowerText.includes('desobediência')) {
-        tags.push('Histórico de Resistência / Desacato');
-    }
-    if (lowerText.includes('transtorno mental') || lowerText.includes('suicídio') || lowerText.includes('psiquiátrico')) {
-        tags.push('Alerta Psiquiátrico / Risco Misto');
-    }
-    if (lowerText.includes('cautelar') || lowerText.includes('medida cautelar')) {
-        tags.push('Descumprimento de Cautelar');
-    }
-
-    // Tag de regime
-    if (lowerText.includes('definitiva') || lowerText.includes('pena definitiva')) {
-        tags.push('Pena Definitiva');
-    }
-    if (lowerText.includes('preventiva') || lowerText.includes('prisão preventiva')) {
-        tags.push('Prisão Preventiva');
-    }
-    if (lowerText.includes('temporária') || lowerText.includes('prisão temporária') || lowerText.includes('30 dias')) {
-        tags.push('Prisão Temporária');
-    }
-
-    return Array.from(new Set(tags));
+    // Desativado por solicitação do usuário para evitar poluição visual.
+    // O usuário prefere definir prioridades manualmente.
+    return [];
 };
+
 
 // Main extraction function
 export const extractPdfData = async (file: File): Promise<ExtractedData> => {
@@ -796,7 +675,7 @@ export const extractPdfData = async (file: File): Promise<ExtractedData> => {
                             birthDate: aiData.birthDate || '',
                             age: calculateAge(aiData.birthDate),
                             issuingCourt: aiData.issuingCourt || '',
-                            dpRegion: aiData.addresses && aiData.addresses.length > 0 ? determineDpRegion(aiData.addresses.join(' ')) : ''
+                            dpRegion: aiData.addresses && aiData.addresses.length > 0 ? await inferDPRegion(aiData.addresses.join(' ')) : ''
                         };
                     }
                 } catch (e) {
@@ -839,7 +718,7 @@ export const extractPdfData = async (file: File): Promise<ExtractedData> => {
                         birthDate: aiData.birthDate || '',
                         age: calculateAge(aiData.birthDate),
                         issuingCourt: aiData.issuingCourt || '',
-                        dpRegion: aiData.addresses && aiData.addresses.length > 0 ? determineDpRegion(aiData.addresses.join(' ')) : ''
+                        dpRegion: aiData.addresses && aiData.addresses.length > 0 ? await inferDPRegion(aiData.addresses.join(' ')) : ''
                     };
                 }
             } catch (aiError) {
@@ -891,7 +770,7 @@ export const extractPdfData = async (file: File): Promise<ExtractedData> => {
             birthDate,
             age: calculateAge(birthDate),
             issuingCourt,
-            dpRegion: addresses.length > 0 ? determineDpRegion(addresses.join(' ')) : ''
+            dpRegion: addresses.length > 0 ? await inferDPRegion(addresses.join(' ')) : ''
         };
     } catch (error: any) {
         console.error('Erro detalhado ao extrair PDF:', error);
@@ -965,7 +844,7 @@ export const extractFromText = async (text: string, sourceName: string): Promise
                     birthDate: aiData.birthDate || '',
                     age: calculateAge(aiData.birthDate),
                     issuingCourt: aiData.issuingCourt || '',
-                    dpRegion: aiData.addresses && aiData.addresses.length > 0 ? determineDpRegion(aiData.addresses.join(' ')) : ''
+                    dpRegion: aiData.addresses && aiData.addresses.length > 0 ? await inferDPRegion(aiData.addresses.join(' ')) : ''
                 };
             }
         } catch (aiError) {
@@ -1017,7 +896,7 @@ export const extractFromText = async (text: string, sourceName: string): Promise
         birthDate,
         age: calculateAge(birthDate),
         issuingCourt,
-        dpRegion: addresses.length > 0 ? determineDpRegion(addresses.join(' ')) : ''
+        dpRegion: addresses.length > 0 ? await inferDPRegion(addresses.join(' ')) : ''
     };
 };
 
