@@ -700,6 +700,7 @@ const NEIGHBORHOOD_TO_DP: { [key: string]: string } = {
     "varadouro": "1º DP",
     "rio abaixo": "1º DP",
     "esper": "1º DP",
+    "vila branca": "1º DP",
     "jardim esper": "1º DP",
     "jardim luiza": "1º DP",
     "cerejeira": "1º DP",
@@ -760,7 +761,6 @@ const NEIGHBORHOOD_TO_DP: { [key: string]: string } = {
 
     // 3º DP (CENTRO / CENTRAL - Sede: Centro)
     "centro": "3º DP",
-    "vila branca": "3º DP",
     "jardim california": "3º DP",
     "parque california": "3º DP",
     "sao joao": "3º DP",
@@ -861,14 +861,14 @@ export const inferDPRegion = async (address: string, lat?: number, lng?: number)
         ${distanceHint}
 
         DIRETRIZES TÁTICAS (JACAREÍ/SP):
-        1. CIDADE SALVADOR E NOVO AMANHECER SÃO 1º DP (SUL-LESTE).
+        1. CIDADE SALVADOR, NOVO AMANHECER E VILA BRANCA SÃO 1º DP.
         2. AS COORDENADAS SÃO O FATOR DE DESEMPATE FINAL.
         3. SE A CIDADE NÃO FOR JACAREÍ, retorne "Outras Cidades".
         
         JURISDIÇÃO (REFERÊNCIA):
-        * 1º DP: Cidade Salvador, Santa Maria, Novo Amanhecer, Cerejeira, Luiza, Rio Comprido, Jd. Esper.
+        * 1º DP: Cidade Salvador, Santa Maria, Novo Amanhecer, Vila Branca, Cerejeira, Luiza, Rio Comprido, Jd. Esper.
         * 2º DP: Bela Vista, Igarapés, São Silvestre, Cidade Nova, Pagador de Andrade.
-        * 3º DP: Centro, Vila Branca, Jd. Califórnia, São João, Zezé, Santa Paula.
+        * 3º DP: Centro, Jd. Califórnia, São João, Zezé, Santa Paula.
         * 4º DP: Meia Lua, Primeiro de Maio, Lagoa Azul.
 
         RESPOSTA ESTRITA (APENAS UM DESSES): "1º DP", "2º DP", "3º DP", "4º DP", "DIG", "DISE", "DDM", "Plantão", "Outras Cidades".
