@@ -725,7 +725,6 @@ const NEIGHBORHOOD_TO_DP: { [key: string]: string } = {
     "jardim yolanda": "1º DP",
     "sao judas": "1º DP",
     "portal": "1º DP",
-    "panorama": "1º DP",
     "colonia": "1º DP",
     "jardim colonia": "1º DP",
     "vila vintem": "1º DP",
@@ -761,6 +760,8 @@ const NEIGHBORHOOD_TO_DP: { [key: string]: string } = {
     "estancia porto velho": "2º DP",
     "jardim terras da conceicao": "2º DP",
     "vila machado": "2º DP",
+    "panorama": "2º DP",
+    "jardim panorama": "2º DP",
 
     // 3º DP (CENTRO / CENTRAL - Sede: Centro)
     "centro": "3º DP",

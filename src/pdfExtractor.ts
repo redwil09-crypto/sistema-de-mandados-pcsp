@@ -76,7 +76,7 @@ export const determineDpRegion = (address: string): string => {
         'SANTO ANTONIO', 'YOLANDA', 'VILLA BRANCA', 'VILA BRANCA', 'PARQUE CALIFORNIA',
         'PARQUE DOS PRINCIPES', 'ITAMARATI', 'SANTA PAULA', 'RIO COMPRIDO',
         'SAO JUDAS', 'VILA ZEZE', 'VILA VINTEM', 'NOVO AMANHECER', 'PORTAL',
-        'PANORAMA', 'DIDINHA'
+        'DIDINHA'
     ];
 
     const keywords2DP = [
@@ -84,7 +84,7 @@ export const determineDpRegion = (address: string): string => {
         'SANTA MARIA', 'CIDADE NOVA', 'LAGO DOURADO', 'LAGOINHA', 'ESCADA',
         'LUIZA', 'JARDIM SANTANA', 'SAO LUIZ', 'PARATEI', 'AGRINCO', 'IMPERIAL',
         'JEQUITIBA', 'SAO SILVESTRE', 'IJAL', 'IRAJA', 'ESTANCIA PORTO VELHO',
-        'JARDIM TERRAS DA CONCEICAO', 'VILA MACHADO', 'JARDIM FLORIDA'
+        'JARDIM TERRAS DA CONCEICAO', 'VILA MACHADO', 'JARDIM FLORIDA', 'PANORAMA'
     ];
 
     const keywords3DP = [
