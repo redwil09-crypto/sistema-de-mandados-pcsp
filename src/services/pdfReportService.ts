@@ -149,10 +149,10 @@ export const generateWarrantPDF = async (
         // Status Badge
         const statusColor = data.status === 'CUMPRIDO' ? COLORS.RISK.LOW : COLORS.RISK.HIGH;
         doc.setFillColor(...statusColor);
-        doc.roundedRect(badgeX, infoY, 35, 6, 1, 1, 'F');
+        doc.roundedRect(badgeX, infoY + 2, 35, 6, 1, 1, 'F');
         doc.setTextColor(...COLORS.WHITE);
         doc.setFontSize(8);
-        doc.text(data.status || 'EM ABERTO', badgeX + 17.5, infoY + 4.2, { align: 'center' });
+        doc.text(data.status || 'EM ABERTO', badgeX + 17.5, infoY + 6.2, { align: 'center' });
         badgeX += 40;
 
         // Tactical Intelligence Parsing for Risk
@@ -191,19 +191,21 @@ export const generateWarrantPDF = async (
             riskColor = COLORS.RISK.NORMAL;
         }
 
-        doc.setFillColor(...riskColor);
-        doc.roundedRect(badgeX, infoY, 45, 6, 1, 1, 'F');
-        doc.setTextColor(...COLORS.WHITE);
-        doc.text(`RISCO: ${riskLevel}`, badgeX + 22.5, infoY + 4.2, { align: 'center' });
+        if (riskLevel) {
+            doc.setFillColor(...riskColor);
+            doc.roundedRect(badgeX, infoY + 2, 35, 6, 1, 1, 'F');
+            doc.setTextColor(...COLORS.WHITE);
+            doc.text(`RISCO: ${riskLevel}`, badgeX + 17.5, infoY + 6.2, { align: 'center' });
+            badgeX += 40;
+        }
 
         // DP Region Badge
         if (data.dpRegion) {
-            badgeX += 50;
             doc.setFillColor(...COLORS.SECONDARY);
-            doc.roundedRect(badgeX, infoY, 30, 6, 1, 1, 'F');
+            doc.roundedRect(badgeX, infoY + 2, 40, 6, 1, 1, 'F');
             doc.setTextColor(...COLORS.WHITE);
             doc.setFontSize(8);
-            doc.text(data.dpRegion.toUpperCase(), badgeX + 15, infoY + 4.2, { align: 'center' });
+            doc.text(`DP: ${data.dpRegion.toUpperCase()}`, badgeX + 20, infoY + 6.2, { align: 'center' });
         }
 
         infoY += 12;

@@ -1260,7 +1260,9 @@ Equipe de Capturas - DIG / PCSP
         if (!data) return;
         // Refresh data to ensure history is included
         await refreshWarrants(true);
-        await generateWarrantPDF(data, updateWarrant, aiTimeSuggestion);
+        // Use updated local data if available to ensure PDF reflects latest UI changes (like dpRegion)
+        const updatedDataForPDF = { ...data, ...localData };
+        await generateWarrantPDF(updatedDataForPDF as Warrant, updateWarrant, aiTimeSuggestion);
     };
 
     const handleGenerateIFoodReport = async () => {
