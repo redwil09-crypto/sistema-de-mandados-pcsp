@@ -84,7 +84,7 @@ export const determineDpRegion = (address: string): string => {
         'SANTA MARIA', 'CIDADE NOVA', 'LAGO DOURADO', 'LAGOINHA', 'ESCADA',
         'LUIZA', 'JARDIM SANTANA', 'SAO LUIZ', 'PARATEI', 'AGRINCO', 'IMPERIAL',
         'JEQUITIBA', 'SAO SILVESTRE', 'IJAL', 'IRAJA', 'ESTANCIA PORTO VELHO',
-        'JARDIM TERRAS DA CONCEICAO'
+        'JARDIM TERRAS DA CONCEICAO', 'VILA MACHADO', 'JARDIM FLORIDA'
     ];
 
     const keywords3DP = [
