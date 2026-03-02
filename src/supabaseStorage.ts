@@ -56,15 +56,13 @@ export const getPublicUrl = (path: string): string => {
     // Remove barra inicial se houver
     const cleanPath = path.startsWith('/') ? path.substring(1) : path;
 
-    // Codifica cada segmento do caminho para lidar com espaços e caracteres especiais
-    const encodedPath = cleanPath.split('/').map(segment => encodeURIComponent(segment)).join('/');
-
     const { data } = supabase.storage
         .from(BUCKET_NAME)
-        .getPublicUrl(encodedPath);
+        .getPublicUrl(cleanPath);
 
     return data.publicUrl;
 };
+
 
 /**
  * Remove um arquivo do storage
