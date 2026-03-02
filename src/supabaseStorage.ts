@@ -4,6 +4,17 @@ import { toast } from 'sonner';
 const BUCKET_NAME = 'warrants';
 
 /**
+ * Sanitiza o caminho para remover caracteres especiais, acentos e espaços 
+ */
+const sanitizePath = (path: string): string => {
+    return path.split('/').map(part =>
+        part.normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, "")
+            .replace(/[^a-zA-Z0-9._-]/g, '_') // Mantém apenas alfanuméricos, ponto, underscore e traço
+    ).join('/');
+};
+
+/**
  * Realiza o upload de um arquivo para o Supabase Storage
  * @param file O arquivo a ser enviado
  * @param path Caminho dentro do bucket (ex: 'photos/id.jpg')
@@ -11,12 +22,9 @@ const BUCKET_NAME = 'warrants';
  */
 export const uploadFile = async (file: File, path: string): Promise<string | null> => {
     try {
-        // Sanitiza o caminho para remover caracteres especiais que causam erro "Invalid key" no Supabase (ex: [] )
-        const sanitizedPath = path.split('/').map(part =>
-            part.replace(/[^a-zA-Z0-9.-]/g, '_')
-        ).join('/');
+        const sanitizedPath = sanitizePath(path);
+        console.log(`[Storage] Upload: ${file.name} -> ${sanitizedPath}`);
 
-        console.log(`Starting upload for file: ${file.name} to path: ${sanitizedPath} (original: ${path}) in bucket: ${BUCKET_NAME}`);
         const { data, error } = await supabase.storage
             .from(BUCKET_NAME)
             .upload(sanitizedPath, file, {
@@ -25,19 +33,14 @@ export const uploadFile = async (file: File, path: string): Promise<string | nul
             });
 
         if (error) {
-            console.error('Supabase upload error object:', error);
-            toast.error(`Erro no Upload: ${error.message}`);
-            throw error;
+            console.error('[Storage] Erro no upload:', error);
+            // toast.error(`Erro no Upload: ${error.message}`);
+            return null;
         }
 
-        console.log('Upload successful, data:', data);
         return data.path;
     } catch (error: any) {
-        console.error('Erro no upload de arquivo (catch block):', error);
-        // Toast already shown if it was a supabase error, but if it came from elsewhere:
-        if (!error.message?.includes('Upload')) {
-            toast.error(`Erro inesperado no upload: ${error.message || 'Erro desconhecido'}`);
-        }
+        console.error('[Storage] Erro inesperado no upload:', error);
         return null;
     }
 };
@@ -51,27 +54,46 @@ export const getPublicUrl = (path: string): string => {
     if (!path) return '';
     if (path.startsWith('http')) return path;
 
+    // Remove barra inicial se houver para evitar double slash na URL FINAL do Supabase
+    const cleanPath = path.startsWith('/') ? path.substring(1) : path;
+
     const { data } = supabase.storage
         .from(BUCKET_NAME)
-        .getPublicUrl(path);
+        .getPublicUrl(cleanPath);
 
     return data.publicUrl;
 };
 
 /**
  * Remove um arquivo do storage
- * @param path Caminho do arquivo no bucket
+ * @param path Caminho do arquivo ou URL completa do arquivo no bucket
  */
 export const deleteFile = async (path: string): Promise<boolean> => {
     try {
+        let finalPath = path;
+
+        // Se for uma URL, tenta extrair o caminho relativo
+        if (path.startsWith('http')) {
+            const searchStr = `/public/${BUCKET_NAME}/`;
+            const index = path.indexOf(searchStr);
+            if (index !== -1) {
+                finalPath = path.substring(index + searchStr.length);
+            }
+        }
+
+        // Remova query params se houver na URL (ex: ?t=123)
+        finalPath = finalPath.split('?')[0];
+
+        console.log(`[Storage] Deletando: ${finalPath}`);
+
         const { error } = await supabase.storage
             .from(BUCKET_NAME)
-            .remove([path]);
+            .remove([finalPath]);
 
         if (error) throw error;
         return true;
     } catch (error) {
-        console.error('Erro ao deletar arquivo:', error);
+        console.error('[Storage] Erro ao deletar arquivo:', error);
         return false;
     }
 };

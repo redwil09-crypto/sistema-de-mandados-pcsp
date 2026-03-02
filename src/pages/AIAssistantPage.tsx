@@ -384,23 +384,24 @@ const AIAssistantPage = () => {
             }
 
             // Upload extracted PDF if it was from a file
-            let attachments = []; // Clear local filenames, only store URLs
+            let attachments: string[] = [];
             let ifoodDocs: string[] = [];
             let reports: string[] = [];
 
             if (files && files[currentIndex]) {
                 const pdfFile = files[currentIndex];
-                const isIfood = extractedData.type.toLowerCase().includes('ifood') || pdfFile.name.toLowerCase().includes('ifood');
-                const isReport = extractedData.type.toLowerCase().includes('relatorio') || pdfFile.name.toLowerCase().includes('relatorio');
+                const isIfood = (extractedData.type || '').toLowerCase().includes('ifood') || pdfFile.name.toLowerCase().includes('ifood');
+                const isReport = (extractedData.type || '').toLowerCase().includes('relatorio') || pdfFile.name.toLowerCase().includes('relatorio');
 
                 const typePath = isIfood ? 'ifoodDocs' : (isReport ? 'reports' : 'attachments');
-                const cleanName = pdfFile.name.replace(/[^a-zA-Z0-9.-]/g, '_');
-                const pdfPath = `${typePath}/${warrantId}/${Date.now()}_${cleanName}`;
+                const pdfPath = `${typePath}/${warrantId}/${Date.now()}_${pdfFile.name}`;
 
                 const uploadedPdfPath = await uploadFile(pdfFile, pdfPath);
                 if (uploadedPdfPath) {
                     const pdfUrl = getPublicUrl(uploadedPdfPath);
-                    attachments.push(pdfUrl);
+                    if (isIfood) ifoodDocs.push(pdfUrl);
+                    else if (isReport) reports.push(pdfUrl);
+                    else attachments.push(pdfUrl);
                 }
             }
 
@@ -410,7 +411,7 @@ const AIAssistantPage = () => {
                 extractedData.regime?.toLowerCase() === 'contramandado';
 
             const newWarrant: Warrant = {
-                id: warrantId, // This string ID will be ignored by warrantToDb, DB generates UUID
+                id: warrantId,
                 name: extractedData.name,
                 type: isContramandado ? 'CONTRAMANDADO DE PRISÃO' : extractedData.type,
                 status: isContramandado ? 'CUMPRIDO' : (extractedData.status || 'EM ABERTO'),
@@ -426,6 +427,8 @@ const AIAssistantPage = () => {
                 expirationDate: extractedData.expirationDate,
                 img: photoUrl,
                 attachments: attachments,
+                reports: reports,
+                ifoodDocs: ifoodDocs,
                 tags: extractedData.tags || [],
                 tacticalSummary: extractedData.tacticalSummary || [],
                 location: extractedData.addresses && extractedData.addresses.length > 0 ? extractedData.addresses.join(' | ') : '',
@@ -436,6 +439,7 @@ const AIAssistantPage = () => {
                 longitude: extractedData.longitude,
                 dpRegion: extractedData.dpRegion || ''
             };
+
 
             const { success, error, id } = await onAdd(newWarrant);
             if (success) {

@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '../supabaseClient';
-import { uploadFile, getPublicUrl } from '../supabaseStorage';
+import { uploadFile, getPublicUrl, deleteFile } from '../supabaseStorage';
 import Header from '../components/Header';
 import ConfirmModal from '../components/ConfirmModal';
 import VoiceInput from '../components/VoiceInput';
@@ -1075,20 +1075,34 @@ Equipe de Capturas - DIG / PCSP
         const confirmResult = window.confirm("Tem certeza que deseja excluir este documento?");
         if (!confirmResult) return;
 
-        const updatedAttachments = (data.attachments || []).filter(url => url !== urlToDelete);
-        const updatedReports = (data.reports || []).filter(url => url !== urlToDelete);
+        const tid = toast.loading("Removendo arquivo...");
 
-        const success = await updateWarrant(data.id, {
-            attachments: updatedAttachments,
-            reports: updatedReports
-        });
+        try {
+            // Remove do storage
+            await deleteFile(urlToDelete);
 
-        if (success) {
-            toast.success("Documento excluído com sucesso!");
-        } else {
-            toast.error("Erro ao excluir documento.");
+            // Remove do banco de dados
+            const updatedAttachments = (data.attachments || []).filter(url => url !== urlToDelete);
+            const updatedReports = (data.reports || []).filter(url => url !== urlToDelete);
+            const updatedIfoodDocs = (data.ifoodDocs || []).filter(url => url !== urlToDelete);
+
+            const success = await updateWarrant(data.id, {
+                attachments: updatedAttachments,
+                reports: updatedReports,
+                ifoodDocs: updatedIfoodDocs
+            });
+
+            if (success) {
+                toast.success("Documento excluído!", { id: tid });
+            } else {
+                toast.error("Erro ao atualizar registro.", { id: tid });
+            }
+        } catch (error) {
+            console.error("Erro ao excluir anexo:", error);
+            toast.error("Erro ao processar exclusão.", { id: tid });
         }
     };
+
 
     const handleGenerateIfoodOffice = async () => {
         if (!data) return;
@@ -2384,27 +2398,35 @@ Equipe de Capturas - DIG / PCSP
                                     </div>
                                 </div>
 
-                                {data.attachments && Array.isArray(data.attachments) && data.attachments.length > 0 ? (
+                                {((data.attachments || []).length > 0 || (data.reports || []).length > 0 || (data.ifoodDocs || []).length > 0) ? (
                                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                                        {data.attachments.map((file: string, idx: number) => {
+                                        {[...(data.attachments || []), ...(data.reports || []), ...(data.ifoodDocs || [])].map((file: string, idx: number) => {
                                             if (!file || typeof file !== 'string') return null;
+                                            const isReport = file.includes('/reports/');
+                                            const isIfood = file.includes('/ifoodDocs/');
+
                                             return (
                                                 <div key={idx} className="bg-background-light dark:bg-white/5 border border-border-light dark:border-white/5 rounded-xl p-3 flex items-center justify-between group hover:bg-black/5 dark:hover:bg-white/10 transition-all">
                                                     <div className="flex items-center gap-3 min-w-0">
-                                                        <div className="p-2 bg-primary/20 rounded-lg text-primary">
+                                                        <div className={`p-2 rounded-lg ${isIfood ? 'bg-emerald-500/20 text-emerald-500' : (isReport ? 'bg-orange-500/20 text-orange-500' : 'bg-primary/20 text-primary')}`}>
                                                             <FileText size={16} />
                                                         </div>
-                                                        <span className="text-[11px] font-bold text-text-light dark:text-white truncate max-w-[120px]">
-                                                            {(() => {
-                                                                try {
-                                                                    const parts = file.split('/').pop()?.split('_') || [];
-                                                                    if (parts.length >= 4 && (parts[0] === 'Mandado' || parts[0] === 'IFFO' || parts[0] === 'Oficio')) {
-                                                                        return `${parts[0]} ${parts[2] || ''}`;
-                                                                    }
-                                                                    return file.split('/').pop()?.replace(/^\d+_/, '') || 'Documento';
-                                                                } catch (e) { return 'Documento'; }
-                                                            })()}
-                                                        </span>
+                                                        <div className="flex flex-col min-w-0">
+                                                            <span className="text-[11px] font-bold text-text-light dark:text-white truncate max-w-[120px]">
+                                                                {(() => {
+                                                                    try {
+                                                                        const parts = file.split('/').pop()?.split('_') || [];
+                                                                        if (parts.length >= 4 && (parts[0] === 'Mandado' || parts[0] === 'IFFO' || parts[0] === 'Oficio')) {
+                                                                            return `${parts[0]} ${parts[2] || ''}`;
+                                                                        }
+                                                                        return file.split('/').pop()?.replace(/^\d+_/, '') || 'Documento';
+                                                                    } catch (e) { return 'Documento'; }
+                                                                })()}
+                                                            </span>
+                                                            <span className="text-[8px] uppercase font-black opacity-40">
+                                                                {isIfood ? 'Ofício iFood' : (isReport ? 'Relatório' : 'Anexo')}
+                                                            </span>
+                                                        </div>
                                                     </div>
                                                     <div className="flex items-center gap-1">
                                                         <a href={getPublicUrl(file)} target="_blank" rel="noopener noreferrer" className="p-2 text-text-muted hover:text-white" title="Visualizar"><Eye size={14} /></a>
@@ -2421,6 +2443,7 @@ Equipe de Capturas - DIG / PCSP
                                         <p className="text-[10px] font-black uppercase tracking-widest">Vazio</p>
                                     </div>
                                 )}
+
                             </div>
                         </div>
                     )}
