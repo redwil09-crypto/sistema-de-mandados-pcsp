@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import { Warrant } from '../types';
 import { uploadFile, getPublicUrl } from '../supabaseStorage';
 import { formatDate } from '../utils/helpers';
+import { determineDpRegion } from '../pdfExtractor';
 
 export const generateWarrantPDF = async (
     data: Warrant,
@@ -102,8 +103,8 @@ export const generateWarrantPDF = async (
             doc.setDrawColor(...COLORS.BORDER);
             doc.setLineWidth(0.1);
             doc.line(margin, y + badgeH + 5, pageWidth - margin, y + badgeH + 5);
-            y += badgeH + 12;
-
+            // Ensure the next section starts after both the photo and the identifier text (no more overlap)
+            y = Math.max(y + badgeH + 5, y + 12); // Initial adjustment for header height, will be further adjusted after photo/info
         } catch (e) {
             console.error("Header error", e);
             y += 30;
@@ -197,6 +198,11 @@ export const generateWarrantPDF = async (
             doc.setTextColor(...COLORS.WHITE);
             doc.text(`RISCO: ${riskLevel}`, badgeX + 17.5, infoY + 6.2, { align: 'center' });
             badgeX += 40;
+        }
+
+        // Auto-infer DP Region if it's missing in data but address (location) exists
+        if (!data.dpRegion && data.location) {
+            data.dpRegion = determineDpRegion(data.location);
         }
 
         // DP Region Badge
