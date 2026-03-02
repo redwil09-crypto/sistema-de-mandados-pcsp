@@ -101,8 +101,8 @@ export const generateWarrantPDF = async (
 
             doc.setDrawColor(...COLORS.BORDER);
             doc.setLineWidth(0.1);
-            doc.line(margin, y + badgeH + 4, pageWidth - margin, y + badgeH + 4);
-            y += badgeH + 10; // Reduced from 12 to 10
+            doc.line(margin, y + badgeH + 5, pageWidth - margin, y + badgeH + 5);
+            y += badgeH + 12;
 
         } catch (e) {
             console.error("Header error", e);
@@ -111,7 +111,7 @@ export const generateWarrantPDF = async (
 
         // --- HERO SECTION (PHOTO & RISK) ---
         const photoW = 45;
-        const photoH = 52; // Reduced from 55 to 52 to save space
+        const photoH = 55; // Reverted to original 55
 
         // Photo Box
         doc.setDrawColor(...COLORS.PRIMARY);
@@ -140,8 +140,8 @@ export const generateWarrantPDF = async (
         doc.setFontSize(18);
         doc.setTextColor(...COLORS.PRIMARY);
         const nameLines = doc.splitTextToSize(data.name.toUpperCase(), contentWidth - photoW - 15);
-        doc.text(nameLines, infoX, infoY + 1); // Adjust for alignment
-        infoY += (nameLines.length * 6) + 2; // Reduced from 8 to 6+2
+        doc.text(nameLines, infoX, infoY);
+        infoY += (nameLines.length * 8); // Original 8
 
         // Status & Risk Badges
         let badgeX = infoX;
@@ -208,7 +208,7 @@ export const generateWarrantPDF = async (
             doc.text(`DP: ${data.dpRegion.toUpperCase()}`, badgeX + 20, infoY + 6.2, { align: 'center' });
         }
 
-        infoY += 8; // Reduced from 12 to save space
+        infoY += 12; // Original 12
         doc.setTextColor(...COLORS.TEXT);
 
         // Main Identifiers
@@ -234,7 +234,7 @@ export const generateWarrantPDF = async (
             const valLines = doc.splitTextToSize(valStr, maxWidth);
 
             doc.text(valLines, infoX + 30, infoY);
-            infoY += (valLines.length * 4) + 1.5; // Reduced from 5 and 2
+            infoY += (valLines.length * 5) + 2; // Original 5 and 2
         });
 
         y = Math.max(y + photoH, infoY) + 2; // Reduced from 4 to 2
