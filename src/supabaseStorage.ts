@@ -4,21 +4,21 @@ import { toast } from 'sonner';
 const BUCKET_NAME = 'warrants';
 
 /**
- * Sanitiza o caminho para remover caracteres especiais, acentos e espaços 
+ * Sanitiza o caminho para remover caracteres especiais de forma agressiva.
+ * Usado APENAS no upload para garantir nomes de arquivo seguros.
  */
 const sanitizePath = (path: string): string => {
+    if (!path) return '';
     return path.split('/').map(part =>
-        part.normalize('NFD')
-            .replace(/[\u0300-\u036f]/g, "")
-            .replace(/[^a-zA-Z0-9._-]/g, '_') // Mantém apenas alfanuméricos, ponto, underscore e traço
+        part.normalize('NFD') // Decompõe acentos
+            .replace(/[\u0300-\u036f]/g, "") // Remove acentos
+            .replace(/[^a-zA-Z0-9._-]/g, '_') // Troca espaços, parênteses e outros por underscore
+            .replace(/__+/g, '_') // Estética: remove múltiplos underscores seguidos
     ).join('/');
 };
 
 /**
- * Realiza o upload de um arquivo para o Supabase Storage
- * @param file O arquivo a ser enviado
- * @param path Caminho dentro do bucket (ex: 'photos/id.jpg')
- * @returns O caminho do arquivo no bucket ou null em caso de erro
+ * Upload de arquivo com nome limpo
  */
 export const uploadFile = async (file: File, path: string): Promise<string | null> => {
     try {
@@ -45,16 +45,37 @@ export const uploadFile = async (file: File, path: string): Promise<string | nul
 };
 
 /**
- * Obtém a URL pública de um arquivo no storage
- * @param path Caminho do arquivo no bucket
- * @returns A URL pública do arquivo
+ * Gera URL pública garantindo encoding correto para o navegador.
+ * Aceita tanto o caminho relativo quanto a URL completa (legado).
  */
 export const getPublicUrl = (path: string): string => {
     if (!path) return '';
-    if (path.startsWith('http')) return path;
 
-    // Remove barra inicial se houver
-    const cleanPath = path.startsWith('/') ? path.substring(1) : path;
+    let relativePath = path;
+
+    // Se já for uma URL completa, extraímos apenas o caminho do arquivo
+    if (path.startsWith('http')) {
+        const publicStr = `/storage/v1/object/public/${BUCKET_NAME}/`;
+        const index = path.indexOf(publicStr);
+        if (index !== -1) {
+            relativePath = path.substring(index + publicStr.length);
+        } else {
+            // Se for uma URL de outro tipo, apenas retorna como está
+            return path;
+        }
+    }
+
+    // 1. Decodifica totalmente (caso venha com %20, etc do banco)
+    // 2. Remove query params se houver
+    const decodedPath = decodeURIComponent(relativePath.split('?')[0]);
+
+    // 3. Recodifica cada segmento de forma limpa.
+    // Especial: codifica parênteses '(' e ')' pois alguns servidores não gostam deles soltos na URL
+    const cleanPath = decodedPath.split('/').map(segment =>
+        encodeURIComponent(segment)
+            .replace(/\(/g, '%28')
+            .replace(/\)/g, '%29')
+    ).join('/');
 
     const { data } = supabase.storage
         .from(BUCKET_NAME)
@@ -63,31 +84,26 @@ export const getPublicUrl = (path: string): string => {
     return data.publicUrl;
 };
 
-
 /**
- * Remove um arquivo do storage
- * @param path Caminho do arquivo ou URL completa do arquivo no bucket
+ * Exclui arquivo do storage
  */
 export const deleteFile = async (path: string): Promise<boolean> => {
     try {
         let finalPath = path;
-
         if (path.startsWith('http')) {
-            const searchStr = `/public/${BUCKET_NAME}/`;
-            const index = path.indexOf(searchStr);
+            const publicStr = `/storage/v1/object/public/${BUCKET_NAME}/`;
+            const index = path.indexOf(publicStr);
             if (index !== -1) {
-                finalPath = path.substring(index + searchStr.length);
+                finalPath = path.substring(index + publicStr.length);
             }
         }
 
-        // Remova query params e decodifique para o formato original do Storage
-        finalPath = decodeURIComponent(finalPath.split('?')[0]);
-
-        console.log(`[Storage] Deletando: ${finalPath}`);
+        const decodedPath = decodeURIComponent(finalPath.split('?')[0]);
+        console.log(`[Storage] Deletando: ${decodedPath}`);
 
         const { error } = await supabase.storage
             .from(BUCKET_NAME)
-            .remove([finalPath]);
+            .remove([decodedPath]);
 
         if (error) throw error;
         return true;

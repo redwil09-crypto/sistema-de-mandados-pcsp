@@ -2384,7 +2384,8 @@ Equipe de Capturas - DIG / PCSP
                                                         const extension = file.name.split('.').pop();
                                                         const cleanSource = newDocSource.replace(/[^a-zA-Z0-9]/g, '');
                                                         const cleanNum = newDocNumber.replace(/[^a-zA-Z0-9]/g, '');
-                                                        const finalName = `${newDocType}_${cleanSource}_${cleanNum}_${Date.now()}.${extension}`;
+                                                        const cleanType = newDocType.replace(/\s+/g, '_');
+                                                        const finalName = `${cleanType}_${cleanSource}_${cleanNum}_${Date.now()}.${extension}`;
                                                         const renamedFile = new File([file], finalName, { type: file.type });
                                                         const mockEvent = { target: { files: [renamedFile] } } as any;
                                                         handleAttachFile(mockEvent, 'attachments');
