@@ -34,7 +34,6 @@ export const uploadFile = async (file: File, path: string): Promise<string | nul
 
         if (error) {
             console.error('[Storage] Erro no upload:', error);
-            // toast.error(`Erro no Upload: ${error.message}`);
             return null;
         }
 
@@ -54,12 +53,15 @@ export const getPublicUrl = (path: string): string => {
     if (!path) return '';
     if (path.startsWith('http')) return path;
 
-    // Remove barra inicial se houver para evitar double slash na URL FINAL do Supabase
+    // Remove barra inicial se houver
     const cleanPath = path.startsWith('/') ? path.substring(1) : path;
+
+    // Codifica cada segmento do caminho para lidar com espaços e caracteres especiais
+    const encodedPath = cleanPath.split('/').map(segment => encodeURIComponent(segment)).join('/');
 
     const { data } = supabase.storage
         .from(BUCKET_NAME)
-        .getPublicUrl(cleanPath);
+        .getPublicUrl(encodedPath);
 
     return data.publicUrl;
 };
@@ -72,7 +74,6 @@ export const deleteFile = async (path: string): Promise<boolean> => {
     try {
         let finalPath = path;
 
-        // Se for uma URL, tenta extrair o caminho relativo
         if (path.startsWith('http')) {
             const searchStr = `/public/${BUCKET_NAME}/`;
             const index = path.indexOf(searchStr);
@@ -81,8 +82,8 @@ export const deleteFile = async (path: string): Promise<boolean> => {
             }
         }
 
-        // Remova query params se houver na URL (ex: ?t=123)
-        finalPath = finalPath.split('?')[0];
+        // Remova query params e decodifique para o formato original do Storage
+        finalPath = decodeURIComponent(finalPath.split('?')[0]);
 
         console.log(`[Storage] Deletando: ${finalPath}`);
 

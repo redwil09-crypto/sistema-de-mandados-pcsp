@@ -111,20 +111,7 @@ export const WarrantProvider = ({ children }: { children: ReactNode }) => {
         if (!silent) setLoading(true);
         try {
             const data = await getWarrants();
-            const warrantsWithUrgent = (data || []).filter(w => (w.tags || []).includes('Urgente'));
-
-            if (warrantsWithUrgent.length > 0) {
-                console.log(`[LIMPEZA] Removendo tag 'Urgente' de ${warrantsWithUrgent.length} mandados.`);
-                for (const w of warrantsWithUrgent) {
-                    const cleanTags = w.tags.filter(t => t !== 'Urgente');
-                    await updateWarrantDb(w.id, { tags: cleanTags });
-                }
-                const refreshed = await getWarrants();
-                setWarrants(refreshed || []);
-                toast.success(`${warrantsWithUrgent.length} mandados limpos com sucesso.`);
-            } else {
-                setWarrants(data || []);
-            }
+            setWarrants(data || []);
         } catch (err) {
             console.error("Error loading warrants:", err);
             toast.error("Erro ao carregar dados do banco.");
@@ -132,6 +119,7 @@ export const WarrantProvider = ({ children }: { children: ReactNode }) => {
             if (!silent) setLoading(false);
         }
     };
+
 
 
     const addWarrant = async (w: Partial<Warrant>) => {
