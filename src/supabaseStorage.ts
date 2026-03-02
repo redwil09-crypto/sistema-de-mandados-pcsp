@@ -10,15 +10,15 @@ const BUCKET_NAME = 'warrants';
 const sanitizePath = (path: string): string => {
     if (!path) return '';
     return path.split('/').map(part =>
-        part.normalize('NFD')
-            .replace(/[\u0300-\u036f]/g, "")
-            .replace(/[^a-zA-Z0-9._-]/g, '_')
-            .replace(/__+/g, '_')
+        part.normalize('NFD') // Decompõe acentos
+            .replace(/[\u0300-\u036f]/g, "") // Remove acentos
+            .replace(/[^a-zA-Z0-9._-]/g, '_') // Mantém apenas alfanuméricos, ponto, underscore e traço
+            .replace(/__+/g, '_') // Evita múltiplos underscores seguidos
     ).join('/');
 };
 
 /**
- * Upload de arquivo com sanitização agressiva do caminho.
+ * Realiza o upload de um arquivo para o Supabase Storage.
  */
 export const uploadFile = async (file: File, path: string): Promise<string | null> => {
     try {
@@ -45,52 +45,54 @@ export const uploadFile = async (file: File, path: string): Promise<string | nul
 };
 
 /**
- * Gera URL pública robusta.
- * O Supabase já faz o encoding interno, então passamos o caminho TOTALMENTE DECODIFICADO.
+ * Obtém a URL pública de um arquivo com encoding robusto para o navegador.
  */
 export const getPublicUrl = (path: string): string => {
     if (!path) return '';
 
-    let relativePath = path;
+    let pathForClient = path;
 
-    // 1. Se for uma URL completa, extrai apenas a parte do objeto
+    // 1. Se for uma URL completa, extrai a parte relativa para podermos recodificar corretamente
     if (path.startsWith('http')) {
         const publicPrefix = `/storage/v1/object/public/${BUCKET_NAME}/`;
         const index = path.indexOf(publicPrefix);
         if (index !== -1) {
-            relativePath = path.substring(index + publicPrefix.length);
+            pathForClient = path.substring(index + publicPrefix.length);
         } else {
-            // Se não for do nosso bucket, retorna a URL original (limpa de espaços se necessário)
-            return path.split('?')[0].replace(/ /g, '%20');
+            // URL externa? Garante apenas espaços limpos
+            return path.replace(/ /g, '%20');
         }
     }
 
-    // 2. Remove query params (?t=...)
-    const cleanPath = relativePath.split('?')[0];
-
-    // 3. DECODIFICA totalmente para obter o nome literal (ex: "resumo peca (36).pdf")
-    // Fazemos isso várias vezes para garantir que limpe double encodings residuais
-    let literalPath = cleanPath;
+    // 2. Remove query params (?t=...) e decodifica para obter o nome literal real (ex: "resumo peca (36).pdf")
+    const cleanPath = pathForClient.split('?')[0];
+    let literalName = cleanPath;
     try {
-        literalPath = decodeURIComponent(cleanPath);
-        // Tenta decodificar de novo caso haja double encoding no banco (ex: %2520 -> %20 -> " ")
-        if (literalPath.includes('%')) {
-            literalPath = decodeURIComponent(literalPath);
+        literalName = decodeURIComponent(cleanPath);
+        // Proteção contra double-encoding (%2520 -> %20 -> " ")
+        if (literalName.includes('%')) {
+            literalName = decodeURIComponent(literalName);
         }
     } catch (e) {
         console.warn("[Storage] Erro ao decodificar path:", cleanPath);
     }
 
-    // 4. Deixa o Supabase gerar a URL final a partir do nome LITERAL
+    // 3. Deixa o cliente do Supabase gerar a URL pública a partir do nome real
     const { data } = supabase.storage
         .from(BUCKET_NAME)
-        .getPublicUrl(literalPath);
+        .getPublicUrl(literalName);
 
-    return data.publicUrl;
+    // 4. CORREÇÃO CRÍTICA: O Supabase as vezes gera URLs com ( ) sem codificar.
+    // Navegadores/Servidores PCSP podem rejeitar links com caracteres especiais soltos.
+    // Vamos garantir que espaços, parênteses e outros sejam codificados de forma amigável para o Gateway.
+    return data.publicUrl
+        .replace(/ /g, '%20')      // Espaço
+        .replace(/\(/g, '%28')    // Abre parênteses
+        .replace(/\)/g, '%29');   // Fecha parênteses
 };
 
 /**
- * Exclui arquivo do storage.
+ * Exclui um arquivo do storage.
  */
 export const deleteFile = async (path: string): Promise<boolean> => {
     try {
@@ -104,6 +106,7 @@ export const deleteFile = async (path: string): Promise<boolean> => {
             }
         }
 
+        // Decodifica para passar o nome real ao método remove
         const decodedPath = decodeURIComponent(finalPath.split('?')[0]);
         console.log(`[Storage] Deletando: ${decodedPath}`);
 
