@@ -2406,20 +2406,25 @@ Equipe de Capturas - DIG / PCSP
                                             const isIfood = file.includes('/ifoodDocs/');
 
                                             return (
-                                                <div key={idx} className="bg-background-light dark:bg-white/5 border border-border-light dark:border-white/5 rounded-xl p-3 flex items-center justify-between group hover:bg-black/5 dark:hover:bg-white/10 transition-all">
-                                                    <div className="flex items-center gap-3 min-w-0">
+                                                <div key={idx} className="bg-background-light dark:bg-white/5 border border-border-light dark:border-white/5 rounded-xl flex items-center justify-between group hover:bg-black/5 dark:hover:bg-white/10 transition-all overflow-hidden">
+                                                    <a
+                                                        href={getPublicUrl(file)}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="flex-1 flex items-center gap-3 p-3 min-w-0"
+                                                    >
                                                         <div className={`p-2 rounded-lg ${isIfood ? 'bg-emerald-500/20 text-emerald-500' : (isReport ? 'bg-orange-500/20 text-orange-500' : 'bg-primary/20 text-primary')}`}>
                                                             <FileText size={16} />
                                                         </div>
                                                         <div className="flex flex-col min-w-0">
-                                                            <span className="text-[11px] font-bold text-text-light dark:text-white truncate max-w-[120px]">
+                                                            <span className="text-[11px] font-bold text-text-light dark:text-white truncate max-w-[150px]">
                                                                 {(() => {
                                                                     try {
                                                                         const parts = file.split('/').pop()?.split('_') || [];
                                                                         if (parts.length >= 4 && (parts[0] === 'Mandado' || parts[0] === 'IFFO' || parts[0] === 'Oficio')) {
                                                                             return `${parts[0]} ${parts[2] || ''}`;
                                                                         }
-                                                                        return file.split('/').pop()?.replace(/^\d+_/, '') || 'Documento';
+                                                                        return decodeURIComponent(file.split('/').pop()?.replace(/^\d+_/, '') || 'Documento');
                                                                     } catch (e) { return 'Documento'; }
                                                                 })()}
                                                             </span>
@@ -2427,14 +2432,23 @@ Equipe de Capturas - DIG / PCSP
                                                                 {isIfood ? 'Ofício iFood' : (isReport ? 'Relatório' : 'Anexo')}
                                                             </span>
                                                         </div>
-                                                    </div>
-                                                    <div className="flex items-center gap-1">
-                                                        <a href={getPublicUrl(file)} target="_blank" rel="noopener noreferrer" className="p-2 text-text-muted hover:text-white" title="Visualizar"><Eye size={14} /></a>
-                                                        <a href={getPublicUrl(file)} target="_blank" rel="noopener noreferrer" className="p-2 text-text-muted hover:text-white hidden" title="Abrir Link"><ExternalLink size={14} /></a>
-                                                        <button onClick={() => handleDeleteAttachment(file)} className="p-2 text-red-500 hover:text-red-400" title="Excluir"><Trash2 size={14} /></button>
+                                                    </a>
+                                                    <div className="flex items-center gap-1 pr-2">
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.preventDefault();
+                                                                e.stopPropagation();
+                                                                handleDeleteAttachment(file);
+                                                            }}
+                                                            className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
+                                                            title="Excluir"
+                                                        >
+                                                            <Trash2 size={14} />
+                                                        </button>
                                                     </div>
                                                 </div>
                                             );
+
                                         })}
                                     </div>
                                 ) : (
