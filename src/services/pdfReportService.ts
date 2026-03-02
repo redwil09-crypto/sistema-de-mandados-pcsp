@@ -196,6 +196,16 @@ export const generateWarrantPDF = async (
         doc.setTextColor(...COLORS.WHITE);
         doc.text(`RISCO: ${riskLevel}`, badgeX + 22.5, infoY + 4.2, { align: 'center' });
 
+        // DP Region Badge
+        if (data.dpRegion) {
+            badgeX += 50;
+            doc.setFillColor(...COLORS.SECONDARY);
+            doc.roundedRect(badgeX, infoY, 30, 6, 1, 1, 'F');
+            doc.setTextColor(...COLORS.WHITE);
+            doc.setFontSize(8);
+            doc.text(data.dpRegion.toUpperCase(), badgeX + 15, infoY + 4.2, { align: 'center' });
+        }
+
         infoY += 12;
         doc.setTextColor(...COLORS.TEXT);
 
@@ -272,7 +282,8 @@ export const generateWarrantPDF = async (
             ["Regime Prisional", data.regime || "N/A"],
             ["Data de Expedição", formatDate(data.issueDate)],
             ["Data de Validade", formatDate(data.expirationDate)],
-            ["Vara / Fórum", data.issuingCourt || "-"]
+            ["Vara / Fórum", data.issuingCourt || "-"],
+            ["DP Competente", data.dpRegion || "-"]
         ]);
         y += 5;
 
