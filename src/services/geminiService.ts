@@ -758,6 +758,7 @@ const NEIGHBORHOOD_TO_DP: { [key: string]: string } = {
     "baixos": "2º DP",
     "escada": "2º DP",
     "jardim siesta": "2º DP",
+    "estancia porto velho": "2º DP",
 
     // 3º DP (CENTRO / CENTRAL - Sede: Centro)
     "centro": "3º DP",
