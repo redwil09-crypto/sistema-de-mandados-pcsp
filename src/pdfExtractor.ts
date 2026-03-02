@@ -1,5 +1,5 @@
 // NOTE: pdfjs-dist is now dynamically imported to avoid top-level crashes
-import { extractFullWarrantIntelligence, isGeminiEnabled, extractWarrantFromImage } from './services/geminiService';
+import { extractFullWarrantIntelligence, isGeminiEnabled, extractWarrantFromImage, inferDPRegion } from './services/geminiService';
 import { normalizeCrimeName } from './utils/crimeUtils';
 
 const fileToBase64 = (file: File): Promise<string> => {
@@ -39,10 +39,7 @@ export interface ExtractedData {
     dpRegion?: string;          // New: DP area derived from location
 }
 
-// Helper disabled: DP should ONLY be assigned through AI Geocoding upon saving with real coordinates
-export const determineDpRegion = (address: string): string => {
-    return '';
-};
+// DP region inference is now handled by the asynchronous inferDPRegion in geminiService.ts
 
 // Helper functions for parsing
 const extractName = (text: string): string => {
@@ -678,7 +675,7 @@ export const extractPdfData = async (file: File): Promise<ExtractedData> => {
                             birthDate: aiData.birthDate || '',
                             age: calculateAge(aiData.birthDate),
                             issuingCourt: aiData.issuingCourt || '',
-                            dpRegion: aiData.addresses && aiData.addresses.length > 0 ? determineDpRegion(aiData.addresses.join(' ')) : ''
+                            dpRegion: aiData.addresses && aiData.addresses.length > 0 ? await inferDPRegion(aiData.addresses.join(' ')) : ''
                         };
                     }
                 } catch (e) {
@@ -721,7 +718,7 @@ export const extractPdfData = async (file: File): Promise<ExtractedData> => {
                         birthDate: aiData.birthDate || '',
                         age: calculateAge(aiData.birthDate),
                         issuingCourt: aiData.issuingCourt || '',
-                        dpRegion: aiData.addresses && aiData.addresses.length > 0 ? determineDpRegion(aiData.addresses.join(' ')) : ''
+                        dpRegion: aiData.addresses && aiData.addresses.length > 0 ? await inferDPRegion(aiData.addresses.join(' ')) : ''
                     };
                 }
             } catch (aiError) {
@@ -773,7 +770,7 @@ export const extractPdfData = async (file: File): Promise<ExtractedData> => {
             birthDate,
             age: calculateAge(birthDate),
             issuingCourt,
-            dpRegion: addresses.length > 0 ? determineDpRegion(addresses.join(' ')) : ''
+            dpRegion: addresses.length > 0 ? await inferDPRegion(addresses.join(' ')) : ''
         };
     } catch (error: any) {
         console.error('Erro detalhado ao extrair PDF:', error);
@@ -847,7 +844,7 @@ export const extractFromText = async (text: string, sourceName: string): Promise
                     birthDate: aiData.birthDate || '',
                     age: calculateAge(aiData.birthDate),
                     issuingCourt: aiData.issuingCourt || '',
-                    dpRegion: aiData.addresses && aiData.addresses.length > 0 ? determineDpRegion(aiData.addresses.join(' ')) : ''
+                    dpRegion: aiData.addresses && aiData.addresses.length > 0 ? await inferDPRegion(aiData.addresses.join(' ')) : ''
                 };
             }
         } catch (aiError) {
@@ -899,7 +896,7 @@ export const extractFromText = async (text: string, sourceName: string): Promise
         birthDate,
         age: calculateAge(birthDate),
         issuingCourt,
-        dpRegion: addresses.length > 0 ? determineDpRegion(addresses.join(' ')) : ''
+        dpRegion: addresses.length > 0 ? await inferDPRegion(addresses.join(' ')) : ''
     };
 };
 
