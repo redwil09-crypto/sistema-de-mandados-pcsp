@@ -4,21 +4,21 @@ import { toast } from 'sonner';
 const BUCKET_NAME = 'warrants';
 
 /**
- * Sanitiza o caminho para remover caracteres especiais de forma agressiva.
- * Usado APENAS no upload para garantir nomes de arquivo seguros.
+ * Sanitiza o caminho para remover caracteres especiais.
+ * Aplicado apenas no momento do UPLOAD para novos arquivos.
  */
 const sanitizePath = (path: string): string => {
     if (!path) return '';
     return path.split('/').map(part =>
-        part.normalize('NFD') // Decompõe acentos
-            .replace(/[\u0300-\u036f]/g, "") // Remove acentos
-            .replace(/[^a-zA-Z0-9._-]/g, '_') // Troca espaços, parênteses e outros por underscore
-            .replace(/__+/g, '_') // Estética: remove múltiplos underscores seguidos
+        part.normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, "")
+            .replace(/[^a-zA-Z0-9._-]/g, '_')
+            .replace(/__+/g, '_')
     ).join('/');
 };
 
 /**
- * Upload de arquivo com nome limpo
+ * Upload de arquivo com sanitização agressiva do caminho.
  */
 export const uploadFile = async (file: File, path: string): Promise<string | null> => {
     try {
@@ -45,56 +45,62 @@ export const uploadFile = async (file: File, path: string): Promise<string | nul
 };
 
 /**
- * Gera URL pública garantindo encoding correto para o navegador.
- * Aceita tanto o caminho relativo quanto a URL completa (legado).
+ * Gera URL pública robusta.
+ * O Supabase já faz o encoding interno, então passamos o caminho TOTALMENTE DECODIFICADO.
  */
 export const getPublicUrl = (path: string): string => {
     if (!path) return '';
 
     let relativePath = path;
 
-    // Se já for uma URL completa, extraímos apenas o caminho do arquivo
+    // 1. Se for uma URL completa, extrai apenas a parte do objeto
     if (path.startsWith('http')) {
-        const publicStr = `/storage/v1/object/public/${BUCKET_NAME}/`;
-        const index = path.indexOf(publicStr);
+        const publicPrefix = `/storage/v1/object/public/${BUCKET_NAME}/`;
+        const index = path.indexOf(publicPrefix);
         if (index !== -1) {
-            relativePath = path.substring(index + publicStr.length);
+            relativePath = path.substring(index + publicPrefix.length);
         } else {
-            // Se for uma URL de outro tipo, apenas retorna como está
-            return path;
+            // Se não for do nosso bucket, retorna a URL original (limpa de espaços se necessário)
+            return path.split('?')[0].replace(/ /g, '%20');
         }
     }
 
-    // 1. Decodifica totalmente (caso venha com %20, etc do banco)
-    // 2. Remove query params se houver
-    const decodedPath = decodeURIComponent(relativePath.split('?')[0]);
+    // 2. Remove query params (?t=...)
+    const cleanPath = relativePath.split('?')[0];
 
-    // 3. Recodifica cada segmento de forma limpa.
-    // Especial: codifica parênteses '(' e ')' pois alguns servidores não gostam deles soltos na URL
-    const cleanPath = decodedPath.split('/').map(segment =>
-        encodeURIComponent(segment)
-            .replace(/\(/g, '%28')
-            .replace(/\)/g, '%29')
-    ).join('/');
+    // 3. DECODIFICA totalmente para obter o nome literal (ex: "resumo peca (36).pdf")
+    // Fazemos isso várias vezes para garantir que limpe double encodings residuais
+    let literalPath = cleanPath;
+    try {
+        literalPath = decodeURIComponent(cleanPath);
+        // Tenta decodificar de novo caso haja double encoding no banco (ex: %2520 -> %20 -> " ")
+        if (literalPath.includes('%')) {
+            literalPath = decodeURIComponent(literalPath);
+        }
+    } catch (e) {
+        console.warn("[Storage] Erro ao decodificar path:", cleanPath);
+    }
 
+    // 4. Deixa o Supabase gerar a URL final a partir do nome LITERAL
     const { data } = supabase.storage
         .from(BUCKET_NAME)
-        .getPublicUrl(cleanPath);
+        .getPublicUrl(literalPath);
 
     return data.publicUrl;
 };
 
 /**
- * Exclui arquivo do storage
+ * Exclui arquivo do storage.
  */
 export const deleteFile = async (path: string): Promise<boolean> => {
     try {
         let finalPath = path;
+
         if (path.startsWith('http')) {
-            const publicStr = `/storage/v1/object/public/${BUCKET_NAME}/`;
-            const index = path.indexOf(publicStr);
+            const publicPrefix = `/storage/v1/object/public/${BUCKET_NAME}/`;
+            const index = path.indexOf(publicPrefix);
             if (index !== -1) {
-                finalPath = path.substring(index + publicStr.length);
+                finalPath = path.substring(index + publicPrefix.length);
             }
         }
 
