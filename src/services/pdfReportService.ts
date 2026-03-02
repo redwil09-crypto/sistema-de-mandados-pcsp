@@ -237,7 +237,8 @@ export const generateWarrantPDF = async (
             infoY += (valLines.length * 5) + 2; // Dynamic spacing based on lines
         });
 
-        y += photoH + 5;
+        // Ensure the next section starts after both the photo and the identifier text
+        y = Math.max(y + photoH + 5, infoY + 8);
 
         // --- DATA SECTIONS ---
         const drawFields = (fields: [string, string][]) => {
