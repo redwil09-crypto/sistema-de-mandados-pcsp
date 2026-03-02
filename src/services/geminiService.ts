@@ -689,6 +689,8 @@ const normalizeText = (text: string): string => {
 const NEIGHBORHOOD_TO_DP: { [key: string]: string } = {
     // 1º DP (Sede Jd. Esper / Leste / Sul)
     "cidade salvador": "1º DP",
+    "novo amanhecer": "1º DP",
+    "jardim novo amanhecer": "1º DP",
     "santa maria": "1º DP",
     "cerejeira": "1º DP",
     "guanabara": "1º DP",
@@ -728,7 +730,6 @@ const NEIGHBORHOOD_TO_DP: { [key: string]: string } = {
     "sao judas tadeu": "1º DP",
     "vila zeze": "1º DP",
     "vila vintem": "1º DP",
-    "novo amanhecer": "1º DP",
     "portal": "1º DP",
     "panorama": "1º DP",
     "didinha": "1º DP",
@@ -800,6 +801,13 @@ const NEIGHBORHOOD_TO_DP: { [key: string]: string } = {
     "rural": "4º DP"
 };
 
+const DP_SITES = [
+    { id: "1º DP", lat: -23.3006, lng: -45.9525, name: "1º DP (Siqueira Campos)" },
+    { id: "2º DP", lat: -23.3213, lng: -45.9717, name: "2º DP (Pensilvânia)" },
+    { id: "3º DP", lat: -23.3061, lng: -45.9667, name: "3º DP (Prudente de Moraes)" },
+    { id: "4º DP", lat: -23.2754, lng: -45.9255, name: "4º DP (Meia Lua)" }
+];
+
 export const inferDPRegion = async (address: string, lat?: number, lng?: number): Promise<string | null> => {
     if (!address || typeof address !== 'string') return null;
 
@@ -816,33 +824,42 @@ export const inferDPRegion = async (address: string, lat?: number, lng?: number)
         }
     }
 
-    // 2. Fallback to Gemini for complex addresses or unknown areas
+    // 2. Intelligent Distance Hint (if coordinates present)
+    let distanceHint = "";
+    if (lat && lng) {
+        const sortedDps = [...DP_SITES].sort((a, b) => {
+            const distA = Math.sqrt(Math.pow(lat - a.lat, 2) + Math.pow(lng - a.lng, 2));
+            const distB = Math.sqrt(Math.pow(lat - b.lat, 2) + Math.pow(lng - b.lng, 2));
+            return distA - distB;
+        });
+        distanceHint = `GEOLOCALIZAÇÃO: Este ponto está FISICAMENTE mais próximo da sede do ${sortedDps[0].id}. Use esta informação como prioridade máxima de decisão regional.`;
+    }
+
+    // 3. Fallback to Gemini for complex addresses or unknown areas
     if (!(await isGeminiEnabled())) return null;
 
     const prompt = `
         VOCÊ É UM INVESTIGADOR POLICIAL EM JACAREÍ/SP, ESPECIALISTA EM JURISDIÇÃO E TERRITÓRIOS.
         SUA MISSÃO: Determinar qual Delegacia de Polícia (Região) atende prioritariamente o local fornecido.
         
-        NÃO SEJA PREGUICOSO. ANALISE CUIDADOSAMENTE OS BAIRROS E COORDENADAS.
+        AVISO: NÃO SEJA PREGUICOSO. O ENDEREÇO E AS COORDENADAS SÃO REAIS E DEFINEM O DP.
         
         LOCAL: ${address}
-        COORDENADAS (se disponíveis): ${lat || 'Não informada'}, ${lng || 'Não informada'}
+        COORDENADAS: ${lat || 'Não informada'}, ${lng || 'Não informada'}
+        ${distanceHint}
 
-        DIRETRIZES TÁTICAS (JACAREÍ/SP E ARREDORES):
-        1. SE A CIDADE FOR DIFERENTE DE JACAREÍ, retorne "Outras Cidades".
-        2. AS SEDES SÃO: 1º DP (Jd. Esper), 2º DP (Jd. Flórida), 3º DP (Centro), 4º DP (Meia Lua).
-        3. CIDADE SALVADOR É 1º DP.
-        4. BELA VISTA É 2º DP.
-        5. MEIA LUA É 4º DP.
-        6. SE ESTIVER PERTO DE UMA SEDE, ATRIBUA ÀQUELA SEDE.
+        DIRETRIZES TÁTICAS (JACAREÍ/SP):
+        1. CIDADE SALVADOR E NOVO AMANHECER SÃO 1º DP (SUL-LESTE).
+        2. AS COORDENADAS SÃO O FATOR DE DESEMPATE FINAL.
+        3. SE A CIDADE NÃO FOR JACAREÍ, retorne "Outras Cidades".
         
         JURISDIÇÃO (REFERÊNCIA):
-        * 1º DP (Leste/Sul): Cidade Salvador, Santa Maria, Cerejeira, Luiza, Bandeira Branca, Rio Comprido, Jd. Esper, etc.
-        * 2º DP (Oeste/Sul): Bela Vista, Igarapés, São Silvestre, Cidade Nova, Pagador de Andrade, etc.
-        * 3º DP (Centro/Norte): Centro, Vila Branca, Jd. Califórnia, São João, Zezé, etc.
-        * 4º DP (Extremo Norte): Meia Lua, Primeiro de Maio, Lagoa Azul, etc.
+        * 1º DP: Cidade Salvador, Santa Maria, Novo Amanhecer, Cerejeira, Luiza, Rio Comprido, Jd. Esper.
+        * 2º DP: Bela Vista, Igarapés, São Silvestre, Cidade Nova, Pagador de Andrade.
+        * 3º DP: Centro, Vila Branca, Jd. Califórnia, São João, Zezé, Santa Paula.
+        * 4º DP: Meia Lua, Primeiro de Maio, Lagoa Azul.
 
-        RESPOSTA ESTRITA: "1º DP", "2º DP", "3º DP", "4º DP", "DIG", "DISE", "DDM", "Plantão" ou "Outras Cidades".
+        RESPOSTA ESTRITA (APENAS UM DESSES): "1º DP", "2º DP", "3º DP", "4º DP", "DIG", "DISE", "DDM", "Plantão", "Outras Cidades".
         Resposta:
     `;
 
@@ -854,7 +871,7 @@ export const inferDPRegion = async (address: string, lat?: number, lng?: number)
         if (result.includes("DIG")) return "DIG";
         if (result.includes("DISE")) return "DISE";
         if (result.includes("DDM")) return "DDM";
-        if (result.includes("4")) return "4º DP"; // Check 4 first to avoid confusion with 1, 2, 3
+        if (result.includes("4")) return "4º DP";
         if (result.includes("3")) return "3º DP";
         if (result.includes("2")) return "2º DP";
         if (result.includes("1")) return "1º DP";
