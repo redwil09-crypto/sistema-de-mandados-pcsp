@@ -102,9 +102,17 @@ const WarrantCard = ({ data, onPrint, isPlanned, onRouteToggle, onFinalize, onDe
                                 )}
                             </div>
 
-                            {/* Status Badge */}
-                            {(data.dpRegion && data.latitude && data.longitude) && (
-                                <span className="text-[9px] font-mono font-bold px-2 py-0.5 rounded border bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20 mr-1" title="Mapeado e Setor Definido">
+                            {/* DP Region Badge - Always visible if exists, with smart color coding */}
+                            {data.dpRegion && (
+                                <span
+                                    className={`text-[9px] font-mono font-bold px-2 py-0.5 rounded border mr-1 transition-all duration-300 ${data.dpRegion.includes('1') ? 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20' :
+                                            data.dpRegion.includes('2') ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20' :
+                                                data.dpRegion.includes('3') ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20' :
+                                                    data.dpRegion.includes('4') ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20' :
+                                                        'bg-slate-500/10 text-slate-600 dark:text-slate-400 border-slate-500/20'
+                                        }`}
+                                    title={`Jurisdição: ${data.dpRegion} ${data.longitude ? '(Geo-Localizado)' : '(Inferência por Bairro)'}`}
+                                >
                                     {data.dpRegion}
                                 </span>
                             )}
