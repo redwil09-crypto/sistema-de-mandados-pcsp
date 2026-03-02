@@ -103,8 +103,7 @@ export const generateWarrantPDF = async (
             doc.setDrawColor(...COLORS.BORDER);
             doc.setLineWidth(0.1);
             doc.line(margin, y + badgeH + 5, pageWidth - margin, y + badgeH + 5);
-            // Ensure the next section starts after both the photo and the identifier text (no more overlap)
-            y = Math.max(y + badgeH + 5, y + 12); // Initial adjustment for header height, will be further adjusted after photo/info
+            y += badgeH + 12;
         } catch (e) {
             console.error("Header error", e);
             y += 30;
@@ -153,7 +152,7 @@ export const generateWarrantPDF = async (
         doc.roundedRect(badgeX, infoY + 2, 35, 6, 1, 1, 'F');
         doc.setTextColor(...COLORS.WHITE);
         doc.setFontSize(8);
-        doc.text(data.status || 'EM ABERTO', badgeX + 17.5, infoY + 6.2, { align: 'center' });
+        doc.text(data.status || 'EM ABERTO', badgeX + 17.5, infoY + 6, { align: 'center' });
         badgeX += 40;
 
         // Tactical Intelligence Parsing for Risk
@@ -196,7 +195,7 @@ export const generateWarrantPDF = async (
             doc.setFillColor(...riskColor);
             doc.roundedRect(badgeX, infoY + 2, 35, 6, 1, 1, 'F');
             doc.setTextColor(...COLORS.WHITE);
-            doc.text(`RISCO: ${riskLevel}`, badgeX + 17.5, infoY + 6.2, { align: 'center' });
+            doc.text(`RISCO: ${riskLevel}`, badgeX + 17.5, infoY + 6, { align: 'center' });
             badgeX += 40;
         }
 
@@ -211,7 +210,7 @@ export const generateWarrantPDF = async (
             doc.roundedRect(badgeX, infoY + 2, 40, 6, 1, 1, 'F');
             doc.setTextColor(...COLORS.WHITE);
             doc.setFontSize(8);
-            doc.text(`DP: ${data.dpRegion.toUpperCase()}`, badgeX + 20, infoY + 6.2, { align: 'center' });
+            doc.text(`DP: ${data.dpRegion.toUpperCase()}`, badgeX + 20, infoY + 6, { align: 'center' });
         }
 
         infoY += 12;
@@ -235,16 +234,19 @@ export const generateWarrantPDF = async (
             doc.setTextColor(...COLORS.PRIMARY);
 
             // Fix: Wrap long text (especially ADDRESS/LOCATION)
-            const maxWidth = contentWidth - photoW - 45; // Calculate remaining width
+            const labelWidth = 25;
+            const maxWidth = contentWidth - photoW - labelWidth - 10;
             const valStr = String(value).toUpperCase();
             const valLines = doc.splitTextToSize(valStr, maxWidth);
 
-            doc.text(valLines, infoX + 30, infoY);
-            infoY += (valLines.length * 5) + 2; // Dynamic spacing based on lines
+            doc.text(valLines, infoX + labelWidth, infoY);
+            infoY += (valLines.length * 6) + 1; // 6 instead of 5 for better vertical breathing
         });
 
         // Ensure the next section starts after both the photo and the identifier text
-        y = Math.max(y + photoH + 5, infoY + 8);
+        // Ensure the next section starts after both the photo and the long identifier text
+        y = Math.max(y + photoH + 5, infoY + 15);
+        doc.setTextColor(...COLORS.TEXT);
 
         // --- DATA SECTIONS ---
         const drawFields = (fields: [string, string][]) => {
