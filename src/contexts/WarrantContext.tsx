@@ -111,77 +111,7 @@ export const WarrantProvider = ({ children }: { children: ReactNode }) => {
         if (!silent) setLoading(true);
         try {
             const data = await getWarrants();
-            let formattedData = data || [];
-
-            // Auto-normalizar e salvar no banco os crimes e recalcular TAGS táticas baseadas na IA e heurísticas
-            const fixesToApply: { id: string, updates: Partial<Warrant> }[] = [];
-
-            formattedData = formattedData.map(w => {
-                let changed = false;
-                let newCrime = w.crime;
-                let newTags = w.tags || [];
-
-                if (w.crime) {
-                    const clean = normalizeCrimeName(w.crime);
-                    if (clean !== w.crime) {
-                        changed = true;
-                        newCrime = clean;
-                    }
-                }
-
-                if (newCrime) {
-                    // Extrair contexto do mandado para gerar novas tags (se faltarem)
-                    const historyNotes = (w.diligentHistory || []).map(h => h.notes).join(' ');
-                    const rawObservation = w.observation || '';
-                    const combinedIntel = `${rawObservation} ${historyNotes} ${w.ifoodResult || ''} ${w.regime || ''}`.toLowerCase();
-
-                    const generatedTags = determineAutoPriority(combinedIntel, newCrime);
-
-                    if (generatedTags.length > 0) {
-                        const mergedSet = new Set([...newTags, ...generatedTags]);
-                        const mergedArray = Array.from(mergedSet);
-
-                        if (mergedArray.length !== newTags.length) {
-                            changed = true;
-                            newTags = mergedArray;
-                        }
-                    }
-                }
-
-                if (changed) {
-                    fixesToApply.push({ id: w.id, updates: { crime: newCrime, tags: newTags } });
-                    return { ...w, crime: newCrime, tags: newTags };
-                }
-
-                return w;
-            });
-
-            if (fixesToApply.length > 0) {
-                console.log(`Atualizando banco de dados em Background (Crimes/Tags) - ${fixesToApply.length} itens encontrados.`);
-                setTimeout(() => {
-                    fixesToApply.forEach(c => updateWarrantDb(c.id, c.updates).catch(e => console.error(e)));
-                }, 2000);
-            }
-
-            // Check for warrants that need correction (Suspensão de Regime should be OPEN)
-            const needsCorrection = formattedData.filter(w =>
-                (w.regime || '').toLowerCase().includes('suspensão') &&
-                w.status !== 'EM ABERTO'
-            );
-
-            if (needsCorrection.length > 0) {
-                console.log(`Fixing ${needsCorrection.length} warrants with regime 'Suspensão' that were closed.`);
-                for (const w of needsCorrection) {
-                    await updateWarrantDb(w.id, { status: 'EM ABERTO' });
-                }
-                // Refresh again to get the corrected state from DB
-                const corrected = await getWarrants();
-                setWarrants(corrected || []);
-                toast.info(`${needsCorrection.length} mandados de Suspensão foram reabertos automaticamente.`);
-            } else {
-                setWarrants(formattedData);
-            }
-
+            setWarrants(data || []);
         } catch (err) {
             console.error("Error loading warrants:", err);
             toast.error("Erro ao carregar dados do banco.");
@@ -189,6 +119,7 @@ export const WarrantProvider = ({ children }: { children: ReactNode }) => {
             if (!silent) setLoading(false);
         }
     };
+
 
     const addWarrant = async (w: Partial<Warrant>) => {
         const { data, error } = await createWarrant(w);

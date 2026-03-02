@@ -429,7 +429,7 @@ const AIAssistantPage = () => {
                 attachments: attachments,
                 reports: reports,
                 ifoodDocs: ifoodDocs,
-                tags: extractedData.tags || [],
+                tags: [], // Desativado para garantir que apenas as tags manuais do usuário sejam salvas.
                 tacticalSummary: extractedData.tacticalSummary || [],
                 location: extractedData.addresses && extractedData.addresses.length > 0 ? extractedData.addresses.join(' | ') : '',
                 birthDate: extractedData.birthDate,

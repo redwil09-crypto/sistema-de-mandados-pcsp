@@ -599,61 +599,11 @@ const extractSearchChecklist = (text: string, category: string): string[] => {
 };
 
 export const determineAutoPriority = (text: string, crime: string): string[] => {
-    const tags: string[] = [];
-    const upperCrime = crime.toUpperCase();
-    const highPriorityCrimes = ['HOMICÍDIO', 'FEMINICÍDIO', 'ROUBO', 'ESTUPRO / CRIMES SEXUAIS', 'ESTUPRO DOS CRIMES SEXUAIS', 'TRÁFICO DE DROGAS', 'EXTORSÃO MEDIANTE SEQUESTRO', 'ORGANIZAÇÃO CRIMINOSA'];
-
-    if (upperCrime === 'PENSÃO ALIMENTÍCIA' && (text.toLowerCase().includes('cobrança') || text.toLowerCase().includes('ofício'))) {
-        tags.push('Ofício de Cobrança');
-    }
-
-    // Novas Heurísticas baseadas em análise tática (para restaurar e ampliar "Informações boas" sobre a equipe prestar atenção)
-    const lowerText = text.toLowerCase();
-
-    if (lowerText.includes('alta periculosidade') || lowerText.includes('fuga') || lowerText.includes('perigoso') || lowerText.includes('violento')) {
-        tags.push('Alta Periculosidade');
-    }
-    if (lowerText.includes('armado') || lowerText.includes('arma de fogo') || lowerText.includes('arsenal') || lowerText.includes('troca de tiros')) {
-        tags.push('Possível Confronto Armado (P.C.A.)');
-    }
-    if (lowerText.includes('violência doméstica') || lowerText.includes('medida protetiva') || lowerText.includes('maria da penha')) {
-        tags.push('Alerta: Violência Doméstica');
-    }
-    if (lowerText.includes('pcc') || lowerText.includes('comando') || lowerText.includes('facção') || lowerText.includes('faccionado') || lowerText.includes('organização criminosa') || lowerText.includes('milícia')) {
-        tags.push('Crime Organizado / Facção');
-    }
-    if (lowerText.includes('reincidente') || lowerText.includes('reincidência') || lowerText.includes('multireincidente')) {
-        tags.push('Alvo Reincidente');
-    }
-    if (lowerText.includes('rompimento') || lowerText.includes('tornozeleira') || lowerText.includes('monitoramento eletrônico')) {
-        tags.push('Rompimento de Tornozeleira');
-    }
-    if (lowerText.includes('foragido') || lowerText.includes('evadiu-se') || lowerText.includes('não localizado')) {
-        tags.push('Histórico de Fuga');
-    }
-    if (lowerText.includes('desacato') || lowerText.includes('resistência') || lowerText.includes('desobediência')) {
-        tags.push('Histórico de Resistência / Desacato');
-    }
-    if (lowerText.includes('transtorno mental') || lowerText.includes('suicídio') || lowerText.includes('psiquiátrico')) {
-        tags.push('Alerta Psiquiátrico / Risco Misto');
-    }
-    if (lowerText.includes('cautelar') || lowerText.includes('medida cautelar')) {
-        tags.push('Descumprimento de Cautelar');
-    }
-
-    // Tag de regime
-    if (lowerText.includes('definitiva') || lowerText.includes('pena definitiva')) {
-        tags.push('Pena Definitiva');
-    }
-    if (lowerText.includes('preventiva') || lowerText.includes('prisão preventiva')) {
-        tags.push('Prisão Preventiva');
-    }
-    if (lowerText.includes('temporária') || lowerText.includes('prisão temporária') || lowerText.includes('30 dias')) {
-        tags.push('Prisão Temporária');
-    }
-
-    return Array.from(new Set(tags));
+    // Desativado por solicitação do usuário para evitar poluição visual.
+    // O usuário prefere definir prioridades manualmente.
+    return [];
 };
+
 
 // Main extraction function
 export const extractPdfData = async (file: File): Promise<ExtractedData> => {
