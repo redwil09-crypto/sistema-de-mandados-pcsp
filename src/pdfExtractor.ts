@@ -83,7 +83,8 @@ export const determineDpRegion = (address: string): string => {
         'BANDEIRA BRANCA', 'BELA VISTA', 'CEREJEIRA', 'GUANABARA', 'IGARAPES',
         'SANTA MARIA', 'CIDADE NOVA', 'LAGO DOURADO', 'LAGOINHA', 'ESCADA',
         'LUIZA', 'JARDIM SANTANA', 'SAO LUIZ', 'PARATEI', 'AGRINCO', 'IMPERIAL',
-        'JEQUITIBA', 'SAO SILVESTRE', 'IJAL', 'IRAJA', 'ESTANCIA PORTO VELHO'
+        'JEQUITIBA', 'SAO SILVESTRE', 'IJAL', 'IRAJA', 'ESTANCIA PORTO VELHO',
+        'JARDIM TERRAS DA CONCEICAO'
     ];
 
     const keywords3DP = [
