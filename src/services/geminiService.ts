@@ -723,7 +723,6 @@ const NEIGHBORHOOD_TO_DP: { [key: string]: string } = {
     "itamarati": "1º DP",
     "mirante do vale": "1º DP",
     "jardim yolanda": "1º DP",
-    "sao judas": "1º DP",
     "portal": "1º DP",
     "colonia": "1º DP",
     "jardim colonia": "1º DP",
@@ -731,6 +730,8 @@ const NEIGHBORHOOD_TO_DP: { [key: string]: string } = {
     "terra de santa clara": "1º DP",
     "pitoresco": "1º DP",
     "jardim pitoresco": "1º DP",
+    "principes": "1º DP",
+    "parque dos principes": "1º DP",
 
     // 2º DP (OESTE - Sede: Jd. Flórida)
     "jardim florida": "2º DP",
@@ -765,6 +766,12 @@ const NEIGHBORHOOD_TO_DP: { [key: string]: string } = {
     "panorama": "2º DP",
     "jardim panorama": "2º DP",
     "chiquinha schurig": "2º DP",
+    "arice": "2º DP",
+    "jardim arice": "2º DP",
+    "jd arice": "2º DP",
+    "sao judas": "2º DP",
+    "sao judas tadeu": "2º DP",
+    "vila sao judas tadeu": "2º DP",
 
     // 3º DP (CENTRO / CENTRAL - Sede: Centro)
     "centro": "3º DP",
@@ -772,8 +779,6 @@ const NEIGHBORHOOD_TO_DP: { [key: string]: string } = {
     "parque california": "3º DP",
     "sao joao": "3º DP",
     "zeze": "3º DP",
-    "principes": "3º DP",
-    "parque dos principes": "3º DP",
     "paraiba": "3º DP",
     "jardim paraiba": "3º DP",
     "vila garcia": "3º DP",
@@ -907,9 +912,9 @@ export const inferDPRegion = async (address: string, lat?: number, lng?: number)
         DIRETRIZES TÁTICAS (JACAREÍ/SP):
         1. SE O ENDEREÇO MENCIONAR QUALQUER CIDADE DIFERENTE DE JACAREÍ OU IGARATÁ (como São José dos Campos, São Paulo, Mogi, etc.), sua resposta OBRIGATÓRIA deve ser "Outras Cidades".
         2. CASO O ENDEREÇO TENHA UM ESTADO DIFERENTE DE SP (ex: - RJ, - MG), sua resposta OBRIGATÓRIA deve ser "Outras Cidades".
-        3. CASO SEJA JACAREÍ:
-           - 1º DP: Cidade Salvador, Santa Maria, Novo Amanhecer, Vila Branca, Santa Paula, Rio Comprido, Jd. Esper, Jd. Pitoresco.
-           - 2º DP: Bela Vista, Igarapés, São Silvestre, Cidade Nova, Pagador de Andrade, Jd. Panorama, Rua Chiquinha Schurig.
+        3. CASO SEJA JACAREI:
+           - 1º DP: Cidade Salvador, Santa Maria, Novo Amanhecer, Vila Branca, Santa Paula, Rio Comprido, Jd. Esper, Jd. Pitoresco, Parque dos Principes.
+           - 2º DP: Bela Vista, Igarapés, São Silvestre, Cidade Nova, Pagador de Andrade, Jd. Panorama, Rua Chiquinha Schurig, Jardim Arice (JD Arice), Vila São Judas Tadeu.
            - 3º DP: Centro (Estritamente Jacareí), Jd. Califórnia, São João, Zezé.
            - 4º DP: Meia Lua, Primeiro de Maio, Lagoa Azul.
         4. SE VOCÊ TIVER DÚVIDA SE O ENDEREÇO É EM JACAREÍ (Ex: apenas o nome da rua sem cidade), sua resposta OBRIGATÓRIA deve ser "Outras Cidades". NÃO INVENTE JURISDIÇÃO.
