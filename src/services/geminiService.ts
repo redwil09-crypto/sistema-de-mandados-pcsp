@@ -762,6 +762,7 @@ const NEIGHBORHOOD_TO_DP: { [key: string]: string } = {
     "vila machado": "2º DP",
     "panorama": "2º DP",
     "jardim panorama": "2º DP",
+    "chiquinha schurig": "2º DP",
 
     // 3º DP (CENTRO / CENTRAL - Sede: Centro)
     "centro": "3º DP",
