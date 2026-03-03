@@ -20,6 +20,7 @@ import ConfirmModal from '../components/ConfirmModal';
 import VoiceInput from '../components/VoiceInput';
 import WarrantAuditLog from '../components/WarrantAuditLog';
 import { formatDate, getStatusColor, maskDate } from '../utils/helpers';
+import { applyAutocorrect } from '../utils/autocorrect';
 import { Warrant } from '../types';
 import { geocodeAddress } from '../services/geocodingService';
 import { generateWarrantPDF, generateIfoodOfficePDF } from '../services/pdfReportService';
@@ -332,6 +333,8 @@ const WarrantDetail = () => {
         // Apply masks for dates
         if (['issueDate', 'entryDate', 'expirationDate', 'dischargeDate', 'birthDate'].includes(field as string)) {
             finalValue = maskDate(value);
+        } else if (field === 'observation') {
+            finalValue = applyAutocorrect(value);
         }
 
         setLocalData(prev => {
@@ -2942,7 +2945,7 @@ Equipe de Capturas - DIG / PCSP
                                         </button>
                                     </div>
                                     <div className="relative">
-                                        <textarea value={newDiligence} onChange={e => setNewDiligence(e.target.value)} className="w-full bg-transparent border-none text-text-light dark:text-white text-lg leading-relaxed outline-none resize-none min-h-[160px] pr-12 scrollbar-none placeholder:text-text-secondary-light dark:placeholder:text-white/20" placeholder="Descreva informes brutos, vizinhos, veículos, placas..." />
+                                        <textarea value={newDiligence} onChange={e => setNewDiligence(applyAutocorrect(e.target.value))} className="w-full bg-transparent border-none text-text-light dark:text-white text-lg leading-relaxed outline-none resize-none min-h-[160px] pr-12 scrollbar-none placeholder:text-text-secondary-light dark:placeholder:text-white/20" placeholder="Descreva informes brutos, vizinhos, veículos, placas..." />
                                         <div className="absolute right-0 bottom-0 p-2">
                                             <VoiceInput onTranscript={t => setNewDiligence(t)} currentValue={newDiligence} />
                                         </div>

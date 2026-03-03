@@ -729,6 +729,7 @@ const NEIGHBORHOOD_TO_DP: { [key: string]: string } = {
     "jardim colonia": "1º DP",
     "vila vintem": "1º DP",
     "terra de santa clara": "1º DP",
+    "pitoresco": "1º DP",
 
     // 2º DP (OESTE - Sede: Jd. Flórida)
     "jardim florida": "2º DP",
@@ -791,7 +792,6 @@ const NEIGHBORHOOD_TO_DP: { [key: string]: string } = {
     "jardim lourdes": "3º DP",
     "emida costa": "3º DP",
     "leonidia": "3º DP",
-    "pitoresco": "3º DP",
     "vila real": "3º DP",
     "amparo": "3º DP",
     "perreira do amparo": "3º DP",
