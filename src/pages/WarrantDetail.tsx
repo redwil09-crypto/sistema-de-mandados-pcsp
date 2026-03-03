@@ -117,7 +117,7 @@ const WarrantDetail = () => {
         reportNumber: '',
         court: '',
         body: '',
-        signer: 'William Campos A. Castro',
+        signer: '',
         delegate: 'Luiz Antônio Cunha dos Santos',
         aiInstructions: ''
     });
@@ -151,17 +151,54 @@ const WarrantDetail = () => {
     });
     // -------------------------------------------------------------------------------- //
 
+    const [currentUser, setCurrentUser] = useState<{ name: string; email: string } | null>(null);
+
     useEffect(() => {
-        const checkAdmin = async () => {
+        const checkUser = async () => {
             const { data: { user } } = await supabase.auth.getUser();
             if (user) {
                 setUserId(user.id);
                 if (user.user_metadata?.role === 'admin') {
                     setIsAdmin(true);
                 }
+
+                // Fetch profile
+                try {
+                    const { data: profile } = await supabase
+                        .from('profiles')
+                        .select('full_name, email')
+                        .eq('id', user.id)
+                        .single();
+
+                    if (profile) {
+                        const userInfo = {
+                            name: profile.full_name,
+                            email: profile.email
+                        };
+                        setCurrentUser(userInfo);
+
+                        // Update capturasData with current user as signer
+                        setCapturasData(prev => ({
+                            ...prev,
+                            signer: profile.full_name
+                        }));
+                    } else {
+                        const userInfo = {
+                            name: user.user_metadata?.full_name || 'Policial',
+                            email: user.email || ''
+                        };
+                        setCurrentUser(userInfo);
+                        setCapturasData(prev => ({
+                            ...prev,
+                            signer: userInfo.name
+                        }));
+                    }
+                } catch (e) {
+                    console.error("Error fetching profile:", e);
+                }
             }
         };
-        checkAdmin();
+        checkUser();
     }, []);
 
     useEffect(() => {
@@ -1111,7 +1148,7 @@ Equipe de Capturas - DIG / PCSP
         if (!data) return;
         const toastId = toast.loading("Gerando Ofício iFood...");
         try {
-            await generateIfoodOfficePDF(data, updateWarrant);
+            await generateIfoodOfficePDF(data, updateWarrant, currentUser);
             toast.dismiss(toastId);
         } catch (error) {
             console.error(error);
@@ -1407,9 +1444,9 @@ Equipe de Capturas - DIG / PCSP
             y += (splitBody3.length * 5) + 2;
 
             doc.setFont('helvetica', 'bold');
-            doc.text("     william.castro@policiacivil.sp.gov.br", margin, y);
+            doc.text(`     ${currentUser?.email || 'william.castro@policiacivil.sp.gov.br'}`, margin, y);
             y += 5;
-            doc.text("     William Campos de Assis Castro – Polícia Civil do Estado de São Paulo", margin, y);
+            doc.text(`     ${currentUser?.name || 'William Campos de Assis Castro'} – Polícia Civil do Estado de São Paulo`, margin, y);
 
             y += 10; // Reduced spacing
 

@@ -475,7 +475,8 @@ export const generateWarrantPDF = async (
 
 export const generateIfoodOfficePDF = async (
     data: Warrant,
-    onUpdate?: (id: string, updates: Partial<Warrant>) => Promise<boolean>
+    onUpdate?: (id: string, updates: Partial<Warrant>) => Promise<boolean>,
+    currentUser?: { name: string; email: string } | null
 ) => {
     if (!data) return;
     try {
@@ -572,7 +573,7 @@ export const generateIfoodOfficePDF = async (
         y += 45;
 
         // --- CLOSING ---
-        const emailText = `As informações deverão ser encaminhadas para o e-mail oficial desta unidade (dig.jacarei@policiacivil.sp.gov.br) em formato PDF ou planilha eletrônica.`;
+        const emailText = `As informações deverão ser encaminhadas para o e-mail oficial do responsável (${currentUser?.email || 'dig.jacarei@policiacivil.sp.gov.br'}) em formato PDF ou planilha eletrônica.`;
         const splitEmail = doc.splitTextToSize(emailText, pageWidth - (margin * 2));
         doc.setFont('helvetica', 'normal');
         doc.text(splitEmail, margin, y);
@@ -592,9 +593,9 @@ export const generateIfoodOfficePDF = async (
 
         const sigX = margin + 40;
         doc.setFont('helvetica', 'bold');
-        doc.text("Luiz Antônio Cunha dos Santos", sigX, y + 5, { align: 'left' });
+        doc.text(currentUser?.name || "Luiz Antônio Cunha dos Santos", sigX, y + 5, { align: 'left' });
         doc.setFont('helvetica', 'normal');
-        doc.text("Delegado de Polícia", sigX + 15, y + 10, { align: 'left' });
+        doc.text(currentUser?.name ? "Policial Responsável" : "Delegado de Polícia", sigX + 15, y + 10, { align: 'left' });
 
         // --- FOOTER (New Model Style) ---
         const footerY = pageHeight - 15;

@@ -52,8 +52,31 @@ const AIAssistantPage = () => {
     const [hasAi, setHasAi] = useState(false);
     const [selectedWarrants, setSelectedWarrants] = useState<string[]>([]);
 
+    const [currentUser, setCurrentUser] = useState<{ name: string; email: string } | null>(null);
+
     useEffect(() => {
         isGeminiEnabled().then(setHasAi);
+
+        const fetchUser = async () => {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) {
+                const { data: profile } = await supabase
+                    .from('profiles')
+                    .select('full_name, email')
+                    .eq('id', user.id)
+                    .single();
+
+                if (profile) {
+                    setCurrentUser({ name: profile.full_name, email: profile.email });
+                } else {
+                    setCurrentUser({
+                        name: user.user_metadata?.full_name || 'Policial',
+                        email: user.email || ''
+                    });
+                }
+            }
+        };
+        fetchUser();
     }, []);
 
     // Atualiza a URL quando a aba muda
