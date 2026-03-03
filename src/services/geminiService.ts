@@ -730,6 +730,7 @@ const NEIGHBORHOOD_TO_DP: { [key: string]: string } = {
     "vila vintem": "1º DP",
     "terra de santa clara": "1º DP",
     "pitoresco": "1º DP",
+    "jardim pitoresco": "1º DP",
 
     // 2º DP (OESTE - Sede: Jd. Flórida)
     "jardim florida": "2º DP",
@@ -833,7 +834,34 @@ export const inferDPRegion = async (address: string, lat?: number, lng?: number)
         return null;
     }
 
+    // 0. CHECK FOR OTHER CITIES AND STATES FIRST
+    const rawUpper = address.toUpperCase();
+    const normalizedJacarei = normalized.includes('jacarei');
+    const normalizedIgarata = normalized.includes('igarata');
+
+    // Detect Other States (e.g., - RJ, - MG, - PR)
+    const stateMatch = rawUpper.match(/-\s*([A-Z]{2})\b/);
+    if (stateMatch && stateMatch[1] !== 'SP' && !normalizedJacarei) {
+        return 'Outras Cidades';
+    }
+
+    // List of cities that should definitely not be Jacareí (unless explicitly mentioned)
+    const otherCities = [
+        'SAO JOSE DOS CAMPOS', 'SÃO JOSÉ DOS CAMPOS', 'SJC', 'TAUBATE', 'CACAPAVA', 'SÃO PAULO', 'SAO PAULO',
+        'GUARULHOS', 'MOGI DAS CRUZES', 'SANTA BRANCA', 'PARAIBUNA', 'CAJAMAR', 'CAMPINAS',
+        'OSASCO', 'SANTO ANDRE', 'SAO BERNARDO', 'SOROCABA', 'SANTOS', 'CARAPICUIBA',
+        'PIRACICABA', 'BAURU', 'FRANCA', 'LIMEIRA', 'ARARAQUARA', 'ITAQUAQUECETUBA'
+    ];
+
+    const mentionsOtherCity = otherCities.some(city => rawUpper.includes(city));
+
+    if (mentionsOtherCity && !normalizedJacarei && !normalizedIgarata) {
+        console.log(`[DP INFERENCE] Detected Other City: ${address}`);
+        return 'Outras Cidades';
+    }
+
     // 1. Check Hardcoded Map FIRST (Speed and Accuracy for known Jacareí neighborhoods)
+    // We only check this if it's likely Jacareí or explicitly Jacareí.
     for (const [neighborhood, dp] of Object.entries(NEIGHBORHOOD_TO_DP)) {
         if (normalized.includes(neighborhood)) {
             console.log(`[DP INFERENCE] Match found via Map: ${neighborhood} -> ${dp}`);
@@ -841,7 +869,7 @@ export const inferDPRegion = async (address: string, lat?: number, lng?: number)
         }
     }
 
-    // 2. Intelligent Distance Hint (if coordinates present)
+    // 2. Intelligent Distance Hint & Decision (if coordinates present)
     let distanceHint = "";
     if (lat && lng) {
         const sortedDps = [...DP_SITES].sort((a, b) => {
@@ -849,7 +877,18 @@ export const inferDPRegion = async (address: string, lat?: number, lng?: number)
             const distB = Math.sqrt(Math.pow(lat - b.lat, 2) + Math.pow(lng - b.lng, 2));
             return distA - distB;
         });
-        distanceHint = `GEOLOCALIZAÇÃO: Este ponto está FISICAMENTE mais próximo da sede do ${sortedDps[0].id}. Use esta informação como prioridade máxima de decisão regional.`;
+
+        const closestDp = sortedDps[0];
+        const distToClosest = Math.sqrt(Math.pow(lat - closestDp.lat, 2) + Math.pow(lng - closestDp.lng, 2));
+
+        // Threshold of 0.18 is approx 20km. 
+        // If the location is further than 20km from ALL local DPs, it's definitively NOT in Jacareí.
+        if (distToClosest > 0.18) {
+            console.log(`[DP INFERENCE] Geoloc distance too far (${distToClosest.toFixed(4)}): Outras Cidades`);
+            return 'Outras Cidades';
+        }
+
+        distanceHint = `GEOLOCALIZAÇÃO: Este ponto está FISICAMENTE mais próximo da sede do ${closestDp.id}. Use esta informação como prioridade máxima de decisão regional.`;
     }
 
     // 3. Fallback to Gemini for complex addresses or unknown areas
@@ -866,17 +905,16 @@ export const inferDPRegion = async (address: string, lat?: number, lng?: number)
         ${distanceHint}
 
         DIRETRIZES TÁTICAS (JACAREÍ/SP):
-        1. CIDADE SALVADOR, NOVO AMANHECER E VILA BRANCA SÃO 1º DP.
-        2. AS COORDENADAS SÃO O FATOR DE DESEMPATE FINAL.
-        3. SE A CIDADE NÃO FOR JACAREÍ, retorne "Outras Cidades".
-        
-        JURISDIÇÃO (REFERÊNCIA):
-        * 1º DP: Cidade Salvador, Santa Maria, Novo Amanhecer, Vila Branca, Cerejeira, Luiza, Rio Comprido, Jd. Esper.
-        * 2º DP: Bela Vista, Igarapés, São Silvestre, Cidade Nova, Pagador de Andrade.
-        * 3º DP: Centro, Jd. Califórnia, São João, Zezé, Santa Paula.
-        * 4º DP: Meia Lua, Primeiro de Maio, Lagoa Azul.
+        1. SE O ENDEREÇO MENCIONAR QUALQUER CIDADE DIFERENTE DE JACAREÍ OU IGARATÁ (como São José dos Campos, São Paulo, Mogi, etc.), sua resposta OBRIGATÓRIA deve ser "Outras Cidades".
+        2. CASO O ENDEREÇO TENHA UM ESTADO DIFERENTE DE SP (ex: - RJ, - MG), sua resposta OBRIGATÓRIA deve ser "Outras Cidades".
+        3. CASO SEJA JACAREÍ:
+           - 1º DP: Cidade Salvador, Santa Maria, Novo Amanhecer, Vila Branca, Santa Paula, Rio Comprido, Jd. Esper, Jd. Pitoresco.
+           - 2º DP: Bela Vista, Igarapés, São Silvestre, Cidade Nova, Pagador de Andrade, Jd. Panorama, Rua Chiquinha Schurig.
+           - 3º DP: Centro (Estritamente Jacareí), Jd. Califórnia, São João, Zezé.
+           - 4º DP: Meia Lua, Primeiro de Maio, Lagoa Azul.
+        4. SE VOCÊ TIVER DÚVIDA SE O ENDEREÇO É EM JACAREÍ (Ex: apenas o nome da rua sem cidade), sua resposta OBRIGATÓRIA deve ser "Outras Cidades". NÃO INVENTE JURISDIÇÃO.
 
-        RESPOSTA ESTRITA (APENAS UM DESSES): "1º DP", "2º DP", "3º DP", "4º DP", "DIG", "DISE", "DDM", "Plantão", "Outras Cidades".
+        RESPOSTA ESTRITA (APENAS UM DESSES): "1º DP", "2º DP", "3º DP", "4º DP", "Outras Cidades".
         Resposta:
     `;
 
