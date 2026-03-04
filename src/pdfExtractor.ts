@@ -95,6 +95,7 @@ export const determineDpRegion = (address: string): string => {
     ];
 
     const keywords3DP = [
+        'AVAREI', 'CENTRO', 'PARQUE DOS SINOS', 'JARDIM SAO JOSE', 'JARDIM BELA VISTA', 'JARDIM LIBERDADE', 'VILA DENISE', 'JARDIM LEONIDIA',
         'SANTA MARINA', 'VILA GARCIA', 'PINHEIRO', 'SAO JOAO', 'SAO SIMAO',
         'MARILIA', 'BRASILIA', 'ESPER', 'JARDIM ESPER', 'DIDINHA',
         'GUARANI', 'SAO GABRIEL', 'JARDIM CALIFORNIA',
@@ -108,8 +109,8 @@ export const determineDpRegion = (address: string): string => {
     ];
 
     if (keywords1DP.some(k => loc.includes(k))) return '1º DP';
-    if (keywords2DP.some(k => loc.includes(k))) return '2º DP';
     if (keywords3DP.some(k => loc.includes(k))) return '3º DP';
+    if (keywords2DP.some(k => loc.includes(k))) return '2º DP';
     if (keywords4DP.some(k => loc.includes(k))) return '4º DP';
 
     return '';
