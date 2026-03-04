@@ -1305,6 +1305,20 @@ Equipe de Capturas - DIG / PCSP
         await generateWarrantPDF(updatedDataForPDF as Warrant, updateWarrant, aiTimeSuggestion);
     };
 
+    const handleClearTacticalSummary = async () => {
+        if (!data) return;
+        if (window.confirm("Deseja realmente apagar toda a Sugestão Tática Inteligente? Esta ação limpará o Centro de Inteligência e não pode ser desfeita.")) {
+            const success = await updateWarrant(data.id, { tacticalSummary: null });
+            if (success) {
+                handleFieldChange('tacticalSummary', null);
+                if (refreshWarrants) await refreshWarrants(true);
+                toast.success("Sugestão Tática apagada com sucesso.");
+            } else {
+                toast.error("Erro ao apagar Sugestão Tática.");
+            }
+        }
+    };
+
     const handleGenerateIFoodReport = async () => {
         if (!data) return;
 
@@ -2542,13 +2556,22 @@ Equipe de Capturas - DIG / PCSP
                                                 <div className="hidden md:flex flex-col items-end mr-4">
                                                     <span className="text-[9px] uppercase font-black text-indigo-300 tracking-widest mb-1">Avanço Global</span>
                                                     <div className="w-32 h-2 bg-white/10 rounded-full overflow-hidden">
-                                                        <div className="h-full bg-gradient-to-r from-indigo-500 to-cyan-400 transition-all duration-1000" style={{ width: `${progress}%` }}></div>
+                                                        <div className="h-full bg-gradient-to-r from-indigo-50 to-cyan-400 transition-all duration-1000" style={{ width: `${progress}%` }}></div>
                                                     </div>
                                                     <span className="text-[10px] font-bold text-white mt-1">{progress}% Concluído</span>
                                                 </div>
                                             )
                                         } catch (e) { return null }
                                     })()}
+
+                                    {/* DELETE TACTICAL SUMMARY BUTTON */}
+                                    <button
+                                        onClick={handleClearTacticalSummary}
+                                        className="bg-red-500/10 hover:bg-red-500/20 text-red-500 p-2.5 rounded-xl transition-all border border-red-500/20 flex items-center justify-center group shadow-sm active:scale-95"
+                                        title="Apagar Sugestão Tática"
+                                    >
+                                        <Trash2 size={16} className="group-hover:scale-110 transition-transform" />
+                                    </button>
 
                                     {/* GENERATE PDF BUTTON */}
                                     <button
