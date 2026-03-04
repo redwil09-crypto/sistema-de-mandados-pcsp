@@ -737,6 +737,14 @@ const NEIGHBORHOOD_TO_DP: { [key: string]: string } = {
     "jardim boa vista": "1º DP",
     "residencial vista das araucarias": "1º DP",
     "vista das araucarias": "1º DP",
+    "jardim colinas": "1º DP",
+    "colinas": "1º DP",
+    "campo grande": "1º DP",
+    "mato dentro": "1º DP",
+    "santana do pedregulho": "1º DP",
+    "jardim santana do pedregulho": "1º DP",
+    "jardim santana": "1º DP",
+    "jardim altos de santana": "1º DP",
 
     // 2º DP (OESTE - Sede: Jd. Flórida)
     "jardim florida": "2º DP",
@@ -749,7 +757,6 @@ const NEIGHBORHOOD_TO_DP: { [key: string]: string } = {
     "lago dourado": "2º DP",
     "lagoinha": "4º DP",
     "condominio lagoinha": "4º DP",
-    "jardim santana": "2º DP",
     "sao luiz": "2º DP",
     "agrinco": "2º DP",
     "imperial": "2º DP",
@@ -935,7 +942,7 @@ export const inferDPRegion = async (address: string, lat?: number, lng?: number)
         1. SE O ENDEREÇO MENCIONAR QUALQUER CIDADE DIFERENTE DE JACAREÍ OU IGARATÁ (como São José dos Campos, São Paulo, Mogi, etc.), sua resposta OBRIGATÓRIA deve ser "Outras Cidades".
         2. CASO O ENDEREÇO TENHA UM ESTADO DIFERENTE DE SP (ex: - RJ, - MG), sua resposta OBRIGATÓRIA deve ser "Outras Cidades".
         3. CASO SEJA JACAREI:
-           - 1º DP: Cidade Salvador, Santa Maria, Novo Amanhecer, Vila Branca, Santa Paula, Rio Comprido, Jd. Pitoresco, Parque dos Principes, Santo Antonio, Boa Vista, Vista das Araucarias, Jardim do Marques, Jardim Coleginho, Vila Nova Alianca, Vila Zeze.
+           - 1º DP: Cidade Salvador, Santa Maria, Novo Amanhecer, Vila Branca, Santa Paula, Rio Comprido, Jd. Pitoresco, Parque dos Principes, Santo Antonio, Boa Vista, Vista das Araucarias, Jardim do Marques, Jardim Coleginho, Vila Nova Alianca, Vila Zeze, Jardim Colinas, Campo Grande, Jardim Altos de Santana, Santana do Pedregulho, Jardim Dora, Jardim Colonia, Mato Dentro.
            - 2º DP: Bela Vista (Apenas Bela Vista puro), Igarapés, São Silvestre, Cidade Nova, Jd. Panorama, Rua Chiquinha Schurig, Jardim Arice (JD Arice), Vila São Judas Tadeu, Jardim Jacinto, Bandeira Branca, Jardim Emilia, Vila Ita, Balneario Paraiba, JAMIC, Terras de Santa Helena.
            - 3º DP: Centro (Estritamente Jacareí), Jd. Califórnia, São João, Didinha, Jd. Esper, Jardim Bela Vista, Parque dos Sinos, Jardim São Jose, Jardim Liberdade, Vila Denise, Jardim Leonidia.
            - 4º DP: Meia Lua, Primeiro de Maio, Lagoa Azul, Pagador Andrade, São Joaquim, Paratei, Jardim Alvorada, Lagoinha, Rio Abaixo.
