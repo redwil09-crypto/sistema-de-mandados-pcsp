@@ -713,6 +713,8 @@ const NEIGHBORHOOD_TO_DP: { [key: string]: string } = {
     "altos de santana": "1º DP",
     "jardim paraiso": "1º DP",
     "maria amelia": "1º DP",
+    "jardim dora": "1º DP",
+    "dora": "1º DP",
     "olympia": "1º DP",
     "jardim olympia": "1º DP",
     "jardim real": "1º DP",

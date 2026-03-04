@@ -80,7 +80,7 @@ export const determineDpRegion = (address: string): string => {
         'VILA ZEZE', 'ZEZE', 'VILA VINTEM', 'NOVO AMANHECER', 'PORTAL',
         'PITORESCO', 'JARDIM PITORESCO', 'BOA VISTA', 'VISTA DAS ARAUCARIAS',
         'JARDIM DO MARQUES', 'MARQUES', 'JARDIM COLEGINHO', 'VILA NOVA ALIANCA',
-        'COLINAS', 'CAMPO GRANDE', 'ALTOS DE SANTANA', 'PEDREGULHO', 'DORA', 'MATO DENTRO'
+        'COLINAS', 'CAMPO GRANDE', 'MATO DENTRO'
     ];
 
     const keywords2DP = [
