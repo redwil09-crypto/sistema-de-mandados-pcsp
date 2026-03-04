@@ -696,13 +696,13 @@ const NEIGHBORHOOD_TO_DP: { [key: string]: string } = {
     "santa marina": "1º DP",
     "santa paula": "1º DP",
     "rio comprido": "1º DP",
-    "bandeira branca": "1º DP",
     "varadouro": "1º DP",
-    "rio abaixo": "1º DP",
-    "esper": "1º DP",
+    "rio abaixo": "4º DP",
     "vila branca": "1º DP",
-    "jardim esper": "1º DP",
     "jardim luiza": "1º DP",
+    "jardim do marques": "1º DP",
+    "jardim coleginho": "1º DP",
+    "vila nova alianca": "1º DP",
     "cerejeira": "1º DP",
     "guanabara": "1º DP",
     "jardim guanabara": "1º DP",
@@ -718,8 +718,7 @@ const NEIGHBORHOOD_TO_DP: { [key: string]: string } = {
     "jardim real": "1º DP",
     "pedregulho": "1º DP",
     "vila zeze": "1º DP",
-    "didinha": "1º DP",
-    "jardim didinha": "1º DP",
+    "zeze": "1º DP",
     "itamarati": "1º DP",
     "mirante do vale": "1º DP",
     "jardim yolanda": "1º DP",
@@ -745,11 +744,12 @@ const NEIGHBORHOOD_TO_DP: { [key: string]: string } = {
     "jardim bela vista": "2º DP",
     "igarapes": "2º DP",
     "sao silvestre": "2º DP",
-    "pagador andrade": "2º DP",
+    "pagador andrade": "4º DP",
     "cidade nova": "2º DP",
     "jacarei cidade nova": "2º DP",
     "lago dourado": "2º DP",
-    "lagoinha": "2º DP",
+    "lagoinha": "4º DP",
+    "condominio lagoinha": "4º DP",
     "jardim santana": "2º DP",
     "sao luiz": "2º DP",
     "agrinco": "2º DP",
@@ -759,10 +759,10 @@ const NEIGHBORHOOD_TO_DP: { [key: string]: string } = {
     "iraja": "2º DP",
     "nova esperanca": "2º DP",
     "jardim nova esperanca": "2º DP",
-    "sao joaquim": "2º DP",
+    "sao joaquim": "4º DP",
     "esperanca": "2º DP",
     "jardim esperanca": "2º DP",
-    "jardim alvorada": "2º DP",
+    "jardim alvorada": "4º DP",
     "baixos": "2º DP",
     "escada": "2º DP",
     "jardim siesta": "2º DP",
@@ -780,15 +780,27 @@ const NEIGHBORHOOD_TO_DP: { [key: string]: string } = {
     "vila sao judas tadeu": "2º DP",
     "jardim jacinto": "2º DP",
     "jacinto": "2º DP",
+    "bandeira branca": "2º DP",
+    "jardim emilia": "2º DP",
+    "vila ita": "2º DP",
+    "balneario paraiba": "2º DP",
+    "jamic": "2º DP",
+    "jardim terras de santa helena": "2º DP",
+    "cidade jardim": "2º DP",
+    "jardim elza maria": "2º DP",
+    "jardim terras de sao joao": "2º DP",
+    "parque imperial": "2º DP",
+    "jardim pedra mar": "2º DP",
+    "rua projetada": "2º DP",
+    "conj res vinte e dois de abril": "2º DP",
 
     // 3º DP (CENTRO / CENTRAL - Sede: Centro)
     "centro": "3º DP",
     "jardim california": "3º DP",
-    "parque california": "3º DP",
+    "parque california": "1º DP",
     "sao joao": "3º DP",
-    "zeze": "3º DP",
-    "paraiba": "3º DP",
-    "jardim paraiba": "3º DP",
+    "jardim paraiba": "2º DP",
+    "paraiba": "2º DP",
     "vila garcia": "3º DP",
     "pinheiro": "3º DP",
     "vila pinheiro": "3º DP",
@@ -809,8 +821,6 @@ const NEIGHBORHOOD_TO_DP: { [key: string]: string } = {
     "perreira do amparo": "3º DP",
     "avenida": "3º DP",
     "avarei": "3º DP",
-    "jardim emilia": "3º DP",
-    "vila ita": "3º DP",
     "parque brasil": "3º DP",
 
     // 4º DP (NORTE / MEIA LUA - Sede: Meia Lua)
@@ -823,6 +833,8 @@ const NEIGHBORHOOD_TO_DP: { [key: string]: string } = {
     "remedinhos": "4º DP",
     "pagador": "4º DP",
     "andrade": "4º DP",
+    "paratei": "4º DP",
+    "jardim conquista": "4º DP",
     "cassununga": "4º DP",
     "chacaras rural": "4º DP",
     "rural": "4º DP"
@@ -917,10 +929,10 @@ export const inferDPRegion = async (address: string, lat?: number, lng?: number)
         1. SE O ENDEREÇO MENCIONAR QUALQUER CIDADE DIFERENTE DE JACAREÍ OU IGARATÁ (como São José dos Campos, São Paulo, Mogi, etc.), sua resposta OBRIGATÓRIA deve ser "Outras Cidades".
         2. CASO O ENDEREÇO TENHA UM ESTADO DIFERENTE DE SP (ex: - RJ, - MG), sua resposta OBRIGATÓRIA deve ser "Outras Cidades".
         3. CASO SEJA JACAREI:
-           - 1º DP: Cidade Salvador, Santa Maria, Novo Amanhecer, Vila Branca, Santa Paula, Rio Comprido, Jd. Esper, Jd. Pitoresco, Parque dos Principes, Santo Antonio, Boa Vista, Vista das Araucarias.
-           - 2º DP: Bela Vista, Igarapés, São Silvestre, Cidade Nova, Pagador de Andrade, Jd. Panorama, Rua Chiquinha Schurig, Jardim Arice (JD Arice), Vila São Judas Tadeu, Jardim Jacinto.
-           - 3º DP: Centro (Estritamente Jacareí), Jd. Califórnia, São João, Zezé.
-           - 4º DP: Meia Lua, Primeiro de Maio, Lagoa Azul.
+           - 1º DP: Cidade Salvador, Santa Maria, Novo Amanhecer, Vila Branca, Santa Paula, Rio Comprido, Jd. Pitoresco, Parque dos Principes, Santo Antonio, Boa Vista, Vista das Araucarias, Jardim do Marques, Jardim Coleginho, Vila Nova Alianca, Vila Zeze.
+           - 2º DP: Bela Vista, Igarapés, São Silvestre, Cidade Nova, Jd. Panorama, Rua Chiquinha Schurig, Jardim Arice (JD Arice), Vila São Judas Tadeu, Jardim Jacinto, Bandeira Branca, Jardim Emilia, Vila Ita, Balneario Paraiba, JAMIC, Terras de Santa Helena.
+           - 3º DP: Centro (Estritamente Jacareí), Jd. Califórnia, São João, Didinha, Jd. Esper.
+           - 4º DP: Meia Lua, Primeiro de Maio, Lagoa Azul, Pagador Andrade, São Joaquim, Paratei, Jardim Alvorada, Lagoinha, Rio Abaixo.
         4. SE VOCÊ TIVER DÚVIDA SE O ENDEREÇO É EM JACAREÍ (Ex: apenas o nome da rua sem cidade), sua resposta OBRIGATÓRIA deve ser "Outras Cidades". NÃO INVENTE JURISDIÇÃO.
 
         RESPOSTA ESTRITA (APENAS UM DESSES): "1º DP", "2º DP", "3º DP", "4º DP", "Outras Cidades".
