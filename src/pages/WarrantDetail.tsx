@@ -3301,7 +3301,7 @@ Equipe de Capturas - DIG / PCSP
                                 onPrint={handleDownloadPDF}
                                 onFinalize={handleFinalize}
                                 onReopen={handleReopen}
-                                onDelete={isAdmin ? () => setIsDeleteConfirmOpen(true) : undefined}
+                                onDelete={() => setIsDeleteConfirmOpen(true)}
                                 status={localData.status}
                             />
                         </div>
