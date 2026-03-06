@@ -54,8 +54,7 @@ const WarrantDetail = () => {
     const [finalizeFormData, setFinalizeFormData] = useState({
         date: new Date().toISOString().split('T')[0],
         reportNumber: '',
-        digOffice: '',
-        result: 'Fechado',
+        result: 'PRESO',
         details: ''
     });
 
@@ -695,14 +694,20 @@ const WarrantDetail = () => {
         );
     }
 
-    const handleFinalize = () => {
+    const handleFinalize = async () => {
         if (!data) return;
         const isSearch = data.type?.toLowerCase().includes('busca') || data.type?.toLowerCase().includes('apreensão');
+
+        // Buscar sugestão global do banco para o relatório de cumprimento
+        let suggestedNum = await getLastFulfillmentReportNumber();
+        if (!suggestedNum) {
+            suggestedNum = getSuggestedReportNumber();
+        }
+
         setFinalizeFormData(prev => ({
             ...prev,
-            digOffice: data.digOffice || '',
-            reportNumber: data.fulfillmentReport || getSuggestedReportNumber(),
-            result: isSearch ? 'Apreendido' : 'Fechado'
+            reportNumber: data.fulfillmentReport || suggestedNum || '',
+            result: isSearch ? 'Apreendido' : 'PRESO'
         }));
         setIsFinalizeModalOpen(true);
     };
@@ -727,7 +732,6 @@ const WarrantDetail = () => {
         const updates: any = {
             status: 'CUMPRIDO',
             dischargeDate: finalizeFormData.date,
-            digOffice: finalizeFormData.digOffice,
             fulfillmentResult: finalizeFormData.result,
             fulfillmentReport: finalizeFormData.reportNumber,
             fulfillmentDetails: finalizeFormData.details
@@ -741,6 +745,7 @@ const WarrantDetail = () => {
         const success = await updateWarrant(data.id, updates);
         if (success) {
             toast.success("Mandado finalizado com sucesso!");
+            if (refreshWarrants) await refreshWarrants(true);
         } else {
             toast.error("Erro ao finalizar mandado.");
         }
@@ -3197,8 +3202,8 @@ Equipe de Capturas - DIG / PCSP
                                         <input type="date" className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white" value={finalizeFormData.date} onChange={e => setFinalizeFormData({ ...finalizeFormData, date: e.target.value })} />
                                     </div>
                                     <div className="space-y-1">
-                                        <label className="text-[10px] font-black text-text-muted uppercase tracking-widest">Ofício DIG Vinculado</label>
-                                        <input type="text" className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white" value={finalizeFormData.digOffice} onChange={e => setFinalizeFormData({ ...finalizeFormData, digOffice: e.target.value })} />
+                                        <label className="text-[10px] font-black text-text-muted uppercase tracking-widest">Nº Relatório de Cumprimento</label>
+                                        <input type="text" className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white" value={finalizeFormData.reportNumber} onChange={e => setFinalizeFormData({ ...finalizeFormData, reportNumber: e.target.value })} />
                                     </div>
                                     <div className="space-y-1">
                                         <label className="text-[10px] font-black text-text-muted uppercase tracking-widest">Resultado Final</label>
