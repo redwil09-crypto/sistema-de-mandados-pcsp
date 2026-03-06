@@ -8,25 +8,22 @@ import { Warrant } from '../types';
 import { uploadFile, getPublicUrl } from '../supabaseStorage';
 import { supabase } from '../supabaseClient';
 
-import { getLastDigOfficeNumber } from '../supabaseService';
-
 interface IfoodReportModalProps {
     isOpen: boolean;
     onClose: () => void;
     warrant: Warrant;
     type: 'ifood' | 'uber' | '99';
     updateWarrant: (id: string, data: Partial<Warrant>) => Promise<boolean>;
-    allWarrants?: Warrant[];
 }
 
-const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, warrant, type: initialType, updateWarrant, allWarrants = [] }) => {
+const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, warrant, type: initialType, updateWarrant }) => {
     const [generatedText, setGeneratedText] = useState('');
     const [isProcessing, setIsProcessing] = useState(false);
     const [officeNumber, setOfficeNumber] = useState('');
     const [step, setStep] = useState<'input' | 'processing' | 'result'>('input');
     const [badgeImg, setBadgeImg] = useState<HTMLImageElement | null>(null);
     const [selectedType, setSelectedType] = useState(initialType);
-    const [currentUser, setCurrentUser] = useState<{ id: string; name: string; email: string } | null>(null);
+    const [currentUser, setCurrentUser] = useState<{ name: string; email: string } | null>(null);
 
     // Update selectedType if props change (reset)
     useEffect(() => {
@@ -62,10 +59,10 @@ const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, wa
             setGeneratedText('');
             setOfficeNumber('');
         } else {
-            const fetchUserAndSuggest = async () => {
+            // Fetch current user info when modal opens
+            const fetchUser = async () => {
                 const { data: { user } } = await supabase.auth.getUser();
                 if (user) {
-                    let userData = { id: user.id, name: 'Policial', email: user.email || '' };
                     try {
                         const { data: profile } = await supabase
                             .from('profiles')
@@ -74,44 +71,27 @@ const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, wa
                             .single();
 
                         if (profile) {
-                            userData.name = profile.full_name;
-                        } else if (user.user_metadata?.full_name) {
-                            userData.name = user.user_metadata.full_name;
+                            setCurrentUser({
+                                name: profile.full_name,
+                                email: profile.email
+                            });
+                        } else {
+                            setCurrentUser({
+                                name: user.user_metadata?.full_name || 'Policial',
+                                email: user.email || ''
+                            });
                         }
-                    } catch (e) { }
-
-                    setCurrentUser(userData);
-
-                    // 1. Tentar buscar sugestão direta do banco (mais confiável)
-                    const dbSuggestion = await getLastDigOfficeNumber(user.id);
-                    if (dbSuggestion) {
-                        const match = dbSuggestion.match(/^(\d+)/);
-                        if (match) {
-                            setOfficeNumber(match[1].padStart(3, '0'));
-                            return;
-                        }
+                    } catch (e) {
+                        setCurrentUser({
+                            name: user.user_metadata?.full_name || 'Policial',
+                            email: user.email || ''
+                        });
                     }
-
-                    // 2. Fallback para cálculo local se o banco falhar
-                    const currentYear = new Date().getFullYear();
-                    let maxNum = 0;
-
-                    allWarrants.forEach(w => {
-                        if (w.userId === user.id && w.digOffice) {
-                            const match = w.digOffice.match(/^(\d+)/);
-                            if (match) {
-                                const num = parseInt(match[1]);
-                                if (!isNaN(num) && num > maxNum) maxNum = num;
-                            }
-                        }
-                    });
-
-                    setOfficeNumber((maxNum + 1).toString().padStart(3, '0'));
                 }
             };
-            fetchUserAndSuggest();
+            fetchUser();
         }
-    }, [isOpen, allWarrants]);
+    }, [isOpen]);
 
     const generateTextForType = (currentType: 'ifood' | 'uber' | '99') => {
         const months = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
@@ -127,7 +107,7 @@ const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, wa
         const contactEmail = currentUser?.email || 'william.castro@policiacivil.sp.gov.br';
         const contactName = currentUser?.name || 'William Campos de Assis Castro';
 
-        return `Ofício: nº.${officeNumber}/CAPT/${today.getFullYear()}
+        return `Ofício: nº.${officeNumber}/CAPT/2026
 Referência: PROC. Nº ${warrant.number}
 Natureza: Solicitação de Dados.
 
@@ -332,7 +312,7 @@ ${indent}Atenciosamente,`;
         if (selectedType === '99') companyName = '99';
         doc.text(`Empresa ${companyName}.`, margin, addresseeY + 5);
 
-        const totalPages = (doc as any).internal.pages.length - 1;
+        const totalPages = typeof (doc as any).internal.getNumberOfPages === 'function' ? (doc as any).internal.getNumberOfPages() : (doc as any).internal.pages.length - 1;
         for (let i = 1; i <= totalPages; i++) {
             doc.setPage(i);
             addFooter(doc, i, totalPages);
@@ -355,11 +335,7 @@ ${indent}Atenciosamente,`;
             if (uploadedPath) {
                 const url = getPublicUrl(uploadedPath);
                 const currentDocs = warrant.ifoodDocs || [];
-                const fullOfficeNumber = `${officeNumber}/CAPT/${new Date().getFullYear()}`;
-                await updateWarrant(warrant.id, {
-                    ifoodDocs: [...currentDocs, url],
-                    ifoodNumber: fullOfficeNumber
-                });
+                await updateWarrant(warrant.id, { ifoodDocs: [...currentDocs, url] });
                 toast.success("Cópia salva no histórico!", { id: toastId });
                 onClose();
             } else {

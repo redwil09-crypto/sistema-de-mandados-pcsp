@@ -45,7 +45,7 @@ const dbToWarrant = (dbWarrant: any): Warrant => {
         tags: dbWarrant.tags || [],
         fulfillmentResult: dbWarrant.fulfillment_result,
         fulfillmentReport: dbWarrant.fulfillment_report,
-        fulfillmentDetails: dbWarrant.fulfillment_details,
+        fulfillmentDetails: dbWarrant.description,
         ifoodDocs: dbWarrant.ifood_docs || [], // Added mapping
         date: dbWarrant.entry_date || dbWarrant.created_at?.split('T')[0],
         createdAt: dbWarrant.created_at,
@@ -56,7 +56,6 @@ const dbToWarrant = (dbWarrant: any): Warrant => {
         longitude: dbWarrant.longitude,
         birthDate: dbWarrant.birth_date,
         issuingCourt: dbWarrant.issuing_court,
-        userId: dbWarrant.user_id,
     };
 };
 
@@ -97,12 +96,11 @@ const warrantToDb = (warrant: Partial<Warrant>) => {
     if (warrant.tags !== undefined) dbObj.tags = warrant.tags;
     if (warrant.fulfillmentResult !== undefined) dbObj.fulfillment_result = warrant.fulfillmentResult;
     if (warrant.fulfillmentReport !== undefined) dbObj.fulfillment_report = warrant.fulfillmentReport;
-    if (warrant.fulfillmentDetails !== undefined) dbObj.fulfillment_details = warrant.fulfillmentDetails;
+    if (warrant.fulfillmentDetails !== undefined) dbObj.description = warrant.fulfillmentDetails;
     if (warrant.diligentHistory !== undefined) dbObj.diligent_history = warrant.diligentHistory;
     if (warrant.tacticalSummary !== undefined) dbObj.tactical_summary = warrant.tacticalSummary;
     if (warrant.ifoodDocs !== undefined) dbObj.ifood_docs = warrant.ifoodDocs; // Added mapping
     if (warrant.issuingCourt !== undefined) dbObj.issuing_court = warrant.issuingCourt;
-    if (warrant.userId !== undefined) dbObj.user_id = warrant.userId;
 
     return dbObj;
 };
@@ -312,68 +310,6 @@ export const deleteAuditLogs = async (ids: string[]): Promise<boolean> => {
     } catch (error) {
         console.error('Error deleting audit logs:', error);
         return false;
-    }
-};
-
-export const getLastFulfillmentReportNumber = async (): Promise<string | null> => {
-    try {
-        const { data, error } = await supabase
-            .from('warrants')
-            .select('fulfillment_report')
-            .not('fulfillment_report', 'is', null)
-            .order('created_at', { ascending: false })
-            .limit(50);
-
-        if (error) throw error;
-        if (!data || data.length === 0) return null;
-
-        // Tentar encontrar o maior número dentre os últimos registros
-        const numbers = data
-            .map(w => {
-                const match = w.fulfillment_report?.match(/^(\d+)/);
-                return match ? parseInt(match[1]) : null;
-            })
-            .filter((n): n is number => n !== null);
-
-        if (numbers.length === 0) return data[0].fulfillment_report;
-
-        const max = Math.max(...numbers);
-        const currentYear = new Date().getFullYear();
-        return `${max + 1}/${currentYear}`;
-    } catch (error) {
-        console.error('Error getting last report number:', error);
-        return null;
-    }
-};
-
-export const getLastDigOfficeNumber = async (userId: string): Promise<string | null> => {
-    try {
-        const { data, error } = await supabase
-            .from('warrants')
-            .select('dig_office')
-            .eq('user_id', userId)
-            .not('dig_office', 'is', null)
-            .order('created_at', { ascending: false })
-            .limit(50);
-
-        if (error) throw error;
-        if (!data || data.length === 0) return null;
-
-        const numbers = data
-            .map(w => {
-                const match = w.dig_office?.match(/^(\d+)/);
-                return match ? parseInt(match[1]) : null;
-            })
-            .filter((n): n is number => n !== null);
-
-        if (numbers.length === 0) return data[0].dig_office;
-
-        const max = Math.max(...numbers);
-        const currentYear = new Date().getFullYear();
-        return `${max + 1}/${currentYear}`;
-    } catch (error) {
-        console.error('Error getting last office number:', error);
-        return null;
     }
 };
 

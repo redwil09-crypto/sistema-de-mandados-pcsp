@@ -19,7 +19,6 @@ import { uploadFile, getPublicUrl } from '../supabaseStorage';
 import { analyzeWarrantData, isGeminiEnabled } from '../services/geminiService';
 import { geocodeAddress } from '../services/geocodingService';
 import { useWarrants } from '../contexts/WarrantContext';
-import { supabase } from '../supabaseClient';
 import BottomNav from '../components/BottomNav';
 
 
