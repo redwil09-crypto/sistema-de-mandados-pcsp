@@ -27,11 +27,11 @@ const MinorSearch = () => {
         // Text Search
         const term = searchTerm.toLowerCase();
         const matchesText = (
-            w.name.toLowerCase().includes(term) ||
-            w.number.toLowerCase().includes(term) ||
+            (w.name || '').toLowerCase().includes(term) ||
+            (w.number || '').toLowerCase().includes(term) ||
             (w.location && w.location.toLowerCase().includes(term)) ||
             (w.rg && w.rg.toLowerCase().includes(term)) ||
-            w.type.toLowerCase().includes(term) ||
+            (w.type || '').toLowerCase().includes(term) ||
             (w.description && w.description.toLowerCase().includes(term))
         );
 

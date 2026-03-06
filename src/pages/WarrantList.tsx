@@ -39,11 +39,11 @@ const WarrantList = () => {
         // Text Search
         const term = searchTerm.toLowerCase();
         const matchesText = (
-            w.name.toLowerCase().includes(term) ||
-            w.number.toLowerCase().includes(term) ||
+            (w.name || '').toLowerCase().includes(term) ||
+            (w.number || '').toLowerCase().includes(term) ||
             (w.location && w.location.toLowerCase().includes(term)) ||
             (w.rg && w.rg.toLowerCase().includes(term)) ||
-            w.type.toLowerCase().includes(term) ||
+            (w.type || '').toLowerCase().includes(term) ||
             (w.crime && w.crime.toLowerCase().includes(term)) ||
             (w.description && w.description.toLowerCase().includes(term)) ||
             (w.dpRegion && w.dpRegion.toLowerCase().replace('º', '').replace(' ', '').includes(term.replace('º', '').replace(' ', '')))
