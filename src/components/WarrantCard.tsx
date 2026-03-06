@@ -34,10 +34,9 @@ const WarrantCard = ({ data, onPrint, isPlanned, onRouteToggle, onFinalize, onDe
         stripeClasses = 'bg-emerald-500 shadow-[2px_0_15px_rgba(16,185,129,0.6)]';
     }
 
-    // Override with priority styling
+    // Border highlight for priority without pulse
     if (isPriority && data.status === 'EM ABERTO') {
-        hoverClasses = 'hover:border-red-500 hover:shadow-[0_0_30px_rgba(239,68,68,0.5)] border-red-500/20';
-        stripeClasses = 'bg-gradient-to-b from-red-600 via-rose-500 to-red-900 animate-pulse shadow-[2px_0_15px_rgba(239,68,68,0.6)]';
+        hoverClasses = 'hover:border-red-500 hover:shadow-[0_0_30px_rgba(239,68,68,0.4)] border-red-500/30';
     }
 
     return (
@@ -51,6 +50,13 @@ const WarrantCard = ({ data, onPrint, isPlanned, onRouteToggle, onFinalize, onDe
 
             {/* Hover Tech Pattern Overlay */}
             <div className="absolute inset-0 bg-grid-pattern opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+
+            {/* Custom Priority Badge Overlay (Fixed/Static) */}
+            {isPriority && data.status === 'EM ABERTO' && (
+                <div className="absolute -left-1 top-2 z-20 bg-red-600 text-white text-[9px] font-black uppercase py-1 px-2 rounded-r-md shadow-lg border-l-2 border-red-700">
+                    URGENTE
+                </div>
+            )}
 
             <div className="flex gap-4 p-4 pl-5 relative z-10">
                 {/* Visual Stamp for Fulfilled/Counter-Warrant */}
