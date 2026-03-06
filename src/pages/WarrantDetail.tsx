@@ -700,7 +700,7 @@ const WarrantDetail = () => {
         setFinalizeFormData({
             date: new Date().toISOString().split('T')[0],
             reportNumber: data.fulfillmentReport || '',
-            result: isSearch ? 'APREENDIDO' : 'PRESO',
+            result: isSearch ? 'Apreendido' : 'Preso',
             details: data.fulfillmentDetails || ''
         });
         setIsFinalizeModalOpen(true);
@@ -733,23 +733,17 @@ const WarrantDetail = () => {
             fulfillmentDetails: finalizeFormData.details
         };
 
-        if (finalizeFormData.result === 'CONTRAMANDADO') {
+        if (finalizeFormData.result === 'CONTRA' || finalizeFormData.result === 'CONTRAMANDADO') {
             updates.regime = 'Contramandado';
         }
 
-        try {
-            const success = await updateWarrant(data.id, updates);
-            if (success) {
-                toast.success("Mandado finalizado com sucesso!");
-                if (refreshWarrants) await refreshWarrants(true);
-                setIsFinalizeModalOpen(false);
-            } else {
-                toast.error("Erro ao finalizar mandado no servidor.");
-            }
-        } catch (error) {
-            console.error("Erro ao finalizar mandado:", error);
-            toast.error("Falha ao atualizar dados no servidor.");
+        const success = await updateWarrant(data.id, updates);
+        if (success) {
+            toast.success("Mandado finalizado com sucesso!");
+            if (refreshWarrants) await refreshWarrants(true);
+            setIsFinalizeModalOpen(false);
         }
+        // O erro já é disparado pelo WarrantContext.tsx através do toast.error
     };
 
     const handleConfirmRemoveTag = async () => {
@@ -3212,7 +3206,13 @@ Equipe de Capturas - DIG / PCSP
                                     <div className="space-y-1">
                                         <label className="text-[10px] font-black text-text-muted uppercase tracking-widest">Resultado Final</label>
                                         <select className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white appearance-none" value={finalizeFormData.result} onChange={e => setFinalizeFormData({ ...finalizeFormData, result: e.target.value })}>
-                                            {['PRESO', 'NEGATIVO', 'ENCAMINHADO', 'ÓBITO', 'CONTRA', 'LOCALIZADO', 'APREENDIDO'].map(opt => <option key={opt} value={opt} className="bg-surface-dark">{opt}</option>)}
+                                            <option value="Preso" className="bg-surface-dark">PRESO</option>
+                                            <option value="Apreendido" className="bg-surface-dark">APREENDIDO</option>
+                                            <option value="NEGATIVO" className="bg-surface-dark">NEGATIVO</option>
+                                            <option value="ENCAMINHADO" className="bg-surface-dark">ENCAMINHADO</option>
+                                            <option value="ÓBITO" className="bg-surface-dark">ÓBITO</option>
+                                            <option value="CONTRA" className="bg-surface-dark">CONTRA</option>
+                                            <option value="LOCALIZADO" className="bg-surface-dark">LOCALIZADO</option>
                                         </select>
                                     </div>
                                 </div>
