@@ -91,7 +91,7 @@ const AdvancedSearch = () => {
             : true;
 
         return matchesText && matchesCrime && matchesRegime && matchesStatus && matchesDateLocal && matchesObservation && matchesDp;
-    });
+    }).sort((a, b) => (a.name || '').localeCompare(b.name || ''));
 
     const clearFilters = () => {
         setFilterCrime('');

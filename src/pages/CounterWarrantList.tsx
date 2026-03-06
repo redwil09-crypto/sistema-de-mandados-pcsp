@@ -49,7 +49,7 @@ const CounterWarrantList = () => {
         const matchesObservation = observationKeyword ? (w.observation || '').toLowerCase().includes(observationKeyword.toLowerCase()) : true;
 
         return matchesText && matchesCrime && matchesDate && matchesObservation;
-    }).sort((a, b) => a.name.localeCompare(b.name));
+    }).sort((a, b) => (a.name || '').localeCompare(b.name || ''));
 
     const clearFilters = () => {
         setFilterCrime('');

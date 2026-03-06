@@ -81,7 +81,7 @@ const WarrantList = () => {
         }
 
         return matchesText && matchesCrime && matchesRegime && matchesDpRegion && matchesStatus && matchesDate && matchesObservation && matchesPriority && matchesExpired;
-    }).sort((a, b) => a.name.localeCompare(b.name));
+    }).sort((a, b) => (a.name || '').localeCompare(b.name || ''));
 
     const clearFilters = () => {
         setFilterCrime('');
