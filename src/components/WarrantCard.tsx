@@ -17,10 +17,11 @@ interface WarrantCardProps {
     [key: string]: any;
 }
 
-const WarrantCard = ({ data, onPrint, isPlanned, onRouteToggle, onFinalize, onDelete, onRemovePriority, ...props }: WarrantCardProps) => {
+const WarrantCard = ({ data, onPrint, isPlanned, onRouteToggle, onFinalize, onDelete, ...props }: WarrantCardProps) => {
     // Determine stripe color based on search/seizure vs arrest vs counter-warrant
     const isSearch = data.type ? (data.type.toLowerCase().includes('busca') || data.type.toLowerCase().includes('apreensão')) : false;
     const isCounterWarrant = (data.regime && data.regime.toLowerCase() === 'contramandado') || (data.type && data.type.toLowerCase().includes('contramandado'));
+    const isPriority = (data.tags || []).some(t => ['Urgente', 'Ofício de Cobrança'].includes(t));
 
     let hoverClasses = 'hover:border-blue-500 hover:shadow-[0_0_25px_rgba(59,130,246,0.6)]';
     let stripeClasses = 'bg-blue-600 shadow-[2px_0_15px_rgba(37,99,235,0.6)]';
@@ -31,6 +32,12 @@ const WarrantCard = ({ data, onPrint, isPlanned, onRouteToggle, onFinalize, onDe
     } else if (isCounterWarrant) {
         hoverClasses = 'hover:border-emerald-500 hover:shadow-[0_0_25px_rgba(16,185,129,0.6)] border-emerald-500/30';
         stripeClasses = 'bg-emerald-500 shadow-[2px_0_15px_rgba(16,185,129,0.6)]';
+    }
+
+    // Override with priority styling
+    if (isPriority && data.status === 'EM ABERTO') {
+        hoverClasses = 'hover:border-red-500 hover:shadow-[0_0_30px_rgba(239,68,68,0.5)] border-red-500/20';
+        stripeClasses = 'bg-gradient-to-b from-red-600 via-rose-500 to-red-900 animate-pulse shadow-[2px_0_15px_rgba(239,68,68,0.6)]';
     }
 
     return (
@@ -44,21 +51,6 @@ const WarrantCard = ({ data, onPrint, isPlanned, onRouteToggle, onFinalize, onDe
 
             {/* Hover Tech Pattern Overlay */}
             <div className="absolute inset-0 bg-grid-pattern opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
-
-            {/* Quick Remove Priority (Discreet X) */}
-            {onRemovePriority && (data.tags || []).some(t => ['Urgente', 'Ofício de Cobrança'].includes(t)) && (
-                <button
-                    onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        onRemovePriority(data.id);
-                    }}
-                    className="absolute top-0 right-0 p-1.5 bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-500/20 rounded-bl-lg transition-all z-20"
-                    title="Remover das Prioridades"
-                >
-                    <X size={14} />
-                </button>
-            )}
 
             <div className="flex gap-4 p-4 pl-5 relative z-10">
                 {/* Visual Stamp for Fulfilled/Counter-Warrant */}

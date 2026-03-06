@@ -730,7 +730,9 @@ const WarrantDetail = () => {
             digOffice: finalizeFormData.digOffice,
             fulfillmentResult: finalizeFormData.result,
             fulfillmentReport: finalizeFormData.reportNumber,
-            fulfillmentDetails: finalizeFormData.details
+            fulfillmentDetails: finalizeFormData.details,
+            // Automatically remove priority tags when fulfilled
+            tags: (data.tags || []).filter(t => t !== 'Urgente' && t !== 'Ofício de Cobrança')
         };
 
         // If closing as Contramandado, force regime update to match logic
