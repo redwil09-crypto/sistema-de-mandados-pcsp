@@ -10,7 +10,7 @@ import {
     Route as RouteIcon, RotateCcw, CheckCircle, Printer,
     Trash2, Zap, Bell, Eye, History, Send, Copy,
     ShieldAlert, MessageSquare, Plus, PlusCircle, X, ChevronRight, Bot, Cpu, Sparkles, RefreshCw, AlertTriangle, ExternalLink,
-    CheckSquare, Users, AlertOctagon, Search, Siren, Scale, Target, Lightbulb, TrendingUp, Activity
+    CheckSquare, Users, AlertOctagon, Search, Siren, Scale, Target, Lightbulb, TrendingUp, Activity, ChevronLeft
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '../supabaseClient';
@@ -23,7 +23,7 @@ import { formatDate, getStatusColor, maskDate } from '../utils/helpers';
 import { applyAutocorrect } from '../utils/autocorrect';
 import { Warrant } from '../types';
 import { geocodeAddress } from '../services/geocodingService';
-import { generateWarrantPDF, generateIfoodOfficePDF } from '../services/pdfReportService';
+import { generateWarrantPDF } from '../services/pdfReportService';
 import IfoodReportModal from '../components/IfoodReportModal';
 import FloatingDock from '../components/FloatingDock';
 import { analyzeRawDiligence, generateReportBody, analyzeDocumentStrategy, askAssistantStrategy, mergeIntelligence, inferDPRegion } from '../services/geminiService';
@@ -1176,7 +1176,7 @@ Equipe de Capturas - DIG / PCSP
         if (!data) return;
         const toastId = toast.loading("Gerando Ofício iFood...");
         try {
-            await generateIfoodOfficePDF(data, updateWarrant, currentUser);
+            await generateIfoodOfficePDF();
             toast.dismiss(toastId);
         } catch (error) {
             console.error(error);
@@ -1548,7 +1548,7 @@ Equipe de Capturas - DIG / PCSP
             // Body
             doc.setFont('times', 'normal');
             doc.setFontSize(11);
-            const bodyText = `Senhores(as),\n\nSolicitamos, com a máxima urgência e em caráter de cooperação com a Justiça, o fornecimento de todos os dados cadastrais, históricos de corridas/entregas, dados de pagamento, telefones vinculados e quaisquer outras informações disponíveis relacionadas ao(s) seguinte(s) indivíduo(s) e/ou conta(s) de usuário/motorista/entregador, no período de ${data.issueDate || 'data inicial'} até a presente data:\n\nNome: ${data.name || 'N/A'}\nCPF: ${data.cpf || 'N/A'}\nRG: ${data.rg || 'N/A'}\nTelefone(s) conhecido(s): ${data.phone || 'N/A'}\nEndereço(s) conhecido(s): ${data.location || 'N/A'}\n\nAs informações são cruciais para a instrução do Inquérito Policial/Processo nº ${data.number || 'N/A'}, que apura o crime de ${data.crime || 'N/A'}, e visam à localização e identificação de envolvidos, bem como à elucidação dos fatos.\n\nReiteramos a urgência da presente requisição, solicitando que os dados sejam encaminhados preferencialmente via e-mail para dig.jacarei@policiacivil.sp.gov.br ou via sistema de atendimento a autoridades, se disponível.\n\nAtenciosamente,`;
+            const bodyText = `Senhores(as),\n\nSolicitamos, com a máxima urgência e em caráter de cooperação com a Justiça, o fornecimento de todos os dados cadastrais, históricos de corridas/entregas, dados de pagamento, telefones vinculados e quaisquer outras informações disponíveis relacionadas ao(s) seguinte(s) indivíduo(s) e/ou conta(s) de usuário/motorista/entregador, no período de ${data.issueDate || 'data inicial'} até a presente data:\n\nNome: ${data.name || 'N/A'}\nCPF: ${data.cpf || 'N/A'}\nRG: ${data.rg || 'N/A'}\nTelefone(s) conhecido(s): ${(data as any).phone || 'N/A'}\nEndereço(s) conhecido(s): ${data.location || 'N/A'}\n\nAs informações são cruciais para a instrução do Inquérito Policial/Processo nº ${data.number || 'N/A'}, que apura o crime de ${data.crime || 'N/A'}, e visam à localização e identificação de envolvidos, bem como à elucidação dos fatos.\n\nReiteramos a urgência da presente requisição, solicitando que os dados sejam encaminhados preferencialmente via e-mail para dig.jacarei@policiacivil.sp.gov.br ou via sistema de atendimento a autoridades, se disponível.\n\nAtenciosamente,`;
 
             const splitText = doc.splitTextToSize(bodyText, contentWidth);
             doc.text(splitText, margin, y);
@@ -1835,13 +1835,7 @@ Equipe de Capturas - DIG / PCSP
 
             if (uploadedPath) {
                 const url = getPublicUrl(uploadedPath);
-                const newReport = {
-                    name: `Relatório de Investigação - ${capturasData.reportNumber}`,
-                    url: url,
-                    date: new Date().toISOString()
-                };
-
-                const updatedReports = [...(data.reports || []), newReport];
+                const updatedReports = [...(data.reports || []), url];
                 await updateWarrant(data.id, {
                     reports: updatedReports,
                     fulfillmentReport: capturasData.reportNumber
@@ -1974,8 +1968,8 @@ Equipe de Capturas - DIG / PCSP
                                         )}
                                     </div>
                                     <input
-                                        className={`text-2xl font-black text-text-light dark:text-white leading-tight uppercase bg-transparent border-none outline-none focus:ring-1 focus:ring-primary/40 rounded-lg px-2 -ml-2 w-full transition-all hover:text-${themeColor.replace('text-', '')} placeholder:text-text-secondary-light/50 dark:placeholder:text-white/20`}
-                                        value={localData.name}
+                                        className={`text-2xl font-black text-text-light dark:text-white leading-tight uppercase bg-transparent border-none outline-none focus:ring-1 focus:ring-primary/40 rounded-lg px-2 -ml-2 w-full transition-all hover:text-primary placeholder:text-text-secondary-light/50 dark:placeholder:text-white/20`}
+                                        value={localData.name || ''}
                                         onChange={e => handleFieldChange('name', e.target.value)}
                                         placeholder="NOME DO ALVO"
                                     />
@@ -3173,7 +3167,7 @@ Equipe de Capturas - DIG / PCSP
                             {/* Tactical Tool Bar - Integrated into Flow with same width as Tabs */}
                             <div className="w-full mt-4">
                                 <FloatingDock
-                                    onBack={handleBack}
+                                    onBack={() => navigate(-1)}
                                     onHome={() => navigate('/')}
                                     onSave={() => navigate(`/new-warrant?edit=${data.id}`)}
                                     onPrint={() => generateWarrantPDF(localData as any)}
