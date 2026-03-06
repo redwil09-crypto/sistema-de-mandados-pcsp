@@ -361,7 +361,8 @@ export const generateWarrantPDF = async (
 
 export const generateIfoodOfficePDF = async (
     data: Warrant,
-    onUpdate?: (id: string, updates: Partial<Warrant>) => Promise<boolean>
+    onUpdate?: (id: string, updates: Partial<Warrant>) => Promise<boolean>,
+    currentUser?: { name: string; email: string } | null
 ) => {
     if (!data) return;
     try {
@@ -455,7 +456,7 @@ export const generateIfoodOfficePDF = async (
         y += 45;
 
         // --- CLOSING ---
-        const closingText = `As informações deverão ser encaminhadas para o e-mail oficial desta unidade (dig.jacarei@policiacivil.sp.gov.br) em formato PDF ou planilha eletrônica. 
+        const closingText = `As informações deverão ser encaminhadas para o e-mail oficial do responsável (${currentUser?.email || 'dig.jacarei@policiacivil.sp.gov.br'}) em formato PDF ou planilha eletrônica. 
         
 Ressalto que o descumprimento injustificado desta requisição poderá acarretar a responsabilidade penal por Crime de Desobediência (art. 330 do CP), sem prejuízo de outras sanções cabíveis.`;
         const splitClosing = doc.splitTextToSize(closingText, pageWidth - (margin * 2));
@@ -470,9 +471,9 @@ Ressalto que o descumprimento injustificado desta requisição poderá acarretar
 
         const sigX = margin + 40;
         doc.setFont('helvetica', 'bold');
-        doc.text("Autoridade Policial", sigX, y + 5, { align: 'left' });
+        doc.text(currentUser?.name || "Luiz Antônio Cunha dos Santos", sigX, y + 5, { align: 'left' });
         doc.setFont('helvetica', 'normal');
-        doc.text("Delegacia de Investigações Gerais de Jacareí", sigX + 15, y + 10, { align: 'left' });
+        doc.text(currentUser?.name ? "Policial Responsável" : "Delegado de Polícia", sigX + 15, y + 10, { align: 'left' });
 
         // Save
         const safeName = data.name.replace(/[^a-zA-Z0-9.-]/g, '_');

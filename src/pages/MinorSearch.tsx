@@ -27,11 +27,11 @@ const MinorSearch = () => {
         // Text Search
         const term = searchTerm.toLowerCase();
         const matchesText = (
-            w.name.toLowerCase().includes(term) ||
-            w.number.toLowerCase().includes(term) ||
+            (w.name || '').toLowerCase().includes(term) ||
+            (w.number || '').toLowerCase().includes(term) ||
             (w.location && w.location.toLowerCase().includes(term)) ||
             (w.rg && w.rg.toLowerCase().includes(term)) ||
-            w.type.toLowerCase().includes(term) ||
+            (w.type || '').toLowerCase().includes(term) ||
             (w.description && w.description.toLowerCase().includes(term))
         );
 
@@ -43,7 +43,7 @@ const MinorSearch = () => {
         const matchesObservation = observationKeyword ? (w.observation || '').toLowerCase().includes(observationKeyword.toLowerCase()) : true;
 
         return matchesText && matchesCrime && matchesRegime && matchesStatus && matchesDate && matchesObservation;
-    }).sort((a, b) => a.name.localeCompare(b.name));
+    }).sort((a, b) => (a.name || '').localeCompare(b.name || ''));
 
     const clearFilters = () => {
         setFilterCrime('');

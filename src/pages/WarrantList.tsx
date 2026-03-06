@@ -20,6 +20,14 @@ const WarrantList = () => {
     const initialLocation = searchParams.get('city') || '';
 
     const [searchTerm, setSearchTerm] = useState(query || initialType || initialLocation);
+
+    // Sync search term with URL query if changed from outside
+    React.useEffect(() => {
+        if (query !== undefined && query !== searchTerm && query !== '') {
+            setSearchTerm(query);
+        }
+    }, [query]);
+
     const [showFilters, setShowFilters] = useState(initialStatus !== '' || initialType !== '' || initialPriority !== '' || initialExpired);
 
     // Filter states
@@ -39,11 +47,11 @@ const WarrantList = () => {
         // Text Search
         const term = searchTerm.toLowerCase();
         const matchesText = (
-            w.name.toLowerCase().includes(term) ||
-            w.number.toLowerCase().includes(term) ||
+            (w.name || '').toLowerCase().includes(term) ||
+            (w.number || '').toLowerCase().includes(term) ||
             (w.location && w.location.toLowerCase().includes(term)) ||
             (w.rg && w.rg.toLowerCase().includes(term)) ||
-            w.type.toLowerCase().includes(term) ||
+            (w.type || '').toLowerCase().includes(term) ||
             (w.crime && w.crime.toLowerCase().includes(term)) ||
             (w.description && w.description.toLowerCase().includes(term)) ||
             (w.dpRegion && w.dpRegion.toLowerCase().replace('º', '').replace(' ', '').includes(term.replace('º', '').replace(' ', '')))
@@ -81,7 +89,7 @@ const WarrantList = () => {
         }
 
         return matchesText && matchesCrime && matchesRegime && matchesDpRegion && matchesStatus && matchesDate && matchesObservation && matchesPriority && matchesExpired;
-    }).sort((a, b) => a.name.localeCompare(b.name));
+    }).sort((a, b) => (a.name || '').localeCompare(b.name || ''));
 
     const clearFilters = () => {
         setFilterCrime('');

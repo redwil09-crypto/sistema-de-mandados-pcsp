@@ -47,19 +47,19 @@ const AdvancedSearch = () => {
     const statuses = useMemo(() => Array.from(new Set(warrants.map(w => w.status))).sort(), [warrants]);
 
     const filteredWarrants = warrants.filter(w => {
-        // Scope Filter
-        if (scope === 'arrest' && (w.type.toLowerCase().includes('busca') || w.type.toLowerCase().includes('contramandado'))) return false;
-        if (scope === 'seizure' && !w.type.toLowerCase().includes('busca')) return false;
-        if (scope === 'counter' && !w.type.toLowerCase().includes('contramandado') && w.regime?.toLowerCase() !== 'contramandado') return false;
+        const safeType = (w.type || '').toLowerCase();
+        if (scope === 'arrest' && (safeType.includes('busca') || safeType.includes('contramandado'))) return false;
+        if (scope === 'seizure' && !safeType.includes('busca')) return false;
+        if (scope === 'counter' && !safeType.includes('contramandado') && w.regime?.toLowerCase() !== 'contramandado') return false;
 
         // Text Search
         const term = searchTerm.toLowerCase();
         const matchesText = (
-            w.name.toLowerCase().includes(term) ||
-            w.number.toLowerCase().includes(term) ||
+            (w.name || '').toLowerCase().includes(term) ||
+            (w.number || '').toLowerCase().includes(term) ||
             (w.location && w.location.toLowerCase().includes(term)) ||
             (w.rg && w.rg.toLowerCase().includes(term)) ||
-            w.type.toLowerCase().includes(term) ||
+            (w.type || '').toLowerCase().includes(term) ||
             (w.description && w.description.toLowerCase().includes(term))
         );
 
@@ -91,7 +91,7 @@ const AdvancedSearch = () => {
             : true;
 
         return matchesText && matchesCrime && matchesRegime && matchesStatus && matchesDateLocal && matchesObservation && matchesDp;
-    });
+    }).sort((a, b) => (a.name || '').localeCompare(b.name || ''));
 
     const clearFilters = () => {
         setFilterCrime('');

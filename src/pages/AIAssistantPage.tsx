@@ -50,9 +50,33 @@ const AIAssistantPage = () => {
     const [observationKeyword, setObservationKeyword] = useState('');
     const [isSaveConfirmOpen, setIsSaveConfirmOpen] = useState(false);
     const [hasAi, setHasAi] = useState(false);
+    const [selectedWarrants, setSelectedWarrants] = useState<string[]>([]);
+
+    const [currentUser, setCurrentUser] = useState<{ name: string; email: string } | null>(null);
 
     useEffect(() => {
         isGeminiEnabled().then(setHasAi);
+
+        const fetchUser = async () => {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) {
+                const { data: profile } = await supabase
+                    .from('profiles')
+                    .select('full_name, email')
+                    .eq('id', user.id)
+                    .single();
+
+                if (profile) {
+                    setCurrentUser({ name: profile.full_name, email: profile.email });
+                } else {
+                    setCurrentUser({
+                        name: user.user_metadata?.full_name || 'Policial',
+                        email: user.email || ''
+                    });
+                }
+            }
+        };
+        fetchUser();
     }, []);
 
     // Atualiza a URL quando a aba muda
@@ -624,6 +648,89 @@ const AIAssistantPage = () => {
         } catch (e) { toast.error("Erro ao imprimir banco de dados."); }
     };
 
+    const handlePrintSelected = async () => {
+        if (selectedWarrants.length === 0) {
+            toast.error("Nenhum mandado selecionado.");
+            return;
+        }
+
+        try {
+            const doc = new jsPDF();
+            doc.setFontSize(18);
+            doc.text("Relatório de Inteligência - Mandados Selecionados", 105, 20, { align: 'center' });
+            doc.setFontSize(10);
+            let y = 40;
+
+            const loadImage = (url: string): Promise<HTMLImageElement> => {
+                return new Promise((resolve, reject) => {
+                    const img = new Image();
+                    img.crossOrigin = 'Anonymous';
+                    img.src = url;
+                    img.onload = () => resolve(img);
+                    img.onerror = reject;
+                });
+            };
+
+            const selectedData = warrants.filter(w => selectedWarrants.includes(w.id));
+
+            for (let i = 0; i < selectedData.length; i++) {
+                const w = selectedData[i];
+                if (y > 250) { doc.addPage(); y = 20; }
+
+                // Card Border
+                doc.setDrawColor(200);
+                doc.roundedRect(15, y - 5, 180, 25, 2, 2);
+
+                // Add Photo
+                if (w.img) {
+                    try {
+                        const img = await loadImage(w.img);
+                        doc.addImage(img, 'JPEG', 20, y - 2, 18, 18);
+                    } catch (e) {
+                        doc.setDrawColor(230);
+                        doc.rect(20, y - 2, 18, 18);
+                        doc.setFontSize(6);
+                        doc.text("S/ FOTO", 24, y + 8);
+                    }
+                } else {
+                    doc.setDrawColor(230);
+                    doc.rect(20, y - 2, 18, 18);
+                    doc.setFontSize(6);
+                    doc.text("S/ FOTO", 24, y + 8);
+                }
+
+                doc.setFontSize(10);
+                doc.setFont('helvetica', 'bold');
+                doc.text(`${i + 1}. ${w.name.toUpperCase()}`, 45, y + 2);
+                doc.setFontSize(8);
+                doc.setFont('helvetica', 'normal');
+                doc.text(`RG: ${w.rg || '-'} | CPF: ${w.cpf || '-'}`, 45, y + 7);
+                doc.text(`PROCESSO: ${w.number}`, 45, y + 12);
+                doc.text(`CRIME: ${w.crime || '-'} | REGIME: ${w.regime || '-'}`, 45, y + 17);
+
+                doc.setTextColor(220, 38, 38);
+                doc.setFont('helvetica', 'bold');
+                doc.text(`STATUS: ${w.status}`, 150, y + 2);
+                doc.setTextColor(0, 0, 0);
+
+                y += 27;
+            }
+
+            toast.success(`${selectedWarrants.length} mandados selecionados foram impressos.`);
+            doc.save(`Mandados_Selecionados_${new Date().getTime()}.pdf`);
+        } catch (e) {
+            console.error(e);
+            toast.error("Erro ao imprimir selecionados.");
+        }
+    };
+
+    const toggleWarrantSelection = (id: string, e: React.MouseEvent) => {
+        e.stopPropagation();
+        setSelectedWarrants(prev =>
+            prev.includes(id) ? prev.filter(wId => wId !== id) : [...prev, id]
+        );
+    };
+
 
     const reset = () => {
         localStorage.removeItem('ai_assist_session'); // Garante limpeza
@@ -653,9 +760,14 @@ const AIAssistantPage = () => {
                     </button>
                     <button
                         onClick={() => setActiveTab('database')}
-                        className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${activeTab === 'database' ? 'bg-primary text-white shadow-sm' : 'text-text-secondary-light dark:text-text-secondary-dark'}`}
+                        className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all relative ${activeTab === 'database' ? 'bg-primary text-white shadow-sm' : 'text-text-secondary-light dark:text-text-secondary-dark'}`}
                     >
                         Banco de Dados
+                        {selectedWarrants.length > 0 && (
+                            <span className="absolute -top-1.5 -right-1.5 bg-blue-600 text-white text-[8px] w-4 h-4 rounded-full flex items-center justify-center border-2 border-surface-light dark:border-surface-dark animate-in zoom-in">
+                                {selectedWarrants.length}
+                            </span>
+                        )}
                     </button>
                 </div>
             </div>
@@ -1328,11 +1440,25 @@ const AIAssistantPage = () => {
                                 <div className="bg-surface-light dark:bg-[#151517] p-5 rounded-2xl shadow-xl border border-border-light dark:border-white/10 animate-in slide-in-from-top-2">
                                     <div className="flex justify-between items-center mb-4">
                                         <h3 className="font-black text-text-light dark:text-white text-xs uppercase tracking-widest">Filtros Avançados</h3>
-                                        {hasActiveFilters && (
-                                            <button onClick={clearFilters} className="text-xs text-primary font-bold hover:underline">
-                                                Limpar
+                                        <div className="flex gap-4">
+                                            <button
+                                                onClick={() => {
+                                                    if (selectedWarrants.length === filteredWarrants.length) {
+                                                        setSelectedWarrants([]);
+                                                    } else {
+                                                        setSelectedWarrants(filteredWarrants.map(w => w.id));
+                                                    }
+                                                }}
+                                                className="text-[10px] text-blue-600 dark:text-blue-400 font-bold hover:underline uppercase tracking-tighter"
+                                            >
+                                                {selectedWarrants.length === filteredWarrants.length ? 'Desmarcar Todos' : 'Selecionar Todos'}
                                             </button>
-                                        )}
+                                            {hasActiveFilters && (
+                                                <button onClick={clearFilters} className="text-[10px] text-primary font-bold hover:underline uppercase tracking-tighter">
+                                                    Limpar Filtros
+                                                </button>
+                                            )}
+                                        </div>
                                     </div>
                                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
                                         <div className="space-y-1.5">
@@ -1396,7 +1522,18 @@ const AIAssistantPage = () => {
                                     </div>
                                 ) : (
                                     filteredWarrants.map((w) => (
-                                        <div key={w.id} onClick={() => navigate(`/warrant-detail/${w.id}`)} className="bg-surface-light dark:bg-surface-dark p-3 rounded-xl border border-border-light dark:border-border-dark shadow-sm hover:border-primary transition-colors cursor-pointer group relative active:scale-[0.99] flex gap-4 items-start">
+                                        <div key={w.id} onClick={() => navigate(`/warrant-detail/${w.id}`)} className={`bg-surface-light dark:bg-surface-dark p-3 rounded-xl border-2 shadow-sm hover:border-primary transition-colors cursor-pointer group relative active:scale-[0.99] flex gap-4 items-start ${selectedWarrants.includes(w.id) ? 'border-primary dark:border-blue-500 bg-primary/5 dark:bg-blue-500/5' : 'border-border-light dark:border-border-dark'}`}>
+                                            {/* Selection Overlay Checkbox */}
+                                            <div
+                                                onClick={(e) => toggleWarrantSelection(w.id, e)}
+                                                className={`absolute -top-2 -left-2 w-7 h-7 rounded-full border-2 flex items-center justify-center transition-all z-10 shadow-md ${selectedWarrants.includes(w.id)
+                                                    ? 'bg-primary border-white dark:border-zinc-900 text-white scale-110'
+                                                    : 'bg-white dark:bg-zinc-800 border-border-light dark:border-white/10 text-transparent hover:scale-105'
+                                                    }`}
+                                            >
+                                                <CheckCircle size={16} className={selectedWarrants.includes(w.id) ? 'opacity-100' : 'opacity-0'} />
+                                            </div>
+
                                             {/* Small Photo */}
                                             <div className="w-14 h-14 shrink-0 rounded-lg overflow-hidden border border-border-light dark:border-white/10 bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center">
                                                 {w.img ? (
@@ -1509,6 +1646,15 @@ const AIAssistantPage = () => {
 
                     {activeTab === 'database' && (
                         <>
+                            {selectedWarrants.length > 0 && (
+                                <button
+                                    onClick={handlePrintSelected}
+                                    className="flex-1 min-w-0 flex flex-col items-center justify-center gap-1 p-2 rounded-xl bg-emerald-600 text-white shadow-lg shadow-emerald-500/20 transition-all active:scale-95 touch-manipulation hover:bg-emerald-700 animate-in zoom-in"
+                                >
+                                    <Printer size={20} />
+                                    <span className="text-[9px] font-bold uppercase truncate w-full text-center">Selecionados ({selectedWarrants.length})</span>
+                                </button>
+                            )}
                             <button
                                 onClick={handlePrintList}
                                 className="flex-1 min-w-0 flex flex-col items-center justify-center gap-1 p-2 rounded-xl bg-gray-500/10 text-gray-600 dark:text-gray-400 transition-all active:scale-95 touch-manipulation hover:bg-gray-500/20"
@@ -1518,10 +1664,10 @@ const AIAssistantPage = () => {
                             </button>
                             <button
                                 onClick={handlePrintDatabaseSplit}
-                                className="flex-[2] min-w-0 flex flex-col items-center justify-center gap-1 p-2 rounded-xl bg-blue-600 text-white shadow-lg shadow-blue-500/20 transition-all active:scale-95 touch-manipulation hover:bg-blue-700"
+                                className="flex-1 min-w-0 flex flex-col items-center justify-center gap-1 p-2 rounded-xl bg-blue-600 text-white shadow-lg shadow-blue-500/20 transition-all active:scale-95 touch-manipulation hover:bg-blue-700"
                             >
                                 <Printer size={20} />
-                                <span className="text-[9px] font-bold uppercase truncate w-full text-center">Imprimir Tudo</span>
+                                <span className="text-[9px] font-bold uppercase truncate w-full text-center">Tudo</span>
                             </button>
                         </>
                     )}

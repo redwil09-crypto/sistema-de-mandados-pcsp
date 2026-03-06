@@ -301,8 +301,8 @@ ${indent}Atenciosamente,`;
 
         doc.setFont('helvetica', 'bold');
         const sigX = margin + 40; // Mais para a esquerda que o centro
-        doc.text("Luiz Antônio Cunha dos Santos", sigX, signatureNameY, { align: 'left' });
-        doc.text("Delegado de Polícia", sigX + 15, signatureTitleY, { align: 'left' });
+        doc.text(currentUser?.name || "Luiz Antônio Cunha dos Santos", sigX, signatureNameY, { align: 'left' });
+        doc.text(currentUser?.name ? "Policial Responsável" : "Delegado de Polícia", sigX + 15, signatureTitleY, { align: 'left' });
         doc.setFont('helvetica', 'normal');
         doc.text("Ao Ilustríssimo Senhor Responsável", margin, addresseeY);
         doc.setFont('helvetica', 'bold');
@@ -312,7 +312,7 @@ ${indent}Atenciosamente,`;
         if (selectedType === '99') companyName = '99';
         doc.text(`Empresa ${companyName}.`, margin, addresseeY + 5);
 
-        const totalPages = (doc as any).internal.pages.length - 1;
+        const totalPages = typeof (doc as any).internal.getNumberOfPages === 'function' ? (doc as any).internal.getNumberOfPages() : (doc as any).internal.pages.length - 1;
         for (let i = 1; i <= totalPages; i++) {
             doc.setPage(i);
             addFooter(doc, i, totalPages);

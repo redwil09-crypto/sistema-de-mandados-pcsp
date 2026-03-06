@@ -20,6 +20,7 @@ import ConfirmModal from '../components/ConfirmModal';
 import VoiceInput from '../components/VoiceInput';
 import WarrantAuditLog from '../components/WarrantAuditLog';
 import { formatDate, getStatusColor, maskDate } from '../utils/helpers';
+import { applyAutocorrect } from '../utils/autocorrect';
 import { Warrant } from '../types';
 import { geocodeAddress } from '../services/geocodingService';
 import { generateWarrantPDF, generateIfoodOfficePDF } from '../services/pdfReportService';
@@ -116,10 +117,37 @@ const WarrantDetail = () => {
         reportNumber: '',
         court: '',
         body: '',
-        signer: 'William Campos A. Castro',
+        signer: '',
         delegate: 'Luiz Antônio Cunha dos Santos',
         aiInstructions: ''
     });
+
+    const getSuggestedReportNumber = () => {
+        const currentYear = new Date().getFullYear();
+        let maxNumber = 0;
+        warrants.forEach(w => {
+            if (w.fulfillmentReport) {
+                const parts = w.fulfillmentReport.split('/');
+                if (parts.length === 3 && parts[1] === 'CAPT' && parseInt(parts[2]) === currentYear) {
+                    const num = parseInt(parts[0]);
+                    if (!isNaN(num) && num > maxNumber) {
+                        maxNumber = num;
+                    }
+                }
+            }
+            // Check ifoodNumber too as it might follow the same sequence or be related
+            if (w.ifoodNumber) {
+                const parts = w.ifoodNumber.split('/');
+                if (parts.length === 3 && parts[1] === 'CAPT' && parseInt(parts[2]) === currentYear) {
+                    const num = parseInt(parts[0]);
+                    if (!isNaN(num) && num > maxNumber) {
+                        maxNumber = num;
+                    }
+                }
+            }
+        });
+        return `${(maxNumber + 1).toString().padStart(2, '0')}/CAPT/${currentYear}`;
+    };
     const [isGeneratingAiReport, setIsGeneratingAiReport] = useState(false);
     const [activeReportType, setActiveReportType] = useState<'ifood' | 'uber' | '99' | null>(null);
 
@@ -150,17 +178,54 @@ const WarrantDetail = () => {
     });
     // -------------------------------------------------------------------------------- //
 
+    const [currentUser, setCurrentUser] = useState<{ name: string; email: string } | null>(null);
+
     useEffect(() => {
-        const checkAdmin = async () => {
+        const checkUser = async () => {
             const { data: { user } } = await supabase.auth.getUser();
             if (user) {
                 setUserId(user.id);
                 if (user.user_metadata?.role === 'admin') {
                     setIsAdmin(true);
                 }
+
+                // Fetch profile
+                try {
+                    const { data: profile } = await supabase
+                        .from('profiles')
+                        .select('full_name, email')
+                        .eq('id', user.id)
+                        .single();
+
+                    if (profile) {
+                        const userInfo = {
+                            name: profile.full_name,
+                            email: profile.email
+                        };
+                        setCurrentUser(userInfo);
+
+                        // Update capturasData with current user as signer
+                        setCapturasData(prev => ({
+                            ...prev,
+                            signer: profile.full_name
+                        }));
+                    } else {
+                        const userInfo = {
+                            name: user.user_metadata?.full_name || 'Policial',
+                            email: user.email || ''
+                        };
+                        setCurrentUser(userInfo);
+                        setCapturasData(prev => ({
+                            ...prev,
+                            signer: userInfo.name
+                        }));
+                    }
+                } catch (e) {
+                    console.error("Error fetching profile:", e);
+                }
             }
         };
-        checkAdmin();
+        checkUser();
     }, []);
 
     useEffect(() => {
@@ -332,6 +397,8 @@ const WarrantDetail = () => {
         // Apply masks for dates
         if (['issueDate', 'entryDate', 'expirationDate', 'dischargeDate', 'birthDate'].includes(field as string)) {
             finalValue = maskDate(value);
+        } else if (field === 'observation') {
+            finalValue = applyAutocorrect(value);
         }
 
         setLocalData(prev => {
@@ -629,11 +696,12 @@ const WarrantDetail = () => {
     }
 
     const handleFinalize = () => {
+        if (!data) return;
         const isSearch = data.type?.toLowerCase().includes('busca') || data.type?.toLowerCase().includes('apreensão');
         setFinalizeFormData(prev => ({
             ...prev,
             digOffice: data.digOffice || '',
-            reportNumber: '',
+            reportNumber: data.fulfillmentReport || getSuggestedReportNumber(),
             result: isSearch ? 'Apreendido' : 'Fechado'
         }));
         setIsFinalizeModalOpen(true);
@@ -1108,7 +1176,7 @@ Equipe de Capturas - DIG / PCSP
         if (!data) return;
         const toastId = toast.loading("Gerando Ofício iFood...");
         try {
-            await generateIfoodOfficePDF(data, updateWarrant);
+            await generateIfoodOfficePDF(data, updateWarrant, currentUser);
             toast.dismiss(toastId);
         } catch (error) {
             console.error(error);
@@ -1260,7 +1328,23 @@ Equipe de Capturas - DIG / PCSP
         if (!data) return;
         // Refresh data to ensure history is included
         await refreshWarrants(true);
-        await generateWarrantPDF(data, updateWarrant, aiTimeSuggestion);
+        // Use updated local data if available to ensure PDF reflects latest UI changes (like dpRegion)
+        const updatedDataForPDF = { ...data, ...localData };
+        await generateWarrantPDF(updatedDataForPDF as Warrant, updateWarrant, aiTimeSuggestion);
+    };
+
+    const handleClearTacticalSummary = async () => {
+        if (!data) return;
+        if (window.confirm("Deseja realmente apagar toda a Sugestão Tática Inteligente? Esta ação limpará o Centro de Inteligência e não pode ser desfeita.")) {
+            const success = await updateWarrant(data.id, { tacticalSummary: null });
+            if (success) {
+                handleFieldChange('tacticalSummary', null);
+                if (refreshWarrants) await refreshWarrants(true);
+                toast.success("Sugestão Tática apagada com sucesso.");
+            } else {
+                toast.error("Erro ao apagar Sugestão Tática.");
+            }
+        }
     };
 
     const handleGenerateIFoodReport = async () => {
@@ -1402,9 +1486,9 @@ Equipe de Capturas - DIG / PCSP
             y += (splitBody3.length * 5) + 2;
 
             doc.setFont('helvetica', 'bold');
-            doc.text("     william.castro@policiacivil.sp.gov.br", margin, y);
+            doc.text(`     ${currentUser?.email || 'william.castro@policiacivil.sp.gov.br'}`, margin, y);
             y += 5;
-            doc.text("     William Campos de Assis Castro – Polícia Civil do Estado de São Paulo", margin, y);
+            doc.text(`     ${currentUser?.name || 'William Campos de Assis Castro'} – Polícia Civil do Estado de São Paulo`, margin, y);
 
             y += 10; // Reduced spacing
 
@@ -1605,7 +1689,7 @@ Equipe de Capturas - DIG / PCSP
 
         setCapturasData(prev => ({
             ...prev,
-            reportNumber: currentData.fulfillmentReport || `02/CAPT/${new Date().getFullYear()}`,
+            reportNumber: currentData.fulfillmentReport || getSuggestedReportNumber(),
             court: '1ª Vara criminal de Jacareí/SP',
             body: generateIntelligentReportBody(),
             aiInstructions: ''
@@ -2043,6 +2127,14 @@ Equipe de Capturas - DIG / PCSP
                                         <span className="text-[10px] font-black uppercase tracking-[0.2em] text-risk-high bg-risk-high/10 px-2 py-0.5 rounded border border-risk-high/20 animate-pulse">
                                             Status: Foragido
                                         </span>
+                                    )}
+                                    {localData.status === 'CUMPRIDO' && (
+                                        <button
+                                            onClick={handleReopen}
+                                            className="text-[10px] font-black uppercase tracking-[0.1em] text-amber-500 bg-amber-500/10 px-3 py-1 rounded border border-amber-500/30 hover:bg-amber-500 hover:text-white transition-all flex items-center gap-2 shadow-lg shadow-amber-500/10 animate-in fade-in zoom-in-95 duration-500"
+                                        >
+                                            <RotateCcw size={12} /> REABRIR MANDADO
+                                        </button>
                                     )}
                                 </div>
                                 <input
@@ -2492,13 +2584,22 @@ Equipe de Capturas - DIG / PCSP
                                                 <div className="hidden md:flex flex-col items-end mr-4">
                                                     <span className="text-[9px] uppercase font-black text-indigo-300 tracking-widest mb-1">Avanço Global</span>
                                                     <div className="w-32 h-2 bg-white/10 rounded-full overflow-hidden">
-                                                        <div className="h-full bg-gradient-to-r from-indigo-500 to-cyan-400 transition-all duration-1000" style={{ width: `${progress}%` }}></div>
+                                                        <div className="h-full bg-gradient-to-r from-indigo-50 to-cyan-400 transition-all duration-1000" style={{ width: `${progress}%` }}></div>
                                                     </div>
                                                     <span className="text-[10px] font-bold text-white mt-1">{progress}% Concluído</span>
                                                 </div>
                                             )
                                         } catch (e) { return null }
                                     })()}
+
+                                    {/* DELETE TACTICAL SUMMARY BUTTON */}
+                                    <button
+                                        onClick={handleClearTacticalSummary}
+                                        className="bg-red-500/10 hover:bg-red-500/20 text-red-500 p-2.5 rounded-xl transition-all border border-red-500/20 flex items-center justify-center group shadow-sm active:scale-95"
+                                        title="Apagar Sugestão Tática"
+                                    >
+                                        <Trash2 size={16} className="group-hover:scale-110 transition-transform" />
+                                    </button>
 
                                     {/* GENERATE PDF BUTTON */}
                                     <button
@@ -2932,7 +3033,7 @@ Equipe de Capturas - DIG / PCSP
                                         </button>
                                     </div>
                                     <div className="relative">
-                                        <textarea value={newDiligence} onChange={e => setNewDiligence(e.target.value)} className="w-full bg-transparent border-none text-text-light dark:text-white text-lg leading-relaxed outline-none resize-none min-h-[160px] pr-12 scrollbar-none placeholder:text-text-secondary-light dark:placeholder:text-white/20" placeholder="Descreva informes brutos, vizinhos, veículos, placas..." />
+                                        <textarea value={newDiligence} onChange={e => setNewDiligence(applyAutocorrect(e.target.value))} className="w-full bg-transparent border-none text-text-light dark:text-white text-lg leading-relaxed outline-none resize-none min-h-[160px] pr-12 scrollbar-none placeholder:text-text-secondary-light dark:placeholder:text-white/20" placeholder="Descreva informes brutos, vizinhos, veículos, placas..." />
                                         <div className="absolute right-0 bottom-0 p-2">
                                             <VoiceInput onTranscript={t => setNewDiligence(t)} currentValue={newDiligence} />
                                         </div>
@@ -3245,6 +3346,7 @@ Equipe de Capturas - DIG / PCSP
                             onSave={() => navigate(`/new-warrant?edit=${data.id}`)}
                             onPrint={() => generateWarrantPDF(localData as any)}
                             onFinalize={() => setIsFinalizeModalOpen(true)}
+                            onReopen={handleReopen}
                             onDelete={() => setIsDeleteConfirmOpen(true)}
                             status={localData.status}
                         />

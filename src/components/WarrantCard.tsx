@@ -202,8 +202,19 @@ const WarrantCard = ({ data, onPrint, isPlanned, onRouteToggle, onFinalize, onDe
                                         ? 'bg-primary text-white shadow-neon-blue'
                                         : 'text-text-muted hover:text-primary hover:bg-white/5'
                                         }`}
+                                    title={isPlanned ? "Remover do Roteiro" : "Adicionar ao Roteiro"}
                                 >
                                     <RouteIcon size={14} />
+                                </button>
+                            )}
+
+                            {onPrint && (
+                                <button
+                                    onClick={onPrint}
+                                    className="p-2 rounded-lg text-text-muted hover:text-secondary hover:bg-white/5 transition-all"
+                                    title="Imprimir PDF"
+                                >
+                                    <Printer size={14} />
                                 </button>
                             )}
                         </div>

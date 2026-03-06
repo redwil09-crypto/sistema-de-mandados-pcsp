@@ -696,13 +696,13 @@ const NEIGHBORHOOD_TO_DP: { [key: string]: string } = {
     "santa marina": "1º DP",
     "santa paula": "1º DP",
     "rio comprido": "1º DP",
-    "bandeira branca": "1º DP",
     "varadouro": "1º DP",
-    "rio abaixo": "1º DP",
-    "esper": "1º DP",
+    "rio abaixo": "4º DP",
     "vila branca": "1º DP",
-    "jardim esper": "1º DP",
     "jardim luiza": "1º DP",
+    "jardim do marques": "1º DP",
+    "jardim coleginho": "1º DP",
+    "vila nova alianca": "1º DP",
     "cerejeira": "1º DP",
     "guanabara": "1º DP",
     "jardim guanabara": "1º DP",
@@ -713,36 +713,52 @@ const NEIGHBORHOOD_TO_DP: { [key: string]: string } = {
     "altos de santana": "1º DP",
     "jardim paraiso": "1º DP",
     "maria amelia": "1º DP",
+    "jardim dora": "1º DP",
+    "dora": "1º DP",
     "olympia": "1º DP",
     "jardim olympia": "1º DP",
     "jardim real": "1º DP",
     "pedregulho": "1º DP",
     "vila zeze": "1º DP",
-    "didinha": "1º DP",
-    "jardim didinha": "1º DP",
+    "zeze": "1º DP",
     "itamarati": "1º DP",
     "mirante do vale": "1º DP",
     "jardim yolanda": "1º DP",
-    "sao judas": "1º DP",
     "portal": "1º DP",
-    "panorama": "1º DP",
     "colonia": "1º DP",
     "jardim colonia": "1º DP",
     "vila vintem": "1º DP",
     "terra de santa clara": "1º DP",
+    "pitoresco": "1º DP",
+    "jardim pitoresco": "1º DP",
+    "principes": "1º DP",
+    "parque dos principes": "1º DP",
+    "santo antonio": "1º DP",
+    "parque santo antonio": "1º DP",
+    "boa vista": "1º DP",
+    "jardim boa vista": "1º DP",
+    "residencial vista das araucarias": "1º DP",
+    "vista das araucarias": "1º DP",
+    "jardim colinas": "1º DP",
+    "colinas": "1º DP",
+    "campo grande": "1º DP",
+    "mato dentro": "1º DP",
+    "santana do pedregulho": "1º DP",
+    "jardim santana do pedregulho": "1º DP",
+    "jardim santana": "1º DP",
+    "jardim altos de santana": "1º DP",
 
     // 2º DP (OESTE - Sede: Jd. Flórida)
     "jardim florida": "2º DP",
     "bela vista": "2º DP",
-    "jardim bela vista": "2º DP",
     "igarapes": "2º DP",
     "sao silvestre": "2º DP",
-    "pagador andrade": "2º DP",
+    "pagador andrade": "4º DP",
     "cidade nova": "2º DP",
     "jacarei cidade nova": "2º DP",
     "lago dourado": "2º DP",
-    "lagoinha": "2º DP",
-    "jardim santana": "2º DP",
+    "lagoinha": "4º DP",
+    "condominio lagoinha": "4º DP",
     "sao luiz": "2º DP",
     "agrinco": "2º DP",
     "imperial": "2º DP",
@@ -751,24 +767,48 @@ const NEIGHBORHOOD_TO_DP: { [key: string]: string } = {
     "iraja": "2º DP",
     "nova esperanca": "2º DP",
     "jardim nova esperanca": "2º DP",
-    "sao joaquim": "2º DP",
+    "sao joaquim": "4º DP",
     "esperanca": "2º DP",
     "jardim esperanca": "2º DP",
-    "jardim alvorada": "2º DP",
+    "jardim alvorada": "4º DP",
     "baixos": "2º DP",
     "escada": "2º DP",
     "jardim siesta": "2º DP",
+    "estancia porto velho": "2º DP",
+    "jardim terras da conceicao": "2º DP",
+    "vila machado": "2º DP",
+    "panorama": "2º DP",
+    "jardim panorama": "2º DP",
+    "chiquinha schurig": "2º DP",
+    "arice": "2º DP",
+    "jardim arice": "2º DP",
+    "jd arice": "2º DP",
+    "sao judas": "2º DP",
+    "sao judas tadeu": "2º DP",
+    "vila sao judas tadeu": "2º DP",
+    "jardim jacinto": "2º DP",
+    "jacinto": "2º DP",
+    "bandeira branca": "2º DP",
+    "jardim emilia": "2º DP",
+    "vila ita": "2º DP",
+    "balneario paraiba": "2º DP",
+    "jamic": "2º DP",
+    "jardim terras de santa helena": "2º DP",
+    "cidade jardim": "2º DP",
+    "jardim elza maria": "2º DP",
+    "jardim terras de sao joao": "2º DP",
+    "parque imperial": "2º DP",
+    "jardim pedra mar": "2º DP",
+    "rua projetada": "2º DP",
+    "conj res vinte e dois de abril": "2º DP",
 
     // 3º DP (CENTRO / CENTRAL - Sede: Centro)
     "centro": "3º DP",
     "jardim california": "3º DP",
-    "parque california": "3º DP",
+    "parque california": "1º DP",
     "sao joao": "3º DP",
-    "zeze": "3º DP",
-    "principes": "3º DP",
-    "parque dos principes": "3º DP",
-    "paraiba": "3º DP",
-    "jardim paraiba": "3º DP",
+    "jardim paraiba": "2º DP",
+    "paraiba": "2º DP",
     "vila garcia": "3º DP",
     "pinheiro": "3º DP",
     "vila pinheiro": "3º DP",
@@ -776,8 +816,6 @@ const NEIGHBORHOOD_TO_DP: { [key: string]: string } = {
     "sao simao": "3º DP",
     "marilia": "3º DP",
     "brasilia": "3º DP",
-    "boa vista": "3º DP",
-    "jardim boa vista": "3º DP",
     "guarani": "3º DP",
     "jardim guarani": "3º DP",
     "sao gabriel": "3º DP",
@@ -786,17 +824,19 @@ const NEIGHBORHOOD_TO_DP: { [key: string]: string } = {
     "jardim lourdes": "3º DP",
     "emida costa": "3º DP",
     "leonidia": "3º DP",
-    "pitoresco": "3º DP",
     "vila real": "3º DP",
     "amparo": "3º DP",
     "perreira do amparo": "3º DP",
     "avenida": "3º DP",
-    "jardim jacinto": "3º DP",
-    "parque santo antonio": "3º DP",
     "avarei": "3º DP",
-    "jardim emilia": "3º DP",
-    "vila ita": "3º DP",
     "parque brasil": "3º DP",
+    "parque dos sinos": "3º DP",
+    "jardim sao jose": "3º DP",
+    "jardim bela vista": "3º DP",
+    "jardim liberdade": "3º DP",
+    "liberdade": "3º DP",
+    "vila denise": "3º DP",
+    "jardim leonidia": "3º DP",
 
     // 4º DP (NORTE / MEIA LUA - Sede: Meia Lua)
     "parque meia lua": "4º DP",
@@ -808,6 +848,8 @@ const NEIGHBORHOOD_TO_DP: { [key: string]: string } = {
     "remedinhos": "4º DP",
     "pagador": "4º DP",
     "andrade": "4º DP",
+    "paratei": "4º DP",
+    "jardim conquista": "4º DP",
     "cassununga": "4º DP",
     "chacaras rural": "4º DP",
     "rural": "4º DP"
@@ -828,7 +870,34 @@ export const inferDPRegion = async (address: string, lat?: number, lng?: number)
         return null;
     }
 
+    // 0. CHECK FOR OTHER CITIES AND STATES FIRST
+    const rawUpper = address.toUpperCase();
+    const normalizedJacarei = normalized.includes('jacarei');
+    const normalizedIgarata = normalized.includes('igarata');
+
+    // Detect Other States (e.g., - RJ, - MG, - PR)
+    const stateMatch = rawUpper.match(/-\s*([A-Z]{2})\b/);
+    if (stateMatch && stateMatch[1] !== 'SP' && !normalizedJacarei) {
+        return 'Outras Cidades';
+    }
+
+    // List of cities that should definitely not be Jacareí (unless explicitly mentioned)
+    const otherCities = [
+        'SAO JOSE DOS CAMPOS', 'SÃO JOSÉ DOS CAMPOS', 'SJC', 'TAUBATE', 'CACAPAVA', 'SÃO PAULO', 'SAO PAULO',
+        'GUARULHOS', 'MOGI DAS CRUZES', 'SANTA BRANCA', 'PARAIBUNA', 'CAJAMAR', 'CAMPINAS',
+        'OSASCO', 'SANTO ANDRE', 'SAO BERNARDO', 'SOROCABA', 'SANTOS', 'CARAPICUIBA',
+        'PIRACICABA', 'BAURU', 'FRANCA', 'LIMEIRA', 'ARARAQUARA', 'ITAQUAQUECETUBA'
+    ];
+
+    const mentionsOtherCity = otherCities.some(city => rawUpper.includes(city));
+
+    if (mentionsOtherCity && !normalizedJacarei && !normalizedIgarata) {
+        console.log(`[DP INFERENCE] Detected Other City: ${address}`);
+        return 'Outras Cidades';
+    }
+
     // 1. Check Hardcoded Map FIRST (Speed and Accuracy for known Jacareí neighborhoods)
+    // We only check this if it's likely Jacareí or explicitly Jacareí.
     for (const [neighborhood, dp] of Object.entries(NEIGHBORHOOD_TO_DP)) {
         if (normalized.includes(neighborhood)) {
             console.log(`[DP INFERENCE] Match found via Map: ${neighborhood} -> ${dp}`);
@@ -836,7 +905,7 @@ export const inferDPRegion = async (address: string, lat?: number, lng?: number)
         }
     }
 
-    // 2. Intelligent Distance Hint (if coordinates present)
+    // 2. Intelligent Distance Hint & Decision (if coordinates present)
     let distanceHint = "";
     if (lat && lng) {
         const sortedDps = [...DP_SITES].sort((a, b) => {
@@ -844,7 +913,18 @@ export const inferDPRegion = async (address: string, lat?: number, lng?: number)
             const distB = Math.sqrt(Math.pow(lat - b.lat, 2) + Math.pow(lng - b.lng, 2));
             return distA - distB;
         });
-        distanceHint = `GEOLOCALIZAÇÃO: Este ponto está FISICAMENTE mais próximo da sede do ${sortedDps[0].id}. Use esta informação como prioridade máxima de decisão regional.`;
+
+        const closestDp = sortedDps[0];
+        const distToClosest = Math.sqrt(Math.pow(lat - closestDp.lat, 2) + Math.pow(lng - closestDp.lng, 2));
+
+        // Threshold of 0.18 is approx 20km. 
+        // If the location is further than 20km from ALL local DPs, it's definitively NOT in Jacareí.
+        if (distToClosest > 0.18) {
+            console.log(`[DP INFERENCE] Geoloc distance too far (${distToClosest.toFixed(4)}): Outras Cidades`);
+            return 'Outras Cidades';
+        }
+
+        distanceHint = `GEOLOCALIZAÇÃO: Este ponto está FISICAMENTE mais próximo da sede do ${closestDp.id}. Use esta informação como prioridade máxima de decisão regional.`;
     }
 
     // 3. Fallback to Gemini for complex addresses or unknown areas
@@ -861,17 +941,16 @@ export const inferDPRegion = async (address: string, lat?: number, lng?: number)
         ${distanceHint}
 
         DIRETRIZES TÁTICAS (JACAREÍ/SP):
-        1. CIDADE SALVADOR, NOVO AMANHECER E VILA BRANCA SÃO 1º DP.
-        2. AS COORDENADAS SÃO O FATOR DE DESEMPATE FINAL.
-        3. SE A CIDADE NÃO FOR JACAREÍ, retorne "Outras Cidades".
-        
-        JURISDIÇÃO (REFERÊNCIA):
-        * 1º DP: Cidade Salvador, Santa Maria, Novo Amanhecer, Vila Branca, Cerejeira, Luiza, Rio Comprido, Jd. Esper.
-        * 2º DP: Bela Vista, Igarapés, São Silvestre, Cidade Nova, Pagador de Andrade.
-        * 3º DP: Centro, Jd. Califórnia, São João, Zezé, Santa Paula.
-        * 4º DP: Meia Lua, Primeiro de Maio, Lagoa Azul.
+        1. SE O ENDEREÇO MENCIONAR QUALQUER CIDADE DIFERENTE DE JACAREÍ OU IGARATÁ (como São José dos Campos, São Paulo, Mogi, etc.), sua resposta OBRIGATÓRIA deve ser "Outras Cidades".
+        2. CASO O ENDEREÇO TENHA UM ESTADO DIFERENTE DE SP (ex: - RJ, - MG), sua resposta OBRIGATÓRIA deve ser "Outras Cidades".
+        3. CASO SEJA JACAREI:
+           - 1º DP: Cidade Salvador, Santa Maria, Novo Amanhecer, Vila Branca, Santa Paula, Rio Comprido, Jd. Pitoresco, Parque dos Principes, Santo Antonio, Boa Vista, Vista das Araucarias, Jardim do Marques, Jardim Coleginho, Vila Nova Alianca, Vila Zeze, Jardim Colinas, Campo Grande, Jardim Altos de Santana, Santana do Pedregulho, Jardim Dora, Jardim Colonia, Mato Dentro.
+           - 2º DP: Bela Vista (Apenas Bela Vista puro), Igarapés, São Silvestre, Cidade Nova, Jd. Panorama, Rua Chiquinha Schurig, Jardim Arice (JD Arice), Vila São Judas Tadeu, Jardim Jacinto, Bandeira Branca, Jardim Emilia, Vila Ita, Balneario Paraiba, JAMIC, Terras de Santa Helena.
+           - 3º DP: Centro (Estritamente Jacareí), Jd. Califórnia, São João, Didinha, Jd. Esper, Jardim Bela Vista, Parque dos Sinos, Jardim São Jose, Jardim Liberdade, Vila Denise, Jardim Leonidia.
+           - 4º DP: Meia Lua, Primeiro de Maio, Lagoa Azul, Pagador Andrade, São Joaquim, Paratei, Jardim Alvorada, Lagoinha, Rio Abaixo.
+        4. SE VOCÊ TIVER DÚVIDA SE O ENDEREÇO É EM JACAREÍ (Ex: apenas o nome da rua sem cidade), sua resposta OBRIGATÓRIA deve ser "Outras Cidades". NÃO INVENTE JURISDIÇÃO.
 
-        RESPOSTA ESTRITA (APENAS UM DESSES): "1º DP", "2º DP", "3º DP", "4º DP", "DIG", "DISE", "DDM", "Plantão", "Outras Cidades".
+        RESPOSTA ESTRITA (APENAS UM DESSES): "1º DP", "2º DP", "3º DP", "4º DP", "Outras Cidades".
         Resposta:
     `;
 

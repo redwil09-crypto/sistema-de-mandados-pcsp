@@ -111,7 +111,7 @@ export const generateWarrantPDF = async (
 
         // --- HERO SECTION (PHOTO & RISK) ---
         const photoW = 45;
-        const photoH = 55;
+        const photoH = 55; // Reverted to original 55
 
         // Photo Box
         doc.setDrawColor(...COLORS.PRIMARY);
@@ -141,7 +141,7 @@ export const generateWarrantPDF = async (
         doc.setTextColor(...COLORS.PRIMARY);
         const nameLines = doc.splitTextToSize(data.name.toUpperCase(), contentWidth - photoW - 15);
         doc.text(nameLines, infoX, infoY);
-        infoY += (nameLines.length * 8); // Adjust Y based on lines needed
+        infoY += (nameLines.length * 8); // Original 8
 
         // Status & Risk Badges
         let badgeX = infoX;
@@ -149,10 +149,10 @@ export const generateWarrantPDF = async (
         // Status Badge
         const statusColor = data.status === 'CUMPRIDO' ? COLORS.RISK.LOW : COLORS.RISK.HIGH;
         doc.setFillColor(...statusColor);
-        doc.roundedRect(badgeX, infoY, 35, 6, 1, 1, 'F');
+        doc.roundedRect(badgeX, infoY + 2, 35, 6, 1, 1, 'F');
         doc.setTextColor(...COLORS.WHITE);
         doc.setFontSize(8);
-        doc.text(data.status || 'EM ABERTO', badgeX + 17.5, infoY + 4.2, { align: 'center' });
+        doc.text(data.status || 'EM ABERTO', badgeX + 17.5, infoY + 6.2, { align: 'center' });
         badgeX += 40;
 
         // Tactical Intelligence Parsing for Risk
@@ -191,12 +191,24 @@ export const generateWarrantPDF = async (
             riskColor = COLORS.RISK.NORMAL;
         }
 
-        doc.setFillColor(...riskColor);
-        doc.roundedRect(badgeX, infoY, 45, 6, 1, 1, 'F');
-        doc.setTextColor(...COLORS.WHITE);
-        doc.text(`RISCO: ${riskLevel}`, badgeX + 22.5, infoY + 4.2, { align: 'center' });
+        if (riskLevel) {
+            doc.setFillColor(...riskColor);
+            doc.roundedRect(badgeX, infoY + 2, 35, 6, 1, 1, 'F');
+            doc.setTextColor(...COLORS.WHITE);
+            doc.text(`RISCO: ${riskLevel}`, badgeX + 17.5, infoY + 6.2, { align: 'center' });
+            badgeX += 40;
+        }
 
-        infoY += 12;
+        // DP Region Badge
+        if (data.dpRegion) {
+            doc.setFillColor(...COLORS.SECONDARY);
+            doc.roundedRect(badgeX, infoY + 2, 40, 6, 1, 1, 'F');
+            doc.setTextColor(...COLORS.WHITE);
+            doc.setFontSize(8);
+            doc.text(`DP: ${data.dpRegion.toUpperCase()}`, badgeX + 20, infoY + 6.2, { align: 'center' });
+        }
+
+        infoY += 12; // Original 12
         doc.setTextColor(...COLORS.TEXT);
 
         // Main Identifiers
@@ -222,10 +234,10 @@ export const generateWarrantPDF = async (
             const valLines = doc.splitTextToSize(valStr, maxWidth);
 
             doc.text(valLines, infoX + 30, infoY);
-            infoY += (valLines.length * 5) + 2; // Dynamic spacing based on lines
+            infoY += (valLines.length * 5) + 2; // Original 5 and 2
         });
 
-        y += photoH + 5;
+        y = Math.max(y + photoH, infoY) + 2; // Reduced from 4 to 2
 
         // --- DATA SECTIONS ---
         const drawFields = (fields: [string, string][]) => {
@@ -272,7 +284,8 @@ export const generateWarrantPDF = async (
             ["Regime Prisional", data.regime || "N/A"],
             ["Data de Expedição", formatDate(data.issueDate)],
             ["Data de Validade", formatDate(data.expirationDate)],
-            ["Vara / Fórum", data.issuingCourt || "-"]
+            ["Vara / Fórum", data.issuingCourt || "-"],
+            ["DP Competente", data.dpRegion || "-"]
         ]);
         y += 5;
 
@@ -462,7 +475,8 @@ export const generateWarrantPDF = async (
 
 export const generateIfoodOfficePDF = async (
     data: Warrant,
-    onUpdate?: (id: string, updates: Partial<Warrant>) => Promise<boolean>
+    onUpdate?: (id: string, updates: Partial<Warrant>) => Promise<boolean>,
+    currentUser?: { name: string; email: string } | null
 ) => {
     if (!data) return;
     try {
@@ -559,7 +573,7 @@ export const generateIfoodOfficePDF = async (
         y += 45;
 
         // --- CLOSING ---
-        const emailText = `As informações deverão ser encaminhadas para o e-mail oficial desta unidade (dig.jacarei@policiacivil.sp.gov.br) em formato PDF ou planilha eletrônica.`;
+        const emailText = `As informações deverão ser encaminhadas para o e-mail oficial do responsável (${currentUser?.email || 'dig.jacarei@policiacivil.sp.gov.br'}) em formato PDF ou planilha eletrônica.`;
         const splitEmail = doc.splitTextToSize(emailText, pageWidth - (margin * 2));
         doc.setFont('helvetica', 'normal');
         doc.text(splitEmail, margin, y);
@@ -579,9 +593,9 @@ export const generateIfoodOfficePDF = async (
 
         const sigX = margin + 40;
         doc.setFont('helvetica', 'bold');
-        doc.text("Luiz Antônio Cunha dos Santos", sigX, y + 5, { align: 'left' });
+        doc.text(currentUser?.name || "Luiz Antônio Cunha dos Santos", sigX, y + 5, { align: 'left' });
         doc.setFont('helvetica', 'normal');
-        doc.text("Delegado de Polícia", sigX + 15, y + 10, { align: 'left' });
+        doc.text(currentUser?.name ? "Policial Responsável" : "Delegado de Polícia", sigX + 15, y + 10, { align: 'left' });
 
         // --- FOOTER (New Model Style) ---
         const footerY = pageHeight - 15;

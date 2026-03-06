@@ -266,16 +266,14 @@ export const WarrantProvider = ({ children }: { children: ReactNode }) => {
     const prisonWarrants = useMemo(() => {
         return warrants.filter(w => {
             const type = (w.type || '').toLowerCase();
-            const status = (w.status || '').toUpperCase();
-            return !type.includes('busca') && !type.includes('apreensão') && status === 'EM ABERTO';
+            return !type.includes('busca') && !type.includes('apreensão');
         });
     }, [warrants]);
 
     const searchWarrants = useMemo(() => {
         return warrants.filter(w => {
             const type = (w.type || '').toLowerCase();
-            const status = (w.status || '').toUpperCase();
-            return (type.includes('busca') || type.includes('apreensão')) && status === 'EM ABERTO';
+            return type.includes('busca') || type.includes('apreensão') || type.includes('menor');
         });
     }, [warrants]);
 

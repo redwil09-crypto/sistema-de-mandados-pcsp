@@ -39,7 +39,83 @@ export interface ExtractedData {
     dpRegion?: string;          // New: DP area derived from location
 }
 
-// DP region inference is now handled by the asynchronous inferDPRegion in geminiService.ts
+// Helper to determine DP based on address using comprehensive Jacareí neighborhood list
+export const determineDpRegion = (address: string): string => {
+    if (!address) return '';
+    const loc = address.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase();
+
+    // --- 1. DETECT OTHER CITIES & STATES ---
+    const stateMatch = loc.match(/-\s*([A-Z]{2})\b/);
+    if (stateMatch && stateMatch[1] !== 'SP') {
+        return 'Outras Cidades';
+    }
+
+    if (stateMatch && stateMatch[1] === 'SP') {
+        if (!loc.includes('JACAREI') && !loc.includes('IGARATA')) {
+            return 'Outras Cidades';
+        }
+    }
+
+    const explicitOtherCity = [
+        'SAO JOSE DOS CAMPOS', 'SÃO JOSÉ DOS CAMPOS', 'SJC', 'SAO PAULO', 'SÃO PAULO', 'CAMPINAS', 'TAUBATE', 'CACAPAVA',
+        'PINDAMONHANGABA', 'GUARATINGUETA', 'LORENA', 'CARAGUATATUBA', 'UBATUBA',
+        'SAO SEBASTIAO', 'ILHABELA', 'SANTA BRANCA', 'PARAIBUNA', 'JAMBEIRO',
+        'GUARULHOS', 'MOGI DAS CRUZES', 'SUZANO', 'SOROCABA', 'RIBEIRAO PRETO',
+        'BAURU', 'FRANCA', 'SANTOS', 'SAO VICENTE', 'GUARUJA', 'PRAIA GRANDE',
+        'BELO HORIZONTE', 'RIO DE JANEIRO', 'CURITIBA', 'BRASILIA', 'CAJAMAR', 'OSASCO',
+        'SANTO ANDRE', 'SAO BERNARDO', 'CARAPICUIBA', 'PIRACICABA', 'LIMEIRA', 'ARARAQUARA',
+        'ITAQUAQUECETUBA', 'JUNDIAI', 'ATIBAIA', 'BRAGANCA PAULISTA'
+    ].some(city => loc.includes(city));
+
+    if (explicitOtherCity && !loc.includes('JACAREI')) {
+        return 'Outras Cidades';
+    }
+
+    const keywords1DP = [
+        'CIDADE SALVADOR', 'MIRANTE DO VALE', 'ALTOS DE SANTANA', 'COLONIA',
+        'INDUSTRIAS', 'MARQUES', 'JARDIM DO VALE', 'DORA', 'MARIA AMELIA',
+        'OLYMPIA', 'PARAISO', 'JARDIM REAL', 'PEDREGULHO',
+        'SANTO ANTONIO', 'PARQUE SANTO ANTONIO', 'YOLANDA', 'VILLA BRANCA', 'VILA BRANCA', 'PARQUE CALIFORNIA',
+        'PARQUE DOS PRINCIPES', 'PRINCIPES', 'ITAMARATI', 'SANTA PAULA', 'RIO COMPRIDO',
+        'VILA ZEZE', 'ZEZE', 'VILA VINTEM', 'NOVO AMANHECER', 'PORTAL',
+        'PITORESCO', 'JARDIM PITORESCO', 'BOA VISTA', 'VISTA DAS ARAUCARIAS',
+        'JARDIM DO MARQUES', 'MARQUES', 'JARDIM COLEGINHO', 'VILA NOVA ALIANCA',
+        'COLINAS', 'CAMPO GRANDE', 'MATO DENTRO'
+    ];
+
+    const keywords2DP = [
+        'BANDEIRA BRANCA', 'BELA VISTA', 'CEREJEIRA', 'GUANABARA', 'IGARAPES',
+        'SANTA MARIA', 'CIDADE NOVA', 'LAGO DOURADO', 'ESCADA',
+        'LUIZA', 'SAO LUIZ', 'AGRINCO', 'IMPERIAL',
+        'JEQUITIBA', 'SAO SILVESTRE', 'IJAL', 'IRAJA', 'ESTANCIA PORTO VELHO',
+        'JARDIM TERRAS DA CONCEICAO', 'VILA MACHADO', 'JARDIM FLORIDA', 'PANORAMA', 'JARDIM PANORAMA', 'CHIQUINHA SCHURIG',
+        'ARICE', 'JD ARICE', 'JARDIM ARICE',
+        'SAO JUDAS', 'SAO JUDAS TADEU', 'VILA SAO JUDAS TADEU',
+        'JARDIM JACINTO', 'JACINTO', 'JAMIC', 'SANTA HELENA', 'TERRAS DE SANTA HELENA', 'EMILIA', 'VILA ITA', 'BALNEARIO PARAIBA', 'JARDIM PARAIBA', 'CIDADE JARDIM',
+        'ELZA MARIA', 'JARDIM ELZA MARIA', 'TERRAS DE SAO JOAO', 'JARDIM TERRAS DE SAO JOAO', 'ESPERANCA', 'JARDIM ESPERANCA', 'PARQUE IMPERIAL', 'PEDRA MAR', 'JARDIM PEDRA MAR', 'RUA PROJETADA', 'VINTE E DOIS DE ABRIL'
+    ];
+
+    const keywords3DP = [
+        'AVAREI', 'CENTRO', 'PARQUE DOS SINOS', 'JARDIM SAO JOSE', 'JARDIM BELA VISTA', 'JARDIM LIBERDADE', 'VILA DENISE', 'JARDIM LEONIDIA',
+        'SANTA MARINA', 'VILA GARCIA', 'PINHEIRO', 'SAO JOAO', 'SAO SIMAO',
+        'MARILIA', 'BRASILIA', 'ESPER', 'JARDIM ESPER', 'DIDINHA',
+        'GUARANI', 'SAO GABRIEL', 'JARDIM CALIFORNIA',
+        'LOURDES', 'EMIDA COSTA', 'LEONIDIA', 'VILA REAL', 'AMPARO'
+    ];
+
+    const keywords4DP = [
+        'REMEDIOS', 'REMEDINHO', 'PAGADOR', 'ANDRADE',
+        'MEIA LUA', 'PRIMEIRO DE MAIO', 'RIO ABAIXO', 'LAGOA AZUL',
+        'SAO JOAQUIM', 'PARATEI', 'ALVORADA', 'LAGOINHA', 'CONQUISTA'
+    ];
+
+    if (keywords1DP.some(k => loc.includes(k))) return '1º DP';
+    if (keywords3DP.some(k => loc.includes(k))) return '3º DP';
+    if (keywords2DP.some(k => loc.includes(k))) return '2º DP';
+    if (keywords4DP.some(k => loc.includes(k))) return '4º DP';
+
+    return '';
+};
 
 // Helper functions for parsing
 const extractName = (text: string): string => {
