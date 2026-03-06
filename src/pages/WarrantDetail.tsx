@@ -694,21 +694,15 @@ const WarrantDetail = () => {
         );
     }
 
-    const handleFinalize = async () => {
+    const handleFinalize = () => {
         if (!data) return;
         const isSearch = data.type?.toLowerCase().includes('busca') || data.type?.toLowerCase().includes('apreensão');
-
-        // Buscar sugestão global do banco para o relatório de cumprimento
-        let suggestedNum = await getLastFulfillmentReportNumber();
-        if (!suggestedNum) {
-            suggestedNum = getSuggestedReportNumber();
-        }
-
-        setFinalizeFormData(prev => ({
-            ...prev,
-            reportNumber: data.fulfillmentReport || suggestedNum || '',
-            result: isSearch ? 'Apreendido' : 'PRESO'
-        }));
+        setFinalizeFormData({
+            date: new Date().toISOString().split('T')[0],
+            reportNumber: data.fulfillmentReport || '',
+            result: isSearch ? 'APREENDIDO' : 'PRESO',
+            details: data.fulfillmentDetails || ''
+        });
         setIsFinalizeModalOpen(true);
     };
 
@@ -754,7 +748,7 @@ const WarrantDetail = () => {
             }
         } catch (error) {
             console.error("Erro ao finalizar mandado:", error);
-            toast.error("Falha ao comunicar com o servidor.");
+            toast.error("Falha ao atualizar dados no servidor.");
         }
     };
 
