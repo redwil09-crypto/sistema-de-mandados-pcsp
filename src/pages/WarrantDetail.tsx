@@ -3206,6 +3206,10 @@ Equipe de Capturas - DIG / PCSP
                                         <input type="text" className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white" value={finalizeFormData.reportNumber} onChange={e => setFinalizeFormData({ ...finalizeFormData, reportNumber: e.target.value })} />
                                     </div>
                                     <div className="space-y-1">
+                                        <label className="text-[10px] font-black text-text-muted uppercase tracking-widest">Circunstanciado do Cumprimento</label>
+                                        <textarea rows={4} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white resize-none text-sm" value={finalizeFormData.details} onChange={e => setFinalizeFormData({ ...finalizeFormData, details: e.target.value })} placeholder="Descreva os detalhes do cumprimento..." />
+                                    </div>
+                                    <div className="space-y-1">
                                         <label className="text-[10px] font-black text-text-muted uppercase tracking-widest">Resultado Final</label>
                                         <select className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white appearance-none" value={finalizeFormData.result} onChange={e => setFinalizeFormData({ ...finalizeFormData, result: e.target.value })}>
                                             {['PRESO', 'NEGATIVO', 'ENCAMINHADO', 'ÓBITO', 'CONTRA', 'LOCALIZADO'].map(opt => <option key={opt} value={opt} className="bg-surface-dark">{opt}</option>)}
