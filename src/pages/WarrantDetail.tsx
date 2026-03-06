@@ -729,6 +729,8 @@ const WarrantDetail = () => {
     };
 
     const handleConfirmFinalize = async () => {
+        if (!data) return;
+
         const updates: any = {
             status: 'CUMPRIDO',
             dischargeDate: finalizeFormData.date,
@@ -742,14 +744,21 @@ const WarrantDetail = () => {
             updates.regime = 'Contramandado';
         }
 
-        const success = await updateWarrant(data.id, updates);
-        if (success) {
-            toast.success("Mandado finalizado com sucesso!");
-            if (refreshWarrants) await refreshWarrants(true);
-        } else {
-            toast.error("Erro ao finalizar mandado.");
+        try {
+            const result = await updateWarrant(data.id, updates);
+            if (result) {
+                toast.success("Mandado finalizado com sucesso!");
+                if (refreshWarrants) {
+                    await refreshWarrants(true);
+                }
+                setIsFinalizeModalOpen(false);
+            } else {
+                toast.error("Erro ao finalizar mandado.");
+            }
+        } catch (error) {
+            console.error("Erro ao finalizar mandado:", error);
+            toast.error("Falha ao atualizar dados no servidor.");
         }
-        setIsFinalizeModalOpen(false);
     };
 
     const handleConfirmRemoveTag = async () => {
