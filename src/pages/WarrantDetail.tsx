@@ -3307,8 +3307,8 @@ Equipe de Capturas - DIG / PCSP
                     {/* MODALS END HERE */}
 
                     {/* Action Command Bar - FIXED POSITION FOR ACCESSIBILITY */}
-                    <div className="fixed bottom-0 left-0 right-0 z-[60] p-4 md:left-20 lg:left-56 transition-all duration-300 pointer-events-none">
-                        <div className="max-w-5xl mx-auto pointer-events-auto">
+                    <div className="fixed bottom-0 left-0 right-0 z-[60] p-4 transition-all duration-300 pointer-events-none">
+                        <div className="max-w-7xl mx-auto flex justify-center pointer-events-auto">
                             <FloatingDock
                                 onBack={() => navigate(-1)}
                                 onHome={() => navigate('/')}
