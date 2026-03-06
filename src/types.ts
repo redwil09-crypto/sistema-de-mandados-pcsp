@@ -47,6 +47,7 @@ export interface Warrant {
     issuingCourt?: string;       // Fórum/Vara Expedidora
     tacticalIntel?: any;     // Inteligência Tática (Gemini Analysis)
     ifoodDocs?: string[];    // Documentos anexos do iFood
+    userId?: string;         // ID do usuário criador/responsável
 }
 
 export interface AuditLog {

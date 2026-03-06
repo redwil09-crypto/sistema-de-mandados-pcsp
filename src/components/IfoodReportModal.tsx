@@ -14,16 +14,17 @@ interface IfoodReportModalProps {
     warrant: Warrant;
     type: 'ifood' | 'uber' | '99';
     updateWarrant: (id: string, data: Partial<Warrant>) => Promise<boolean>;
+    allWarrants?: Warrant[];
 }
 
-const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, warrant, type: initialType, updateWarrant }) => {
+const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, warrant, type: initialType, updateWarrant, allWarrants = [] }) => {
     const [generatedText, setGeneratedText] = useState('');
     const [isProcessing, setIsProcessing] = useState(false);
     const [officeNumber, setOfficeNumber] = useState('');
     const [step, setStep] = useState<'input' | 'processing' | 'result'>('input');
     const [badgeImg, setBadgeImg] = useState<HTMLImageElement | null>(null);
     const [selectedType, setSelectedType] = useState(initialType);
-    const [currentUser, setCurrentUser] = useState<{ name: string; email: string } | null>(null);
+    const [currentUser, setCurrentUser] = useState<{ id: string; name: string; email: string } | null>(null);
 
     // Update selectedType if props change (reset)
     useEffect(() => {
@@ -59,10 +60,10 @@ const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, wa
             setGeneratedText('');
             setOfficeNumber('');
         } else {
-            // Fetch current user info when modal opens
-            const fetchUser = async () => {
+            const fetchUserAndSuggest = async () => {
                 const { data: { user } } = await supabase.auth.getUser();
                 if (user) {
+                    let userData = { id: user.id, name: 'Policial', email: user.email || '' };
                     try {
                         const { data: profile } = await supabase
                             .from('profiles')
@@ -71,27 +72,35 @@ const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, wa
                             .single();
 
                         if (profile) {
-                            setCurrentUser({
-                                name: profile.full_name,
-                                email: profile.email
-                            });
-                        } else {
-                            setCurrentUser({
-                                name: user.user_metadata?.full_name || 'Policial',
-                                email: user.email || ''
-                            });
+                            userData.name = profile.full_name;
+                        } else if (user.user_metadata?.full_name) {
+                            userData.name = user.user_metadata.full_name;
                         }
-                    } catch (e) {
-                        setCurrentUser({
-                            name: user.user_metadata?.full_name || 'Policial',
-                            email: user.email || ''
-                        });
-                    }
+                    } catch (e) { }
+
+                    setCurrentUser(userData);
+
+                    // Suggest number based on this user's warrants
+                    const currentYear = new Date().getFullYear();
+                    let maxNum = 0;
+
+                    allWarrants.forEach(w => {
+                        // Consider ifoodNumber if it's from this user
+                        if (w.userId === user.id && w.ifoodNumber) {
+                            const parts = w.ifoodNumber.split('/');
+                            if (parts.length === 3 && parts[1] === 'CAPT' && parseInt(parts[2]) === currentYear) {
+                                const num = parseInt(parts[0]);
+                                if (!isNaN(num) && num > maxNum) maxNum = num;
+                            }
+                        }
+                    });
+
+                    setOfficeNumber((maxNum + 1).toString().padStart(3, '0'));
                 }
             };
-            fetchUser();
+            fetchUserAndSuggest();
         }
-    }, [isOpen]);
+    }, [isOpen, allWarrants]);
 
     const generateTextForType = (currentType: 'ifood' | 'uber' | '99') => {
         const months = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
@@ -107,7 +116,7 @@ const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, wa
         const contactEmail = currentUser?.email || 'william.castro@policiacivil.sp.gov.br';
         const contactName = currentUser?.name || 'William Campos de Assis Castro';
 
-        return `Ofício: nº.${officeNumber}/CAPT/2026
+        return `Ofício: nº.${officeNumber}/CAPT/${today.getFullYear()}
 Referência: PROC. Nº ${warrant.number}
 Natureza: Solicitação de Dados.
 
@@ -335,7 +344,11 @@ ${indent}Atenciosamente,`;
             if (uploadedPath) {
                 const url = getPublicUrl(uploadedPath);
                 const currentDocs = warrant.ifoodDocs || [];
-                await updateWarrant(warrant.id, { ifoodDocs: [...currentDocs, url] });
+                const fullOfficeNumber = `${officeNumber}/CAPT/${new Date().getFullYear()}`;
+                await updateWarrant(warrant.id, {
+                    ifoodDocs: [...currentDocs, url],
+                    ifoodNumber: fullOfficeNumber
+                });
                 toast.success("Cópia salva no histórico!", { id: toastId });
                 onClose();
             } else {
