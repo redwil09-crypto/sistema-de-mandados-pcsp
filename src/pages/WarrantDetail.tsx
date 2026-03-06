@@ -2023,6 +2023,7 @@ Equipe de Capturas - DIG / PCSP
     // Determine Theme Colors based on Type
     const isSearch = localData.type ? (localData.type.toLowerCase().includes('busca') || localData.type.toLowerCase().includes('apreensão')) : false;
     const isCounterWarrant = (localData.regime && localData.regime.toLowerCase() === 'contramandado') || (localData.type && localData.type.toLowerCase().includes('contramandado'));
+    const isPriority = (localData.tags || []).some(t => ['Urgente', 'Ofício de Cobrança'].includes(t));
 
     const themeColor = isSearch ? 'text-orange-500' : (isCounterWarrant ? 'text-emerald-500' : 'text-primary');
     const themeBg = isSearch ? 'bg-orange-500/10' : (isCounterWarrant ? 'bg-emerald-500/10' : 'bg-primary/10');
@@ -2045,6 +2046,11 @@ Equipe de Capturas - DIG / PCSP
 
                 {/* 1. Tactical Profile Header */}
                 <div className="bg-surface-light dark:bg-surface-dark/60 backdrop-blur-xl border border-border-light dark:border-white/10 rounded-2xl p-4 shadow-glass overflow-hidden relative group">
+                    {/* Priority Indicator Gradient (Discrete) */}
+                    {isPriority && localData.status === 'EM ABERTO' && (
+                        <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-red-600/20 to-transparent pointer-events-none z-0"></div>
+                    )}
+
                     {/* Animated Glow Decorator */}
                     <div className={`absolute -top-24 -right-24 w-48 h-48 ${themeBg} rounded-full blur-3xl group-hover:opacity-100 transition-all opacity-50`}></div>
 
