@@ -6,9 +6,23 @@ import { generateWarrantPDF } from '../services/pdfReportService';
 import { useWarrants } from '../contexts/WarrantContext';
 import { Siren, AlertTriangle, FileText, CheckCircle2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { toast } from 'sonner';
 
 const PriorityList = () => {
     const { priorityWarrants: warrants, updateWarrant, deleteWarrant, routeWarrants, toggleRouteWarrant } = useWarrants();
+
+    const handleRemovePriority = async (id: string) => {
+        const warrant = warrants.find(w => w.id === id);
+        if (!warrant) return;
+
+        // Remove only the priority tags
+        const newTags = (warrant.tags || []).filter(t => t !== 'Urgente' && t !== 'Ofício de Cobrança');
+
+        const success = await updateWarrant(id, { tags: newTags });
+        if (success) {
+            toast.success("Prioridade removida com sucesso");
+        }
+    };
 
     const urgentCount = warrants.filter(w => (w.tags || []).includes('Urgente')).length;
     const debtCount = warrants.filter(w => (w.tags || []).includes('Ofício de Cobrança')).length;
@@ -54,6 +68,7 @@ const PriorityList = () => {
                             key={w.id}
                             data={w}
                             onDelete={deleteWarrant}
+                            onRemovePriority={handleRemovePriority}
                             isPlanned={routeWarrants.includes(w.id)}
                             onRouteToggle={toggleRouteWarrant}
                             onPrint={(e) => {

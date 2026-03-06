@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Briefcase, Gavel, MapPin, Calendar, Route as RouteIcon, Printer, CheckCircle, Trash2 } from 'lucide-react';
+import { Briefcase, Gavel, MapPin, Calendar, Route as RouteIcon, Printer, CheckCircle, Trash2, X } from 'lucide-react';
 import { Warrant } from '../types';
 import { formatDate } from '../utils/helpers';
 import { normalizeCrimeName } from '../utils/crimeUtils';
@@ -13,10 +13,11 @@ interface WarrantCardProps {
     onRouteToggle?: (id: string) => void;
     onFinalize?: (e: React.MouseEvent, data: Warrant) => void;
     onDelete?: (id: string) => void;
+    onRemovePriority?: (id: string) => void;
     [key: string]: any;
 }
 
-const WarrantCard = ({ data, onPrint, isPlanned, onRouteToggle, onFinalize, onDelete, ...props }: WarrantCardProps) => {
+const WarrantCard = ({ data, onPrint, isPlanned, onRouteToggle, onFinalize, onDelete, onRemovePriority, ...props }: WarrantCardProps) => {
     // Determine stripe color based on search/seizure vs arrest vs counter-warrant
     const isSearch = data.type ? (data.type.toLowerCase().includes('busca') || data.type.toLowerCase().includes('apreensão')) : false;
     const isCounterWarrant = (data.regime && data.regime.toLowerCase() === 'contramandado') || (data.type && data.type.toLowerCase().includes('contramandado'));
@@ -43,6 +44,21 @@ const WarrantCard = ({ data, onPrint, isPlanned, onRouteToggle, onFinalize, onDe
 
             {/* Hover Tech Pattern Overlay */}
             <div className="absolute inset-0 bg-grid-pattern opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+
+            {/* Quick Remove Priority (Discreet X) */}
+            {onRemovePriority && (data.tags || []).some(t => ['Urgente', 'Ofício de Cobrança'].includes(t)) && (
+                <button
+                    onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        onRemovePriority(data.id);
+                    }}
+                    className="absolute top-0 right-0 p-1.5 bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-500/20 rounded-bl-lg transition-all z-20"
+                    title="Remover das Prioridades"
+                >
+                    <X size={14} />
+                </button>
+            )}
 
             <div className="flex gap-4 p-4 pl-5 relative z-10">
                 {/* Visual Stamp for Fulfilled/Counter-Warrant */}
@@ -106,10 +122,10 @@ const WarrantCard = ({ data, onPrint, isPlanned, onRouteToggle, onFinalize, onDe
                             {data.dpRegion && (
                                 <span
                                     className={`text-[9px] font-mono font-bold px-2 py-0.5 rounded border mr-1 transition-all duration-300 ${data.dpRegion.includes('1') ? 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20' :
-                                            data.dpRegion.includes('2') ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20' :
-                                                data.dpRegion.includes('3') ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20' :
-                                                    data.dpRegion.includes('4') ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20' :
-                                                        'bg-slate-500/10 text-slate-600 dark:text-slate-400 border-slate-500/20'
+                                        data.dpRegion.includes('2') ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20' :
+                                            data.dpRegion.includes('3') ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20' :
+                                                data.dpRegion.includes('4') ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20' :
+                                                    'bg-slate-500/10 text-slate-600 dark:text-slate-400 border-slate-500/20'
                                         }`}
                                     title={`Jurisdição: ${data.dpRegion} ${data.longitude ? '(Geo-Localizado)' : '(Inferência por Bairro)'}`}
                                 >
