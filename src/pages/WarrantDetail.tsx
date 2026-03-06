@@ -26,10 +26,10 @@ import { geocodeAddress } from '../services/geocodingService';
 import { generateWarrantPDF } from '../services/pdfReportService';
 import IfoodReportModal from '../components/IfoodReportModal';
 import FloatingDock from '../components/FloatingDock';
-import { analyzeRawDiligence, generateReportBody, analyzeDocumentStrategy, askAssistantStrategy, mergeIntelligence, inferDPRegion } from '../services/geminiService';
 import { extractPdfData } from '../services/pdfExtractionService';
 import { extractRawTextFromPdf, extractFromText } from '../pdfExtractor';
 import { useWarrants } from '../contexts/WarrantContext';
+import { getLastFulfillmentReportNumber } from '../supabaseService';
 
 const WarrantDetail = () => {
     const { warrants, updateWarrant, deleteWarrant, routeWarrants, toggleRouteWarrant, refreshWarrants, availableCrimes, availableRegimes } = useWarrants();
@@ -1351,7 +1351,7 @@ Equipe de Capturas - DIG / PCSP
         setActiveReportType(type);
     };
 
-    const handleOpenCapturasModal = () => {
+    const handleOpenCapturasModal = async () => {
         if (!data) return;
 
         // Use localData (current unsaved edits) over saved data to ensure WYSIWYG
@@ -1450,9 +1450,15 @@ Equipe de Capturas - DIG / PCSP
             return `Registra-se o presente para dar cumprimento ao Mandado de Prisão expedido em desfavor de ${name}, nos autos do processo nº ${process}, oriundo da Comarca de Jacareí/SP.\n\nA equipe desta especializada procedeu às diligências orgânicas e eletrônicas cabíveis nos endereços vinculados ao réu, notadamente em: ${address || 'locais cadastrados'}. \n\n${diligentHistoryText}\n\n${obsText} ${ifoodNotice}\n\nAté o presente momento, e mesmo após cruzamento prático e de inteligência, não foi possível localizar o investigado, restando negativas as diligências realizadas por esta equipe para cumprimento da ordem judicial em Jacareí/SP.`;
         };
 
+        // Buscar sugestão global do banco
+        let suggestedNum = await getLastFulfillmentReportNumber();
+        if (!suggestedNum) {
+            suggestedNum = getSuggestedReportNumber();
+        }
+
         setCapturasData(prev => ({
             ...prev,
-            reportNumber: currentData.fulfillmentReport || getSuggestedReportNumber(),
+            reportNumber: currentData.fulfillmentReport || suggestedNum || '',
             court: '1ª Vara criminal de Jacareí/SP',
             body: generateIntelligentReportBody(),
             aiInstructions: ''
@@ -3173,6 +3179,8 @@ Equipe de Capturas - DIG / PCSP
                         onClose={() => setActiveReportType(null)}
                         type={activeReportType!}
                         warrant={data as Warrant}
+                        updateWarrant={updateWarrant}
+                        allWarrants={warrants}
                     />
 
                     {/* Finalize Modal (Status Update) */}
@@ -3283,18 +3291,20 @@ Equipe de Capturas - DIG / PCSP
                     )}
                     {/* MODALS END HERE */}
 
-                    {/* Action Command Bar - Relocated to end of page */}
-                    <div className="w-full mt-4">
-                        <FloatingDock
-                            onBack={() => navigate(-1)}
-                            onHome={() => navigate('/')}
-                            onSave={() => navigate(`/new-warrant?edit=${data.id}`)}
-                            onPrint={handleDownloadPDF}
-                            onFinalize={handleFinalize}
-                            onReopen={handleReopen}
-                            onDelete={isAdmin ? () => setIsDeleteConfirmOpen(true) : undefined}
-                            status={localData.status}
-                        />
+                    {/* Action Command Bar - FIXED POSITION FOR ACCESSIBILITY */}
+                    <div className="fixed bottom-0 left-0 right-0 z-[60] p-4 md:left-20 lg:left-56 transition-all duration-300 pointer-events-none">
+                        <div className="max-w-5xl mx-auto pointer-events-auto">
+                            <FloatingDock
+                                onBack={() => navigate(-1)}
+                                onHome={() => navigate('/')}
+                                onSave={() => navigate(`/new-warrant?edit=${data.id}`)}
+                                onPrint={handleDownloadPDF}
+                                onFinalize={handleFinalize}
+                                onReopen={handleReopen}
+                                onDelete={isAdmin ? () => setIsDeleteConfirmOpen(true) : undefined}
+                                status={localData.status}
+                            />
+                        </div>
                     </div>
                 </div>
             </div>

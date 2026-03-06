@@ -20,6 +20,14 @@ const WarrantList = () => {
     const initialLocation = searchParams.get('city') || '';
 
     const [searchTerm, setSearchTerm] = useState(query || initialType || initialLocation);
+
+    // Sync search term with URL query if changed from outside
+    React.useEffect(() => {
+        if (query !== undefined && query !== searchTerm && query !== '') {
+            setSearchTerm(query);
+        }
+    }, [query]);
+
     const [showFilters, setShowFilters] = useState(initialStatus !== '' || initialType !== '' || initialPriority !== '' || initialExpired);
 
     // Filter states

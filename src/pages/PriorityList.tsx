@@ -41,7 +41,7 @@ const PriorityList = () => {
                     <h3 className="text-xs font-black uppercase text-text-secondary-light dark:text-text-secondary-dark tracking-wider">Lista de Prioridades</h3>
                 </div>
 
-                {warrants.map(w => (
+                {warrants.sort((a, b) => (a.name || '').localeCompare(b.name || '')).map(w => (
                     <div key={w.id} className="relative">
                         {/* Custom Priority Badge Overlay */}
                         {(w.tags || []).includes('Urgente') && (

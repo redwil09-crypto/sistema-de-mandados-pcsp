@@ -106,10 +106,10 @@ const WarrantCard = ({ data, onPrint, isPlanned, onRouteToggle, onFinalize, onDe
                             {data.dpRegion && (
                                 <span
                                     className={`text-[9px] font-mono font-bold px-2 py-0.5 rounded border mr-1 transition-all duration-300 ${data.dpRegion.includes('1') ? 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20' :
-                                            data.dpRegion.includes('2') ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20' :
-                                                data.dpRegion.includes('3') ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20' :
-                                                    data.dpRegion.includes('4') ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20' :
-                                                        'bg-slate-500/10 text-slate-600 dark:text-slate-400 border-slate-500/20'
+                                        data.dpRegion.includes('2') ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20' :
+                                            data.dpRegion.includes('3') ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20' :
+                                                data.dpRegion.includes('4') ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20' :
+                                                    'bg-slate-500/10 text-slate-600 dark:text-slate-400 border-slate-500/20'
                                         }`}
                                     title={`Jurisdição: ${data.dpRegion} ${data.longitude ? '(Geo-Localizado)' : '(Inferência por Bairro)'}`}
                                 >
@@ -186,8 +186,19 @@ const WarrantCard = ({ data, onPrint, isPlanned, onRouteToggle, onFinalize, onDe
                                         ? 'bg-primary text-white shadow-neon-blue'
                                         : 'text-text-muted hover:text-primary hover:bg-white/5'
                                         }`}
+                                    title={isPlanned ? "Remover do Roteiro" : "Adicionar ao Roteiro"}
                                 >
                                     <RouteIcon size={14} />
+                                </button>
+                            )}
+
+                            {onPrint && (
+                                <button
+                                    onClick={onPrint}
+                                    className="p-2 rounded-lg text-text-muted hover:text-secondary hover:bg-white/5 transition-all"
+                                    title="Imprimir PDF"
+                                >
+                                    <Printer size={14} />
                                 </button>
                             )}
                         </div>

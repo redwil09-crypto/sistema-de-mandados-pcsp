@@ -68,20 +68,20 @@ const FloatingDock = ({
                 {(onFinalize || onReopen) && (
                     <button
                         onClick={() => {
-                            if (status === 'CUMPRIDO') {
+                            if (status?.toUpperCase() === 'CUMPRIDO') {
                                 onReopen?.();
                             } else {
                                 onFinalize?.();
                             }
                         }}
-                        className={`relative flex flex-col items-center justify-center gap-1 transition-all group ${status === 'CUMPRIDO'
+                        className={`relative flex flex-col items-center justify-center gap-1 transition-all group ${status?.toUpperCase() === 'CUMPRIDO'
                             ? 'text-amber-600 dark:text-amber-500 hover:text-amber-400'
                             : 'text-text-secondary-light dark:text-zinc-500 hover:text-text-light dark:hover:text-white'
                             }`}
                     >
-                        {status === 'CUMPRIDO' ? <RotateCcw size={18} /> : <CheckCircle size={18} />}
+                        {status?.toUpperCase() === 'CUMPRIDO' ? <RotateCcw size={18} /> : <CheckCircle size={18} />}
                         <span className="text-[9px] font-black tracking-widest uppercase font-display">
-                            {status === 'CUMPRIDO' ? 'Reabrir' : 'Baixar'}
+                            {status?.toUpperCase() === 'CUMPRIDO' ? 'Reabrir' : 'Dar Baixa'}
                         </span>
                     </button>
                 )}

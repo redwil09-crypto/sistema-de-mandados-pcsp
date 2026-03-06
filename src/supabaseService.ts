@@ -315,6 +315,68 @@ export const deleteAuditLogs = async (ids: string[]): Promise<boolean> => {
     }
 };
 
+export const getLastFulfillmentReportNumber = async (): Promise<string | null> => {
+    try {
+        const { data, error } = await supabase
+            .from('warrants')
+            .select('fulfillment_report')
+            .not('fulfillment_report', 'is', null)
+            .order('created_at', { ascending: false })
+            .limit(50);
+
+        if (error) throw error;
+        if (!data || data.length === 0) return null;
+
+        // Tentar encontrar o maior número dentre os últimos registros
+        const numbers = data
+            .map(w => {
+                const match = w.fulfillment_report?.match(/^(\d+)/);
+                return match ? parseInt(match[1]) : null;
+            })
+            .filter((n): n is number => n !== null);
+
+        if (numbers.length === 0) return data[0].fulfillment_report;
+
+        const max = Math.max(...numbers);
+        const currentYear = new Date().getFullYear();
+        return `${max + 1}/${currentYear}`;
+    } catch (error) {
+        console.error('Error getting last report number:', error);
+        return null;
+    }
+};
+
+export const getLastDigOfficeNumber = async (userId: string): Promise<string | null> => {
+    try {
+        const { data, error } = await supabase
+            .from('warrants')
+            .select('dig_office')
+            .eq('user_id', userId)
+            .not('dig_office', 'is', null)
+            .order('created_at', { ascending: false })
+            .limit(50);
+
+        if (error) throw error;
+        if (!data || data.length === 0) return null;
+
+        const numbers = data
+            .map(w => {
+                const match = w.dig_office?.match(/^(\d+)/);
+                return match ? parseInt(match[1]) : null;
+            })
+            .filter((n): n is number => n !== null);
+
+        if (numbers.length === 0) return data[0].dig_office;
+
+        const max = Math.max(...numbers);
+        const currentYear = new Date().getFullYear();
+        return `${max + 1}/${currentYear}`;
+    } catch (error) {
+        console.error('Error getting last office number:', error);
+        return null;
+    }
+};
+
 export const translateAction = (action: string) => {
     switch (action.toUpperCase()) {
         case 'CREATE': return 'CRIAÇÃO';

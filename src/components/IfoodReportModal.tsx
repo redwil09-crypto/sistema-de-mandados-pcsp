@@ -8,6 +8,8 @@ import { Warrant } from '../types';
 import { uploadFile, getPublicUrl } from '../supabaseStorage';
 import { supabase } from '../supabaseClient';
 
+import { getLastDigOfficeNumber } from '../supabaseService';
+
 interface IfoodReportModalProps {
     isOpen: boolean;
     onClose: () => void;
@@ -80,16 +82,25 @@ const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, wa
 
                     setCurrentUser(userData);
 
-                    // Suggest number based on this user's warrants
+                    // 1. Tentar buscar sugestão direta do banco (mais confiável)
+                    const dbSuggestion = await getLastDigOfficeNumber(user.id);
+                    if (dbSuggestion) {
+                        const match = dbSuggestion.match(/^(\d+)/);
+                        if (match) {
+                            setOfficeNumber(match[1].padStart(3, '0'));
+                            return;
+                        }
+                    }
+
+                    // 2. Fallback para cálculo local se o banco falhar
                     const currentYear = new Date().getFullYear();
                     let maxNum = 0;
 
                     allWarrants.forEach(w => {
-                        // Consider ifoodNumber if it's from this user
-                        if (w.userId === user.id && w.ifoodNumber) {
-                            const parts = w.ifoodNumber.split('/');
-                            if (parts.length === 3 && parts[1] === 'CAPT' && parseInt(parts[2]) === currentYear) {
-                                const num = parseInt(parts[0]);
+                        if (w.userId === user.id && w.digOffice) {
+                            const match = w.digOffice.match(/^(\d+)/);
+                            if (match) {
+                                const num = parseInt(match[1]);
                                 if (!isNaN(num) && num > maxNum) maxNum = num;
                             }
                         }
