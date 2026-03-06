@@ -731,7 +731,7 @@ const WarrantDetail = () => {
     const handleConfirmFinalize = async () => {
         if (!data) return;
 
-        const updates: any = {
+        const updates: Partial<Warrant> = {
             status: 'CUMPRIDO',
             dischargeDate: finalizeFormData.date,
             fulfillmentResult: finalizeFormData.result,
@@ -739,25 +739,22 @@ const WarrantDetail = () => {
             fulfillmentDetails: finalizeFormData.details
         };
 
-        // If closing as Contramandado, force regime update to match logic
         if (finalizeFormData.result === 'CONTRAMANDADO') {
             updates.regime = 'Contramandado';
         }
 
         try {
-            const result = await updateWarrant(data.id, updates);
-            if (result) {
+            const success = await updateWarrant(data.id, updates);
+            if (success) {
                 toast.success("Mandado finalizado com sucesso!");
-                if (refreshWarrants) {
-                    await refreshWarrants(true);
-                }
+                if (refreshWarrants) await refreshWarrants(true);
                 setIsFinalizeModalOpen(false);
             } else {
-                toast.error("Erro ao finalizar mandado.");
+                toast.error("Erro ao finalizar mandado no servidor.");
             }
         } catch (error) {
             console.error("Erro ao finalizar mandado:", error);
-            toast.error("Falha ao atualizar dados no servidor.");
+            toast.error("Falha ao comunicar com o servidor.");
         }
     };
 
@@ -3221,7 +3218,7 @@ Equipe de Capturas - DIG / PCSP
                                     <div className="space-y-1">
                                         <label className="text-[10px] font-black text-text-muted uppercase tracking-widest">Resultado Final</label>
                                         <select className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white appearance-none" value={finalizeFormData.result} onChange={e => setFinalizeFormData({ ...finalizeFormData, result: e.target.value })}>
-                                            {['PRESO', 'NEGATIVO', 'ENCAMINHADO', 'ÓBITO', 'CONTRA', 'LOCALIZADO'].map(opt => <option key={opt} value={opt} className="bg-surface-dark">{opt}</option>)}
+                                            {['PRESO', 'NEGATIVO', 'ENCAMINHADO', 'ÓBITO', 'CONTRA', 'LOCALIZADO', 'APREENDIDO'].map(opt => <option key={opt} value={opt} className="bg-surface-dark">{opt}</option>)}
                                         </select>
                                     </div>
                                 </div>
