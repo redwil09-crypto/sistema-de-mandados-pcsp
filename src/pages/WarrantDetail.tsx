@@ -771,9 +771,17 @@ const WarrantDetail = () => {
         setIsSavingDiligence(true);
         const toastId = toast.loading("Processando Inteligência e Fusão de Dados...");
 
+        let currentAiResult = aiDiligenceResult;
+
+        // Auto-análise se o usuário apenas digitou o texto e não clicou em "analisar"
+        if (!currentAiResult && newDiligence.trim()) {
+            toast.loading("Analisando relato com IA...", { id: toastId });
+            currentAiResult = await analyzeRawDiligence(data, newDiligence);
+        }
+
         // 1. Prepare raw note for history (Audit purpose)
         let finalNotes = newDiligence;
-        if (aiDiligenceResult && typeof aiDiligenceResult !== 'string') {
+        if (currentAiResult && typeof currentAiResult !== 'string') {
             const hasText = newDiligence.trim().length > 0;
             finalNotes = hasText
                 ? `${newDiligence}\n\n[ANÁLISE IA REALIZADA E ENVIADA AO CENTRO DE INTELIGÊNCIA]`
@@ -783,7 +791,7 @@ const WarrantDetail = () => {
         // 2. INTELLIGENT MERGE LOGIC (THE CORE)
         let updatedTacticalSummary = data?.tacticalSummary || '{}';
 
-        if (aiDiligenceResult && typeof aiDiligenceResult !== 'string') {
+        if (currentAiResult && typeof currentAiResult !== 'string') {
             try {
                 // Parse current state
                 let currentIntel = {};
@@ -798,7 +806,7 @@ const WarrantDetail = () => {
                 }
 
                 // CALL THE AI MERGE SERVICE
-                const mergedIntel = await mergeIntelligence(data, currentIntel, aiDiligenceResult);
+                const mergedIntel = await mergeIntelligence(data, currentIntel, currentAiResult);
 
                 updatedTacticalSummary = JSON.stringify(mergedIntel);
             } catch (mergeError: any) {
@@ -831,6 +839,13 @@ const WarrantDetail = () => {
             setNewDiligence('');
             setAiAnalysisSaved(true);
             setAnalyzedDocumentText('');
+            setAiDiligenceResult(null);
+
+            setLocalData(prev => ({
+                ...prev,
+                diligentHistory: updatedHistory,
+                tacticalSummary: updatedTacticalSummary
+            }));
 
             // Critical: Update parent state immediately if handler provided
             await refreshWarrants(true);
