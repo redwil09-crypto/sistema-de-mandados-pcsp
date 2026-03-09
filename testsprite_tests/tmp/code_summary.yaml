@@ -1,0 +1,44 @@
+version: "2"
+type: frontend
+tech_stack:
+  - typescript
+  - react
+  - vite
+  - tailwindcss
+  - supabase
+  - lucide-react
+routes:
+  - path: /login
+    file: src/pages/Login.tsx
+    auth_required: false
+    description: User authentication
+  - path: /warrants/:id
+    file: src/pages/WarrantDetail.tsx
+    auth_required: true
+    description: Detailed view of a warrant
+  - path: /dashboard
+    file: src/pages/Dashboard.tsx
+    auth_required: true
+    description: Main dashboard for warrants
+features:
+  - name: User Login
+    description: Login with email and password credentials
+    files:
+      - src/pages/Login.tsx
+    entry_route: /login
+    user_interactions:
+      - Fill email input field
+      - Fill password input field
+      - Click Login button to submit
+    auth_required: false
+  - name: Warrant Detail Edit
+    description: View and edit detail of police warrants, marking as priority, updating DP regions.
+    files:
+      - src/pages/WarrantDetail.tsx
+    entry_route: /warrants/123
+    user_interactions:
+      - View warrant information
+      - Edit values and click save
+      - Trigger popup to save modifications
+    auth_required: true
+known_limitations: []
