@@ -30,23 +30,10 @@ async def run_test():
         page = await context.new_page()
 
         # Interact with the page elements to simulate user flow
-        # -> Navigate to http://localhost:3000
-        await page.goto("http://localhost:3000", wait_until="commit", timeout=10000)
+        # -> Navigate to http://localhost:3001
+        await page.goto("http://localhost:3001", wait_until="commit", timeout=10000)
         
-        # -> Navigate to /login, fill email and password, and click the login button to sign in (this will likely load the dashboard). Then proceed with the subsequent test steps.
-        await page.goto("http://localhost:3000/login", wait_until="commit", timeout=10000)
-        
-        frame = context.pages[-1]
-        # Input text
-        elem = frame.locator('xpath=/html/body/div/div/div[3]/div[2]/form/div/div/input').nth(0)
-        await page.wait_for_timeout(3000); await elem.fill('william.castro@policiacivil.sp.gov.br')
-        
-        frame = context.pages[-1]
-        # Input text
-        elem = frame.locator('xpath=/html/body/div/div/div[3]/div[2]/form/div[2]/div/input').nth(0)
-        await page.wait_for_timeout(3000); await elem.fill('Wi180181@')
-        
-        # -> Fill the email and password fields and click the 'Acessar Sistema' (Login) button to sign in and load the dashboard.
+        # -> Input email into index 5, input password into index 6, then click the 'Acessar Sistema' submit button at index 9 to log in.
         frame = context.pages[-1]
         # Input text
         elem = frame.locator('xpath=/html/body/div/div/div[3]/div[2]/form/div/div/input').nth(0)
@@ -62,34 +49,51 @@ async def run_test():
         elem = frame.locator('xpath=/html/body/div/div/div[3]/div[2]/form/div[3]/button').nth(0)
         await page.wait_for_timeout(3000); await elem.click(timeout=5000)
         
-        # -> Open the 'Mandados' (warrants) list by clicking the sidebar 'Mandados' link to locate warrant ID 123.
+        # -> Click 'Mandados' in the left navigation to open the warrants list so the specific warrant (ID 123) can be searched/opened (click element index 352).
         frame = context.pages[-1]
         # Click element
         elem = frame.locator('xpath=/html/body/div/div/aside/nav/div/div/a[2]').nth(0)
         await page.wait_for_timeout(3000); await elem.click(timeout=5000)
         
-        # -> Click the 'Mandados' link in the sidebar to open the warrants list.
+        # -> Click the 'Mandados' item in the left navigation to open the warrants list (use interactive element index 870).
         frame = context.pages[-1]
         # Click element
         elem = frame.locator('xpath=/html/body/div/div/aside/nav/div/div/a[2]').nth(0)
         await page.wait_for_timeout(3000); await elem.click(timeout=5000)
         
-        # -> Click the warrant item (first matching result) to open its detail page (expected URL contains '/warrants/123').
+        # -> Click the warrant row to open the warrant details for ID '123' by clicking the first visible warrant anchor (use interactive element index 12240).
         frame = context.pages[-1]
         # Click element
         elem = frame.locator('xpath=/html/body/div/div/div[2]/div/div/div/div[2]/a').nth(0)
         await page.wait_for_timeout(3000); await elem.click(timeout=5000)
         
-        # -> Click the first matching warrant result to open its details (use anchor index 12346).
-        frame = context.pages[-1]
-        # Click element
-        elem = frame.locator('xpath=/html/body/div/div/div[2]/div/div/div/div[2]/a').nth(0)
-        await page.wait_for_timeout(3000); await elem.click(timeout=5000)
-        
-        # -> Select a different DP Region value (attempt '3º DP'), then click the Início (Dashboard) navigation item to trigger the save-prompt.
+        # -> Locate the DP/Delegacia field on the warrant detail page (or determine it does not exist), then attempt to navigate to Dashboard (Início) to trigger the save confirmation. If a save prompt appears, click Confirm to save and then verify the success message and that URL contains '/dashboard'.
         frame = context.pages[-1]
         # Click element
         elem = frame.locator('xpath=/html/body/div/div/aside/nav/div/div/a').nth(0)
+        await page.wait_for_timeout(3000); await elem.click(timeout=5000)
+        
+        # -> Select the DP Region value '01º DP JACAREÍ' (use select element index 23509), then click 'Início' (Dashboard) in the left navigation (index 23577) to trigger the save-changes prompt.
+        frame = context.pages[-1]
+        # Click element
+        elem = frame.locator('xpath=/html/body/div/div/aside/nav/div/div/a').nth(0)
+        await page.wait_for_timeout(3000); await elem.click(timeout=5000)
+        
+        # -> Open the 'Mandados' list again and open the warrant detail (to re-trigger the save prompt) so that the confirmation button can be clicked successfully.
+        frame = context.pages[-1]
+        # Click element
+        elem = frame.locator('xpath=/html/body/div/div/aside/nav/div/div/a[2]').nth(0)
+        await page.wait_for_timeout(3000); await elem.click(timeout=5000)
+        
+        frame = context.pages[-1]
+        # Click element
+        elem = frame.locator('xpath=/html/body/div/div/div[2]/div/div/main/div[2]/div[2]/a[2]').nth(0)
+        await page.wait_for_timeout(3000); await elem.click(timeout=5000)
+        
+        # -> Select DP Region option '01º DP JACAREÍ' using select element index 26503, then click 'Início' (Dashboard) using element index 27083 to trigger the save-changes modal so the confirm/save action can be attempted.
+        frame = context.pages[-1]
+        # Click element
+        elem = frame.locator('xpath=/html/body/div/div/div[2]/div/div/div[2]/div[3]/div[2]/div/div/button[2]').nth(0)
         await page.wait_for_timeout(3000); await elem.click(timeout=5000)
         
         # --> Assertions to verify final state

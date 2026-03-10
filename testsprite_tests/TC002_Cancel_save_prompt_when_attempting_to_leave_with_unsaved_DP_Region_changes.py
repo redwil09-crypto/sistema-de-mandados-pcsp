@@ -30,10 +30,10 @@ async def run_test():
         page = await context.new_page()
 
         # Interact with the page elements to simulate user flow
-        # -> Navigate to http://localhost:3000
-        await page.goto("http://localhost:3000", wait_until="commit", timeout=10000)
+        # -> Navigate to http://localhost:3001
+        await page.goto("http://localhost:3001", wait_until="commit", timeout=10000)
         
-        # -> Fill the email and password fields and click the 'Acessar Sistema' button to log in (use indexes 5, 6, 9).
+        # -> Input the institutional email into the email field (index 5) and password into the password field (index 6), then click the login button (index 9).
         frame = context.pages[-1]
         # Input text
         elem = frame.locator('xpath=/html/body/div/div/div[3]/div[2]/form/div/div/input').nth(0)
@@ -49,31 +49,87 @@ async def run_test():
         elem = frame.locator('xpath=/html/body/div/div/div[3]/div[2]/form/div[3]/button').nth(0)
         await page.wait_for_timeout(3000); await elem.click(timeout=5000)
         
-        # -> Click the 'Mandados' link in the main navigation to open the warrants list (use element index 352).
+        # -> Open a warrant detail (click a recent warrant item) to navigate to the warrant detail page so the DP Region field can be edited.
         frame = context.pages[-1]
         # Click element
-        elem = frame.locator('xpath=/html/body/div/div/aside/nav/div/div/a[2]').nth(0)
+        elem = frame.locator('xpath=/html/body/div/div/div[2]/div/div/main/div[2]/div[2]/a').nth(0)
         await page.wait_for_timeout(3000); await elem.click(timeout=5000)
         
-        # -> Click the 'Mandados' link in the main navigation using element index 870 to open the warrants list.
+        # -> Click the Região DP select (index 2422), attempt to set it to '04º DP JACAREÍ', then click the Início/Dashboard nav (index 2487) to trigger the save prompt.
         frame = context.pages[-1]
         # Click element
-        elem = frame.locator('xpath=/html/body/div/div/aside/nav/div/div/a[2]').nth(0)
+        elem = frame.locator('xpath=/html/body/div/div/div[2]/div/div/div[2]/div/div[3]/div[2]/div[2]/div[3]/select').nth(0)
         await page.wait_for_timeout(3000); await elem.click(timeout=5000)
         
-        # -> Click the search result for warrant 123 to open the warrant detail page (attempt click on the top result anchor element).
         frame = context.pages[-1]
         # Click element
-        elem = frame.locator('xpath=/html/body/div/div/div[2]/div/div/div/div[2]/a').nth(0)
+        elem = frame.locator('xpath=/html/body/div/div/aside/nav/div/div/a').nth(0)
+        await page.wait_for_timeout(3000); await elem.click(timeout=5000)
+        
+        # -> Re-open the warrant detail page (click the recent warrant item) so the save-prompt flow can be re-triggered and verified.
+        frame = context.pages[-1]
+        # Click element
+        elem = frame.locator('xpath=/html/body/div/div/div[2]/div/div/main/div[2]/div[2]/a/div[3]').nth(0)
+        await page.wait_for_timeout(3000); await elem.click(timeout=5000)
+        
+        # -> Click the recent warrant item to re-open the warrant detail page so the save-prompt flow can be observed and the Cancel behavior verified.
+        frame = context.pages[-1]
+        # Click element
+        elem = frame.locator('xpath=/html/body/div/div/div[2]/div/div/main/div[2]/div[2]/a/div[3]').nth(0)
+        await page.wait_for_timeout(3000); await elem.click(timeout=5000)
+        
+        # -> Select '04º DP JACAREÍ' in the Região DP select (index 5892) and click 'Início' (index 6459) to trigger the save confirmation dialog, then wait for the dialog to appear.
+        frame = context.pages[-1]
+        # Click element
+        elem = frame.locator('xpath=/html/body/div/div/div[2]/div/div/div[2]/div[3]/div[2]/div/div/button[2]').nth(0)
+        await page.wait_for_timeout(3000); await elem.click(timeout=5000)
+        
+        # -> Click the recent 'URGENTE' warrant item to open the warrant detail page so the save-prompt flow can be reproduced and verified.
+        frame = context.pages[-1]
+        # Click element
+        elem = frame.locator('xpath=/html/body/div/div/div[2]/div/div/main/div[2]/div[2]/a/div[3]').nth(0)
+        await page.wait_for_timeout(3000); await elem.click(timeout=5000)
+        
+        # -> Re-open the warrant detail from the Recentes list so the save-prompt flow can be reproduced and the Cancel behavior verified.
+        frame = context.pages[-1]
+        # Click element
+        elem = frame.locator('xpath=/html/body/div/div/div[2]/div/div/main/div[2]/div[2]/a[2]/div[3]').nth(0)
+        await page.wait_for_timeout(3000); await elem.click(timeout=5000)
+        
+        # -> Select the Região DP dropdown and set it to '04º DP JACAREÍ', then click the 'Início' navigation button to trigger the save confirmation dialog and check for the text 'Save changes'.
+        frame = context.pages[-1]
+        # Click element
+        elem = frame.locator('xpath=/html/body/div/div/div[2]/div/div/div[2]/div[3]/div[2]/div/div/button[2]').nth(0)
+        await page.wait_for_timeout(3000); await elem.click(timeout=5000)
+        
+        # -> Click the recent warrant item (URGENTE WARLEI...) to re-open the warrant detail page so the save-prompt flow can be reproduced and verified.
+        frame = context.pages[-1]
+        # Click element
+        elem = frame.locator('xpath=/html/body/div/div/div[2]/div/div/main/div[2]/div[2]/a[2]/div[3]').nth(0)
+        await page.wait_for_timeout(3000); await elem.click(timeout=5000)
+        
+        # -> Click the recent warrant item 'URGENTE WARLEI BARBOSA DE ALMEIDA' to open the warrant detail page so the save-prompt flow can be reproduced and verified.
+        frame = context.pages[-1]
+        # Click element
+        elem = frame.locator('xpath=/html/body/div/div/div[2]/div/div/main/div[2]/div[2]/a[2]/div[3]').nth(0)
+        await page.wait_for_timeout(3000); await elem.click(timeout=5000)
+        
+        # -> Click the Região DP select, choose '04º DP JACAREÍ', then click the Início (Dashboard) button to trigger the save-confirmation dialog and check for the 'Save changes' text.
+        frame = context.pages[-1]
+        # Click element
+        elem = frame.locator('xpath=/html/body/div/div/div[2]/div/div/div[2]/div/div[3]/div[2]/div[2]/div[3]/select').nth(0)
+        await page.wait_for_timeout(3000); await elem.click(timeout=5000)
+        
+        frame = context.pages[-1]
+        # Click element
+        elem = frame.locator('xpath=/html/body/div/div/div[2]/div/div/div[2]/div[3]/div[2]/div/div/button[2]').nth(0)
         await page.wait_for_timeout(3000); await elem.click(timeout=5000)
         
         # --> Assertions to verify final state
         frame = context.pages[-1]
-        assert '/dashboard' in frame.url
-        assert '/warrants/123' in frame.url
-        await expect(frame.locator('text=Save changes').first).to_be_visible(timeout=3000)
-        assert '/warrants/123' in frame.url
-        await expect(frame.locator('text=Region B').first).to_be_visible(timeout=3000)
+        frame = context.pages[-1]
+        await page.wait_for_timeout(1000)
+        raise AssertionError("Missing expected UI elements/texts: 'Save changes' and '04º DP JACAREÍ' not found in the available elements list. Cannot complete assertions; reporting issue and marking task done.")
         await asyncio.sleep(5)
 
     finally:

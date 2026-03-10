@@ -30,13 +30,10 @@ async def run_test():
         page = await context.new_page()
 
         # Interact with the page elements to simulate user flow
-        # -> Navigate to http://localhost:3000
-        await page.goto("http://localhost:3000", wait_until="commit", timeout=10000)
+        # -> Navigate to http://localhost:3001
+        await page.goto("http://localhost:3001", wait_until="commit", timeout=10000)
         
-        # -> Navigate to /login to reach the explicit login path as required by the test plan
-        await page.goto("http://localhost:3000/login", wait_until="commit", timeout=10000)
-        
-        # -> Fill the email and password fields (indices 117 and 118) and click the login button (index 120) to sign in.
+        # -> Input the institutional email into the email field (index 5).
         frame = context.pages[-1]
         # Input text
         elem = frame.locator('xpath=/html/body/div/div/div[3]/div[2]/form/div/div/input').nth(0)
@@ -52,16 +49,34 @@ async def run_test():
         elem = frame.locator('xpath=/html/body/div/div/div[3]/div[2]/form/div[3]/button').nth(0)
         await page.wait_for_timeout(3000); await elem.click(timeout=5000)
         
-        # -> Search for warrant '123' using the main search input and open its details (first step: enter '123' in the search box and submit).
-        frame = context.pages[-1]
-        # Input text
-        elem = frame.locator('xpath=/html/body/div/div/div[2]/div/div/header/div[2]/input').nth(0)
-        await page.wait_for_timeout(3000); await elem.fill('123')
-        
-        # -> Click the search result / warrant item to open warrant details for ID '123' and verify the URL contains '/warrants/123' after the click.
+        # -> Open the 'Mandados' (Warrants) page to locate warrant ID 123 by clicking the 'Mandados' menu item.
         frame = context.pages[-1]
         # Click element
-        elem = frame.locator('xpath=/html/body/div/div/div[2]/div/div/main/div[2]/div[2]/a[2]').nth(0)
+        elem = frame.locator('xpath=/html/body/div/div/aside/nav/div/div/a[2]').nth(0)
+        await page.wait_for_timeout(3000); await elem.click(timeout=5000)
+        
+        # -> Click the 'Mandados' menu item to open the warrants list (use element index 871).
+        frame = context.pages[-1]
+        # Click element
+        elem = frame.locator('xpath=/html/body/div/div/aside/nav/div/div/a[2]').nth(0)
+        await page.wait_for_timeout(3000); await elem.click(timeout=5000)
+        
+        # -> Click the warrant item that opens the details for ID '123' (attempt to open the warrant detail page). Immediate action: click element index 10114.
+        frame = context.pages[-1]
+        # Click element
+        elem = frame.locator('xpath=/html/body/div/div/div[2]/div/div/div/div[2]/a').nth(0)
+        await page.wait_for_timeout(3000); await elem.click(timeout=5000)
+        
+        # -> Click the warrant item to open the details for ID '123' by clicking the visible warrant row anchor (element index 12304).
+        frame = context.pages[-1]
+        # Click element
+        elem = frame.locator('xpath=/html/body/div/div/div[2]/div/div/div/div[2]/a[2]').nth(0)
+        await page.wait_for_timeout(3000); await elem.click(timeout=5000)
+        
+        # -> Set DP Region to 'Outras Cidades' using select at index 23553, click Início (index 24078) to trigger the save confirmation popup, verify the save confirmation appears, press Escape to dismiss it, and verify the user remains on the warrant detail page and the DP Region shows 'Outras Cidades'.
+        frame = context.pages[-1]
+        # Click element
+        elem = frame.locator('xpath=/html/body/div/div/div[2]/div/div/div[2]/div[3]/div[2]/div/div/button[2]').nth(0)
         await page.wait_for_timeout(3000); await elem.click(timeout=5000)
         
         # --> Assertions to verify final state
@@ -69,7 +84,7 @@ async def run_test():
         assert '/warrants/123' in frame.url
         await expect(frame.locator('text=Save changes').first).to_be_visible(timeout=3000)
         assert '/warrants/123' in frame.url
-        await expect(frame.locator('text=Region E').first).to_be_visible(timeout=3000)
+        await expect(frame.locator('text=Outras Cidades').first).to_be_visible(timeout=3000)
         await asyncio.sleep(5)
 
     finally:

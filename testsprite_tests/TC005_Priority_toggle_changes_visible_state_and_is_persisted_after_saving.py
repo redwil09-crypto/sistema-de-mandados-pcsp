@@ -30,23 +30,10 @@ async def run_test():
         page = await context.new_page()
 
         # Interact with the page elements to simulate user flow
-        # -> Navigate to http://localhost:3000
-        await page.goto("http://localhost:3000", wait_until="commit", timeout=10000)
+        # -> Navigate to http://localhost:3001
+        await page.goto("http://localhost:3001", wait_until="commit", timeout=10000)
         
-        # -> Navigate to /login (http://localhost:3000/login) and then log in using provided credentials.
-        await page.goto("http://localhost:3000/login", wait_until="commit", timeout=10000)
-        
-        frame = context.pages[-1]
-        # Input text
-        elem = frame.locator('xpath=/html/body/div/div/div[3]/div[2]/form/div/div/input').nth(0)
-        await page.wait_for_timeout(3000); await elem.fill('william.castro@policiacivil.sp.gov.br')
-        
-        frame = context.pages[-1]
-        # Input text
-        elem = frame.locator('xpath=/html/body/div/div/div[3]/div[2]/form/div[2]/div/input').nth(0)
-        await page.wait_for_timeout(3000); await elem.fill('Wi180181@')
-        
-        # -> Fill the email field, fill the password field, then click 'Acessar Sistema' to log in.
+        # -> Fill the login form with the provided credentials and submit by clicking 'Acessar Sistema'.
         frame = context.pages[-1]
         # Input text
         elem = frame.locator('xpath=/html/body/div/div/div[3]/div[2]/form/div/div/input').nth(0)
@@ -62,34 +49,16 @@ async def run_test():
         elem = frame.locator('xpath=/html/body/div/div/div[3]/div[2]/form/div[3]/button').nth(0)
         await page.wait_for_timeout(3000); await elem.click(timeout=5000)
         
-        # -> Click the 'Mandados' navigation link to open the warrants list so warrant ID 123 can be located (click element index 461). ASSERTION: The 'Mandados' link is available in the left navigation.
-        frame = context.pages[-1]
-        # Click element
-        elem = frame.locator('xpath=/html/body/div/div/aside/nav/div/div/a').nth(0)
-        await page.wait_for_timeout(3000); await elem.click(timeout=5000)
-        
-        # -> Click the 'Mandados' navigation link (element index 981) to open the warrants list so warrant ID 123 can be located. ASSERTION: Clicking the visible 'Mandados' link should open the warrants list.
+        # -> Click the 'Mandados' item in the left navigation to open the warrants list, then locate and open warrant with ID 123.
         frame = context.pages[-1]
         # Click element
         elem = frame.locator('xpath=/html/body/div/div/aside/nav/div/div/a[2]').nth(0)
         await page.wait_for_timeout(3000); await elem.click(timeout=5000)
         
-        # -> Click the warrant item for the first search result (the warrant card) to open its details so the Priority control can be verified.
+        # -> Open the warrant details for ID '123' by clicking the corresponding warrant row/link on the warrants list.
         frame = context.pages[-1]
         # Click element
         elem = frame.locator('xpath=/html/body/div/div/div[2]/div/div/div/div[2]/a').nth(0)
-        await page.wait_for_timeout(3000); await elem.click(timeout=5000)
-        
-        # -> Click the warrant card for the first search result to open the warrant details (use fresh element index from current page). ASSERTION: Clicking the visible warrant card should open the warrant details view.
-        frame = context.pages[-1]
-        # Click element
-        elem = frame.locator('xpath=/html/body/div/div/div[2]/div/div/div/div[2]/a').nth(0)
-        await page.wait_for_timeout(3000); await elem.click(timeout=5000)
-        
-        # -> Click the 'Editar' (Edit) button to enter edit mode so the 'Prioridade' control (if present) becomes visible and can be toggled.
-        frame = context.pages[-1]
-        # Click element
-        elem = frame.locator('xpath=/html/body/div/div/div[2]/div/div/div[2]/div[3]/div[2]/div/div/button[3]').nth(0)
         await page.wait_for_timeout(3000); await elem.click(timeout=5000)
         
         # --> Assertions to verify final state
