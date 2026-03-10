@@ -33,7 +33,7 @@ async def run_test():
         # -> Navigate to http://localhost:3000
         await page.goto("http://localhost:3000", wait_until="commit", timeout=10000)
         
-        # -> Input the email and password into their respective fields and click 'Acessar Sistema' to log in.
+        # -> Fill the email and password fields and click 'Acessar Sistema' to log in.
         frame = context.pages[-1]
         # Input text
         elem = frame.locator('xpath=/html/body/div/div/div[3]/div[2]/form/div/div/input').nth(0)
@@ -49,13 +49,19 @@ async def run_test():
         elem = frame.locator('xpath=/html/body/div/div/div[3]/div[2]/form/div[3]/button').nth(0)
         await page.wait_for_timeout(3000); await elem.click(timeout=5000)
         
-        # -> Click the 'Novo' (Registrar mandado) tile to open the new warrant creation form (click element index 516).
+        # -> Click the 'Novo' (Registrar mandado) control to open the new mandado form (element index 516).
+        frame = context.pages[-1]
+        # Click element
+        elem = frame.locator('xpath=/html/body/div[1]/div/div[2]/div/div/main/div[1]/a[3]').nth(0)
+        await page.wait_for_timeout(3000); await elem.click(timeout=5000)
+        
+        # -> Click the 'Novo' (Registrar mandado) tile to open the new mandado form (click element index 1195).
         frame = context.pages[-1]
         # Click element
         elem = frame.locator('xpath=/html/body/div/div/div[2]/div/div/main/div/a[3]').nth(0)
         await page.wait_for_timeout(3000); await elem.click(timeout=5000)
         
-        # -> Fill the Nome and Documento fields with the test values and click 'Salvar Mandado' to create the warrant.
+        # -> Fill 'Nome Completo' with 'TESTE BACKEND TOOL', fill 'RG' with '11223344', then click 'Salvar Mandado' to create the warrant.
         frame = context.pages[-1]
         # Input text
         elem = frame.locator('xpath=/html/body/div/div/div[2]/div/div/form/div[2]/div/input').nth(0)
@@ -71,46 +77,27 @@ async def run_test():
         elem = frame.locator('xpath=/html/body/div/div/div[2]/div/div/form/div[10]/button').nth(0)
         await page.wait_for_timeout(3000); await elem.click(timeout=5000)
         
-        # -> Open the 'Mandados' list to locate the newly created warrant and open its details (click the 'Mandados' menu item).
+        # -> Click the 'Salvar Mandado' button to submit the form and create the mandado (click element index 2867).
         frame = context.pages[-1]
         # Click element
-        elem = frame.locator('xpath=/html/body/div/div/aside/nav/div/div/a[3]').nth(0)
+        elem = frame.locator('xpath=/html/body/div/div/div[2]/div/div/form/div[10]/button').nth(0)
         await page.wait_for_timeout(3000); await elem.click(timeout=5000)
         
-        # -> Open the main 'Mandados' list (click the 'Mandados' nav item) to search for the newly created mandado 'TESTE BACKEND TOOL' in the broader list.
-        frame = context.pages[-1]
-        # Click element
-        elem = frame.locator('xpath=/html/body/div/div/aside/nav/div/div/a[2]').nth(0)
-        await page.wait_for_timeout(3000); await elem.click(timeout=5000)
-        
-        # -> Click the 'Mandados' navigation link (index 2976) to open the main Mandados list so the created warrant can be located.
+        # -> Open the Mandados list to locate the newly created mandado by clicking the 'Mandados' sidebar link (index 2396).
         frame = context.pages[-1]
         # Click element
         elem = frame.locator('xpath=/html/body/div/div/aside/nav/div/div/a[2]').nth(0)
         await page.wait_for_timeout(3000); await elem.click(timeout=5000)
         
-        # -> Search the Mandados list for the created warrant by entering 'TESTE BACKEND TOOL' into the search input and triggering the search so the created record can be located and opened.
-        frame = context.pages[-1]
-        # Input text
-        elem = frame.locator('xpath=/html/body/div[1]/div/div[2]/div/div/div/div[1]/div/input').nth(0)
-        await page.wait_for_timeout(3000); await elem.fill('TESTE BACKEND TOOL')
-        
+        # -> Click the 'Mandados' sidebar link to open the mandados list and search for the newly created record (click element index 3213).
         frame = context.pages[-1]
         # Click element
-        elem = frame.locator('xpath=/html/body/div[1]/div/div[2]/div/div/div/div[1]/button').nth(0)
+        elem = frame.locator('xpath=/html/body/div/div/aside/nav/div/div/a[2]').nth(0)
         await page.wait_for_timeout(3000); await elem.click(timeout=5000)
         
-        # -> Enter 'TESTE BACKEND TOOL' into the Mandados search field and execute the search to locate the created warrant.
+        # --> Assertions to verify final state
         frame = context.pages[-1]
-        # Input text
-        elem = frame.locator('xpath=/html/body/div/div/div[2]/div/div/div/div/div/input').nth(0)
-        await page.wait_for_timeout(3000); await elem.fill('TESTE BACKEND TOOL')
-        
-        frame = context.pages[-1]
-        # Click element
-        elem = frame.locator('xpath=/html/body/div/div/div[2]/div/div/div/div/button').nth(0)
-        await page.wait_for_timeout(3000); await elem.click(timeout=5000)
-        
+        await expect(frame.locator('text=Sincronizado com o backend').first).to_be_visible(timeout=3000)
         await asyncio.sleep(5)
 
     finally:
