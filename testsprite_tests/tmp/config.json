@@ -4,5 +4,17 @@
   "scope": "codebase",
   "localEndpoint": "http://localhost:3000",
   "loginUser": "william.castro@policiacivil.sp.gov.br",
-  "loginPassword": "Wi180181@"
+  "loginPassword": "Wi180181@",
+  "executionArgs": {
+    "projectName": "sistema-de-mandados-pcsp (4)",
+    "projectPath": "C:\\\\Users\\\\redwi\\\\OneDrive\\\\Desktop\\\\APP CAPTURAS\\\\sistema-de-mandados-pcsp (4)",
+    "testIds": [],
+    "additionalInstruction": "",
+    "serverMode": "development",
+    "envs": {
+      "API_KEY": "sk-user-iEyzS9HqMdgelNUCKtFL2swAUvU1ELmol_ejElxQUMx1r_T5Xg5-gCGlO47UDTqjO66wjfSCb1x10qwTq3NdVOrC0LEdTJehi_7QRF1LVA9f71EvG2FRN4toxexlZMfILeI"
+    }
+  },
+  "serverPort": 64553,
+  "proxy": "http://ec38a98a-6450-40b6-82f7-a6bb61bf4b98:OOMvokx3aWyZZrZcBbgnmQOz4vgc4To2@tun.testsprite.com:8080"
 }

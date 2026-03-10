@@ -48,7 +48,7 @@
       },
       {
         "type": "action",
-        "description": "Type \"Region A\" into the DP Region field"
+        "description": "Type \"03º DP JACAREÍ\" into the DP Region field"
       },
       {
         "type": "action",
@@ -68,7 +68,7 @@
       },
       {
         "type": "assertion",
-        "description": "Verify text \"Region A\" is visible"
+        "description": "Verify text \"03º DP JACAREÍ\" is visible"
       }
     ]
   },
@@ -113,7 +113,7 @@
       },
       {
         "type": "action",
-        "description": "Type \"Region B\" into the DP Region field"
+        "description": "Type \"04º DP JACAREÍ\" into the DP Region field"
       },
       {
         "type": "action",
@@ -133,7 +133,7 @@
       },
       {
         "type": "assertion",
-        "description": "Verify text \"Region B\" is visible"
+        "description": "Verify text \"04º DP JACAREÍ\" is visible"
       }
     ]
   },
@@ -178,7 +178,7 @@
       },
       {
         "type": "action",
-        "description": "Type \"Region C\" into the DP Region field"
+        "description": "Type \"01º DP JACAREÍ\" into the DP Region field"
       },
       {
         "type": "action",
@@ -357,7 +357,7 @@
       },
       {
         "type": "action",
-        "description": "Type \"Region E\" into the DP Region field"
+        "description": "Type \"Outras Cidades\" into the DP Region field"
       },
       {
         "type": "action",
@@ -377,7 +377,7 @@
       },
       {
         "type": "assertion",
-        "description": "Verify text \"Region E\" is visible"
+        "description": "Verify text \"Outras Cidades\" is visible"
       }
     ]
   }
