@@ -16,6 +16,12 @@ const toISODate = (dateStr: string | undefined): string | null => {
 
 // Helper to convert database format to app format
 const dbToWarrant = (dbWarrant: any): Warrant => {
+    // Correção automática de legado: remover " JACAREÍ" se existir
+    let region = dbWarrant.dp_region;
+    if (region && typeof region === 'string' && region.includes(' JACAREÍ')) {
+        region = region.replace(' JACAREÍ', '');
+    }
+
     return {
         id: dbWarrant.id,
         name: dbWarrant.name,
@@ -29,7 +35,7 @@ const dbToWarrant = (dbWarrant: any): Warrant => {
         location: dbWarrant.location,
         description: dbWarrant.description,
         observation: dbWarrant.observation,
-        dpRegion: dbWarrant.dp_region,
+        dpRegion: region,
         img: dbWarrant.img,
         priority: dbWarrant.priority,
         age: dbWarrant.age,
