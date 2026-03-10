@@ -2270,10 +2270,10 @@ Equipe de Capturas - DIG / PCSP
                                         onChange={e => handleFieldChange('dpRegion', e.target.value)}
                                     >
                                         <option value="" className="text-black dark:text-white bg-white dark:bg-slate-900">Selecione...</option>
-                                        <option value="01º DP JACAREÍ" className="text-black dark:text-white bg-white dark:bg-slate-900">01º DP JACAREÍ</option>
-                                        <option value="02º DP JACAREÍ" className="text-black dark:text-white bg-white dark:bg-slate-900">02º DP JACAREÍ</option>
-                                        <option value="03º DP JACAREÍ" className="text-black dark:text-white bg-white dark:bg-slate-900">03º DP JACAREÍ</option>
-                                        <option value="04º DP JACAREÍ" className="text-black dark:text-white bg-white dark:bg-slate-900">04º DP JACAREÍ</option>
+                                        <option value="01º DP" className="text-black dark:text-white bg-white dark:bg-slate-900">01º DP</option>
+                                        <option value="02º DP" className="text-black dark:text-white bg-white dark:bg-slate-900">02º DP</option>
+                                        <option value="03º DP" className="text-black dark:text-white bg-white dark:bg-slate-900">03º DP</option>
+                                        <option value="04º DP" className="text-black dark:text-white bg-white dark:bg-slate-900">04º DP</option>
                                         <option value="Outras Cidades" className="text-black dark:text-white bg-white dark:bg-slate-900">Outras Cidades</option>
                                     </select>
                                 </div>

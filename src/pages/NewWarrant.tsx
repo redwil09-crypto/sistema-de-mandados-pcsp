@@ -680,10 +680,10 @@ const NewWarrant = () => {
                                     className="w-full rounded-xl border border-border-light dark:border-border-dark bg-white dark:bg-black/20 p-3.5 text-sm text-text-light dark:text-text-dark focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none transition-all shadow-sm"
                                 >
                                     <option value="">Selecione a Região DP...</option>
-                                    <option value="1º DP">01º D.P. JACAREÍ</option>
-                                    <option value="2º DP">02º D.P. JACAREÍ</option>
-                                    <option value="3º DP">03º D.P. JACAREÍ</option>
-                                    <option value="4º DP">04º D.P. JACAREÍ</option>
+                                    <option value="01º DP">01º DP</option>
+                                    <option value="02º DP">02º DP</option>
+                                    <option value="03º DP">03º DP</option>
+                                    <option value="04º DP">04º DP</option>
                                     <option value="Outras Cidades">Outras Cidades</option>
                                 </select>
                             </div>
