@@ -113,6 +113,36 @@ const WarrantDetail = () => {
         }
     }, [id, newDiligence, aiDiligenceResult, analyzedDocumentText, chatHistory]);
 
+    const data = useMemo(() => warrants.find(w => w.id === id), [warrants, id]);
+    const [localData, setLocalData] = useState<Partial<Warrant>>({});
+
+    const hasChanges = useMemo(() => {
+        if (!data) return false;
+        const fields: (keyof Warrant)[] = [
+            'name', 'type', 'rg', 'cpf', 'number', 'crime', 'regime', 'location', 'img', 'priority',
+            'ifoodNumber', 'ifoodResult', 'digOffice', 'observation', 'age', 'issuingCourt', 'tacticalSummary', 'fulfillmentDetails',
+            'dpRegion', 'latitude', 'longitude', 'tags', 'status'
+        ];
+
+        const basicChanges = fields.some(key => {
+            if (Array.isArray(localData[key]) || Array.isArray(data[key])) {
+                return JSON.stringify(localData[key] || []) !== JSON.stringify(data[key] || []);
+            }
+            return localData[key] !== data[key];
+        });
+        if (basicChanges) return true;
+
+        const dateFields: (keyof Warrant)[] = [
+            'issueDate', 'entryDate', 'expirationDate', 'dischargeDate', 'birthDate'
+        ];
+
+        return dateFields.some(key => {
+            const localVal = localData[key] ? formatDate(localData[key] as string) : '';
+            const dataVal = data[key] ? formatDate(data[key] as string) : '';
+            return localVal !== dataVal;
+        });
+    }, [localData, data]);
+
     // Keyboard Shortcuts
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
@@ -164,9 +194,6 @@ const WarrantDetail = () => {
     const [isGeneratingAiReport, setIsGeneratingAiReport] = useState(false);
     const [activeReportType, setActiveReportType] = useState<'ifood' | 'uber' | '99' | null>(null);
 
-    const data = useMemo(() => warrants.find(w => w.id === id), [warrants, id]);
-
-    const [localData, setLocalData] = useState<Partial<Warrant>>({});
     const [userId, setUserId] = useState<string | undefined>(undefined);
     const [isAdmin, setIsAdmin] = useState(false);
 
@@ -255,32 +282,6 @@ const WarrantDetail = () => {
         }
     }, [data]);
 
-    const hasChanges = useMemo(() => {
-        if (!data) return false;
-        const fields: (keyof Warrant)[] = [
-            'name', 'type', 'rg', 'cpf', 'number', 'crime', 'regime', 'location', 'img', 'priority',
-            'ifoodNumber', 'ifoodResult', 'digOffice', 'observation', 'age', 'issuingCourt', 'tacticalSummary', 'fulfillmentDetails',
-            'dpRegion', 'latitude', 'longitude', 'tags', 'status'
-        ];
-
-        const basicChanges = fields.some(key => {
-            if (Array.isArray(localData[key]) || Array.isArray(data[key])) {
-                return JSON.stringify(localData[key] || []) !== JSON.stringify(data[key] || []);
-            }
-            return localData[key] !== data[key];
-        });
-        if (basicChanges) return true;
-
-        const dateFields: (keyof Warrant)[] = [
-            'issueDate', 'entryDate', 'expirationDate', 'dischargeDate', 'birthDate'
-        ];
-
-        return dateFields.some(key => {
-            const localVal = localData[key] ? formatDate(localData[key] as string) : '';
-            const dataVal = data[key] ? formatDate(data[key] as string) : '';
-            return localVal !== dataVal;
-        });
-    }, [localData, data]);
 
     // Pre-fill report body when modal opens
     useEffect(() => {
