@@ -807,8 +807,8 @@ const NEIGHBORHOOD_TO_DP: { [key: string]: string } = {
     "jardim california": "03º DP",
     "parque california": "01º DP",
     "sao joao": "03º DP",
-    "jardim paraiba": "02º DP",
-    "paraiba": "02º DP",
+    "jardim paraiba": "03º DP",
+    "paraiba": "03º DP",
     "vila garcia": "03º DP",
     "pinheiro": "03º DP",
     "vila pinheiro": "03º DP",
@@ -946,7 +946,7 @@ export const inferDPRegion = async (address: string, lat?: number, lng?: number)
         3. CASO SEJA JACAREI:
            - 1º DP: Cidade Salvador, Santa Maria, Novo Amanhecer, Vila Branca, Santa Paula, Rio Comprido, Jd. Pitoresco, Parque dos Principes, Santo Antonio, Boa Vista, Vista das Araucarias, Jardim do Marques, Jardim Coleginho, Vila Nova Alianca, Vila Zeze, Jardim Colinas, Campo Grande, Jardim Altos de Santana, Santana do Pedregulho, Jardim Dora, Jardim Colonia, Mato Dentro.
            - 2º DP: Bela Vista (Apenas Bela Vista puro), Igarapés, São Silvestre, Cidade Nova, Jd. Panorama, Rua Chiquinha Schurig, Jardim Arice (JD Arice), Vila São Judas Tadeu, Jardim Jacinto, Bandeira Branca, Jardim Emilia, Vila Ita, Balneario Paraiba, JAMIC, Terras de Santa Helena.
-           - 3º DP: Centro (Estritamente Jacareí), Jd. Califórnia, São João, Didinha, Jd. Esper, Jardim Bela Vista, Parque dos Sinos, Jardim São Jose, Jardim Liberdade, Vila Denise, Jardim Leonidia.
+           - 3º DP: Centro (Estritamente Jacareí), Jd. Califórnia, São João, Didinha, Jd. Esper, Jardim Bela Vista, Parque dos Sinos, Jardim São Jose, Jardim Liberdade, Vila Denise, Jardim Leonidia, Jardim Paraíba, Paraíba.
            - 4º DP: Meia Lua, Primeiro de Maio, Lagoa Azul, Pagador Andrade, São Joaquim, Paratei, Jardim Alvorada, Lagoinha, Rio Abaixo.
         4. SE VOCÊ TIVER DÚVIDA SE O ENDEREÇO É EM JACAREÍ (Ex: apenas o nome da rua sem cidade), sua resposta OBRIGATÓRIA deve ser "Outras Cidades". NÃO INVENTE JURISDIÇÃO.
 
