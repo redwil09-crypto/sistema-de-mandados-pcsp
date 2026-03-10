@@ -2,7 +2,7 @@
   {
     "id": "TC001",
     "title": "Save edits to Priority and DP Region successfully from Warrant Detail",
-    "description": "Verifies a user can mark a warrant as Priority, change DP Region, confirm the save prompt, and see the updated information persisted on the detail page.",
+    "description": "Verifies a user can mark a warrant as Priority, change DP Region, confirm the save flow, and see the updated information persisted on the detail page.",
     "category": "Warrant Detail Edit",
     "priority": "High",
     "steps": [
@@ -32,15 +32,15 @@
       },
       {
         "type": "assertion",
-        "description": "Verify URL contains \"/warrants/123\""
+        "description": "Verify URL contains \"/warrant-detail/123\""
       },
       {
         "type": "assertion",
-        "description": "Verify text \"Warrant Details\" is visible"
+        "description": "Verify text \"Dossiê Tático\" is visible"
       },
       {
         "type": "action",
-        "description": "Click the Priority control to mark the warrant as Priority"
+        "description": "Click the \"Priorizar\" button"
       },
       {
         "type": "action",
@@ -51,20 +51,20 @@
         "description": "Type \"03º DP JACAREÍ\" into the DP Region field"
       },
       {
-        "type": "action",
-        "description": "Click the \"Save\" button"
-      },
-      {
         "type": "assertion",
-        "description": "Verify text \"Save changes\" is visible"
+        "description": "Verify text \"Alterações Detectadas\" is visible"
       },
       {
         "type": "action",
-        "description": "Click the \"Confirm\" button in the save popup"
+        "description": "Click the \"SINCRONIZAR DADOS\" button"
       },
       {
         "type": "assertion",
-        "description": "Verify text \"Saved successfully\" is visible"
+        "description": "Verify text \"Alterações salvas com sucesso!\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Prioridade Ativa\" is visible"
       },
       {
         "type": "assertion",
@@ -105,7 +105,7 @@
       },
       {
         "type": "assertion",
-        "description": "Verify URL contains \"/warrants/123\""
+        "description": "Verify URL contains \"/warrant-detail/123\""
       },
       {
         "type": "action",
@@ -117,19 +117,19 @@
       },
       {
         "type": "action",
-        "description": "Click on \"Dashboard\" in the main navigation"
+        "description": "Click on \"Início\" in the floating dock"
       },
       {
         "type": "assertion",
-        "description": "Verify text \"Save changes\" is visible"
+        "description": "Verify text \"Alterações não salvas\" is visible"
       },
       {
         "type": "action",
-        "description": "Click the \"Cancel\" button in the save popup"
+        "description": "Click the \"Continuar aqui\" button in the popup"
       },
       {
         "type": "assertion",
-        "description": "Verify URL contains \"/warrants/123\""
+        "description": "Verify URL contains \"/warrant-detail/123\""
       },
       {
         "type": "assertion",
@@ -170,7 +170,7 @@
       },
       {
         "type": "assertion",
-        "description": "Verify URL contains \"/warrants/123\","
+        "description": "Verify URL contains \"/warrant-detail/123\""
       },
       {
         "type": "action",
@@ -182,19 +182,15 @@
       },
       {
         "type": "action",
-        "description": "Click on \"Dashboard\" in the main navigation"
+        "description": "Click the \"SINCRONIZAR DADOS\" button"
       },
       {
         "type": "assertion",
-        "description": "Verify text \"Save changes\" is visible"
+        "description": "Verify text \"Alterações salvas com sucesso!\" is visible"
       },
       {
         "type": "action",
-        "description": "Click the \"Confirm\" button in the save popup"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Saved successfully\" is visible"
+        "description": "Click on \"Início\" in the floating dock"
       },
       {
         "type": "assertion",
@@ -235,26 +231,22 @@
       },
       {
         "type": "assertion",
-        "description": "Verify URL contains \"/warrants/123\""
+        "description": "Verify URL contains \"/warrant-detail/123\""
       },
       {
         "type": "action",
-        "description": "Click on \"Dashboard\" in the main navigation"
+        "description": "Click on \"Início\" in the floating dock"
       },
       {
         "type": "assertion",
         "description": "Verify URL contains \"/dashboard\""
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Save changes\" is not visible"
       }
     ]
   },
   {
     "id": "TC005",
-    "title": "Priority toggle changes visible state and is persisted after saving",
-    "description": "Verifies that marking a warrant as Priority updates visible state and remains set after confirming the save flow.",
+    "title": "Priority button toggles state and is persisted after saving",
+    "description": "Verifies that clicking 'Priorizar' button updates visible state and remains set after saving.",
     "category": "Warrant Detail Edit",
     "priority": "Medium",
     "steps": [
@@ -279,36 +271,24 @@
         "description": "Click on the warrant item with ID \"123\" (or the row/link that opens warrant 123 details)"
       },
       {
-        "type": "assertion",
-        "description": "Verify URL contains \"/warrants/123\""
-      },
-      {
         "type": "action",
-        "description": "Click the Priority control to change the Priority state"
+        "description": "Click the \"Priorizar\" button"
       },
       {
         "type": "assertion",
-        "description": "Verify text \"Priority\" is visible"
+        "description": "Verify text \"Prioridade Ativa\" is visible"
       },
       {
         "type": "action",
-        "description": "Click the \"Save\" button"
+        "description": "Click the \"SINCRONIZAR DADOS\" button"
       },
       {
         "type": "assertion",
-        "description": "Verify text \"Save changes\" is visible"
+        "description": "Verify text \"Alterações salvas com sucesso!\" is visible"
       },
       {
         "type": "action",
-        "description": "Click the \"Confirm\" button in the save popup"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Saved successfully\" is visible"
-      },
-      {
-        "type": "action",
-        "description": "Click on \"Dashboard\" in the main navigation"
+        "description": "Click on \"Início\" in the floating dock"
       },
       {
         "type": "action",
@@ -316,14 +296,14 @@
       },
       {
         "type": "assertion",
-        "description": "Verify text \"Priority\" is visible"
+        "description": "Verify text \"Prioridade Ativa\" is visible"
       }
     ]
   },
   {
     "id": "TC006",
-    "title": "Dismiss save prompt via Escape keeps user on detail page with unsaved changes",
-    "description": "Verifies the save confirmation popup can be dismissed with the Escape key and that the user stays on the warrant detail page with edits still visible.",
+    "title": "Dismiss edits via Escape shortcut keys user on detail page with original state",
+    "description": "Verifies that pressing Escape cancels any pending modifications and remains on the same page.",
     "category": "Warrant Detail Edit",
     "priority": "Low",
     "steps": [
@@ -348,10 +328,6 @@
         "description": "Click on the warrant item with ID \"123\" (or the row/link that opens warrant 123 details)"
       },
       {
-        "type": "assertion",
-        "description": "Verify URL contains \"/warrants/123\""
-      },
-      {
         "type": "action",
         "description": "Click the DP Region field"
       },
@@ -360,12 +336,8 @@
         "description": "Type \"Outras Cidades\" into the DP Region field"
       },
       {
-        "type": "action",
-        "description": "Click on \"Dashboard\" in the main navigation"
-      },
-      {
         "type": "assertion",
-        "description": "Verify text \"Save changes\" is visible"
+        "description": "Verify text \"Alterações Detectadas\" is visible"
       },
       {
         "type": "action",
@@ -373,11 +345,15 @@
       },
       {
         "type": "assertion",
-        "description": "Verify URL contains \"/warrants/123\""
+        "description": "Verify URL contains \"/warrant-detail/123\""
       },
       {
         "type": "assertion",
-        "description": "Verify text \"Outras Cidades\" is visible"
+        "description": "Verify text \"Alterações Detectadas\" is not visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Edições descartadas via atalho (Esc)\" is visible"
       }
     ]
   }

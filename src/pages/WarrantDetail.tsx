@@ -61,6 +61,7 @@ const WarrantDetail = () => {
 
     const [isReopenConfirmOpen, setIsReopenConfirmOpen] = useState(false);
     const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+    const [isExitConfirmOpen, setIsExitConfirmOpen] = useState(false);
     const [isPhotoModalOpen, setIsPhotoModalOpen] = useState(false);
     const [tagToRemove, setTagToRemove] = useState<string | null>(null);
 
@@ -111,6 +112,18 @@ const WarrantDetail = () => {
             localStorage.setItem(`warrant_draft_${id}`, JSON.stringify(draft));
         }
     }, [id, newDiligence, aiDiligenceResult, analyzedDocumentText, chatHistory]);
+
+    // Keyboard Shortcuts
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape' && hasChanges) {
+                handleCancelEdits();
+                toast.info("Edições descartadas via atalho (Esc)");
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [hasChanges]);
 
     const [isCapturasModalOpen, setIsCapturasModalOpen] = useState(false);
     const [capturasData, setCapturasData] = useState({
@@ -757,6 +770,34 @@ const WarrantDetail = () => {
             toast.success(`A etiqueta "${tagToRemove}" foi removida.`);
         }
         setTagToRemove(null);
+    };
+
+    const handleHomeClick = () => {
+        if (hasChanges) {
+            setIsExitConfirmOpen(true);
+        } else {
+            navigate('/');
+        }
+    };
+
+    const handleTogglePriority = () => {
+        if (!localData) return;
+        const currentTags = localData.tags || [];
+        const isCurrentlyUrgent = currentTags.includes('Urgente');
+        const newTags = isCurrentlyUrgent
+            ? currentTags.filter(t => t !== 'Urgente')
+            : [...currentTags, 'Urgente'];
+
+        handleFieldChange('tags', newTags);
+
+        if (isCurrentlyUrgent) {
+            toast.info("Status de prioridade removido.");
+        } else {
+            toast.success("Mandado marcado como PRIORIDADE URGENTE!", {
+                icon: <Zap size={16} className="text-red-500 fill-red-500" />,
+                duration: 4000
+            });
+        }
     };
 
     const [isSavingDiligence, setIsSavingDiligence] = useState(false);
@@ -2159,6 +2200,20 @@ Equipe de Capturas - DIG / PCSP
                                             <RotateCcw size={12} /> REABRIR MANDADO
                                         </button>
                                     )}
+
+                                    {localData.status === 'EM ABERTO' && (
+                                        <button
+                                            onClick={handleTogglePriority}
+                                            className={`text-[10px] font-black uppercase tracking-[0.1em] px-3 py-1 rounded border transition-all flex items-center gap-2 shadow-lg ${isPriority
+                                                ? 'bg-red-500 text-white border-red-500 shadow-red-500/20'
+                                                : 'bg-white/5 text-text-secondary-light dark:text-text-muted border-white/10 hover:bg-red-500/10 hover:text-red-500 hover:border-red-500/30'
+                                                }`}
+                                            title={isPriority ? "Remover Prioridade" : "Marcar como Prioridade"}
+                                        >
+                                            <Zap size={12} className={isPriority ? 'fill-current' : ''} />
+                                            {isPriority ? 'Prioridade Ativa' : 'Priorizar'}
+                                        </button>
+                                    )}
                                 </div>
                                 <input
                                     className={`text-2xl font-black text-text-light dark:text-white leading-tight uppercase bg-transparent border-none outline-none focus:ring-1 focus:ring-primary/40 rounded-lg px-2 -ml-2 w-full transition-all hover:text-${themeColor.replace('text-', '')} placeholder:text-text-secondary-light/50 dark:placeholder:text-white/20`}
@@ -3365,7 +3420,7 @@ Equipe de Capturas - DIG / PCSP
                     <div className="w-full mt-4">
                         <FloatingDock
                             onBack={handleBack}
-                            onHome={() => navigate('/')}
+                            onHome={handleHomeClick}
                             onSave={() => navigate(`/new-warrant?edit=${data.id}`)}
                             onPrint={() => generateWarrantPDF(localData as any)}
                             onFinalize={() => setIsFinalizeModalOpen(true)}
@@ -3380,6 +3435,7 @@ Equipe de Capturas - DIG / PCSP
             {/* Modals & Overlays */}
             <ConfirmModal isOpen={isReopenConfirmOpen} onCancel={() => setIsReopenConfirmOpen(false)} onConfirm={handleConfirmReopen} title="Reabrir Prontuário" message="Confirmar reabertura do status para 'EM ABERTO'?" confirmText="Reabrir" cancelText="Cancelar" variant="primary" />
             <ConfirmModal isOpen={isDeleteConfirmOpen} onCancel={() => setIsDeleteConfirmOpen(false)} onConfirm={handleConfirmDelete} title="Excluir Alvo" message="Deseja remover PERMANENTEMENTE este registro? Esta ação é irreversível." confirmText="Excluir" cancelText="Cancelar" variant="danger" />
+            <ConfirmModal isOpen={isExitConfirmOpen} onCancel={() => setIsExitConfirmOpen(false)} onConfirm={() => { setIsExitConfirmOpen(false); navigate('/'); }} title="Alterações não salvas" message="Você possui alterações que ainda não foram sincronizadas. Deseja realmente sair e descartar o que foi feito?" confirmText="Sair e Descartar" cancelText="Continuar aqui" variant="danger" />
 
             {
                 isCapturasModalOpen && (
