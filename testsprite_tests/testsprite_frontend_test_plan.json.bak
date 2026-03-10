@@ -1,0 +1,360 @@
+[
+  {
+    "id": "TC001",
+    "title": "Save edits to Priority and DP Region successfully from Warrant Detail",
+    "description": "Verifies a user can mark a warrant as Priority, change DP Region, confirm the save flow, and see the updated information persisted on the detail page.",
+    "category": "Warrant Detail Edit",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the username/email field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Login\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/dashboard\""
+      },
+      {
+        "type": "action",
+        "description": "Click on the warrant item with ID \"123\" (or the row/link that opens warrant 123 details)"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/warrant-detail/123\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Dossiê Tático\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Priorizar\" button"
+      },
+      {
+        "type": "action",
+        "description": "Click the DP Region field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"03º DP JACAREÍ\" into the DP Region field"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Alterações Detectadas\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"SINCRONIZAR DADOS\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Alterações salvas com sucesso!\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Prioridade Ativa\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"03º DP JACAREÍ\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC002",
+    "title": "Cancel save prompt when attempting to leave with unsaved DP Region changes",
+    "description": "Verifies that attempting to navigate away after editing DP Region triggers a save prompt and Cancel keeps the user on the detail page with edits still visible.",
+    "category": "Warrant Detail Edit",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the username/email field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Login\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/dashboard\""
+      },
+      {
+        "type": "action",
+        "description": "Click on the warrant item with ID \"123\" (or the row/link that opens warrant 123 details)"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/warrant-detail/123\""
+      },
+      {
+        "type": "action",
+        "description": "Click the DP Region field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"04º DP JACAREÍ\" into the DP Region field"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Início\" in the floating dock"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Alterações não salvas\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Continuar aqui\" button in the popup"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/warrant-detail/123\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"04º DP JACAREÍ\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC003",
+    "title": "Confirm save prompt when leaving with unsaved changes and land on Dashboard",
+    "description": "Verifies that attempting to leave after edits triggers the save prompt, and choosing Confirm saves changes and allows navigation to Dashboard.",
+    "category": "Warrant Detail Edit",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the username/email field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Login\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/dashboard\""
+      },
+      {
+        "type": "action",
+        "description": "Click on the warrant item with ID \"123\" (or the row/link that opens warrant 123 details)"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/warrant-detail/123\""
+      },
+      {
+        "type": "action",
+        "description": "Click the DP Region field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"01º DP JACAREÍ\" into the DP Region field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"SINCRONIZAR DADOS\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Alterações salvas com sucesso!\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Início\" in the floating dock"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/dashboard\""
+      }
+    ]
+  },
+  {
+    "id": "TC004",
+    "title": "No save prompt when leaving without making any changes",
+    "description": "Verifies that navigating away from the warrant detail page without edits does not trigger a save prompt and the user reaches Dashboard.",
+    "category": "Warrant Detail Edit",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the username/email field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Login\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/dashboard\""
+      },
+      {
+        "type": "action",
+        "description": "Click on the warrant item with ID \"123\" (or the row/link that opens warrant 123 details)"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/warrant-detail/123\""
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Início\" in the floating dock"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/dashboard\""
+      }
+    ]
+  },
+  {
+    "id": "TC005",
+    "title": "Priority button toggles state and is persisted after saving",
+    "description": "Verifies that clicking 'Priorizar' button updates visible state and remains set after saving.",
+    "category": "Warrant Detail Edit",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the username/email field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Login\" button"
+      },
+      {
+        "type": "action",
+        "description": "Click on the warrant item with ID \"123\" (or the row/link that opens warrant 123 details)"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Priorizar\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Prioridade Ativa\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"SINCRONIZAR DADOS\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Alterações salvas com sucesso!\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Início\" in the floating dock"
+      },
+      {
+        "type": "action",
+        "description": "Click on the warrant item with ID \"123\" (or the row/link that opens warrant 123 details)"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Prioridade Ativa\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC006",
+    "title": "Dismiss edits via Escape shortcut keys user on detail page with original state",
+    "description": "Verifies that pressing Escape cancels any pending modifications and remains on the same page.",
+    "category": "Warrant Detail Edit",
+    "priority": "Low",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the username/email field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Login\" button"
+      },
+      {
+        "type": "action",
+        "description": "Click on the warrant item with ID \"123\" (or the row/link that opens warrant 123 details)"
+      },
+      {
+        "type": "action",
+        "description": "Click the DP Region field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"Outras Cidades\" into the DP Region field"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Alterações Detectadas\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Press \"Escape\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/warrant-detail/123\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Alterações Detectadas\" is not visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Edições descartadas via atalho (Esc)\" is visible"
+      }
+    ]
+  }
+]

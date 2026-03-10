@@ -33,7 +33,7 @@ async def run_test():
         # -> Navigate to http://localhost:3001
         await page.goto("http://localhost:3001", wait_until="commit", timeout=10000)
         
-        # -> Fill the email and password fields and click the 'Acessar Sistema' button to log in (click index 9). After login, verify navigation to the dashboard.
+        # -> Input the provided credentials into the email (index 5) and password (index 6) fields, then click the login button (index 9).
         frame = context.pages[-1]
         # Input text
         elem = frame.locator('xpath=/html/body/div/div/div[3]/div[2]/form/div/div/input').nth(0)
@@ -49,41 +49,27 @@ async def run_test():
         elem = frame.locator('xpath=/html/body/div/div/div[3]/div[2]/form/div[3]/button').nth(0)
         await page.wait_for_timeout(3000); await elem.click(timeout=5000)
         
-        # -> Click the 'Mandados' sidebar link to open the warrants list (click element index 352).
+        # -> Type '123' into the main search input (index 456) to locate the warrant with ID 123 (this may surface the warrant row to click).
+        frame = context.pages[-1]
+        # Input text
+        elem = frame.locator('xpath=/html/body/div/div/div[2]/div/div/header/div[2]/input').nth(0)
+        await page.wait_for_timeout(3000); await elem.fill('123')
+        
+        # -> Click the warrant row that should open the details for ID '123' (attempt to open the detail page).
         frame = context.pages[-1]
         # Click element
-        elem = frame.locator('xpath=/html/body/div/div/aside/nav/div/div/a[2]').nth(0)
+        elem = frame.locator('xpath=/html/body/div/div/div[2]/div/div/main/div[2]/div[2]/a[2]').nth(0)
         await page.wait_for_timeout(3000); await elem.click(timeout=5000)
         
-        # -> Click the 'Mandados' sidebar link to open the warrants list (use element index 870).
+        # --> Assertions to verify final state
         frame = context.pages[-1]
-        # Click element
-        elem = frame.locator('xpath=/html/body/div/div/aside/nav/div/div/a[2]').nth(0)
-        await page.wait_for_timeout(3000); await elem.click(timeout=5000)
-        
-        # -> Open the warrant row for the searched result (warrant ID 123) to view its details by clicking the row link.
-        frame = context.pages[-1]
-        # Click element
-        elem = frame.locator('xpath=/html/body/div/div/div[2]/div/div/div/div[2]/a[15]').nth(0)
-        await page.wait_for_timeout(3000); await elem.click(timeout=5000)
-        
-        # -> Click the 'Editar' button to enter edit mode so Save/Confirm and Priority controls become available (click element index 24908).
-        frame = context.pages[-1]
-        # Click element
-        elem = frame.locator('xpath=/html/body/div/div/div[2]/div/div/div[2]/div[3]/div[2]/div/div/button[3]').nth(0)
-        await page.wait_for_timeout(3000); await elem.click(timeout=5000)
-        
-        # -> Click the Priority 'URGENTE' button (index 26656), set the DP Region select (index 25940) to '03º D.P. JACAREÍ', then click 'Confirmar Atualização' (index 26666) to save. After that, check for the success message and DP Region persistence.
-        frame = context.pages[-1]
-        # Click element
-        elem = frame.locator('xpath=/html/body/div/div/div[2]/div/div/form/div[9]/div/button').nth(0)
-        await page.wait_for_timeout(3000); await elem.click(timeout=5000)
-        
-        frame = context.pages[-1]
-        # Click element
-        elem = frame.locator('xpath=/html/body/div/div/div[2]/div/div/form/div[10]/button').nth(0)
-        await page.wait_for_timeout(3000); await elem.click(timeout=5000)
-        
+        assert '/dashboard' in frame.url
+        assert '/warrant-detail/123' in frame.url
+        await expect(frame.locator('text=Dossiê Tático').first).to_be_visible(timeout=3000)
+        await expect(frame.locator('text=Alterações Detectadas').first).to_be_visible(timeout=3000)
+        await expect(frame.locator('text=Alterações salvas com sucesso!').first).to_be_visible(timeout=3000)
+        await expect(frame.locator('text=Prioridade Ativa').first).to_be_visible(timeout=3000)
+        await expect(frame.locator('text=03º DP JACAREÍ').first).to_be_visible(timeout=3000)
         await asyncio.sleep(5)
 
     finally:

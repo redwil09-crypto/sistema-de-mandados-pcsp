@@ -2,7 +2,7 @@
   "status": "commited",
   "type": "frontend",
   "scope": "codebase",
-  "localEndpoint": "http://localhost:3001",
+  "localEndpoint": "http://localhost:3000",
   "loginUser": "william.castro@policiacivil.sp.gov.br",
   "loginPassword": "Wi180181@",
   "executionArgs": {
@@ -15,6 +15,6 @@
       "API_KEY": "sk-user-iEyzS9HqMdgelNUCKtFL2swAUvU1ELmol_ejElxQUMx1r_T5Xg5-gCGlO47UDTqjO66wjfSCb1x10qwTq3NdVOrC0LEdTJehi_7QRF1LVA9f71EvG2FRN4toxexlZMfILeI"
     }
   },
-  "serverPort": 54396,
-  "proxy": "http://f65f3f79-7b67-4abd-b029-ee7e86a55cd1:KSeWYEbXhuf9qF74txhEHdG6UghSlM9r@tun.testsprite.com:8080"
+  "serverPort": 62056,
+  "proxy": "http://044df4ac-60e9-456c-975a-14a2ab4b69f7:sTUt2d7i2PKwGjAVUigQxviZS19kUFeZ@tun.testsprite.com:8080"
 }

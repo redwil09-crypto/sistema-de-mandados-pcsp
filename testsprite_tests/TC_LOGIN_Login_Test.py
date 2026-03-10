@@ -30,10 +30,10 @@ async def run_test():
         page = await context.new_page()
 
         # Interact with the page elements to simulate user flow
-        # -> Navigate to http://localhost:3001
-        await page.goto("http://localhost:3001", wait_until="commit", timeout=10000)
+        # -> Navigate to http://localhost:3000
+        await page.goto("http://localhost:3000", wait_until="commit", timeout=10000)
         
-        # -> Fill the email and password fields (indexes 5 and 6) with the provided credentials, then click the 'Acessar Sistema' button (index 9).
+        # -> Fill the email and password fields with the provided credentials and click the 'Acessar Sistema' button to attempt login.
         frame = context.pages[-1]
         # Input text
         elem = frame.locator('xpath=/html/body/div/div/div[3]/div[2]/form/div/div/input').nth(0)
@@ -49,23 +49,11 @@ async def run_test():
         elem = frame.locator('xpath=/html/body/div/div/div[3]/div[2]/form/div[3]/button').nth(0)
         await page.wait_for_timeout(3000); await elem.click(timeout=5000)
         
-        # -> Click the 'Mandados' menu item (index 1039) to open the warrants list so a warrant detail can be opened.
-        frame = context.pages[-1]
-        # Click element
-        elem = frame.locator('xpath=/html/body/div/div/aside/nav/div/div/a[3]').nth(0)
-        await page.wait_for_timeout(3000); await elem.click(timeout=5000)
-        
-        # -> Click a warrant row anchor to open the warrant detail page (use anchor index 2962).
-        frame = context.pages[-1]
-        # Click element
-        elem = frame.locator('xpath=/html/body/div/div/div[2]/div/div/div/div[2]/a[2]').nth(0)
-        await page.wait_for_timeout(3000); await elem.click(timeout=5000)
-        
         # --> Assertions to verify final state
         frame = context.pages[-1]
-        assert '/dashboard' in frame.url
-        assert '/warrant-detail/123' in frame.url
-        assert '/dashboard' in frame.url
+        frame = context.pages[-1]
+        await page.wait_for_timeout(3000)
+        assert "/dashboard" in frame.url
         await asyncio.sleep(5)
 
     finally:

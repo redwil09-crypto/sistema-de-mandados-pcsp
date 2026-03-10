@@ -33,7 +33,10 @@ async def run_test():
         # -> Navigate to http://localhost:3001
         await page.goto("http://localhost:3001", wait_until="commit", timeout=10000)
         
-        # -> Fill the email and password fields (indexes 5 and 6) with the provided credentials, then click the 'Acessar Sistema' button (index 9).
+        # -> Navigate to /login (http://localhost:3001/login) as the test step explicitly requests navigation to that path.
+        await page.goto("http://localhost:3001/login", wait_until="commit", timeout=10000)
+        
+        # -> Type the username into the email field (index 117), then type the password into the password field (index 118), then click the 'Acessar Sistema' button (index 120).
         frame = context.pages[-1]
         # Input text
         elem = frame.locator('xpath=/html/body/div/div/div[3]/div[2]/form/div/div/input').nth(0)
@@ -49,23 +52,36 @@ async def run_test():
         elem = frame.locator('xpath=/html/body/div/div/div[3]/div[2]/form/div[3]/button').nth(0)
         await page.wait_for_timeout(3000); await elem.click(timeout=5000)
         
-        # -> Click the 'Mandados' menu item (index 1039) to open the warrants list so a warrant detail can be opened.
+        # -> Open the 'Mandados' page by clicking the 'Mandados' nav item so the list of warrants can be accessed.
         frame = context.pages[-1]
         # Click element
-        elem = frame.locator('xpath=/html/body/div/div/aside/nav/div/div/a[3]').nth(0)
+        elem = frame.locator('xpath=/html/body/div/div/aside/nav/div/div/a[2]').nth(0)
         await page.wait_for_timeout(3000); await elem.click(timeout=5000)
         
-        # -> Click a warrant row anchor to open the warrant detail page (use anchor index 2962).
+        # -> Click the 'Mandados' sidebar item (index 977) to open the warrants list, then search the page for the warrant ID '123'.
         frame = context.pages[-1]
         # Click element
-        elem = frame.locator('xpath=/html/body/div/div/div[2]/div/div/div/div[2]/a[2]').nth(0)
+        elem = frame.locator('xpath=/html/body/div/div/aside/nav/div/div/a[2]').nth(0)
+        await page.wait_for_timeout(3000); await elem.click(timeout=5000)
+        
+        # -> Open a warrant detail by clicking a warrant row (the first visible warrant anchor) so the detail view is loaded and the DP Region field can be edited to test Escape behaviour.
+        frame = context.pages[-1]
+        # Click element
+        elem = frame.locator('xpath=/html/body/div/div/div[2]/div/div/div/div[2]/a[15]').nth(0)
+        await page.wait_for_timeout(3000); await elem.click(timeout=5000)
+        
+        # -> Click a visible warrant row anchor to open its detail view so the DP Region field can be edited (retry clicking a warrant anchor).
+        frame = context.pages[-1]
+        # Click element
+        elem = frame.locator('xpath=/html/body/div/div/div[2]/div/div/div/div[2]/a').nth(0)
         await page.wait_for_timeout(3000); await elem.click(timeout=5000)
         
         # --> Assertions to verify final state
         frame = context.pages[-1]
-        assert '/dashboard' in frame.url
+        await expect(frame.locator('text=Alterações Detectadas').first).to_be_visible(timeout=3000)
         assert '/warrant-detail/123' in frame.url
-        assert '/dashboard' in frame.url
+        await expect(frame.locator('text=Alterações Detectadas').first).to_be_hidden(timeout=3000)
+        await expect(frame.locator('text=Edições descartadas via atalho (Esc)').first).to_be_visible(timeout=3000)
         await asyncio.sleep(5)
 
     finally:
