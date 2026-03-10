@@ -1,0 +1,102 @@
+[
+    {
+        "id": "B001",
+        "title": "CRUD Tabela Warrants",
+        "description": "Verifica as operações básicas de criação, leitura, atualização e exclusão na tabela 'warrants' via Supabase.",
+        "category": "Backend - Supabase",
+        "priority": "Alta",
+        "steps": [
+            {
+                "type": "action",
+                "description": "Enviar requisição POST para /rest/v1/warrants com um novo objeto de mandado"
+            },
+            {
+                "type": "assertion",
+                "description": "Verificar se o status do código é 201 (Created)"
+            },
+            {
+                "type": "action",
+                "description": "Enviar requisição GET para /rest/v1/warrants filtrando pelo ID do mandado criado"
+            },
+            {
+                "type": "assertion",
+                "description": "Verificar se os dados retornados correspondem aos dados enviados no POST"
+            },
+            {
+                "type": "action",
+                "description": "Enviar requisição PATCH para /rest/v1/warrants atualizando o campo 'status' para 'CUMPRIDO'"
+            },
+            {
+                "type": "assertion",
+                "description": "Verificar se o status do código é 200 ou 204"
+            },
+            {
+                "type": "action",
+                "description": "Enviar requisição DELETE para /rest/v1/warrants para remover o mandado de teste"
+            },
+            {
+                "type": "assertion",
+                "description": "Verificar se o mandado foi removido com sucesso (status 200/204)"
+            }
+        ]
+    },
+    {
+        "id": "B002",
+        "title": "Geração de Logs de Auditoria",
+        "description": "Verifica se as ações no backend geram entradas correspondentes na tabela 'audit_logs'.",
+        "category": "Backend - Segurança",
+        "priority": "Média",
+        "steps": [
+            {
+                "type": "action",
+                "description": "Realizar uma atualização em um mandado existente"
+            },
+            {
+                "type": "action",
+                "description": "Consultar a tabela 'audit_logs' filtrando pelo ID do mandado e ação 'UPDATE'"
+            },
+            {
+                "type": "assertion",
+                "description": "Verificar se existe um log registrado com o e-mail do usuário e os detalhes da alteração"
+            }
+        ]
+    },
+    {
+        "id": "B003",
+        "title": "Persistência de Coordenadas e Região DP",
+        "description": "Verifica se os campos de latitude, longitude e dpRegion são salvos corretamente após a inferência.",
+        "category": "Backend - Dados",
+        "priority": "Média",
+        "steps": [
+            {
+                "type": "action",
+                "description": "Salvar um mandado com um endereço de Jacareí e coordenadas específicas"
+            },
+            {
+                "type": "action",
+                "description": "Recuperar o mandado via API"
+            },
+            {
+                "type": "assertion",
+                "description": "Verificar se latitude, longitude e dpRegion (ex: '03º DP JACAREÍ') estão presentes e corretos"
+            }
+        ]
+    },
+    {
+        "id": "B004",
+        "title": "Gestão de Perfis de Usuário",
+        "description": "Verifica a criação e consulta de perfis na tabela 'profiles' no primeiro login.",
+        "category": "Backend - Auth",
+        "priority": "Alta",
+        "steps": [
+            {
+                "type": "action",
+                "description": "Consultar o perfil do usuário atual via /rest/v1/profiles"
+            },
+            {
+                "type": "assertion",
+                "description": "Verificar se os campos 'email', 'full_name' e 'authorized' estão disponíveis"
+            }
+        ]
+    }
+]

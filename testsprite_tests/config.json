@@ -1,0 +1,42 @@
+{
+    "meta": {
+        "project": "Mandados Capture System - Backend",
+        "date": "2026-03-09",
+        "prepared_by": "Antigravity AI"
+    },
+    "product_overview": "O backend do sistema é baseado em Supabase (PostgreSQL), utilizando tabelas para gerenciar mandados, logs de auditoria e perfis de usuários. A lógica de negócio inclui inferência de Região DP e geolocalização processada via API e persistida no banco.",
+    "core_goals": [
+        "Garantir a integridade das operações CRUD na tabela 'warrants'.",
+        "Validar a persistência correta de dados de geolocalização e metadados táticos.",
+        "Assegurar que logs de auditoria sejam gerados para cada ação de escrita ou deleção.",
+        "Verificar o controle de acesso e autorização via tabela 'profiles'."
+    ],
+    "features": [
+        {
+            "name": "Gerenciamento de Mandados (CRUD)",
+            "description": "API REST via Supabase para manipulação de registros de mandados.",
+            "endpoints": [
+                "POST /rest/v1/warrants",
+                "GET /rest/v1/warrants",
+                "PATCH /rest/v1/warrants",
+                "DELETE /rest/v1/warrants"
+            ]
+        },
+        {
+            "name": "Auditoria Operacional",
+            "description": "Sistema de tracking de alterações para conformidade policial.",
+            "endpoints": [
+                "GET /rest/v1/audit_logs"
+            ]
+        }
+    ],
+    "api_details": {
+        "base_url": "http://localhost:3000/rest/v1",
+        "auth_strategy": "Supabase JWT / Anon Key",
+        "major_tables": [
+            "warrants",
+            "audit_logs",
+            "profiles"
+        ]
+    }
+}
