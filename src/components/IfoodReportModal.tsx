@@ -7,6 +7,7 @@ import { jsPDF } from 'jspdf';
 import { Warrant } from '../types';
 import { uploadFile, getPublicUrl } from '../supabaseStorage';
 import { supabase } from '../supabaseClient';
+import { useWarrants } from '../contexts/WarrantContext';
 
 interface IfoodReportModalProps {
     isOpen: boolean;
@@ -23,7 +24,8 @@ const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, wa
     const [step, setStep] = useState<'input' | 'processing' | 'result'>('input');
     const [badgeImg, setBadgeImg] = useState<HTMLImageElement | null>(null);
     const [selectedType, setSelectedType] = useState(initialType);
-    const [currentUser, setCurrentUser] = useState<{ name: string; email: string } | null>(null);
+    const [currentUser, setCurrentUser] = useState<{ name: string; email: string; id: string } | null>(null);
+    const { warrants } = useWarrants();
 
     // Update selectedType if props change (reset)
     useEffect(() => {
@@ -63,30 +65,61 @@ const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, wa
             const fetchUser = async () => {
                 const { data: { user } } = await supabase.auth.getUser();
                 if (user) {
+                    let full_name = user.user_metadata?.full_name || 'Policial';
+                    let email = user.email || '';
+
                     try {
                         const { data: profile } = await supabase
                             .from('profiles')
                             .select('full_name, email')
                             .eq('id', user.id)
-                            .single();
+                            .maybeSingle();
 
                         if (profile) {
-                            setCurrentUser({
-                                name: profile.full_name,
-                                email: profile.email
-                            });
-                        } else {
-                            setCurrentUser({
-                                name: user.user_metadata?.full_name || 'Policial',
-                                email: user.email || ''
-                            });
+                            full_name = profile.full_name;
+                            email = profile.email;
                         }
                     } catch (e) {
-                        setCurrentUser({
-                            name: user.user_metadata?.full_name || 'Policial',
-                            email: user.email || ''
+                        console.error("Error fetching profile:", e);
+                    }
+
+                    setCurrentUser({
+                        name: full_name,
+                        email: email,
+                        id: user.id
+                    });
+
+                    // AUTO-SUGGEST OFFICE NUMBER FOR THIS SPECIFIC USER
+                    const currentYear = new Date().getFullYear();
+                    let maxNum = 0;
+
+                    if (warrants && warrants.length > 0) {
+                        warrants.forEach(w => {
+                            // Rule: Only follow the number of WHICH USER is doing the report
+                            if (w.userId === user.id && w.ifoodNumber) {
+                                // Regex to find the number before specific separators
+                                const match = w.ifoodNumber.match(/^(\d+).*\/(\d{4})$/);
+                                if (match) {
+                                    const num = parseInt(match[1]);
+                                    const yr = parseInt(match[2]);
+                                    if (yr === currentYear && !isNaN(num)) {
+                                        if (num > maxNum) maxNum = num;
+                                    }
+                                } else {
+                                    // Fallback split for simpler formats
+                                    const parts = w.ifoodNumber.split('/');
+                                    if (parts.length >= 2) {
+                                        const num = parseInt(parts[0]);
+                                        const yr = parseInt(parts[parts.length - 1]);
+                                        if (yr === currentYear && !isNaN(num)) {
+                                            if (num > maxNum) maxNum = num;
+                                        }
+                                    }
+                                }
+                            }
                         });
                     }
+                    setOfficeNumber((maxNum + 1).toString().padStart(3, '0'));
                 }
             };
             fetchUser();
@@ -107,7 +140,7 @@ const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, wa
         const contactEmail = currentUser?.email || 'william.castro@policiacivil.sp.gov.br';
         const contactName = currentUser?.name || 'William Campos de Assis Castro';
 
-        return `Ofício: nº.${officeNumber}/CAPT/2026
+        return `Ofício: nº.${officeNumber}/CAPT/${today.getFullYear()}
 Referência: PROC. Nº ${warrant.number}
 Natureza: Solicitação de Dados.
 
