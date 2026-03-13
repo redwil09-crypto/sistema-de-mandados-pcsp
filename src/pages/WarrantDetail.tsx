@@ -169,66 +169,69 @@ const WarrantDetail = () => {
         const currentYear = new Date().getFullYear();
         let maxNumber = 0;
 
+        // Helper to extract number from any field value
+        const extractNumber = (val: string | null | undefined): number => {
+            if (!val || typeof val !== 'string') return 0;
+            // Pattern NNN/XXX/YYYY (e.g. "001/DIG/2026", "02/CAPT/2025")
+            const match3 = val.match(/^(\d+)\/.+\/(\d{4})$/);
+            if (match3) {
+                const num = parseInt(match3[1]);
+                const year = parseInt(match3[2]);
+                if (year === currentYear && !isNaN(num)) return num;
+            }
+            // Pattern NNN/YYYY (e.g. "001/2026")
+            const match2 = val.match(/^(\d+)\/(\d{4})$/);
+            if (match2) {
+                const num = parseInt(match2[1]);
+                const year = parseInt(match2[2]);
+                if (year === currentYear && !isNaN(num)) return num;
+            }
+            // Plain number (e.g. "026") — no year info, use as-is
+            const numOnly = parseInt(val.replace(/\D/g, ''));
+            if (!isNaN(numOnly) && numOnly > 0 && numOnly < 9999) return numOnly;
+            return 0;
+        };
+
         try {
-            // Query the database directly for the most up-to-date numbers
+            // Step 1: Check in-memory warrants first (fast)
+            if (warrants && warrants.length > 0) {
+                warrants.forEach(w => {
+                    [w.fulfillmentReport, w.ifoodNumber, w.digOffice].forEach(val => {
+                        const n = extractNumber(val);
+                        if (n > maxNumber) maxNumber = n;
+                    });
+                });
+                console.log('[getSuggestedReportNumber] Memory scan max:', maxNumber);
+            }
+
+            // Step 2: Query DB directly for fresher data
             const { data: rows, error } = await supabase
                 .from('warrants')
-                .select('fulfillment_report, ifood_number, dig_office')
-                .not('fulfillment_report', 'is', null);
+                .select('fulfillment_report, ifood_number, dig_office');
 
-            const rowsToScan = (!error && rows && rows.length > 0) ? rows : null;
+            console.log('[getSuggestedReportNumber] DB rows:', rows?.length, '| error:', error?.message || 'none');
 
-            if (rowsToScan) {
-                rowsToScan.forEach((row: any) => {
-                    const fieldsToScan = [row.fulfillment_report, row.ifood_number, row.dig_office];
-                    fieldsToScan.forEach((val: string | null) => {
-                        if (!val || typeof val !== 'string') return;
-                        const match = val.match(/^(\d+).*\/(\d{4})$/);
-                        if (match) {
-                            const num = parseInt(match[1]);
-                            const year = parseInt(match[2]);
-                            if (year === currentYear && !isNaN(num) && num > maxNumber) {
-                                maxNumber = num;
-                            }
-                        } else {
-                            const parts = val.split('/');
-                            if (parts.length >= 2) {
-                                const numPart = parseInt(parts[0]);
-                                const yearPart = parseInt(parts[parts.length - 1]);
-                                if (!isNaN(numPart) && yearPart === currentYear && numPart > maxNumber) {
-                                    maxNumber = numPart;
-                                }
-                            }
+            if (!error && rows && rows.length > 0) {
+                rows.forEach((row: any) => {
+                    [row.fulfillment_report, row.ifood_number, row.dig_office].forEach((val: any) => {
+                        const n = extractNumber(val);
+                        if (n > maxNumber) {
+                            console.log('[getSuggestedReportNumber] DB found:', val, '→', n);
+                            maxNumber = n;
                         }
                     });
                 });
-            } else {
-                // Fallback: use in-memory warrants
-                if (warrants && warrants.length > 0) {
-                    warrants.forEach(w => {
-                        const fieldsToScan = [w.fulfillmentReport, w.ifoodNumber, w.digOffice];
-                        fieldsToScan.forEach(val => {
-                            if (!val || typeof val !== 'string') return;
-                            const match = val.match(/^(\d+).*\/(\d{4})$/);
-                            if (match) {
-                                const num = parseInt(match[1]);
-                                const year = parseInt(match[2]);
-                                if (year === currentYear && !isNaN(num) && num > maxNumber) {
-                                    maxNumber = num;
-                                }
-                            }
-                        });
-                    });
-                }
             }
         } catch (e) {
-            console.error('[getSuggestedReportNumber] Error querying DB:', e);
+            console.error('[getSuggestedReportNumber] Error:', e);
         }
 
-        const suggested = `${(maxNumber + 1).toString().padStart(2, '0')}/CAPT/${currentYear}`;
-        console.log('[getSuggestedReportNumber] maxNumber found:', maxNumber, '| suggested:', suggested);
+        const suggested = `${(maxNumber + 1).toString().padStart(3, '0')}/DIG/${currentYear}`;
+        console.log('[getSuggestedReportNumber] FINAL maxNumber:', maxNumber, '→ suggesting:', suggested);
         return suggested;
     };
+
+
     const [isGeneratingAiReport, setIsGeneratingAiReport] = useState(false);
     const [activeReportType, setActiveReportType] = useState<'ifood' | 'uber' | '99' | null>(null);
 
@@ -2136,7 +2139,11 @@ ${signerName} - DIG / PCSP
             if (uploadedPath) {
                 const url = getPublicUrl(uploadedPath);
                 const currentReports = data.reports || [];
-                await updateWarrant(data.id, { reports: [...currentReports, url] });
+                // Save both the PDF URL and the report number so future suggestions work
+                await updateWarrant(data.id, {
+                    reports: [...currentReports, url],
+                    fulfillmentReport: capturasData.reportNumber
+                });
                 toast.success("Documento oficial gerado e anexado.", { id: toastId });
             }
 
