@@ -1764,7 +1764,8 @@ ${signerName} - DIG / PCSP
             reportNumber: currentData.fulfillmentReport || getSuggestedReportNumber(),
             court: '1ª Vara criminal de Jacareí/SP',
             body: generateIntelligentReportBody(),
-            aiInstructions: ''
+            aiInstructions: '',
+            delegate: 'Dr. Luiz Antonio Cunha Dos Santos'
         }));
         setIsCapturasModalOpen(true);
     };
@@ -3463,6 +3464,14 @@ ${signerName} - DIG / PCSP
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="space-y-1"><label className="text-[10px] font-black text-primary uppercase tracking-widest">Identificador Relatório</label><input className="w-full bg-background-light dark:bg-white/5 border border-border-light dark:border-white/10 rounded-xl p-3 text-sm text-text-light dark:text-white" value={capturasData.reportNumber} onChange={e => setCapturasData({ ...capturasData, reportNumber: e.target.value })} /></div>
                                     <div className="space-y-1"><label className="text-[10px] font-black text-primary uppercase tracking-widest">Comarca Judiciária</label><input className="w-full bg-background-light dark:bg-white/5 border border-border-light dark:border-white/10 rounded-xl p-3 text-sm text-text-light dark:text-white" value={capturasData.court} onChange={e => setCapturasData({ ...capturasData, court: e.target.value })} /></div>
+                                    <div className="space-y-1 col-span-2"><label className="text-[10px] font-black text-primary uppercase tracking-widest">Delegado</label>
+                                        <select className="w-full bg-background-light dark:bg-white/5 border border-border-light dark:border-white/10 rounded-xl p-3 text-sm text-text-light dark:text-white appearance-none" value={capturasData.delegate} onChange={e => setCapturasData({ ...capturasData, delegate: e.target.value })}>
+                                            <option value="" disabled className="bg-surface-light dark:bg-surface-dark text-text-light dark:text-white">Selecione o Delegado</option>
+                                            <option value="Dr. Luiz Antonio Cunha Dos Santos" className="bg-surface-light dark:bg-surface-dark text-text-light dark:text-white">Dr. Luiz Antonio Cunha Dos Santos</option>
+                                            <option value="Dr. Raian Brega De Araujo" className="bg-surface-light dark:bg-surface-dark text-text-light dark:text-white">Dr. Raian Brega De Araujo</option>
+                                            <option value="Dr. Rodrigo Mambeli de Mendonça" className="bg-surface-light dark:bg-surface-dark text-text-light dark:text-white">Dr. Rodrigo Mambeli de Mendonça</option>
+                                        </select>
+                                    </div>
                                 </div>
                                 <div className="bg-indigo-500/5 border border-indigo-500/20 rounded-2xl p-5 space-y-4">
                                     <div className="flex items-center gap-2"><Cpu size={16} className="text-indigo-400" /><span className="text-[10px] font-black uppercase tracking-widest text-indigo-400">Prompt de Refinamento IA</span></div>
