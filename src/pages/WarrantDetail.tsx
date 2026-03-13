@@ -169,47 +169,49 @@ const WarrantDetail = () => {
         const currentYear = new Date().getFullYear();
         let maxNumber = 0;
 
-        // Helper to extract number from any field value
+        // Helper: extract report number ONLY from formatted strings
+        // Accepts: "001/DIG/2026", "02/CAPT/2025", "5/2026"
+        // Does NOT accept raw process numbers like "1503300-53.2024..."
         const extractNumber = (val: string | null | undefined): number => {
             if (!val || typeof val !== 'string') return 0;
             // Pattern NNN/XXX/YYYY (e.g. "001/DIG/2026", "02/CAPT/2025")
-            const match3 = val.match(/^(\d+)\/.+\/(\d{4})$/);
+            const match3 = val.match(/^(\d{1,4})\/.+\/(\d{4})$/);
             if (match3) {
                 const num = parseInt(match3[1]);
                 const year = parseInt(match3[2]);
-                if (year === currentYear && !isNaN(num)) return num;
+                if (year === currentYear && !isNaN(num) && num < 9999) return num;
             }
-            // Pattern NNN/YYYY (e.g. "001/2026")
-            const match2 = val.match(/^(\d+)\/(\d{4})$/);
+            // Pattern NNN/YYYY (e.g. "001/2026") — only 1-4 digits before slash
+            const match2 = val.match(/^(\d{1,4})\/(\d{4})$/);
             if (match2) {
                 const num = parseInt(match2[1]);
                 const year = parseInt(match2[2]);
-                if (year === currentYear && !isNaN(num)) return num;
+                if (year === currentYear && !isNaN(num) && num < 9999) return num;
             }
-            // Plain number (e.g. "026") — no year info, use as-is
-            const numOnly = parseInt(val.replace(/\D/g, ''));
-            if (!isNaN(numOnly) && numOnly > 0 && numOnly < 9999) return numOnly;
-            return 0;
+            return 0; // Ignore plain numbers — too risky (process numbers, etc.)
         };
 
         try {
-            // Step 1: Check in-memory warrants first (fast)
+            // Step 1: Check in-memory warrants (fast, might be stale)
             if (warrants && warrants.length > 0) {
                 warrants.forEach(w => {
                     [w.fulfillmentReport, w.ifoodNumber, w.digOffice].forEach(val => {
                         const n = extractNumber(val);
-                        if (n > maxNumber) maxNumber = n;
+                        if (n > maxNumber) {
+                            console.log('[getSuggestedReportNumber] Memory found:', val, '→', n);
+                            maxNumber = n;
+                        }
                     });
                 });
-                console.log('[getSuggestedReportNumber] Memory scan max:', maxNumber);
+                console.log('[getSuggestedReportNumber] After memory scan, max:', maxNumber);
             }
 
-            // Step 2: Query DB directly for fresher data
+            // Step 2: Query DB directly — all warrants, all three fields
             const { data: rows, error } = await supabase
                 .from('warrants')
                 .select('fulfillment_report, ifood_number, dig_office');
 
-            console.log('[getSuggestedReportNumber] DB rows:', rows?.length, '| error:', error?.message || 'none');
+            console.log('[getSuggestedReportNumber] DB rows returned:', rows?.length, '| error:', error?.message || 'none');
 
             if (!error && rows && rows.length > 0) {
                 rows.forEach((row: any) => {
@@ -226,10 +228,12 @@ const WarrantDetail = () => {
             console.error('[getSuggestedReportNumber] Error:', e);
         }
 
-        const suggested = `${(maxNumber + 1).toString().padStart(3, '0')}/DIG/${currentYear}`;
-        console.log('[getSuggestedReportNumber] FINAL maxNumber:', maxNumber, '→ suggesting:', suggested);
+        const nextNum = maxNumber + 1;
+        const suggested = `${nextNum.toString().padStart(3, '0')}/DIG/${currentYear}`;
+        console.log('[getSuggestedReportNumber] FINAL → maxNumber:', maxNumber, '| next suggested:', suggested);
         return suggested;
     };
+
 
 
     const [isGeneratingAiReport, setIsGeneratingAiReport] = useState(false);
@@ -1807,7 +1811,7 @@ ${signerName} - DIG / PCSP
         setCapturasData(prev => ({
             ...prev,
             reportNumber: suggestedNumber,
-            court: '1ª Vara criminal de Jacareí/SP',
+            court: currentData.issuingCourt || prev.court || 'Vara Criminal de Jacareí/SP',
             body: generateIntelligentReportBody(),
             aiInstructions: '',
             delegate: 'Dr. Luiz Antonio Cunha Dos Santos'
