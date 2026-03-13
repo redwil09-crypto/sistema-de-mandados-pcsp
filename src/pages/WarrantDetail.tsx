@@ -165,21 +165,25 @@ const WarrantDetail = () => {
         aiInstructions: ''
     });
 
-    const getSuggestedReportNumber = (): string => {
+    const getSuggestedReportNumber = async (): Promise<string> => {
+        const currentYear = new Date().getFullYear();
+        let maxNumber = 0;
+
         try {
-            const currentYear = new Date().getFullYear();
-            let maxNumber = 0;
+            // Query the database directly for the most up-to-date numbers
+            const { data: rows, error } = await supabase
+                .from('warrants')
+                .select('fulfillment_report, ifood_number, dig_office')
+                .not('fulfillment_report', 'is', null);
 
-            if (warrants && warrants.length > 0) {
-                warrants.forEach(w => {
-                    const fieldsToScan = [w.fulfillmentReport, w.ifoodNumber, w.digOffice];
+            const rowsToScan = (!error && rows && rows.length > 0) ? rows : null;
 
-                    fieldsToScan.forEach(val => {
+            if (rowsToScan) {
+                rowsToScan.forEach((row: any) => {
+                    const fieldsToScan = [row.fulfillment_report, row.ifood_number, row.dig_office];
+                    fieldsToScan.forEach((val: string | null) => {
                         if (!val || typeof val !== 'string') return;
-
-                        // Pattern: starts with digits, then anything, then /YYYY at the end
                         const match = val.match(/^(\d+).*\/(\d{4})$/);
-
                         if (match) {
                             const num = parseInt(match[1]);
                             const year = parseInt(match[2]);
@@ -187,7 +191,6 @@ const WarrantDetail = () => {
                                 maxNumber = num;
                             }
                         } else {
-                            // Fallback: split by '/'
                             const parts = val.split('/');
                             if (parts.length >= 2) {
                                 const numPart = parseInt(parts[0]);
@@ -199,15 +202,32 @@ const WarrantDetail = () => {
                         }
                     });
                 });
+            } else {
+                // Fallback: use in-memory warrants
+                if (warrants && warrants.length > 0) {
+                    warrants.forEach(w => {
+                        const fieldsToScan = [w.fulfillmentReport, w.ifoodNumber, w.digOffice];
+                        fieldsToScan.forEach(val => {
+                            if (!val || typeof val !== 'string') return;
+                            const match = val.match(/^(\d+).*\/(\d{4})$/);
+                            if (match) {
+                                const num = parseInt(match[1]);
+                                const year = parseInt(match[2]);
+                                if (year === currentYear && !isNaN(num) && num > maxNumber) {
+                                    maxNumber = num;
+                                }
+                            }
+                        });
+                    });
+                }
             }
-
-            const suggested = `${(maxNumber + 1).toString().padStart(2, '0')}/CAPT/${currentYear}`;
-            console.log('[getSuggestedReportNumber] warrants count:', warrants?.length, '| maxNumber found:', maxNumber, '| suggested:', suggested);
-            return suggested;
         } catch (e) {
-            console.error('[getSuggestedReportNumber] Error:', e);
-            return `01/CAPT/${new Date().getFullYear()}`;
+            console.error('[getSuggestedReportNumber] Error querying DB:', e);
         }
+
+        const suggested = `${(maxNumber + 1).toString().padStart(2, '0')}/CAPT/${currentYear}`;
+        console.log('[getSuggestedReportNumber] maxNumber found:', maxNumber, '| suggested:', suggested);
+        return suggested;
     };
     const [isGeneratingAiReport, setIsGeneratingAiReport] = useState(false);
     const [activeReportType, setActiveReportType] = useState<'ifood' | 'uber' | '99' | null>(null);
@@ -738,13 +758,14 @@ const WarrantDetail = () => {
         );
     }
 
-    const handleFinalize = () => {
+    const handleFinalize = async () => {
         if (!data) return;
         const isSearch = data.type?.toLowerCase().includes('busca') || data.type?.toLowerCase().includes('apreensão');
+        const suggestedNum = data.fulfillmentReport || await getSuggestedReportNumber();
         setFinalizeFormData(prev => ({
             ...prev,
             digOffice: data.digOffice || '',
-            reportNumber: data.fulfillmentReport || getSuggestedReportNumber(),
+            reportNumber: suggestedNum,
             result: isSearch ? 'Apreendido' : 'Fechado'
         }));
         setIsFinalizeModalOpen(true);
@@ -1678,11 +1699,14 @@ ${signerName} - DIG / PCSP
         }
     };
 
-    const handleOpenCapturasModal = () => {
+    const handleOpenCapturasModal = async () => {
         if (!data) return;
 
         // Use localData (current unsaved edits) over saved data to ensure WYSIWYG
         const currentData = { ...data, ...localData };
+
+        // Fetch suggested number from DB first, before opening modal
+        const suggestedNumber = currentData.fulfillmentReport || await getSuggestedReportNumber();
 
         const generateIntelligentReportBody = () => {
             const name = `**${currentData.name.toUpperCase()}**`;
@@ -1779,7 +1803,7 @@ ${signerName} - DIG / PCSP
 
         setCapturasData(prev => ({
             ...prev,
-            reportNumber: currentData.fulfillmentReport || getSuggestedReportNumber(),
+            reportNumber: suggestedNumber,
             court: '1ª Vara criminal de Jacareí/SP',
             body: generateIntelligentReportBody(),
             aiInstructions: '',

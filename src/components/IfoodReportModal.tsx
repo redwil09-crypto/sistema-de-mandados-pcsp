@@ -99,40 +99,73 @@ const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, wa
         fetchUser();
     }, [isOpen]);
 
-    // Effect 2: Calculate suggested office number whenever user or warrants data changes
+    // Effect 2: Query Supabase directly for the max office number for this user this year
     useEffect(() => {
         if (!isOpen || !currentUser) return;
 
-        const currentYear = new Date().getFullYear();
-        let maxNum = 0;
+        const fetchMaxNumber = async () => {
+            try {
+                const currentYear = new Date().getFullYear();
+                let maxNum = 0;
 
-        if (warrants && warrants.length > 0) {
-            warrants.forEach(w => {
-                // Only use numbers from THIS user's reports
-                if (w.userId === currentUser.id && w.ifoodNumber) {
-                    const match = w.ifoodNumber.match(/^(\d+).*\/(\d{4})$/);
-                    if (match) {
-                        const num = parseInt(match[1]);
-                        const yr = parseInt(match[2]);
-                        if (yr === currentYear && !isNaN(num) && num > maxNum) {
-                            maxNum = num;
-                        }
-                    } else {
-                        const parts = w.ifoodNumber.split('/');
-                        if (parts.length >= 2) {
-                            const num = parseInt(parts[0]);
-                            const yr = parseInt(parts[parts.length - 1]);
+                // Query all warrants from this user that have an ifood_number
+                const { data: rows, error } = await supabase
+                    .from('warrants')
+                    .select('ifood_number')
+                    .eq('user_id', currentUser.id)
+                    .not('ifood_number', 'is', null);
+
+                if (!error && rows && rows.length > 0) {
+                    rows.forEach((row: any) => {
+                        const val: string = row.ifood_number || '';
+                        if (!val) return;
+
+                        // Try pattern like "026/CAPT/2025" or "26/CAPT/2025"
+                        const match = val.match(/^(\d+).*\/(\d{4})$/);
+                        if (match) {
+                            const num = parseInt(match[1]);
+                            const yr = parseInt(match[2]);
                             if (yr === currentYear && !isNaN(num) && num > maxNum) {
                                 maxNum = num;
                             }
+                        } else {
+                            // Try simple numeric only like "026"
+                            const numOnly = parseInt(val);
+                            if (!isNaN(numOnly) && numOnly > maxNum) {
+                                // Only use if we CAN'T determine year (no year = assume current)
+                                maxNum = numOnly;
+                            }
                         }
+                    });
+                } else {
+                    // Fallback: use warrants already in memory
+                    if (warrants && warrants.length > 0) {
+                        warrants.forEach(w => {
+                            if (w.userId === currentUser.id && w.ifoodNumber) {
+                                const match = w.ifoodNumber.match(/^(\d+).*\/(\d{4})$/);
+                                if (match) {
+                                    const num = parseInt(match[1]);
+                                    const yr = parseInt(match[2]);
+                                    if (yr === currentYear && !isNaN(num) && num > maxNum) maxNum = num;
+                                } else {
+                                    const numOnly = parseInt(w.ifoodNumber);
+                                    if (!isNaN(numOnly) && numOnly > maxNum) maxNum = numOnly;
+                                }
+                            }
+                        });
                     }
                 }
-            });
-        }
 
-        setOfficeNumber((maxNum + 1).toString().padStart(3, '0'));
-    }, [isOpen, currentUser, warrants]);
+                console.log('[IfoodReportModal] userId:', currentUser.id, '| maxNum found:', maxNum, '| suggesting:', maxNum + 1);
+                setOfficeNumber((maxNum + 1).toString().padStart(3, '0'));
+            } catch (e) {
+                console.error('[IfoodReportModal] Error fetching max number:', e);
+                setOfficeNumber('001');
+            }
+        };
+
+        fetchMaxNumber();
+    }, [isOpen, currentUser]);
 
     const generateTextForType = (currentType: 'ifood' | 'uber' | '99') => {
         const months = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
@@ -376,7 +409,15 @@ ${indent}Atenciosamente,`;
             if (uploadedPath) {
                 const url = getPublicUrl(uploadedPath);
                 const currentDocs = warrant.ifoodDocs || [];
-                await updateWarrant(warrant.id, { ifoodDocs: [...currentDocs, url] });
+
+                // Save ifoodNumber in standard format so future number suggestions work
+                const currentYear = new Date().getFullYear();
+                const standardOfficeNumber = `${officeNumber.padStart(3, '0')}/CAPT/${currentYear}`;
+
+                await updateWarrant(warrant.id, {
+                    ifoodDocs: [...currentDocs, url],
+                    ifoodNumber: standardOfficeNumber
+                });
                 toast.success("Cópia salva no histórico!", { id: toastId });
                 onClose();
             } else {
