@@ -168,27 +168,49 @@ const WarrantDetail = () => {
     const getSuggestedReportNumber = () => {
         const currentYear = new Date().getFullYear();
         let maxNumber = 0;
-        warrants.forEach(w => {
-            if (w.fulfillmentReport) {
-                const parts = w.fulfillmentReport.split('/');
-                if (parts.length === 3 && parts[1] === 'CAPT' && parseInt(parts[2]) === currentYear) {
-                    const num = parseInt(parts[0]);
-                    if (!isNaN(num) && num > maxNumber) {
-                        maxNumber = num;
+
+        // Intelligent scan across all warrants available in context (global scan)
+        if (warrants && warrants.length > 0) {
+            warrants.forEach(w => {
+                // Check all fields that might contain a report sequence
+                const fieldsToScan = [w.fulfillmentReport, w.ifoodNumber, w.digOffice];
+                
+                fieldsToScan.forEach(val => {
+                    if (!val || typeof val !== 'string') return;
+                    
+                    // Regex explained: 
+                    // ^(\d+) -> starts with one or more digits (the number)
+                    // .*\/   -> followed by any characters and a slash (the prefix/type)
+                    // (\d{4})$ -> ends with 4 digits (the year)
+                    // Also matches "XX/YYYY"
+                    const match = val.match(/^(\d+).*\/(\d{4})$/);
+                    
+                    if (match) {
+                        const num = parseInt(match[1]);
+                        const year = parseInt(match[2]);
+                        
+                        if (year === currentYear && !isNaN(num)) {
+                            if (num > maxNumber) {
+                                maxNumber = num;
+                            }
+                        }
+                    } else {
+                        // Fallback: simple split for other formats like "01/CAPT/2024"
+                        const parts = val.split('/');
+                        if (parts.length >= 2) {
+                            const numPart = parseInt(parts[0]);
+                            const yearPart = parseInt(parts[parts.length - 1]);
+                            if (!isNaN(numPart) && yearPart === currentYear) {
+                                if (numPart > maxNumber) {
+                                    maxNumber = numPart;
+                                }
+                            }
+                        }
                     }
-                }
-            }
-            // Check ifoodNumber too as it might follow the same sequence or be related
-            if (w.ifoodNumber) {
-                const parts = w.ifoodNumber.split('/');
-                if (parts.length === 3 && parts[1] === 'CAPT' && parseInt(parts[2]) === currentYear) {
-                    const num = parseInt(parts[0]);
-                    if (!isNaN(num) && num > maxNumber) {
-                        maxNumber = num;
-                    }
-                }
-            }
-        });
+                });
+            });
+        }
+        
         return `${(maxNumber + 1).toString().padStart(2, '0')}/CAPT/${currentYear}`;
     };
     const [isGeneratingAiReport, setIsGeneratingAiReport] = useState(false);
