@@ -1816,6 +1816,26 @@ ${signerName} - DIG / PCSP
 
     const handleGenerateCapturasPDF = async () => {
         try {
+            // Fetch current user name for signature
+            let currentUserName = 'Investigador de Polícia';
+            try {
+                const { data: { user } } = await supabase.auth.getUser();
+                if (user) {
+                    const { data: profile } = await supabase
+                        .from('profiles')
+                        .select('full_name')
+                        .eq('id', user.id)
+                        .maybeSingle();
+                    if (profile?.full_name) {
+                        currentUserName = profile.full_name;
+                    } else if (user.user_metadata?.full_name) {
+                        currentUserName = user.user_metadata.full_name;
+                    }
+                }
+            } catch (e) {
+                console.error('Error fetching user for signature:', e);
+            }
+
             const doc = new jsPDF();
             const pageWidth = doc.internal.pageSize.getWidth();
             const pageHeight = doc.internal.pageSize.getHeight();
@@ -2043,7 +2063,7 @@ ${signerName} - DIG / PCSP
                 y = 40;
             }
 
-            const signerName = capturasData.signer || "Investigador de Polícia";
+            const signerName = capturasData.signer || currentUserName;
 
             // Position signature on the right 
             const sigX = pageWidth - margin - 40;
