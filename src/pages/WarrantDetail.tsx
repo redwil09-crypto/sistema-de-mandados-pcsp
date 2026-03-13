@@ -231,11 +231,13 @@ const WarrantDetail = () => {
 
                 // Fetch profile
                 try {
-                    const { data: profile } = await supabase
+                    const { data: profile, error } = await supabase
                         .from('profiles')
                         .select('full_name, email')
                         .eq('id', user.id)
-                        .single();
+                        .maybeSingle();
+
+                    if (error) throw error;
 
                     if (profile) {
                         const userInfo = {
@@ -262,6 +264,15 @@ const WarrantDetail = () => {
                     }
                 } catch (e) {
                     console.error("Error fetching profile:", e);
+                    const userInfo = {
+                        name: user.user_metadata?.full_name || 'Policial',
+                        email: user.email || ''
+                    };
+                    setCurrentUser(userInfo);
+                    setCapturasData(prev => ({
+                        ...prev,
+                        signer: userInfo.name
+                    }));
                 }
             }
         };
@@ -951,6 +962,8 @@ const WarrantDetail = () => {
     const getReportText = () => {
         if (aiDiligenceResult) return aiDiligenceResult; // Use AI result if available
 
+        const signerName = currentUser?.name || "Equipe de Capturas";
+
         return `
 DELEGACIA DE INVESTIGAÇÕES GERAIS - DIG/PCSP
 RELATÓRIO DE DILIGÊNCIA OPERACIONAL
@@ -975,7 +988,7 @@ RESULTADO ATUAL: ${data.status}
 DATA DO RELATÓRIO: ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}
 
 ___________________________________
-Equipe de Capturas - DIG / PCSP
+${signerName} - DIG / PCSP
         `.trim();
     };
 
