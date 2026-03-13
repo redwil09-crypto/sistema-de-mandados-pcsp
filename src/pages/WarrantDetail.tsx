@@ -161,57 +161,53 @@ const WarrantDetail = () => {
         court: '',
         body: '',
         signer: '',
-        delegate: 'Luiz Antônio Cunha dos Santos',
+        delegate: 'Dr. Luiz Antonio Cunha Dos Santos',
         aiInstructions: ''
     });
 
-    const getSuggestedReportNumber = () => {
-        const currentYear = new Date().getFullYear();
-        let maxNumber = 0;
+    const getSuggestedReportNumber = (): string => {
+        try {
+            const currentYear = new Date().getFullYear();
+            let maxNumber = 0;
 
-        // Intelligent scan across all warrants available in context (global scan)
-        if (warrants && warrants.length > 0) {
-            warrants.forEach(w => {
-                // Check all fields that might contain a report sequence
-                const fieldsToScan = [w.fulfillmentReport, w.ifoodNumber, w.digOffice];
-                
-                fieldsToScan.forEach(val => {
-                    if (!val || typeof val !== 'string') return;
-                    
-                    // Regex explained: 
-                    // ^(\d+) -> starts with one or more digits (the number)
-                    // .*\/   -> followed by any characters and a slash (the prefix/type)
-                    // (\d{4})$ -> ends with 4 digits (the year)
-                    // Also matches "XX/YYYY"
-                    const match = val.match(/^(\d+).*\/(\d{4})$/);
-                    
-                    if (match) {
-                        const num = parseInt(match[1]);
-                        const year = parseInt(match[2]);
-                        
-                        if (year === currentYear && !isNaN(num)) {
-                            if (num > maxNumber) {
+            if (warrants && warrants.length > 0) {
+                warrants.forEach(w => {
+                    const fieldsToScan = [w.fulfillmentReport, w.ifoodNumber, w.digOffice];
+
+                    fieldsToScan.forEach(val => {
+                        if (!val || typeof val !== 'string') return;
+
+                        // Pattern: starts with digits, then anything, then /YYYY at the end
+                        const match = val.match(/^(\d+).*\/(\d{4})$/);
+
+                        if (match) {
+                            const num = parseInt(match[1]);
+                            const year = parseInt(match[2]);
+                            if (year === currentYear && !isNaN(num) && num > maxNumber) {
                                 maxNumber = num;
                             }
-                        }
-                    } else {
-                        // Fallback: simple split for other formats like "01/CAPT/2024"
-                        const parts = val.split('/');
-                        if (parts.length >= 2) {
-                            const numPart = parseInt(parts[0]);
-                            const yearPart = parseInt(parts[parts.length - 1]);
-                            if (!isNaN(numPart) && yearPart === currentYear) {
-                                if (numPart > maxNumber) {
+                        } else {
+                            // Fallback: split by '/'
+                            const parts = val.split('/');
+                            if (parts.length >= 2) {
+                                const numPart = parseInt(parts[0]);
+                                const yearPart = parseInt(parts[parts.length - 1]);
+                                if (!isNaN(numPart) && yearPart === currentYear && numPart > maxNumber) {
                                     maxNumber = numPart;
                                 }
                             }
                         }
-                    }
+                    });
                 });
-            });
+            }
+
+            const suggested = `${(maxNumber + 1).toString().padStart(2, '0')}/CAPT/${currentYear}`;
+            console.log('[getSuggestedReportNumber] warrants count:', warrants?.length, '| maxNumber found:', maxNumber, '| suggested:', suggested);
+            return suggested;
+        } catch (e) {
+            console.error('[getSuggestedReportNumber] Error:', e);
+            return `01/CAPT/${new Date().getFullYear()}`;
         }
-        
-        return `${(maxNumber + 1).toString().padStart(2, '0')}/CAPT/${currentYear}`;
     };
     const [isGeneratingAiReport, setIsGeneratingAiReport] = useState(false);
     const [activeReportType, setActiveReportType] = useState<'ifood' | 'uber' | '99' | null>(null);

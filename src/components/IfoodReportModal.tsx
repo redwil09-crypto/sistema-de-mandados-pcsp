@@ -55,76 +55,84 @@ const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, wa
         loadBadge();
     }, []);
 
+    // Effect 1: Reset state when modal closes; fetch user info when modal opens
     useEffect(() => {
         if (!isOpen) {
             setStep('input');
             setGeneratedText('');
             setOfficeNumber('');
-        } else {
-            // Fetch current user info when modal opens
-            const fetchUser = async () => {
-                const { data: { user } } = await supabase.auth.getUser();
-                if (user) {
-                    let full_name = user.user_metadata?.full_name || 'Policial';
-                    let email = user.email || '';
-
-                    try {
-                        const { data: profile } = await supabase
-                            .from('profiles')
-                            .select('full_name, email')
-                            .eq('id', user.id)
-                            .maybeSingle();
-
-                        if (profile) {
-                            full_name = profile.full_name;
-                            email = profile.email;
-                        }
-                    } catch (e) {
-                        console.error("Error fetching profile:", e);
-                    }
-
-                    setCurrentUser({
-                        name: full_name,
-                        email: email,
-                        id: user.id
-                    });
-
-                    // AUTO-SUGGEST OFFICE NUMBER FOR THIS SPECIFIC USER
-                    const currentYear = new Date().getFullYear();
-                    let maxNum = 0;
-
-                    if (warrants && warrants.length > 0) {
-                        warrants.forEach(w => {
-                            // Rule: Only follow the number of WHICH USER is doing the report
-                            if (w.userId === user.id && w.ifoodNumber) {
-                                // Regex to find the number before specific separators
-                                const match = w.ifoodNumber.match(/^(\d+).*\/(\d{4})$/);
-                                if (match) {
-                                    const num = parseInt(match[1]);
-                                    const yr = parseInt(match[2]);
-                                    if (yr === currentYear && !isNaN(num)) {
-                                        if (num > maxNum) maxNum = num;
-                                    }
-                                } else {
-                                    // Fallback split for simpler formats
-                                    const parts = w.ifoodNumber.split('/');
-                                    if (parts.length >= 2) {
-                                        const num = parseInt(parts[0]);
-                                        const yr = parseInt(parts[parts.length - 1]);
-                                        if (yr === currentYear && !isNaN(num)) {
-                                            if (num > maxNum) maxNum = num;
-                                        }
-                                    }
-                                }
-                            }
-                        });
-                    }
-                    setOfficeNumber((maxNum + 1).toString().padStart(3, '0'));
-                }
-            };
-            fetchUser();
+            setCurrentUser(null);
+            return;
         }
+        const fetchUser = async () => {
+            try {
+                const { data: { user } } = await supabase.auth.getUser();
+                if (!user) return;
+
+                let full_name = user.user_metadata?.full_name || 'Policial';
+                let email = user.email || '';
+
+                try {
+                    const { data: profile } = await supabase
+                        .from('profiles')
+                        .select('full_name, email')
+                        .eq('id', user.id)
+                        .maybeSingle();
+
+                    if (profile) {
+                        full_name = profile.full_name;
+                        email = profile.email;
+                    }
+                } catch (e) {
+                    console.error("Error fetching profile:", e);
+                }
+
+                setCurrentUser({
+                    name: full_name,
+                    email: email,
+                    id: user.id
+                });
+            } catch (e) {
+                console.error("Error fetching user:", e);
+            }
+        };
+        fetchUser();
     }, [isOpen]);
+
+    // Effect 2: Calculate suggested office number whenever user or warrants data changes
+    useEffect(() => {
+        if (!isOpen || !currentUser) return;
+
+        const currentYear = new Date().getFullYear();
+        let maxNum = 0;
+
+        if (warrants && warrants.length > 0) {
+            warrants.forEach(w => {
+                // Only use numbers from THIS user's reports
+                if (w.userId === currentUser.id && w.ifoodNumber) {
+                    const match = w.ifoodNumber.match(/^(\d+).*\/(\d{4})$/);
+                    if (match) {
+                        const num = parseInt(match[1]);
+                        const yr = parseInt(match[2]);
+                        if (yr === currentYear && !isNaN(num) && num > maxNum) {
+                            maxNum = num;
+                        }
+                    } else {
+                        const parts = w.ifoodNumber.split('/');
+                        if (parts.length >= 2) {
+                            const num = parseInt(parts[0]);
+                            const yr = parseInt(parts[parts.length - 1]);
+                            if (yr === currentYear && !isNaN(num) && num > maxNum) {
+                                maxNum = num;
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        setOfficeNumber((maxNum + 1).toString().padStart(3, '0'));
+    }, [isOpen, currentUser, warrants]);
 
     const generateTextForType = (currentType: 'ifood' | 'uber' | '99') => {
         const months = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
