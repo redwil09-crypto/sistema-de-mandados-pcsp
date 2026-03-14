@@ -7,6 +7,7 @@ import { jsPDF } from 'jspdf';
 import { Warrant } from '../types';
 import { uploadFile, getPublicUrl } from '../supabaseStorage';
 import { supabase } from '../supabaseClient';
+import { useWarrants } from '../contexts/WarrantContext';
 
 interface IfoodReportModalProps {
     isOpen: boolean;
@@ -23,7 +24,8 @@ const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, wa
     const [step, setStep] = useState<'input' | 'processing' | 'result'>('input');
     const [badgeImg, setBadgeImg] = useState<HTMLImageElement | null>(null);
     const [selectedType, setSelectedType] = useState(initialType);
-    const [currentUser, setCurrentUser] = useState<{ name: string; email: string } | null>(null);
+    const [currentUser, setCurrentUser] = useState<{ name: string; email: string; id: string } | null>(null);
+    const { warrants } = useWarrants();
 
     // Update selectedType if props change (reset)
     useEffect(() => {
@@ -53,45 +55,117 @@ const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, wa
         loadBadge();
     }, []);
 
+    // Effect 1: Reset state when modal closes; fetch user info when modal opens
     useEffect(() => {
         if (!isOpen) {
             setStep('input');
             setGeneratedText('');
             setOfficeNumber('');
-        } else {
-            // Fetch current user info when modal opens
-            const fetchUser = async () => {
+            setCurrentUser(null);
+            return;
+        }
+        const fetchUser = async () => {
+            try {
                 const { data: { user } } = await supabase.auth.getUser();
-                if (user) {
-                    try {
-                        const { data: profile } = await supabase
-                            .from('profiles')
-                            .select('full_name, email')
-                            .eq('id', user.id)
-                            .single();
+                if (!user) return;
 
-                        if (profile) {
-                            setCurrentUser({
-                                name: profile.full_name,
-                                email: profile.email
-                            });
+                let full_name = user.user_metadata?.full_name || 'Policial';
+                let email = user.email || '';
+
+                try {
+                    const { data: profile } = await supabase
+                        .from('profiles')
+                        .select('full_name, email')
+                        .eq('id', user.id)
+                        .maybeSingle();
+
+                    if (profile) {
+                        full_name = profile.full_name;
+                        email = profile.email;
+                    }
+                } catch (e) {
+                    console.error("Error fetching profile:", e);
+                }
+
+                setCurrentUser({
+                    name: full_name,
+                    email: email,
+                    id: user.id
+                });
+            } catch (e) {
+                console.error("Error fetching user:", e);
+            }
+        };
+        fetchUser();
+    }, [isOpen]);
+
+    // Effect 2: Query Supabase directly for the max office number for this user this year
+    useEffect(() => {
+        if (!isOpen || !currentUser) return;
+
+        const fetchMaxNumber = async () => {
+            try {
+                const currentYear = new Date().getFullYear();
+                let maxNum = 0;
+
+                // Query all warrants from this user that have an ifood_number
+                const { data: rows, error } = await supabase
+                    .from('warrants')
+                    .select('ifood_number')
+                    .eq('user_id', currentUser.id)
+                    .not('ifood_number', 'is', null);
+
+                if (!error && rows && rows.length > 0) {
+                    rows.forEach((row: any) => {
+                        const val: string = row.ifood_number || '';
+                        if (!val) return;
+
+                        // Try pattern like "026/CAPT/2025" or "26/CAPT/2025"
+                        const match = val.match(/^(\d+).*\/(\d{4})$/);
+                        if (match) {
+                            const num = parseInt(match[1]);
+                            const yr = parseInt(match[2]);
+                            if (yr === currentYear && !isNaN(num) && num > maxNum) {
+                                maxNum = num;
+                            }
                         } else {
-                            setCurrentUser({
-                                name: user.user_metadata?.full_name || 'Policial',
-                                email: user.email || ''
-                            });
+                            // Try simple numeric only like "026"
+                            const numOnly = parseInt(val);
+                            if (!isNaN(numOnly) && numOnly > maxNum) {
+                                // Only use if we CAN'T determine year (no year = assume current)
+                                maxNum = numOnly;
+                            }
                         }
-                    } catch (e) {
-                        setCurrentUser({
-                            name: user.user_metadata?.full_name || 'Policial',
-                            email: user.email || ''
+                    });
+                } else {
+                    // Fallback: use warrants already in memory
+                    if (warrants && warrants.length > 0) {
+                        warrants.forEach(w => {
+                            if (w.userId === currentUser.id && w.ifoodNumber) {
+                                const match = w.ifoodNumber.match(/^(\d+).*\/(\d{4})$/);
+                                if (match) {
+                                    const num = parseInt(match[1]);
+                                    const yr = parseInt(match[2]);
+                                    if (yr === currentYear && !isNaN(num) && num > maxNum) maxNum = num;
+                                } else {
+                                    const numOnly = parseInt(w.ifoodNumber);
+                                    if (!isNaN(numOnly) && numOnly > maxNum) maxNum = numOnly;
+                                }
+                            }
                         });
                     }
                 }
-            };
-            fetchUser();
-        }
-    }, [isOpen]);
+
+                console.log('[IfoodReportModal] userId:', currentUser.id, '| maxNum found:', maxNum, '| suggesting:', maxNum + 1);
+                setOfficeNumber((maxNum + 1).toString().padStart(3, '0'));
+            } catch (e) {
+                console.error('[IfoodReportModal] Error fetching max number:', e);
+                setOfficeNumber('001');
+            }
+        };
+
+        fetchMaxNumber();
+    }, [isOpen, currentUser]);
 
     const generateTextForType = (currentType: 'ifood' | 'uber' | '99') => {
         const months = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
@@ -107,7 +181,7 @@ const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, wa
         const contactEmail = currentUser?.email || 'william.castro@policiacivil.sp.gov.br';
         const contactName = currentUser?.name || 'William Campos de Assis Castro';
 
-        return `Ofício: nº.${officeNumber}/CAPT/2026
+        return `Ofício: nº.${officeNumber}/CAPT/${today.getFullYear()}
 Referência: PROC. Nº ${warrant.number}
 Natureza: Solicitação de Dados.
 
@@ -335,7 +409,15 @@ ${indent}Atenciosamente,`;
             if (uploadedPath) {
                 const url = getPublicUrl(uploadedPath);
                 const currentDocs = warrant.ifoodDocs || [];
-                await updateWarrant(warrant.id, { ifoodDocs: [...currentDocs, url] });
+
+                // Save ifoodNumber in standard format so future number suggestions work
+                const currentYear = new Date().getFullYear();
+                const standardOfficeNumber = `${officeNumber.padStart(3, '0')}/CAPT/${currentYear}`;
+
+                await updateWarrant(warrant.id, {
+                    ifoodDocs: [...currentDocs, url],
+                    ifoodNumber: standardOfficeNumber
+                });
                 toast.success("Cópia salva no histórico!", { id: toastId });
                 onClose();
             } else {

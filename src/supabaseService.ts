@@ -62,6 +62,7 @@ const dbToWarrant = (dbWarrant: any): Warrant => {
         longitude: dbWarrant.longitude,
         birthDate: dbWarrant.birth_date,
         issuingCourt: dbWarrant.issuing_court,
+        userId: dbWarrant.user_id,
     };
 };
 

@@ -161,36 +161,81 @@ const WarrantDetail = () => {
         court: '',
         body: '',
         signer: '',
-        delegate: 'Luiz Antônio Cunha dos Santos',
+        delegate: 'Dr. Luiz Antonio Cunha Dos Santos',
         aiInstructions: ''
     });
 
-    const getSuggestedReportNumber = () => {
+    const getSuggestedReportNumber = async (): Promise<string> => {
         const currentYear = new Date().getFullYear();
         let maxNumber = 0;
-        warrants.forEach(w => {
-            if (w.fulfillmentReport) {
-                const parts = w.fulfillmentReport.split('/');
-                if (parts.length === 3 && parts[1] === 'CAPT' && parseInt(parts[2]) === currentYear) {
-                    const num = parseInt(parts[0]);
-                    if (!isNaN(num) && num > maxNumber) {
-                        maxNumber = num;
-                    }
-                }
+
+        // Helper: extract report number ONLY from formatted strings
+        // Accepts: "001/DIG/2026", "02/CAPT/2025", "5/2026"
+        // Does NOT accept raw process numbers like "1503300-53.2024..."
+        const extractNumber = (val: string | null | undefined): number => {
+            if (!val || typeof val !== 'string') return 0;
+            // Pattern NNN/XXX/YYYY (e.g. "001/DIG/2026", "02/CAPT/2025")
+            const match3 = val.match(/^(\d{1,4})\/.+\/(\d{4})$/);
+            if (match3) {
+                const num = parseInt(match3[1]);
+                const year = parseInt(match3[2]);
+                if (year === currentYear && !isNaN(num) && num < 9999) return num;
             }
-            // Check ifoodNumber too as it might follow the same sequence or be related
-            if (w.ifoodNumber) {
-                const parts = w.ifoodNumber.split('/');
-                if (parts.length === 3 && parts[1] === 'CAPT' && parseInt(parts[2]) === currentYear) {
-                    const num = parseInt(parts[0]);
-                    if (!isNaN(num) && num > maxNumber) {
-                        maxNumber = num;
-                    }
-                }
+            // Pattern NNN/YYYY (e.g. "001/2026") — only 1-4 digits before slash
+            const match2 = val.match(/^(\d{1,4})\/(\d{4})$/);
+            if (match2) {
+                const num = parseInt(match2[1]);
+                const year = parseInt(match2[2]);
+                if (year === currentYear && !isNaN(num) && num < 9999) return num;
             }
-        });
-        return `${(maxNumber + 1).toString().padStart(2, '0')}/CAPT/${currentYear}`;
+            return 0; // Ignore plain numbers — too risky (process numbers, etc.)
+        };
+
+        try {
+            // Step 1: Check in-memory warrants (fast, might be stale)
+            if (warrants && warrants.length > 0) {
+                warrants.forEach(w => {
+                    [w.fulfillmentReport, w.ifoodNumber, w.digOffice].forEach(val => {
+                        const n = extractNumber(val);
+                        if (n > maxNumber) {
+                            console.log('[getSuggestedReportNumber] Memory found:', val, '→', n);
+                            maxNumber = n;
+                        }
+                    });
+                });
+                console.log('[getSuggestedReportNumber] After memory scan, max:', maxNumber);
+            }
+
+            // Step 2: Query DB directly — all warrants, all three fields
+            const { data: rows, error } = await supabase
+                .from('warrants')
+                .select('fulfillment_report, ifood_number, dig_office');
+
+            console.log('[getSuggestedReportNumber] DB rows returned:', rows?.length, '| error:', error?.message || 'none');
+
+            if (!error && rows && rows.length > 0) {
+                rows.forEach((row: any) => {
+                    [row.fulfillment_report, row.ifood_number, row.dig_office].forEach((val: any) => {
+                        const n = extractNumber(val);
+                        if (n > maxNumber) {
+                            console.log('[getSuggestedReportNumber] DB found:', val, '→', n);
+                            maxNumber = n;
+                        }
+                    });
+                });
+            }
+        } catch (e) {
+            console.error('[getSuggestedReportNumber] Error:', e);
+        }
+
+        const nextNum = maxNumber + 1;
+        const suggested = `${nextNum.toString().padStart(3, '0')}/DIG/${currentYear}`;
+        console.log('[getSuggestedReportNumber] FINAL → maxNumber:', maxNumber, '| next suggested:', suggested);
+        return suggested;
     };
+
+
+
     const [isGeneratingAiReport, setIsGeneratingAiReport] = useState(false);
     const [activeReportType, setActiveReportType] = useState<'ifood' | 'uber' | '99' | null>(null);
 
@@ -231,11 +276,13 @@ const WarrantDetail = () => {
 
                 // Fetch profile
                 try {
-                    const { data: profile } = await supabase
+                    const { data: profile, error } = await supabase
                         .from('profiles')
                         .select('full_name, email')
                         .eq('id', user.id)
-                        .single();
+                        .maybeSingle();
+
+                    if (error) throw error;
 
                     if (profile) {
                         const userInfo = {
@@ -262,6 +309,15 @@ const WarrantDetail = () => {
                     }
                 } catch (e) {
                     console.error("Error fetching profile:", e);
+                    const userInfo = {
+                        name: user.user_metadata?.full_name || 'Policial',
+                        email: user.email || ''
+                    };
+                    setCurrentUser(userInfo);
+                    setCapturasData(prev => ({
+                        ...prev,
+                        signer: userInfo.name
+                    }));
                 }
             }
         };
@@ -709,13 +765,14 @@ const WarrantDetail = () => {
         );
     }
 
-    const handleFinalize = () => {
+    const handleFinalize = async () => {
         if (!data) return;
         const isSearch = data.type?.toLowerCase().includes('busca') || data.type?.toLowerCase().includes('apreensão');
+        const suggestedNum = data.fulfillmentReport || await getSuggestedReportNumber();
         setFinalizeFormData(prev => ({
             ...prev,
             digOffice: data.digOffice || '',
-            reportNumber: data.fulfillmentReport || getSuggestedReportNumber(),
+            reportNumber: suggestedNum,
             result: isSearch ? 'Apreendido' : 'Fechado'
         }));
         setIsFinalizeModalOpen(true);
@@ -951,6 +1008,8 @@ const WarrantDetail = () => {
     const getReportText = () => {
         if (aiDiligenceResult) return aiDiligenceResult; // Use AI result if available
 
+        const signerName = currentUser?.name || "Equipe de Capturas";
+
         return `
 DELEGACIA DE INVESTIGAÇÕES GERAIS - DIG/PCSP
 RELATÓRIO DE DILIGÊNCIA OPERACIONAL
@@ -975,7 +1034,7 @@ RESULTADO ATUAL: ${data.status}
 DATA DO RELATÓRIO: ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}
 
 ___________________________________
-Equipe de Capturas - DIG / PCSP
+${signerName} - DIG / PCSP
         `.trim();
     };
 
@@ -1647,11 +1706,14 @@ Equipe de Capturas - DIG / PCSP
         }
     };
 
-    const handleOpenCapturasModal = () => {
+    const handleOpenCapturasModal = async () => {
         if (!data) return;
 
         // Use localData (current unsaved edits) over saved data to ensure WYSIWYG
         const currentData = { ...data, ...localData };
+
+        // Fetch suggested number from DB first, before opening modal
+        const suggestedNumber = currentData.fulfillmentReport || await getSuggestedReportNumber();
 
         const generateIntelligentReportBody = () => {
             const name = `**${currentData.name.toUpperCase()}**`;
@@ -1748,10 +1810,11 @@ Equipe de Capturas - DIG / PCSP
 
         setCapturasData(prev => ({
             ...prev,
-            reportNumber: currentData.fulfillmentReport || getSuggestedReportNumber(),
-            court: '1ª Vara criminal de Jacareí/SP',
+            reportNumber: suggestedNumber,
+            court: currentData.issuingCourt || prev.court || 'Vara Criminal de Jacareí/SP',
             body: generateIntelligentReportBody(),
-            aiInstructions: ''
+            aiInstructions: '',
+            delegate: 'Dr. Luiz Antonio Cunha Dos Santos'
         }));
         setIsCapturasModalOpen(true);
     };
@@ -1760,6 +1823,26 @@ Equipe de Capturas - DIG / PCSP
 
     const handleGenerateCapturasPDF = async () => {
         try {
+            // Fetch current user name for signature
+            let currentUserName = 'Investigador de Polícia';
+            try {
+                const { data: { user } } = await supabase.auth.getUser();
+                if (user) {
+                    const { data: profile } = await supabase
+                        .from('profiles')
+                        .select('full_name')
+                        .eq('id', user.id)
+                        .maybeSingle();
+                    if (profile?.full_name) {
+                        currentUserName = profile.full_name;
+                    } else if (user.user_metadata?.full_name) {
+                        currentUserName = user.user_metadata.full_name;
+                    }
+                }
+            } catch (e) {
+                console.error('Error fetching user for signature:', e);
+            }
+
             const doc = new jsPDF();
             const pageWidth = doc.internal.pageSize.getWidth();
             const pageHeight = doc.internal.pageSize.getHeight();
@@ -1987,7 +2070,7 @@ Equipe de Capturas - DIG / PCSP
                 y = 40;
             }
 
-            const signerName = capturasData.signer || "Investigador de Polícia";
+            const signerName = capturasData.signer || currentUserName;
 
             // Position signature on the right 
             const sigX = pageWidth - margin - 40;
@@ -2060,7 +2143,11 @@ Equipe de Capturas - DIG / PCSP
             if (uploadedPath) {
                 const url = getPublicUrl(uploadedPath);
                 const currentReports = data.reports || [];
-                await updateWarrant(data.id, { reports: [...currentReports, url] });
+                // Save both the PDF URL and the report number so future suggestions work
+                await updateWarrant(data.id, {
+                    reports: [...currentReports, url],
+                    fulfillmentReport: capturasData.reportNumber
+                });
                 toast.success("Documento oficial gerado e anexado.", { id: toastId });
             }
 
@@ -3450,6 +3537,14 @@ Equipe de Capturas - DIG / PCSP
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="space-y-1"><label className="text-[10px] font-black text-primary uppercase tracking-widest">Identificador Relatório</label><input className="w-full bg-background-light dark:bg-white/5 border border-border-light dark:border-white/10 rounded-xl p-3 text-sm text-text-light dark:text-white" value={capturasData.reportNumber} onChange={e => setCapturasData({ ...capturasData, reportNumber: e.target.value })} /></div>
                                     <div className="space-y-1"><label className="text-[10px] font-black text-primary uppercase tracking-widest">Comarca Judiciária</label><input className="w-full bg-background-light dark:bg-white/5 border border-border-light dark:border-white/10 rounded-xl p-3 text-sm text-text-light dark:text-white" value={capturasData.court} onChange={e => setCapturasData({ ...capturasData, court: e.target.value })} /></div>
+                                    <div className="space-y-1 col-span-2"><label className="text-[10px] font-black text-primary uppercase tracking-widest">Delegado</label>
+                                        <select className="w-full bg-background-light dark:bg-white/5 border border-border-light dark:border-white/10 rounded-xl p-3 text-sm text-text-light dark:text-white appearance-none" value={capturasData.delegate} onChange={e => setCapturasData({ ...capturasData, delegate: e.target.value })}>
+                                            <option value="" disabled className="bg-surface-light dark:bg-surface-dark text-text-light dark:text-white">Selecione o Delegado</option>
+                                            <option value="Dr. Luiz Antonio Cunha Dos Santos" className="bg-surface-light dark:bg-surface-dark text-text-light dark:text-white">Dr. Luiz Antonio Cunha Dos Santos</option>
+                                            <option value="Dr. Raian Brega De Araujo" className="bg-surface-light dark:bg-surface-dark text-text-light dark:text-white">Dr. Raian Brega De Araujo</option>
+                                            <option value="Dr. Rodrigo Mambeli de Mendonça" className="bg-surface-light dark:bg-surface-dark text-text-light dark:text-white">Dr. Rodrigo Mambeli de Mendonça</option>
+                                        </select>
+                                    </div>
                                 </div>
                                 <div className="bg-indigo-500/5 border border-indigo-500/20 rounded-2xl p-5 space-y-4">
                                     <div className="flex items-center gap-2"><Cpu size={16} className="text-indigo-400" /><span className="text-[10px] font-black uppercase tracking-widest text-indigo-400">Prompt de Refinamento IA</span></div>
