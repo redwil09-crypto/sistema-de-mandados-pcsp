@@ -63,7 +63,7 @@ const WarrantCard = ({ data, onPrint, isPlanned, onRouteToggle, onFinalize, onDe
                 {(data.status === 'CUMPRIDO' || isCounterWarrant) && (
                     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 -rotate-12 opacity-[0.15] dark:opacity-[0.1] pointer-events-none z-0">
                         <div className={`border-[6px] ${isSearch ? 'border-orange-500 text-orange-500' : 'border-emerald-500 text-emerald-500'} px-6 py-2 rounded-lg font-black text-6xl tracking-tighter uppercase`}>
-                            {isCounterWarrant ? 'BAIXADO' : 'CUMPRIDO'}
+                            {data.fulfillmentResult || (isCounterWarrant ? 'BAIXADO' : 'CUMPRIDO')}
                         </div>
                     </div>
                 )}
