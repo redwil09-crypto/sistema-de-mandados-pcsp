@@ -404,13 +404,13 @@ const WarrantDetail = () => {
         if (!data) return;
         const currentData = { ...data, ...localData } as Warrant & Partial<Warrant>;
 
-        // Melhora na sugestão da Comarca: Prioriza o que foi extraído e está nos dados locais
-        const suggestedCourt = localData.issuingCourt || data.issuingCourt || capturasData.court || 'Vara Criminal de Jacareí/SP';
+        // Melhora na sugestão da Comarca: Prioriza o que está nos detalhes do mandado
+        const suggestedCourt = currentData.issuingCourt || 'Vara Criminal de Jacareí/SP';
 
         // Melhora na sugestão do Número do Ofício (Global)
         let suggestedNum = capturasData.reportNumber;
         
-        // Se o número atual for vazio ou for o padrão 001, tenta buscar o próximo real
+        // Busca o próximo real se o atual for vazio ou o padrão inicial
         if (!suggestedNum || suggestedNum.includes('001/DIG')) {
             suggestedNum = await getSuggestedReportNumber();
         }
@@ -1835,10 +1835,11 @@ ${signerName} - DIG / PCSP
         setCapturasData(prev => ({
             ...prev,
             reportNumber: suggestedNumber,
-            court: currentData.issuingCourt || prev.court || 'Vara Criminal de Jacareí/SP',
+            // Prioritiza sempre a Comarca que está nos detalhes do mandado (localData ou data)
+            court: currentData.issuingCourt || 'Vara Criminal de Jacareí/SP',
             body: generateIntelligentReportBody(),
             aiInstructions: '',
-            delegate: 'Dr. Luiz Antonio Cunha Dos Santos'
+            delegate: prev.delegate || 'Dr. Luiz Antonio Cunha Dos Santos'
         }));
         setIsCapturasModalOpen(true);
     };
