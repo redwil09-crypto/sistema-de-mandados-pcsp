@@ -1740,6 +1740,10 @@ ${signerName} - DIG / PCSP
         const suggestedNumber = currentData.fulfillmentReport || await getSuggestedReportNumber();
 
         const generateIntelligentReportBody = () => {
+            const isBusca = (currentData.type || '').toUpperCase().includes('BUSCA E APREENSÃO');
+            const targetTerm = isBusca ? 'adolescente' : 'réu';
+            const mandateTerm = isBusca ? 'Mandado de Busca e Apreensão' : 'Mandado de Prisão';
+
             const name = `**${currentData.name.toUpperCase()}**`;
             const process = `**${currentData.number}**`;
             const address = `**${currentData.location || ''}**`;
@@ -1768,7 +1772,6 @@ ${signerName} - DIG / PCSP
             const addrLower = (address + ' ' + aiAddresses).toLowerCase();
 
             // 1. OUTRA CIDADE / CIRCUNSCRIÇÃO
-            // Detecta se é outra cidade (incluindo retornos de plataformas como iFood/Uber) E se NÃO é Jacareí
             const isAnotherCity = addrLower && (
                 !addrLower.includes('jacareí') && (
                     addrLower.includes('são sebastião') ||
@@ -1795,30 +1798,30 @@ ${signerName} - DIG / PCSP
             );
 
             if (isAnotherCity) {
-                return `Em cumprimento ao solicitado, informo que, a despeito do mandado expedido e com base em levantamentos de inteligência recentes (incluindo cruzamento de dados de plataformas e fontes abertas), constatou-se que os endereços vinculados ao réu ${name} localizam-se fora da circunscrição desta Seccional de Jacareí/SP.\n\nConsiderando a competência territorial e a economia processual, sugere-se o encaminhamento da ordem judicial (via Carta Precatória ou Ofício) à autoridade policial competente pela região apontada para as devidas providências, uma vez que esta equipe atua exclusivamente nos limites deste município.\n\nNada mais havendo, encaminha-se o presente.`;
+                return `Em cumprimento ao solicitado, informo que, a despeito do mandado expedido e com base em levantamentos de inteligência recentes (incluindo cruzamento de dados de plataformas e fontes abertas), constatou-se que os endereços vinculados ao ${targetTerm} ${name} localizam-se fora da circunscrição desta Seccional de Jacareí/SP.\n\nConsiderando a competência territorial e a economia processual, sugere-se o encaminhamento da ordem judicial (via Carta Precatória ou Ofício) à autoridade policial competente pela região apontada para as devidas providências, uma vez que esta equipe atua exclusivamente nos limites deste município.\n\nNada mais havendo, encaminha-se o presente.`;
             }
 
-            // 2. CONTATO COM GENITORA / FAMILIARES / MUDOU-SE (Exemplo 3)
+            // 2. CONTATO COM GENITORA / FAMILIARES / MUDOU-SE
             if (fullText.includes('mãe') || fullText.includes('genitora') || fullText.includes('pai') || fullText.includes('familia') || fullText.includes('não reside') || fullText.includes('mudou') || fullText.includes('desconhecido')) {
-                return `Em cumprimento ao Mandado de Prisão referente ao Processo nº ${process}, foram realizadas diligências e ações de inteligência buscando a localização do réu ${name}.\n\nNo decurso das investigações e checagem de endereços (incluindo ${address || 'os levantados em sistema'}), constatou-se mediante contato com familiares/moradores ou cruzamento de dados que o alvo não reside mais no local há considerável lapso temporal, não havendo informações que possam contribuir para sua prisão imediata.\n\nPor fim, consultas atualizadas nos sistemas policiais não apontaram novos endereços ativos deste réu nesta cidade. Diante disso, as diligências foram encerradas sem êxito.`;
+                return `Em cumprimento ao ${mandateTerm} referente ao Processo nº ${process}, foram realizadas diligências e ações de inteligência buscando a localização do ${targetTerm} ${name}.\n\nNo decurso das investigações e checagem de endereços (incluindo ${address || 'os levantados em sistema'}), constatou-se mediante contato com familiares/moradores ou cruzamento de dados que o alvo não reside mais no local há considerável lapso temporal, não havendo informações que possam contribuir para sua localização imediata.\n\nPor fim, consultas atualizadas nos sistemas policiais não apontaram novos endereços ativos deste ${targetTerm} nesta cidade. Diante disso, as diligências foram encerradas sem êxito.`;
             }
 
-            // 3. IMÓVEL COM PLACAS (Exemplo 13)
+            // 3. IMÓVEL COM PLACAS
             if (fullText.includes('aluga') || fullText.includes('vende') || fullText.includes('placa') || fullText.includes('desabitado') || fullText.includes('vazio') || fullText.includes('abandonado')) {
-                return `Em cumprimento ao mandado de prisão expedido nos autos do processo nº ${process}, em desfavor de ${name}, esta equipe de Jacareí/SP realizou diligências focadas nos endereços vinculados, notadamente: ${address || 'o constante nos autos'}.\n\nForam efetuadas visitas em dias e horários distintos, constatando-se que o imóvel encontra-se com placas de “aluga-se” ou “vende-se” (ou encontra-se visivelmente desabitado), sem qualquer movimentação que indicasse a presença de moradores ou ocupação regular da residência no momento das verificações.\n\nAté o momento, não foram obtidos novos elementos de plataformas ou sistemas que indiquem o paradeiro do procurado, permanecendo negativas as diligências nesta Comarca.`;
+                return `Em cumprimento ao mandado expedido nos autos do processo nº ${process}, em desfavor de ${name}, esta equipe de Jacareí/SP realizou diligências focadas nos endereços vinculados, notadamente: ${address || 'o constante nos autos'}.\n\nForam efetuadas visitas em dias e horários distintos, constatando-se que o imóvel encontra-se com placas de “aluga-se” ou “vende-se” (ou encontra-se visivelmente desabitado), sem qualquer movimentação que indicasse a presença de moradores ou ocupação regular da residência no momento das verificações.\n\nAté o momento, não foram obtidos novos elementos de plataformas ou sistemas que indiquem o paradeiro do procurado, permanecendo negativas as diligências nesta Comarca.`;
             }
 
-            // 4. PENSÃO ALIMENTÍCIA / SISTEMAS (Exemplo 2)
+            // 4. PENSÃO ALIMENTÍCIA / SISTEMAS
             if (crime.includes('pensão') || crime.includes('alimentar') || fullText.includes('alimentos')) {
                 return `Em cumprimento ao Mandado de Prisão Civil, referente ao Processo nº ${process}, pela obrigação de pensão alimentícia, foram realizadas consultas nos sistemas policiais e cruzamento de dados cadastrais para localização de ${name} nesta Comarca de Jacareí/SP.\n\nAs pesquisas (incluindo varredura em bancos de dados abertos e fechados) não identificaram qualquer endereço ativo e idôneo do executado no município, inexistindo dados recentes que indicassem residência ou vínculo local. Ressalte-se que não sobrevieram novas informações, até a presente data, capazes de orientar diligências de campo adicionais.\n\nDiante do exposto, as diligências restaram infrutíferas nesta Comarca de Jacareí/SP.`;
             }
 
-            // 5. NEGATIVA GERAL / VIZINHOS (Exemplo 9, 10, 11)
+            // 5. NEGATIVA GERAL / VIZINHOS
             if (fullText.includes('vizinho') || fullText.includes('entrevista') || fullText.includes('morador') || fullText.includes('desconhece') || fullText.includes('infrutífer')) {
                 return `Em cumprimento ao mandado expedido nos autos do processo nº ${process}, em desfavor de ${name}, esta equipe procedeu a diligências investigativas no endereço: ${address || 'vinculado ao alvo'}.\n\nForam realizadas verificações in loco e levantamentos velados, ocasião em que se constatou ausência de sinais de habitação ou indício de presença recente do procurado. Procedeu-se também a cruzamentos em plataformas de inteligência de dados, que não retornaram vínculos fortes atualizados para esta municipalidade.\n\nAdicionalmente, foram efetuadas consultas ininterruptas nos sistemas policiais disponíveis, não sendo identificados novos endereços. Diante do exposto, as diligências restaram infrutíferas nesta cidade de Jacareí/SP.`;
             }
 
-            // 6. FALLBACK: PADRÃO FORMAL (Exemplo 4)
+            // 6. FALLBACK: PADRÃO FORMAL
             const diligentHistoryText = history.length > 0
                 ? `Constam as seguintes ações documentadas: ${history.map(h => `${new Date(h.date).toLocaleDateString()} - ${h.notes}`).join('; ')}.`
                 : '';
@@ -1829,7 +1832,7 @@ ${signerName} - DIG / PCSP
 
             const ifoodNotice = ifoodData ? `Foram também processados dados de retorno de plataformas (iFood/Uber/Similares) visando enriquecer a inteligência do alvo.` : '';
 
-            return `Registra-se o presente para dar cumprimento ao Mandado de Prisão expedido em desfavor de ${name}, nos autos do processo nº ${process}, oriundo da Comarca de Jacareí/SP.\n\nA equipe desta especializada procedeu às diligências orgânicas e eletrônicas cabíveis nos endereços vinculados ao réu, notadamente em: ${address || 'locais cadastrados'}. \n\n${diligentHistoryText}\n\n${obsText} ${ifoodNotice}\n\nAté o presente momento, e mesmo após cruzamento prático e de inteligência, não foi possível localizar o investigado, restando negativas as diligências realizadas por esta equipe para cumprimento da ordem judicial em Jacareí/SP.`;
+            return `Registra-se o presente para dar cumprimento ao ${mandateTerm} expedido em desfavor de ${name}, nos autos do processo nº ${process}, oriundo da Comarca de Jacareí/SP.\n\nA equipe desta especializada procedeu às diligências orgânicas e eletrônicas cabíveis nos endereços vinculados ao ${targetTerm}, notadamente em: ${address || 'locais cadastrados'}. \n\n${diligentHistoryText}\n\n${obsText} ${ifoodNotice}\n\nAté o presente momento, e mesmo após cruzamento prático e de inteligência, não foi possível localizar o investigado, restando negativas as diligências realizadas por esta equipe para cumprimento da ordem judicial em Jacareí/SP.`;
         };
 
         setCapturasData(prev => ({
@@ -1843,8 +1846,6 @@ ${signerName} - DIG / PCSP
         }));
         setIsCapturasModalOpen(true);
     };
-
-
 
     const handleGenerateCapturasPDF = async () => {
         try {
@@ -1950,7 +1951,10 @@ ${signerName} - DIG / PCSP
             doc.text(dateStr, pageWidth - margin, y, { align: 'right' });
             y += 6;
 
-            const isMinor = data?.type?.toLowerCase().includes('menores') || data?.type?.toLowerCase().includes('adolescente') || data?.type?.toLowerCase().includes('criança');
+            const isMinor = data?.type?.toLowerCase().includes('menores') || 
+                            data?.type?.toLowerCase().includes('adolescente') || 
+                            data?.type?.toLowerCase().includes('criança') ||
+                            data?.type?.toLowerCase().includes('busca e apreensão');
 
             const metaFields = [
                 { label: "Natureza:", value: data?.type || "Cumprimento de Mandado" },
