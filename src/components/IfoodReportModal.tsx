@@ -278,8 +278,6 @@ ${indent}Atenciosamente,`;
             // Linha separadora do cabeçalho
             const barY = lineY + 2;
             pdf.setDrawColor(0);
-            pdf.setLineWidth(0.5);
-            pdf.line(margin, barY - 1, margin + maxLineWidth, barY - 1);
 
             pdf.setFillColor(240, 240, 240);
             pdf.rect(margin, barY, maxLineWidth, 6, 'F');
