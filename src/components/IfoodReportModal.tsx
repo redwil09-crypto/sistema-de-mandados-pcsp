@@ -277,8 +277,8 @@ ${indent}Atenciosamente,`;
                 lineY += 3.5;
             });
 
-            // Linha separadora do cabeçalho
-            const barY = lineY + 2;
+            // Linha separadora do cabeçalho (adicionado pequeno espaço extra do brasão)
+            const barY = lineY + 4.5;
             pdf.setDrawColor(0);
 
             pdf.setFillColor(240, 240, 240);
