@@ -174,21 +174,34 @@ const WarrantDetail = () => {
         // Does NOT accept raw process numbers like "1503300-53.2024..."
         const extractNumber = (val: string | null | undefined): number => {
             if (!val || typeof val !== 'string') return 0;
+            
+            // Remove prefixes commonly used
+            const cleanVal = val.replace(/Ofício|Of\.|Of/i, '').trim();
+
             // Pattern NNN/XXX/YYYY (e.g. "001/DIG/2026", "02/CAPT/2025")
-            const match3 = val.match(/^(\d{1,4})\/.+\/(\d{4})$/);
+            const match3 = cleanVal.match(/^(\d{1,4})\/.+\/(\d{4})$/);
             if (match3) {
                 const num = parseInt(match3[1]);
                 const year = parseInt(match3[2]);
                 if (year === currentYear && !isNaN(num) && num < 9999) return num;
             }
-            // Pattern NNN/YYYY (e.g. "001/2026") — only 1-4 digits before slash
-            const match2 = val.match(/^(\d{1,4})\/(\d{4})$/);
+            
+            // Pattern NNN/YYYY (e.g. "001/2026")
+            const match2 = cleanVal.match(/^(\d{1,4})\/(\d{4})$/);
             if (match2) {
                 const num = parseInt(match2[1]);
                 const year = parseInt(match2[2]);
                 if (year === currentYear && !isNaN(num) && num < 9999) return num;
             }
-            return 0; // Ignore plain numbers — too risky (process numbers, etc.)
+
+            // Pattern only Number (e.g. "123") - only if it's small (to avoid process numbers)
+            const match1 = cleanVal.match(/^(\d{1,4})$/);
+            if (match1) {
+                const num = parseInt(match1[1]);
+                if (!isNaN(num)) return num;
+            }
+
+            return 0;
         };
 
         try {
@@ -365,7 +378,7 @@ const WarrantDetail = () => {
             DADOS DO PROCESSO:
             - Alvo: ${currentData.name} (RG: ${currentData.rg || 'N/I'}, CPF: ${currentData.cpf || 'N/I'})
             - Processo: ${currentData.number}
-            - Vara/Fórum: ${(currentData as any).court || capturasData.court || 'Não especificado'}
+            - Vara/Fórum: ${currentData.issuingCourt || capturasData.court || 'Não especificado'}
             - Crime: ${currentData.crime}
             - Pena/Regime: ${currentData.regime || 'N/I'}
             - Data Expedição: ${currentData.issueDate ? fmtDate(currentData.issueDate as string) : 'N/I'}
@@ -390,15 +403,26 @@ const WarrantDetail = () => {
     const handleResetReportData = async () => {
         if (!data) return;
         const currentData = { ...data, ...localData } as Warrant & Partial<Warrant>;
-        const context = buildComprehensiveReportContext(currentData);
 
+        // Melhora na sugestão da Comarca: Prioriza o que foi extraído e está nos dados locais
+        const suggestedCourt = localData.issuingCourt || data.issuingCourt || capturasData.court || 'Vara Criminal de Jacareí/SP';
+
+        // Melhora na sugestão do Número do Ofício (Global)
+        let suggestedNum = capturasData.reportNumber;
+        
+        // Se o número atual for vazio ou for o padrão 001, tenta buscar o próximo real
+        if (!suggestedNum || suggestedNum.includes('001/DIG')) {
+            suggestedNum = await getSuggestedReportNumber();
+        }
+
+        const context = buildComprehensiveReportContext({ ...currentData, issuingCourt: suggestedCourt });
         const defaultBody = `RELATÓRIO DE INVESTIGAÇÃO\n\n${context}\n\nCONCLUSÃO:\n[Aguardando análise...]`;
 
         setCapturasData(prev => ({
             ...prev,
             body: defaultBody,
-            reportNumber: currentData.fulfillmentReport || prev.reportNumber || `001/DIG/${new Date().getFullYear()}`,
-            court: prev.court || 'Vara Criminal de Jacareí/SP'
+            reportNumber: suggestedNum,
+            court: suggestedCourt
         }));
 
         // Auto-run AI to apply templates immediately

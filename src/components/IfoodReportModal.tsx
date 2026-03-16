@@ -118,8 +118,11 @@ const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, wa
                         [row.ifood_number, row.fulfillment_report, row.dig_office].forEach(val => {
                             if (!val || typeof val !== 'string') return;
 
+                            // Limpeza para remover prefixos como "Ofício"
+                            const cleanVal = val.replace(/Ofício|Of\.|Of/i, '').trim();
+
                             // Tenta padrão "026/CAPT/2025" ou "26/DIG/2025"
-                            const match = val.match(/^(\d+).*\/(\d{4})$/);
+                            const match = cleanVal.match(/^(\d+).*\/(\d{4})$/);
                             if (match) {
                                 const num = parseInt(match[1]);
                                 const yr = parseInt(match[2]);
@@ -128,8 +131,8 @@ const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, wa
                                 }
                             } else {
                                 // Tenta apenas numérico "026"
-                                const numOnly = parseInt(val);
-                                if (!isNaN(numOnly) && val.length < 5 && numOnly > maxNum) {
+                                const numOnly = parseInt(cleanVal);
+                                if (!isNaN(numOnly) && cleanVal.length < 5 && numOnly > maxNum) {
                                     maxNum = numOnly;
                                 }
                             }
@@ -141,14 +144,15 @@ const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, wa
                         warrants.forEach(w => {
                             [w.ifoodNumber, w.fulfillmentReport, w.digOffice].forEach(val => {
                                 if (!val || typeof val !== 'string') return;
-                                const match = val.match(/^(\d+).*\/(\d{4})$/);
+                                const cleanVal = val.replace(/Ofício|Of\.|Of/i, '').trim();
+                                const match = cleanVal.match(/^(\d+).*\/(\d{4})$/);
                                 if (match) {
                                     const num = parseInt(match[1]);
                                     const yr = parseInt(match[2]);
                                     if (yr === currentYear && !isNaN(num) && num > maxNum) maxNum = num;
                                 } else {
-                                    const numOnly = parseInt(val);
-                                    if (!isNaN(numOnly) && val.length < 5 && numOnly > maxNum) maxNum = numOnly;
+                                    const numOnly = parseInt(cleanVal);
+                                    if (!isNaN(numOnly) && cleanVal.length < 5 && numOnly > maxNum) maxNum = numOnly;
                                 }
                             });
                         });

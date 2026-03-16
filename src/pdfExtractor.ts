@@ -247,8 +247,8 @@ const extractIssuingCourt = (text: string): string => {
         // 1. Padrão explícito (Label: Valor) - Prioritário
         /(?:Vara|Juízo|Ofício|Fórum|Comarca|JUÍZO DE DIREITO)[:\s]+([^-\n]+?)(?:\s-|\sProcesso|\sDigital|$)/i,
 
-        // 2. Padrões de Vara Específica no início (ex: "2ª Vara Criminal")
-        /([0-9]+[ªº]?\s+Vara\s+(?:Criminal|Cível|da\s+Família|das\s+Sucessões|do\s+Júri|de\s+Execuções\s+Criminais|da\s+Infância|do\s+Juizado|Única)[^,\-]*)/i,
+        // 2. Padrões de Vara Específica (ex: "2ª Vara Criminal" ou "Vara da Infância")
+        /([0-9]*[ªº]?\s*Vara\s+(?:Criminal|Cível|da\s+Família|das\s+Sucessões|do\s+Júri|de\s+Execuções\s+Criminais|da\s+Infância|da\s+Juventude|do\s+Juizado|Única)[^,\-]*)/i,
 
         // 3. Padrão de Tribunal de Justiça (Comum no topo)
         /TRIBUNAL DE JUSTIÇA DO ESTADO DE SÃO PAULO\s+([A-Z0-9ªº\s]+VARA\s+[A-Z\s]+)/i,
@@ -256,7 +256,10 @@ const extractIssuingCourt = (text: string): string => {
         // 4. Foro / Comarca (Fallback se não achar Vara específica)
         /(?:Foro|Comarca|Fórum)\s+de\s+([a-zA-ZÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑ\s\-]+?)(?:\s[-–]|\sSecretaria|\sEstado|\sJuiz)/i,
 
-        // 5. Padrão Genérico de Vara (ex: "Vara do Júri")
+        // 5. Padrão Juiz de Direito de Vara (ex: "...Justiça do Estado de São Paulo, o Dr. Juiz de Direito da Vara...")
+        /Juiz de Direito da\s+([A-Z0-9ªº\s]+VARA\s+[^,\-\.]+)/i,
+
+        // 6. Padrão Genérico de Vara (ex: "Vara do Júri")
         /(Vara\s+(?:do\s+Júri|da\s+Infância|de\s+Execuções|Única|Criminal)[^,\-]*)/i
     ];
 
@@ -275,6 +278,10 @@ const extractIssuingCourt = (text: string): string => {
                 .trim();
 
             if (court.length > 3 && court.length < 120) {
+                // Ensure "COMARCA DE JACAREÍ" is appended if missing and identified
+                if (!court.includes('JACAREÍ') && headerText.includes('COMARCA DE JACAREÍ')) {
+                    court = `${court} de Jacareí`;
+                }
                 return court.toUpperCase();
             }
         }
