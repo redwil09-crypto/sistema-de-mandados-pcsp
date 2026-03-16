@@ -166,12 +166,13 @@ const WarrantDetail = () => {
     });
 
     const getSuggestedReportNumber = async (): Promise<string> => {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return "001/DIG/" + new Date().getFullYear();
+
         const currentYear = new Date().getFullYear();
         let maxNumber = 0;
 
         // Helper: extract report number ONLY from formatted strings
-        // Accepts: "001/DIG/2026", "02/CAPT/2025", "5/2026"
-        // Does NOT accept raw process numbers like "1503300-53.2024..."
         const extractNumber = (val: string | null | undefined): number => {
             if (!val || typeof val !== 'string') return 0;
             
@@ -194,7 +195,7 @@ const WarrantDetail = () => {
                 if (year === currentYear && !isNaN(num) && num < 9999) return num;
             }
 
-            // Pattern only Number (e.g. "123") - only if it's small (to avoid process numbers)
+            // Pattern only Number (e.g. "123")
             const match1 = cleanVal.match(/^(\d{1,4})$/);
             if (match1) {
                 const num = parseInt(match1[1]);
@@ -205,35 +206,29 @@ const WarrantDetail = () => {
         };
 
         try {
-            // Step 1: Check in-memory warrants (fast, might be stale)
+            // Step 1: Check in-memory warrants (ONLY FOR THIS USER)
             if (warrants && warrants.length > 0) {
                 warrants.forEach(w => {
-                    [w.fulfillmentReport, w.ifoodNumber, w.digOffice].forEach(val => {
-                        const n = extractNumber(val);
-                        if (n > maxNumber) {
-                            console.log('[getSuggestedReportNumber] Memory found:', val, '→', n);
-                            maxNumber = n;
-                        }
-                    });
+                    if (w.userId === user.id) {
+                        [w.fulfillmentReport, w.ifoodNumber, w.digOffice].forEach(val => {
+                            const n = extractNumber(val);
+                            if (n > maxNumber) maxNumber = n;
+                        });
+                    }
                 });
-                console.log('[getSuggestedReportNumber] After memory scan, max:', maxNumber);
             }
 
-            // Step 2: Query DB directly — all warrants, all three fields
+            // Step 2: Query DB directly (ONLY FOR THIS USER)
             const { data: rows, error } = await supabase
                 .from('warrants')
-                .select('fulfillment_report, ifood_number, dig_office');
-
-            console.log('[getSuggestedReportNumber] DB rows returned:', rows?.length, '| error:', error?.message || 'none');
+                .select('fulfillment_report, ifood_number, dig_office')
+                .eq('user_id', user.id);
 
             if (!error && rows && rows.length > 0) {
                 rows.forEach((row: any) => {
                     [row.fulfillment_report, row.ifood_number, row.dig_office].forEach((val: any) => {
                         const n = extractNumber(val);
-                        if (n > maxNumber) {
-                            console.log('[getSuggestedReportNumber] DB found:', val, '→', n);
-                            maxNumber = n;
-                        }
+                        if (n > maxNumber) maxNumber = n;
                     });
                 });
             }
@@ -243,7 +238,6 @@ const WarrantDetail = () => {
 
         const nextNum = maxNumber + 1;
         const suggested = `${nextNum.toString().padStart(3, '0')}/DIG/${currentYear}`;
-        console.log('[getSuggestedReportNumber] FINAL → maxNumber:', maxNumber, '| next suggested:', suggested);
         return suggested;
     };
 
@@ -1492,26 +1486,13 @@ ${signerName} - DIG / PCSP
     const handleGenerateIFoodReport = async () => {
         if (!data) return;
 
-        const currentYear = new Date().getFullYear();
-        let suggestedOfficeId = data.ifoodNumber;
+        let suggestedOfficeId = data.fulfillmentReport || data.ifoodNumber;
 
         if (!suggestedOfficeId) {
-            let maxNumber = 0;
-            warrants.forEach(w => {
-                if (w.ifoodNumber) {
-                    const parts = w.ifoodNumber.split('/');
-                    if (parts.length === 3 && parts[1] === 'CAPT' && parseInt(parts[2]) === currentYear) {
-                        const num = parseInt(parts[0]);
-                        if (!isNaN(num) && num > maxNumber) {
-                            maxNumber = num;
-                        }
-                    }
-                }
-            });
-            suggestedOfficeId = `${(maxNumber + 1).toString().padStart(2, '0')}/CAPT/${currentYear}`;
+            suggestedOfficeId = await getSuggestedReportNumber();
         }
 
-        const officeId = window.prompt("Digite o número do ofício (Ex: 01/CAPT/2026):", suggestedOfficeId);
+        const officeId = window.prompt("Digite o número do ofício (Ex: 001/DIG/2026):", suggestedOfficeId);
         if (!officeId) return;
 
         try {
@@ -1737,7 +1718,8 @@ ${signerName} - DIG / PCSP
         const currentData = { ...data, ...localData };
 
         // Fetch suggested number from DB first, before opening modal
-        const suggestedNumber = currentData.fulfillmentReport || await getSuggestedReportNumber();
+        // Prioritizes existing numbers on the same warrant for consistency
+        const suggestedNumber = currentData.fulfillmentReport || currentData.ifoodNumber || await getSuggestedReportNumber();
 
         const generateIntelligentReportBody = () => {
             const isBusca = (currentData.type || '').toUpperCase().includes('BUSCA E APREENSÃO');

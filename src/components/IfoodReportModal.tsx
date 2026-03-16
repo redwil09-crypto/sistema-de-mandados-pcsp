@@ -60,6 +60,7 @@ const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, wa
         if (!isOpen) {
             setStep('input');
             setGeneratedText('');
+            // The officeNumber will be set by the fetchMaxNumber effect
             setOfficeNumber('');
             setCurrentUser(null);
             return;
@@ -105,23 +106,33 @@ const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, wa
 
         const fetchMaxNumber = async () => {
             try {
+                // If the warrant already has a report number, use it (extracting just the sequence)
+                const existingReport = warrant.fulfillmentReport || warrant.ifoodNumber;
+                if (existingReport) {
+                    const clean = existingReport.replace(/Ofício|Of\.|Of/i, '').trim();
+                    const match = clean.match(/^(\d+)/);
+                    if (match) {
+                        setOfficeNumber(match[1].padStart(3, '0'));
+                        return;
+                    }
+                }
+
                 const currentYear = new Date().getFullYear();
                 let maxNum = 0;
 
-                // Busca global por todos os mandados para encontrar a maior numeração da unidade
+                // Busca por todos os mandados DESTE USUÁRIO para encontrar a maior numeração dele
                 const { data: rows, error } = await supabase
                     .from('warrants')
-                    .select('ifood_number, fulfillment_report, dig_office');
+                    .select('ifood_number, fulfillment_report, dig_office')
+                    .eq('user_id', currentUser.id); // <--- USER SPECIFIC
 
                 if (!error && rows && rows.length > 0) {
                     rows.forEach((row: any) => {
                         [row.ifood_number, row.fulfillment_report, row.dig_office].forEach(val => {
                             if (!val || typeof val !== 'string') return;
 
-                            // Limpeza para remover prefixos como "Ofício"
                             const cleanVal = val.replace(/Ofício|Of\.|Of/i, '').trim();
 
-                            // Tenta padrão "026/CAPT/2025" ou "26/DIG/2025"
                             const match = cleanVal.match(/^(\d+).*\/(\d{4})$/);
                             if (match) {
                                 const num = parseInt(match[1]);
@@ -130,7 +141,6 @@ const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, wa
                                     maxNum = num;
                                 }
                             } else {
-                                // Tenta apenas numérico "026"
                                 const numOnly = parseInt(cleanVal);
                                 if (!isNaN(numOnly) && cleanVal.length < 5 && numOnly > maxNum) {
                                     maxNum = numOnly;
@@ -139,30 +149,31 @@ const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, wa
                         });
                     });
                 } else {
-                    // Fallback global: use warrants already in memory
+                    // Fallback: use warrants already in memory (filtered by user)
                     if (warrants && warrants.length > 0) {
                         warrants.forEach(w => {
-                            [w.ifoodNumber, w.fulfillmentReport, w.digOffice].forEach(val => {
-                                if (!val || typeof val !== 'string') return;
-                                const cleanVal = val.replace(/Ofício|Of\.|Of/i, '').trim();
-                                const match = cleanVal.match(/^(\d+).*\/(\d{4})$/);
-                                if (match) {
-                                    const num = parseInt(match[1]);
-                                    const yr = parseInt(match[2]);
-                                    if (yr === currentYear && !isNaN(num) && num > maxNum) maxNum = num;
-                                } else {
-                                    const numOnly = parseInt(cleanVal);
-                                    if (!isNaN(numOnly) && cleanVal.length < 5 && numOnly > maxNum) maxNum = numOnly;
-                                }
-                            });
+                            if (w.userId === currentUser.id) {
+                                [w.ifoodNumber, w.fulfillmentReport, w.digOffice].forEach(val => {
+                                    if (!val || typeof val !== 'string') return;
+                                    const cleanVal = val.replace(/Ofício|Of\.|Of/i, '').trim();
+                                    const match = cleanVal.match(/^(\d+).*\/(\d{4})$/);
+                                    if (match) {
+                                        const num = parseInt(match[1]);
+                                        const yr = parseInt(match[2]);
+                                        if (yr === currentYear && !isNaN(num) && num > maxNum) maxNum = num;
+                                    } else {
+                                        const numOnly = parseInt(cleanVal);
+                                        if (!isNaN(numOnly) && cleanVal.length < 5 && numOnly > maxNum) maxNum = numOnly;
+                                    }
+                                });
+                            }
                         });
                     }
                 }
 
-                console.log('[IfoodReportModal] Global MaxNum found:', maxNum, '| suggested:', maxNum + 1);
+                console.log('[IfoodReportModal] User MaxNum found:', maxNum, '| suggested:', maxNum + 1);
                 const suggested = (maxNum + 1).toString().padStart(3, '0');
                 
-                // Só preenche se o usuário ainda não tiver começado a digitar algo diferente da sugestão padrão inicial
                 setOfficeNumber(prev => (prev === '' || prev === '001') ? suggested : prev);
             } catch (e) {
                 console.error('[IfoodReportModal] Error fetching max number:', e);
@@ -171,7 +182,7 @@ const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, wa
         };
 
         fetchMaxNumber();
-    }, [isOpen, currentUser]);
+    }, [isOpen, currentUser, warrant.fulfillmentReport, warrant.ifoodNumber, warrants]);
 
     const generateTextForType = (currentType: 'ifood' | 'uber' | '99') => {
         const months = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
@@ -187,7 +198,7 @@ const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, wa
         const contactEmail = currentUser?.email || 'william.castro@policiacivil.sp.gov.br';
         const contactName = currentUser?.name || 'William Campos de Assis Castro';
 
-        return `Ofício: nº.${officeNumber}/CAPT/${today.getFullYear()}
+        return `Ofício: nº.${officeNumber}/DIG/${today.getFullYear()}
 Referência: PROC. Nº ${warrant.number}
 Natureza: Solicitação de Dados.
 
