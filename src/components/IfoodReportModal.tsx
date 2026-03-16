@@ -108,59 +108,61 @@ const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, wa
                 const currentYear = new Date().getFullYear();
                 let maxNum = 0;
 
-                // Query all warrants from this user that have an ifood_number
+                // Busca global por todos os mandados para encontrar a maior numeração da unidade
                 const { data: rows, error } = await supabase
                     .from('warrants')
-                    .select('ifood_number')
-                    .eq('user_id', currentUser.id)
-                    .not('ifood_number', 'is', null);
+                    .select('ifood_number, fulfillment_report, dig_office');
 
                 if (!error && rows && rows.length > 0) {
                     rows.forEach((row: any) => {
-                        const val: string = row.ifood_number || '';
-                        if (!val) return;
+                        [row.ifood_number, row.fulfillment_report, row.dig_office].forEach(val => {
+                            if (!val || typeof val !== 'string') return;
 
-                        // Try pattern like "026/CAPT/2025" or "26/CAPT/2025"
-                        const match = val.match(/^(\d+).*\/(\d{4})$/);
-                        if (match) {
-                            const num = parseInt(match[1]);
-                            const yr = parseInt(match[2]);
-                            if (yr === currentYear && !isNaN(num) && num > maxNum) {
-                                maxNum = num;
+                            // Tenta padrão "026/CAPT/2025" ou "26/DIG/2025"
+                            const match = val.match(/^(\d+).*\/(\d{4})$/);
+                            if (match) {
+                                const num = parseInt(match[1]);
+                                const yr = parseInt(match[2]);
+                                if (yr === currentYear && !isNaN(num) && num > maxNum) {
+                                    maxNum = num;
+                                }
+                            } else {
+                                // Tenta apenas numérico "026"
+                                const numOnly = parseInt(val);
+                                if (!isNaN(numOnly) && val.length < 5 && numOnly > maxNum) {
+                                    maxNum = numOnly;
+                                }
                             }
-                        } else {
-                            // Try simple numeric only like "026"
-                            const numOnly = parseInt(val);
-                            if (!isNaN(numOnly) && numOnly > maxNum) {
-                                // Only use if we CAN'T determine year (no year = assume current)
-                                maxNum = numOnly;
-                            }
-                        }
+                        });
                     });
                 } else {
-                    // Fallback: use warrants already in memory
+                    // Fallback global: use warrants already in memory
                     if (warrants && warrants.length > 0) {
                         warrants.forEach(w => {
-                            if (w.userId === currentUser.id && w.ifoodNumber) {
-                                const match = w.ifoodNumber.match(/^(\d+).*\/(\d{4})$/);
+                            [w.ifoodNumber, w.fulfillmentReport, w.digOffice].forEach(val => {
+                                if (!val || typeof val !== 'string') return;
+                                const match = val.match(/^(\d+).*\/(\d{4})$/);
                                 if (match) {
                                     const num = parseInt(match[1]);
                                     const yr = parseInt(match[2]);
                                     if (yr === currentYear && !isNaN(num) && num > maxNum) maxNum = num;
                                 } else {
-                                    const numOnly = parseInt(w.ifoodNumber);
-                                    if (!isNaN(numOnly) && numOnly > maxNum) maxNum = numOnly;
+                                    const numOnly = parseInt(val);
+                                    if (!isNaN(numOnly) && val.length < 5 && numOnly > maxNum) maxNum = numOnly;
                                 }
-                            }
+                            });
                         });
                     }
                 }
 
-                console.log('[IfoodReportModal] userId:', currentUser.id, '| maxNum found:', maxNum, '| suggesting:', maxNum + 1);
-                setOfficeNumber((maxNum + 1).toString().padStart(3, '0'));
+                console.log('[IfoodReportModal] Global MaxNum found:', maxNum, '| suggested:', maxNum + 1);
+                const suggested = (maxNum + 1).toString().padStart(3, '0');
+                
+                // Só preenche se o usuário ainda não tiver começado a digitar algo diferente da sugestão padrão inicial
+                setOfficeNumber(prev => (prev === '' || prev === '001') ? suggested : prev);
             } catch (e) {
                 console.error('[IfoodReportModal] Error fetching max number:', e);
-                setOfficeNumber('001');
+                setOfficeNumber(prev => prev === '' ? '001' : prev);
             }
         };
 
