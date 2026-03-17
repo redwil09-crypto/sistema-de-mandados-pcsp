@@ -230,7 +230,7 @@ export const WarrantProvider = ({ children }: { children: ReactNode }) => {
     useEffect(() => {
         if (!isPatrolActive || !userPos) return;
 
-        const openWarrants = warrants.filter(w => w.status === 'EM ABERTO' && w.latitude && w.longitude);
+        const openWarrants = warrants.filter(w => (w.status || '').toUpperCase() === 'EM ABERTO' && w.latitude && w.longitude);
 
         openWarrants.forEach(w => {
             const dist = calculateDistance(userPos.lat, userPos.lng, w.latitude!, w.longitude!);

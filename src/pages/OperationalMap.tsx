@@ -92,8 +92,11 @@ const OperationalMap = () => {
     const watchIdRef = useRef<number | null>(null);
 
     useEffect(() => {
-        // Filter only mapped and OPEN warrants
-        let filtered = allWarrants.filter(w => w.latitude && w.longitude && w.status === 'EM ABERTO');
+        // Filter only mapped and OPEN warrants (Strictly EM ABERTO, excluding CUMPRIDOS, BAIXADOS, ENCAMINHADOS)
+        let filtered = allWarrants.filter(w => {
+            const status = (w.status || '').toUpperCase();
+            return w.latitude && w.longitude && status === 'EM ABERTO';
+        });
 
         // Apply type filter
         if (filter === 'prison') {
@@ -137,7 +140,7 @@ const OperationalMap = () => {
     }, [allWarrants, filter]); // Added filter to dependencies
 
     const handleBulkSync = async () => {
-        const unmapped = allWarrants.filter(w => w.status === 'EM ABERTO' && (!w.latitude || !w.longitude) && w.location);
+        const unmapped = allWarrants.filter(w => (w.status || '').toUpperCase() === 'EM ABERTO' && (!w.latitude || !w.longitude) && w.location);
 
         if (unmapped.length === 0) {
             toast.info("Todos os mandados em aberto já estão mapeados.");

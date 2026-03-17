@@ -37,7 +37,7 @@ const PatrolMode = ({ warrants: _, variant = 'fab' }: PatrolModeProps) => {
     const nearbyWarrants = useMemo(() => {
         if (!isActive || !userPos) return [];
         return warrants
-            .filter(w => w.status === 'EM ABERTO' && w.latitude && w.longitude)
+            .filter(w => (w.status || '').toUpperCase() === 'EM ABERTO' && w.latitude && w.longitude)
             .map(w => ({
                 warrant: w,
                 distance: calculateDistance(userPos.lat, userPos.lng, w.latitude!, w.longitude!)
