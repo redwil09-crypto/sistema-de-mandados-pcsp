@@ -183,7 +183,7 @@ const Sidebar = ({ routeCount = 0, isCollapsed, toggleCollapse, isDark, toggleTh
     return (
         <>
             {/* Mobile Header / Toggle */}
-            <div className="md:hidden fixed top-0 left-0 right-0 h-16 bg-white/90 dark:bg-zinc-950/90 backdrop-blur-xl border-b border-border-light dark:border-white/5 flex items-center justify-between px-4 z-50">
+            <div className="md:hidden fixed top-0 left-0 right-0 h-16 bg-white/95 dark:bg-zinc-950/95 backdrop-blur-md border-b border-border-light dark:border-white/5 flex items-center justify-between px-4 z-50">
                 <div className="flex items-center gap-2">
                     <img
                         src="/novo_brasao_lock.png"
@@ -202,7 +202,7 @@ const Sidebar = ({ routeCount = 0, isCollapsed, toggleCollapse, isDark, toggleTh
             {/* Mobile Backdrop */}
             {isOpen && (
                 <div
-                    className="md:hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-40 transition-opacity duration-300"
+                    className="md:hidden fixed inset-0 bg-black/60 backdrop-blur-[2px] z-40 transition-opacity duration-300"
                     onClick={() => setIsOpen(false)}
                 />
             )}

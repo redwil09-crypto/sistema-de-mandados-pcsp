@@ -196,9 +196,14 @@ function App() {
 
     if (!session) {
         return (
-            <>
+            <React.Suspense fallback={
+                <div className="flex min-h-screen flex-col items-center justify-center bg-background-dark relative overflow-hidden">
+                    <div className="h-12 w-12 animate-spin rounded-full border-4 border-primary border-t-transparent shadow-lg shadow-primary/20"></div>
+                    <span className="mt-4 text-[10px] font-black text-primary uppercase tracking-[0.2em] animate-pulse">Iniciando Portal...</span>
+                </div>
+            }>
                 <Auth />
-            </>
+            </React.Suspense>
         );
     }
 
@@ -211,9 +216,13 @@ function App() {
 
     if (!isAuthorized) {
         return (
-            <>
+            <React.Suspense fallback={
+                <div className="flex min-h-screen flex-col items-center justify-center bg-background-dark">
+                    <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+                </div>
+            }>
                 <PendingApproval />
-            </>
+            </React.Suspense>
         );
     }
 
