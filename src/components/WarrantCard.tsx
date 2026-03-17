@@ -63,7 +63,15 @@ const WarrantCard = ({ data, onPrint, isPlanned, onRouteToggle, onFinalize, onDe
                 {(data.status === 'CUMPRIDO' || isCounterWarrant) && (
                     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 -rotate-12 opacity-[0.15] dark:opacity-[0.1] pointer-events-none z-0">
                         <div className={`border-[6px] ${isSearch ? 'border-orange-500 text-orange-500' : 'border-emerald-500 text-emerald-500'} px-6 py-2 rounded-lg font-black text-6xl tracking-tighter uppercase`}>
-                            {data.fulfillmentResult || (isCounterWarrant ? 'BAIXADO' : (isSearch ? 'APREENDIDO' : 'PRESO'))}
+                            {(() => {
+                                if (isCounterWarrant) return 'BAIXADO';
+                                const res = (data.fulfillmentResult || '').toUpperCase();
+                                if (isSearch) {
+                                    if (res === 'NEGATIVO') return 'NEGATIVO';
+                                    return 'APREENDIDO';
+                                }
+                                return res || 'PRESO';
+                            })()}
                         </div>
                     </div>
                 )}
@@ -131,10 +139,10 @@ const WarrantCard = ({ data, onPrint, isPlanned, onRouteToggle, onFinalize, onDe
                                 </span>
                             )}
                             <span className={`text-[9px] font-mono font-bold px-2 py-0.5 rounded border ${data.status === 'EM ABERTO' ? 'bg-risk-high/10 text-rose-600 dark:text-risk-high border-risk-high/20' :
-                                data.status === 'CUMPRIDO' ? 'bg-success/10 text-emerald-600 dark:text-success border-success/20' :
+                                data.status === 'CUMPRIDO' ? (isSearch ? 'bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-500/20' : 'bg-success/10 text-emerald-600 dark:text-success border-success/20') :
                                     'bg-risk-med/10 text-amber-600 dark:text-risk-med border-risk-med/20'
                                 }`}>
-                                {data.status}
+                                {(data.status === 'CUMPRIDO' && isSearch) ? 'APREENDIDO' : data.status}
                             </span>
                         </div>
                     </div>

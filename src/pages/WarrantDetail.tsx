@@ -2193,7 +2193,15 @@ ${signerName} - DIG / PCSP
                     {(localData.status === 'CUMPRIDO' || isCounterWarrant) && (
                         <div className="absolute top-2 right-2 sm:top-6 sm:right-10 rotate-12 opacity-80 pointer-events-none z-20">
                             <div className={`border-[4px] ${isSearch ? 'border-orange-500 text-orange-500 shadow-[0_0_20px_rgba(249,115,22,0.3)]' : 'border-emerald-500 text-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.3)]'} px-4 py-1 rounded-sm font-black text-2xl sm:text-5xl tracking-tighter uppercase bg-white/10 dark:bg-black/20 backdrop-blur-md`}>
-                                {localData.fulfillmentResult || (isCounterWarrant ? 'BAIXADO' : (isSearch ? 'APREENDIDO' : 'PRESO'))}
+                                {(() => {
+                                    if (isCounterWarrant) return 'BAIXADO';
+                                    const res = (localData.fulfillmentResult || '').toUpperCase();
+                                    if (isSearch) {
+                                        if (res === 'NEGATIVO') return 'NEGATIVO';
+                                        return 'APREENDIDO';
+                                    }
+                                    return res || 'PRESO';
+                                })()}
                             </div>
                             <p className={`text-[8px] sm:text-[10px] ${isSearch ? 'text-orange-600 dark:text-orange-400 bg-orange-500/10' : 'text-emerald-600 dark:text-emerald-400 bg-emerald-500/10'} font-bold text-center mt-1 uppercase tracking-widest rounded py-0.5`}>
                                 {localData.dischargeDate || (isCounterWarrant ? 'Recolhimento Judicial' : (isSearch ? 'Diligência Efetivada' : 'Captura Efetivada'))}
@@ -3562,7 +3570,18 @@ ${signerName} - DIG / PCSP
                                 <div className="space-y-1"><label className="text-[10px] font-black text-text-muted uppercase tracking-widest">Data Cumprimento</label><input type="date" className="w-full bg-background-light dark:bg-white/5 border border-border-light dark:border-white/10 rounded-xl p-3 text-text-light dark:text-white" value={finalizeFormData.date} onChange={e => setFinalizeFormData({ ...finalizeFormData, date: e.target.value })} /></div>
                                 <div className="space-y-1"><label className="text-[10px] font-black text-text-muted uppercase tracking-widest">Ofício DIG Vinculado</label><input type="text" className="w-full bg-background-light dark:bg-white/5 border border-border-light dark:border-white/10 rounded-xl p-3 text-text-light dark:text-white" value={finalizeFormData.digOffice} onChange={e => setFinalizeFormData({ ...finalizeFormData, digOffice: e.target.value })} /></div>
                                 <div className="space-y-1"><label className="text-[10px] font-black text-text-muted uppercase tracking-widest text-[lime]">Circunstanciado (O que, Por que, Onde)</label><textarea className="w-full bg-background-light dark:bg-white/5 border border-border-light dark:border-lime-500/30 rounded-xl p-3 text-sm text-text-light dark:text-white min-h-[80px] focus:ring-1 focus:ring-lime-500" placeholder="Ex: CAPTURA DO RÉU EM SUA RESIDÊNCIA APÓS VIGILÂNCIA..." value={finalizeFormData.details} onChange={e => setFinalizeFormData({ ...finalizeFormData, details: e.target.value })} /></div>
-                                <div className="space-y-1"><label className="text-[10px] font-black text-text-muted uppercase tracking-widest">Resultado Final</label><select className="w-full bg-background-light dark:bg-white/5 border border-border-light dark:border-white/10 rounded-xl p-3 text-text-light dark:text-white appearance-none" value={finalizeFormData.result} onChange={e => setFinalizeFormData({ ...finalizeFormData, result: e.target.value })}>{['PRESO', 'NEGATIVO', 'ENCAMINHADO', 'ÓBITO', 'CONTRAMANDADO', 'LOCALIZADO'].map(opt => <option key={opt} value={opt} className="bg-surface-light dark:bg-surface-dark text-text-light dark:text-white">{opt}</option>)}</select></div>
+                                <div className="space-y-1">
+                                    <label className="text-[10px] font-black text-text-muted uppercase tracking-widest">Resultado Final</label>
+                                    <select 
+                                        className="w-full bg-background-light dark:bg-white/5 border border-border-light dark:border-white/10 rounded-xl p-3 text-text-light dark:text-white appearance-none" 
+                                        value={finalizeFormData.result} 
+                                        onChange={e => setFinalizeFormData({ ...finalizeFormData, result: e.target.value })}
+                                    >
+                                        {(isSearch ? ['APREENDIDO', 'NEGATIVO', 'ÓBITO', 'LOCALIZADO'] : ['PRESO', 'NEGATIVO', 'ENCAMINHADO', 'ÓBITO', 'CONTRAMANDADO', 'LOCALIZADO']).map(opt => (
+                                            <option key={opt} value={opt} className="bg-surface-light dark:bg-surface-dark text-text-light dark:text-white">{opt}</option>
+                                        ))}
+                                    </select>
+                                </div>
                             </div>
                             <div className="flex gap-3">
                                 <button onClick={() => setIsFinalizeModalOpen(false)} className="flex-1 py-3.5 rounded-2xl font-black text-[10px] uppercase tracking-widest bg-white/5 text-white hover:bg-white/10 transition-all">Cancelar</button>
