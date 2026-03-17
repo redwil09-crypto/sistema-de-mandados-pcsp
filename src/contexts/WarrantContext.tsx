@@ -184,9 +184,15 @@ export const WarrantProvider = ({ children }: { children: ReactNode }) => {
         localStorage.setItem('isPatrolActive', 'true');
         toast.success("Patrulha Global Ativada");
 
-        // Request Notification Permission
-        if ("Notification" in window && Notification.permission !== "granted") {
-            Notification.requestPermission();
+        // Request Notification Permission - Safe Check
+        if ("Notification" in window) {
+            try {
+                if (Notification.permission !== "granted") {
+                    Notification.requestPermission().catch(e => console.error("Permission request failed", e));
+                }
+            } catch (e) {
+                console.warn("Notification permission request not supported");
+            }
         }
 
         watchId.current = navigator.geolocation.watchPosition(
@@ -234,7 +240,16 @@ export const WarrantProvider = ({ children }: { children: ReactNode }) => {
                 lastAlertedIds.current.add(w.id);
                 toast.error(`ALVO EM RAIO: ${w.name}`, { duration: 10000 });
                 if ("Notification" in window && Notification.permission === "granted") {
-                    new Notification(`🚨 ALVO PRÓXIMO: ${w.name}`, { body: `A aprox. ${Math.round(dist)}m.` });
+                    try {
+                        new Notification(`🚨 ALVO PRÓXIMO: ${w.name}`, { body: `A aprox. ${Math.round(dist)}m.`, tag: w.id });
+                    } catch (e) {
+                        // Fallback to Service Worker if constructor fails
+                        if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+                            navigator.serviceWorker.ready.then(reg => {
+                                reg.showNotification(`🚨 ALVO PRÓXIMO: ${w.name}`, { body: `A aprox. ${Math.round(dist)}m.`, tag: w.id });
+                            });
+                        }
+                    }
                 }
                 if ('vibrate' in navigator) navigator.vibrate([500, 200, 500]);
             }

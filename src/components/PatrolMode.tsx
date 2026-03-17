@@ -74,17 +74,34 @@ const PatrolMode = ({ warrants: _, variant = 'fab' }: PatrolModeProps) => {
                 }
 
                 try {
-                    // System Level Notification
+                    // System Level Notification - Safer Mobile Check
+                    const isServiceWorkerReady = 'serviceWorker' in navigator && navigator.serviceWorker.controller;
+                    
                     if ("Notification" in window && Notification.permission === "granted") {
-                        const notif = new Notification(`🚨 ALVO DETECTADO: ${w.name}`, {
-                            body: `Distância: ${Math.round(item.distance)} metros. Toque para ver detalhes.`,
-                            icon: 'https://img.icons8.com/color/512/police-badge.png',
-                            tag: w.id // Prevent duplicate notifications for the same ID
-                        });
-                        notif.onclick = () => {
-                            window.focus();
-                            navigate(`/warrant-detail/${w.id}`);
-                        };
+                        // Desktop/Supported browsers path
+                        try {
+                            const notif = new Notification(`🚨 ALVO DETECTADO: ${w.name}`, {
+                                body: `Distância: ${Math.round(item.distance)} metros. Toque para ver detalhes.`,
+                                icon: 'https://img.icons8.com/color/512/police-badge.png',
+                                tag: w.id
+                            });
+                            notif.onclick = () => {
+                                window.focus();
+                                navigate(`/warrant-detail/${w.id}`);
+                            };
+                        } catch (e) {
+                            // If direct constructor fails (common on mobile), try via service worker if available
+                            if (isServiceWorkerReady) {
+                                navigator.serviceWorker.ready.then(registration => {
+                                    registration.showNotification(`🚨 ALVO DETECTADO: ${w.name}`, {
+                                        body: `Distância: ${Math.round(item.distance)} metros.`,
+                                        icon: 'https://img.icons8.com/color/512/police-badge.png',
+                                        tag: w.id
+                                    });
+                                });
+                            }
+                            console.warn('Native notification constructor failed, using fallback.');
+                        }
                     }
                 } catch (err) {
                     console.error('Notification error:', err);
