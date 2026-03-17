@@ -106,10 +106,9 @@ const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, wa
 
         const fetchMaxNumber = async () => {
             try {
-                // If the warrant already has a report number, use it (extracting just the sequence)
-                const existingReport = warrant.fulfillmentReport || warrant.ifoodNumber;
-                if (existingReport) {
-                    const clean = existingReport.replace(/Ofício|Of\.|Of/i, '').trim();
+                // If the warrant already has an iFood number, use it
+                if (warrant.ifoodNumber) {
+                    const clean = warrant.ifoodNumber.replace(/Ofício|Of\.|Of/i, '').trim();
                     const match = clean.match(/^(\d+)/);
                     if (match) {
                         setOfficeNumber(match[1].padStart(3, '0'));
@@ -120,52 +119,48 @@ const IfoodReportModal: React.FC<IfoodReportModalProps> = ({ isOpen, onClose, wa
                 const currentYear = new Date().getFullYear();
                 let maxNum = 0;
 
-                // Busca por todos os mandados DESTE USUÁRIO para encontrar a maior numeração dele
+                // Busca por todos os mandados DESTE USUÁRIO para encontrar a maior numeração de IFOOD dele
                 const { data: rows, error } = await supabase
                     .from('warrants')
-                    .select('ifood_number, fulfillment_report, dig_office')
-                    .eq('user_id', currentUser.id); // <--- USER SPECIFIC
+                    .select('ifood_number')
+                    .eq('user_id', currentUser.id);
 
                 if (!error && rows && rows.length > 0) {
                     rows.forEach((row: any) => {
-                        [row.ifood_number, row.fulfillment_report, row.dig_office].forEach(val => {
-                            if (!val || typeof val !== 'string') return;
+                        const val = row.ifood_number;
+                        if (!val || typeof val !== 'string') return;
 
-                            const cleanVal = val.replace(/Ofício|Of\.|Of/i, '').trim();
+                        const cleanVal = val.replace(/Ofício|Of\.|Of/i, '').trim();
 
-                            const match = cleanVal.match(/^(\d+).*\/(\d{4})$/);
-                            if (match) {
-                                const num = parseInt(match[1]);
-                                const yr = parseInt(match[2]);
-                                if (yr === currentYear && !isNaN(num) && num > maxNum) {
-                                    maxNum = num;
-                                }
-                            } else {
-                                const numOnly = parseInt(cleanVal);
-                                if (!isNaN(numOnly) && cleanVal.length < 5 && numOnly > maxNum) {
-                                    maxNum = numOnly;
-                                }
+                        const match = cleanVal.match(/^(\d+).*\/(\d{4})$/);
+                        if (match) {
+                            const num = parseInt(match[1]);
+                            const yr = parseInt(match[2]);
+                            if (yr === currentYear && !isNaN(num) && num > maxNum) {
+                                maxNum = num;
                             }
-                        });
+                        } else {
+                            const numOnly = parseInt(cleanVal);
+                            if (!isNaN(numOnly) && cleanVal.length < 5 && numOnly > maxNum) {
+                                maxNum = numOnly;
+                            }
+                        }
                     });
                 } else {
-                    // Fallback: use warrants already in memory (filtered by user)
+                    // Fallback: use warrants already in memory
                     if (warrants && warrants.length > 0) {
                         warrants.forEach(w => {
-                            if (w.userId === currentUser.id) {
-                                [w.ifoodNumber, w.fulfillmentReport, w.digOffice].forEach(val => {
-                                    if (!val || typeof val !== 'string') return;
-                                    const cleanVal = val.replace(/Ofício|Of\.|Of/i, '').trim();
-                                    const match = cleanVal.match(/^(\d+).*\/(\d{4})$/);
-                                    if (match) {
-                                        const num = parseInt(match[1]);
-                                        const yr = parseInt(match[2]);
-                                        if (yr === currentYear && !isNaN(num) && num > maxNum) maxNum = num;
-                                    } else {
-                                        const numOnly = parseInt(cleanVal);
-                                        if (!isNaN(numOnly) && cleanVal.length < 5 && numOnly > maxNum) maxNum = numOnly;
-                                    }
-                                });
+                            if (w.userId === currentUser.id && w.ifoodNumber) {
+                                const cleanVal = w.ifoodNumber.replace(/Ofício|Of\.|Of/i, '').trim();
+                                const match = cleanVal.match(/^(\d+).*\/(\d{4})$/);
+                                if (match) {
+                                    const num = parseInt(match[1]);
+                                    const yr = parseInt(match[2]);
+                                    if (yr === currentYear && !isNaN(num) && num > maxNum) maxNum = num;
+                                } else {
+                                    const numOnly = parseInt(cleanVal);
+                                    if (!isNaN(numOnly) && cleanVal.length < 5 && numOnly > maxNum) maxNum = numOnly;
+                                }
                             }
                         });
                     }

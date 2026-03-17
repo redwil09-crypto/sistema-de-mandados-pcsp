@@ -165,68 +165,50 @@ const WarrantDetail = () => {
         aiInstructions: ''
     });
 
-    const getSuggestedReportNumber = async (): Promise<string> => {
+    const getSuggestedReportNumber = async (isGlobal: boolean = false): Promise<string> => {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return "001/DIG/" + new Date().getFullYear();
 
         const currentYear = new Date().getFullYear();
         let maxNumber = 0;
 
-        // Helper: extract report number ONLY from formatted strings
         const extractNumber = (val: string | null | undefined): number => {
             if (!val || typeof val !== 'string') return 0;
-            
-            // Remove prefixes commonly used
             const cleanVal = val.replace(/Ofício|Of\.|Of/i, '').trim();
-
-            // Pattern NNN/XXX/YYYY (e.g. "001/DIG/2026", "02/CAPT/2025")
             const match3 = cleanVal.match(/^(\d{1,4})\/.+\/(\d{4})$/);
             if (match3) {
                 const num = parseInt(match3[1]);
                 const year = parseInt(match3[2]);
-                if (year === currentYear && !isNaN(num) && num < 9999) return num;
+                if (year === currentYear && !isNaN(num)) return num;
             }
-            
-            // Pattern NNN/YYYY (e.g. "001/2026")
             const match2 = cleanVal.match(/^(\d{1,4})\/(\d{4})$/);
             if (match2) {
                 const num = parseInt(match2[1]);
                 const year = parseInt(match2[2]);
-                if (year === currentYear && !isNaN(num) && num < 9999) return num;
+                if (year === currentYear && !isNaN(num)) return num;
             }
-
-            // Pattern only Number (e.g. "123")
             const match1 = cleanVal.match(/^(\d{1,4})$/);
-            if (match1) {
-                const num = parseInt(match1[1]);
-                if (!isNaN(num)) return num;
-            }
-
+            if (match1) return parseInt(match1[1]);
             return 0;
         };
 
         try {
-            // Step 1: Check in-memory warrants (ONLY FOR THIS USER)
-            if (warrants && warrants.length > 0) {
-                warrants.forEach(w => {
-                    if (w.userId === user.id) {
-                        [w.fulfillmentReport, w.ifoodNumber, w.digOffice].forEach(val => {
-                            const n = extractNumber(val);
-                            if (n > maxNumber) maxNumber = n;
-                        });
-                    }
-                });
+            // Step 1: Query DB
+            let query = supabase.from('warrants').select('fulfillment_report, ifood_number, dig_office');
+            
+            if (!isGlobal) {
+                query = query.eq('user_id', user.id);
             }
 
-            // Step 2: Query DB directly (ONLY FOR THIS USER)
-            const { data: rows, error } = await supabase
-                .from('warrants')
-                .select('fulfillment_report, ifood_number, dig_office')
-                .eq('user_id', user.id);
+            const { data: rows, error } = await query;
 
             if (!error && rows && rows.length > 0) {
                 rows.forEach((row: any) => {
-                    [row.fulfillment_report, row.ifood_number, row.dig_office].forEach((val: any) => {
+                    const fields = isGlobal 
+                        ? [row.fulfillment_report, row.dig_office] 
+                        : [row.ifood_number];
+                        
+                    fields.forEach((val: any) => {
                         const n = extractNumber(val);
                         if (n > maxNumber) maxNumber = n;
                     });
@@ -237,8 +219,7 @@ const WarrantDetail = () => {
         }
 
         const nextNum = maxNumber + 1;
-        const suggested = `${nextNum.toString().padStart(3, '0')}/DIG/${currentYear}`;
-        return suggested;
+        return `${nextNum.toString().padStart(3, '0')}/DIG/${currentYear}`;
     };
 
 
@@ -1486,10 +1467,10 @@ ${signerName} - DIG / PCSP
     const handleGenerateIFoodReport = async () => {
         if (!data) return;
 
-        let suggestedOfficeId = data.fulfillmentReport || data.ifoodNumber;
+        let suggestedOfficeId = data.ifoodNumber;
 
         if (!suggestedOfficeId) {
-            suggestedOfficeId = await getSuggestedReportNumber();
+            suggestedOfficeId = await getSuggestedReportNumber(false); // individual
         }
 
         const officeId = window.prompt("Digite o número do ofício (Ex: 001/DIG/2026):", suggestedOfficeId);
@@ -1718,8 +1699,8 @@ ${signerName} - DIG / PCSP
         const currentData = { ...data, ...localData };
 
         // Fetch suggested number from DB first, before opening modal
-        // Prioritizes existing numbers on the same warrant for consistency
-        const suggestedNumber = currentData.fulfillmentReport || currentData.ifoodNumber || await getSuggestedReportNumber();
+        // General Report (Capture) is GLOBAL
+        const suggestedNumber = currentData.fulfillmentReport || await getSuggestedReportNumber(true);
 
         const generateIntelligentReportBody = () => {
             const isBusca = (currentData.type || '').toUpperCase().includes('BUSCA E APREENSÃO');
