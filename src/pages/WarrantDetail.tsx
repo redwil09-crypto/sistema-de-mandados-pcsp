@@ -175,26 +175,29 @@ const WarrantDetail = () => {
         const extractNumber = (val: string | null | undefined): number => {
             if (!val || typeof val !== 'string') return 0;
             const cleanVal = val.replace(/Ofício|Of\.|Of/i, '').trim();
-            const match3 = cleanVal.match(/^(\d{1,4})\/.+\/(\d{4})$/);
-            if (match3) {
-                const num = parseInt(match3[1]);
-                const year = parseInt(match3[2]);
+            
+            // Regex mais flexível: captura o primeiro grupo de dígitos que precede uma barra ou o fim da string
+            const match = cleanVal.match(/^(\d+)/);
+            if (!match) return 0;
+            
+            const num = parseInt(match[1]);
+            
+            // Verifica o ano se houver barra no final
+            const yearMatch = cleanVal.match(/\/(\d{4})$/);
+            if (yearMatch) {
+                const year = parseInt(yearMatch[1]);
                 if (year === currentYear && !isNaN(num)) return num;
+                return 0; // Ano diferente ignora
             }
-            const match2 = cleanVal.match(/^(\d{1,4})\/(\d{4})$/);
-            if (match2) {
-                const num = parseInt(match2[1]);
-                const year = parseInt(match2[2]);
-                if (year === currentYear && !isNaN(num)) return num;
-            }
-            const match1 = cleanVal.match(/^(\d{1,4})$/);
-            if (match1) return parseInt(match1[1]);
-            return 0;
+            
+            return num;
         };
 
         try {
-            // Step 1: Query DB
-            let query = supabase.from('warrants').select('fulfillment_report, ifood_number, dig_office');
+            // Step 1: Query DB - Busca tudo sem limites e ordena pelos mais novos
+            let query = supabase.from('warrants')
+                .select('fulfillment_report, ifood_number, dig_office')
+                .order('created_at', { ascending: false });
             
             if (!isGlobal) {
                 query = query.eq('user_id', user.id);
@@ -387,7 +390,7 @@ const WarrantDetail = () => {
         
         // Busca o próximo real se o atual for vazio ou o padrão inicial
         if (!suggestedNum || suggestedNum.includes('001/DIG')) {
-            suggestedNum = await getSuggestedReportNumber();
+            suggestedNum = await getSuggestedReportNumber(true);
         }
 
         const context = buildComprehensiveReportContext({ ...currentData, issuingCourt: suggestedCourt });
@@ -767,7 +770,7 @@ const WarrantDetail = () => {
     const handleFinalize = async () => {
         if (!data) return;
         const isSearch = data.type?.toLowerCase().includes('busca') || data.type?.toLowerCase().includes('apreensão');
-        const suggestedNum = data.fulfillmentReport || await getSuggestedReportNumber();
+        const suggestedNum = data.fulfillmentReport || await getSuggestedReportNumber(true);
         setFinalizeFormData(prev => ({
             ...prev,
             digOffice: data.digOffice || '',
