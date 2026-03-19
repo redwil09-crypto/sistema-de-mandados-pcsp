@@ -121,7 +121,7 @@ const WarrantDetail = () => {
 
 
     const hasChanges = useMemo(() => {
-        if (!data) return false;
+        if (!data || !localData.id) return false;
         const fields: (keyof Warrant)[] = [
             'name', 'type', 'rg', 'cpf', 'number', 'crime', 'regime', 'location', 'img', 'priority',
             'ifoodNumber', 'ifoodResult', 'digOffice', 'observation', 'age', 'issuingCourt', 'tacticalSummary', 'fulfillmentDetails',
