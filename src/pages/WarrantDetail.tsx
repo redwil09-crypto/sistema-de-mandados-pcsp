@@ -85,28 +85,11 @@ const WarrantDetail = () => {
     const [aiAnalysisSaved, setAiAnalysisSaved] = useState(false);
     const [isAiReportModalOpen, setIsAiReportModalOpen] = useState(false);
 
-    // Load Draft from LocalStorage
-    useEffect(() => {
-        if (id) {
-            const savedDraft = localStorage.getItem(`warrant_draft_${id}`);
-            if (savedDraft) {
-                try {
-                    const parsed = JSON.parse(savedDraft);
-                    if (parsed.diligence) setNewDiligence(parsed.diligence);
-                    if (parsed.aiDiligenceResult) setAiDiligenceResult(parsed.aiDiligenceResult);
-                    if (parsed.analyzedDocumentText) setAnalyzedDocumentText(parsed.analyzedDocumentText);
-                    if (parsed.chatHistory) setChatHistory(parsed.chatHistory);
-                    if (parsed.localData) setLocalData(parsed.localData);
-                } catch (e) {
-                    console.error("Failed to load draft");
-                }
-            }
-        }
-    }, [id]);
+
 
     // Save Draft to LocalStorage
     useEffect(() => {
-        if (id) {
+        if (id && localData.id === id) {
             const draft = {
                 diligence: newDiligence,
                 aiDiligenceResult,
@@ -320,20 +303,46 @@ const WarrantDetail = () => {
     }, []);
 
     useEffect(() => {
-        if (data && (!localData.id || localData.id !== data.id)) {
-            // Only initialize if we don't have a valid ID or if switching warrants
-            // Check if there's a draft already loaded by the other effect
-            const hasDraft = !!localStorage.getItem(`warrant_draft_${id}`);
-            if (!hasDraft) {
-                setLocalData({
-                    ...data,
-                    birthDate: formatDate(data.birthDate),
-                    issueDate: formatDate(data.issueDate),
-                    entryDate: formatDate(data.entryDate),
-                    expirationDate: formatDate(data.expirationDate),
-                    dischargeDate: formatDate(data.dischargeDate),
-                    fulfillmentDetails: data.fulfillmentDetails
-                });
+        if (id && data) {
+            // Check if we are switching warrants or if localData is uninitialized
+            if (localData.id !== id) {
+                // Try Load Draft first
+                const savedDraft = localStorage.getItem(`warrant_draft_${id}`);
+                let loadedFromDraft = false;
+
+                if (savedDraft) {
+                    try {
+                        const parsed = JSON.parse(savedDraft);
+                        if (parsed.localData && parsed.localData.id === id) {
+                            setLocalData(parsed.localData);
+                            if (parsed.diligence) setNewDiligence(parsed.diligence);
+                            if (parsed.aiDiligenceResult) setAiDiligenceResult(parsed.aiDiligenceResult);
+                            if (parsed.analyzedDocumentText) setAnalyzedDocumentText(parsed.analyzedDocumentText);
+                            if (parsed.chatHistory) setChatHistory(parsed.chatHistory);
+                            loadedFromDraft = true;
+                        }
+                    } catch (e) {
+                        console.error("Failed to parse draft");
+                    }
+                }
+
+                // Fallback to official DB data
+                if (!loadedFromDraft) {
+                    setLocalData({
+                        ...data,
+                        birthDate: formatDate(data.birthDate),
+                        issueDate: formatDate(data.issueDate),
+                        entryDate: formatDate(data.entryDate),
+                        expirationDate: formatDate(data.expirationDate),
+                        dischargeDate: formatDate(data.dischargeDate),
+                        fulfillmentDetails: data.fulfillmentDetails
+                    });
+                    // Clear other investigative drafts if no draft found
+                    setNewDiligence('');
+                    setAiDiligenceResult(null);
+                    setAnalyzedDocumentText('');
+                    setChatHistory([]);
+                }
             }
         }
     }, [data, id, localData.id]);
