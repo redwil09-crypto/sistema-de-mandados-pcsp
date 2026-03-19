@@ -2312,10 +2312,10 @@ ${signerName} - DIG / PCSP
                                     onChange={e => handleFieldChange('name', e.target.value)}
                                     placeholder="NOME DO ALVO"
                                 />
-                                <div className="flex items-center gap-2 mt-1 opacity-70">
-                                    <span className="text-sm text-text-secondary-dark font-medium font-mono">PROC. Nº</span>
+                                <div className="flex items-center gap-2 mt-2 opacity-80">
+                                    <span className="text-base text-text-secondary-dark font-bold font-mono">PROC. Nº</span>
                                     <input
-                                        className="text-sm text-text-light dark:text-white font-medium font-mono bg-transparent border-none outline-none focus:ring-1 focus:ring-primary/40 rounded px-1 transition-all placeholder:text-text-secondary-light/50 dark:placeholder:text-white/20"
+                                        className="text-base text-text-light dark:text-white font-bold font-mono bg-transparent border-none outline-none focus:ring-1 focus:ring-primary/40 rounded px-1.5 py-0.5 transition-all placeholder:text-text-secondary-light/50 dark:placeholder:text-white/20"
                                         value={localData.number}
                                         onChange={e => handleFieldChange('number', e.target.value)}
                                         placeholder="0000000-00.0000.0.00.0000"
@@ -2339,17 +2339,15 @@ ${signerName} - DIG / PCSP
                                 </div>
                                 <div className="bg-background-light dark:bg-white/5 border border-border-light dark:border-white/5 p-2 rounded-xl text-center flex flex-col items-center group/field">
                                     <p className="text-[9px] uppercase font-bold text-text-secondary-light dark:text-text-muted mb-0.5 tracking-tighter">Regime Prisional</p>
-                                    <input
-                                        list="regime-list-detail"
-                                        className="w-full bg-transparent border-none text-xs font-black text-text-light dark:text-white outline-none text-center hover:text-primary transition-colors"
+                                    <select
+                                        className="w-full bg-transparent border-none text-xs font-black text-text-light dark:text-white outline-none text-center hover:text-primary transition-colors cursor-pointer appearance-none"
                                         value={localData.regime || ''}
                                         onChange={e => handleFieldChange('regime', e.target.value)}
-                                        placeholder="Selecione..."
-                                    />
-                                    <datalist id="regime-list-detail">
-                                        {availableRegimes.map(opt => <option key={opt} value={opt} />)}
-                                        <option value="Contramandado" />
-                                    </datalist>
+                                    >
+                                        <option value="" className="text-black dark:text-white bg-white dark:bg-slate-900">Não informado</option>
+                                        {availableRegimes.map(opt => <option key={opt} value={opt} className="text-black dark:text-white bg-white dark:bg-slate-900">{opt}</option>)}
+                                        <option value="Contramandado" className="text-black dark:text-white bg-white dark:bg-slate-900">Contramandado</option>
+                                    </select>
                                 </div>
                                 <div className="bg-background-light dark:bg-white/5 border border-border-light dark:border-white/5 p-2 rounded-xl text-center flex flex-col items-center group/field">
                                     <p className="text-[9px] uppercase font-bold text-text-secondary-light dark:text-text-muted mb-0.5 tracking-tighter">Região DP</p>
