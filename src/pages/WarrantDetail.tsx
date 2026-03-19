@@ -40,6 +40,9 @@ const WarrantDetail = () => {
     const [searchParams, setSearchParams] = useSearchParams();
     const [activeDetailTab, setActiveDetailTab] = useState<'documents' | 'reports' | 'investigation' | 'timeline' | 'ifood'>((searchParams.get('tab') as any) || 'documents');
 
+    const data = useMemo(() => warrants.find(w => w.id === id), [warrants, id]);
+    const [localData, setLocalData] = useState<Partial<Warrant>>({});
+
     // Persistence Effect
     useEffect(() => {
         setSearchParams({ tab: activeDetailTab }, { replace: true });
@@ -115,8 +118,7 @@ const WarrantDetail = () => {
         }
     }, [id, newDiligence, aiDiligenceResult, analyzedDocumentText, chatHistory, localData]);
 
-    const data = useMemo(() => warrants.find(w => w.id === id), [warrants, id]);
-    const [localData, setLocalData] = useState<Partial<Warrant>>({});
+
 
     const hasChanges = useMemo(() => {
         if (!data) return false;
