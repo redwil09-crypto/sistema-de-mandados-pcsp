@@ -93,6 +93,7 @@ const WarrantDetail = () => {
                     if (parsed.aiDiligenceResult) setAiDiligenceResult(parsed.aiDiligenceResult);
                     if (parsed.analyzedDocumentText) setAnalyzedDocumentText(parsed.analyzedDocumentText);
                     if (parsed.chatHistory) setChatHistory(parsed.chatHistory);
+                    if (parsed.localData) setLocalData(parsed.localData);
                 } catch (e) {
                     console.error("Failed to load draft");
                 }
@@ -107,11 +108,12 @@ const WarrantDetail = () => {
                 diligence: newDiligence,
                 aiDiligenceResult,
                 analyzedDocumentText,
-                chatHistory
+                chatHistory,
+                localData
             };
             localStorage.setItem(`warrant_draft_${id}`, JSON.stringify(draft));
         }
-    }, [id, newDiligence, aiDiligenceResult, analyzedDocumentText, chatHistory]);
+    }, [id, newDiligence, aiDiligenceResult, analyzedDocumentText, chatHistory, localData]);
 
     const data = useMemo(() => warrants.find(w => w.id === id), [warrants, id]);
     const [localData, setLocalData] = useState<Partial<Warrant>>({});
@@ -316,18 +318,23 @@ const WarrantDetail = () => {
     }, []);
 
     useEffect(() => {
-        if (data) {
-            setLocalData({
-                ...data,
-                birthDate: formatDate(data.birthDate),
-                issueDate: formatDate(data.issueDate),
-                entryDate: formatDate(data.entryDate),
-                expirationDate: formatDate(data.expirationDate),
-                dischargeDate: formatDate(data.dischargeDate),
-                fulfillmentDetails: data.fulfillmentDetails
-            });
+        if (data && (!localData.id || localData.id !== data.id)) {
+            // Only initialize if we don't have a valid ID or if switching warrants
+            // Check if there's a draft already loaded by the other effect
+            const hasDraft = !!localStorage.getItem(`warrant_draft_${id}`);
+            if (!hasDraft) {
+                setLocalData({
+                    ...data,
+                    birthDate: formatDate(data.birthDate),
+                    issueDate: formatDate(data.issueDate),
+                    entryDate: formatDate(data.entryDate),
+                    expirationDate: formatDate(data.expirationDate),
+                    dischargeDate: formatDate(data.dischargeDate),
+                    fulfillmentDetails: data.fulfillmentDetails
+                });
+            }
         }
-    }, [data]);
+    }, [data, id, localData.id]);
 
 
     // Pre-fill report body when modal opens
@@ -581,6 +588,7 @@ const WarrantDetail = () => {
 
         const success = await updateWarrant(data.id, updates);
         if (success) {
+            localStorage.removeItem(`warrant_draft_${data.id}`);
             toast.success("Alterações salvas com sucesso!", { id: toastId });
         } else {
             toast.error("Erro ao salvar alterações.", { id: toastId });
@@ -589,6 +597,7 @@ const WarrantDetail = () => {
 
     const handleCancelEdits = () => {
         if (data) {
+            localStorage.removeItem(`warrant_draft_${data.id}`);
             setLocalData(data);
             toast.info("Edições descartadas.");
         }
