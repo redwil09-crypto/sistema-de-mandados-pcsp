@@ -40,9 +40,6 @@ const WarrantDetail = () => {
     const [searchParams, setSearchParams] = useSearchParams();
     const [activeDetailTab, setActiveDetailTab] = useState<'documents' | 'reports' | 'investigation' | 'timeline' | 'ifood'>((searchParams.get('tab') as any) || 'documents');
 
-    const data = useMemo(() => warrants.find(w => w.id === id), [warrants, id]);
-    const [localData, setLocalData] = useState<Partial<Warrant>>({});
-
     // Persistence Effect
     useEffect(() => {
         setSearchParams({ tab: activeDetailTab }, { replace: true });
@@ -85,26 +82,42 @@ const WarrantDetail = () => {
     const [aiAnalysisSaved, setAiAnalysisSaved] = useState(false);
     const [isAiReportModalOpen, setIsAiReportModalOpen] = useState(false);
 
-
+    // Load Draft from LocalStorage
+    useEffect(() => {
+        if (id) {
+            const savedDraft = localStorage.getItem(`warrant_draft_${id}`);
+            if (savedDraft) {
+                try {
+                    const parsed = JSON.parse(savedDraft);
+                    if (parsed.diligence) setNewDiligence(parsed.diligence);
+                    if (parsed.aiDiligenceResult) setAiDiligenceResult(parsed.aiDiligenceResult);
+                    if (parsed.analyzedDocumentText) setAnalyzedDocumentText(parsed.analyzedDocumentText);
+                    if (parsed.chatHistory) setChatHistory(parsed.chatHistory);
+                } catch (e) {
+                    console.error("Failed to load draft");
+                }
+            }
+        }
+    }, [id]);
 
     // Save Draft to LocalStorage
     useEffect(() => {
-        if (id && localData.id === id) {
+        if (id) {
             const draft = {
                 diligence: newDiligence,
                 aiDiligenceResult,
                 analyzedDocumentText,
-                chatHistory,
-                localData
+                chatHistory
             };
             localStorage.setItem(`warrant_draft_${id}`, JSON.stringify(draft));
         }
-    }, [id, newDiligence, aiDiligenceResult, analyzedDocumentText, chatHistory, localData]);
+    }, [id, newDiligence, aiDiligenceResult, analyzedDocumentText, chatHistory]);
 
-
+    const data = useMemo(() => warrants.find(w => w.id === id), [warrants, id]);
+    const [localData, setLocalData] = useState<Partial<Warrant>>({});
 
     const hasChanges = useMemo(() => {
-        if (!data || !localData.id) return false;
+        if (!data) return false;
         const fields: (keyof Warrant)[] = [
             'name', 'type', 'rg', 'cpf', 'number', 'crime', 'regime', 'location', 'img', 'priority',
             'ifoodNumber', 'ifoodResult', 'digOffice', 'observation', 'age', 'issuingCourt', 'tacticalSummary', 'fulfillmentDetails',
@@ -303,49 +316,18 @@ const WarrantDetail = () => {
     }, []);
 
     useEffect(() => {
-        if (id && data) {
-            // Check if we are switching warrants or if localData is uninitialized
-            if (localData.id !== id) {
-                // Try Load Draft first
-                const savedDraft = localStorage.getItem(`warrant_draft_${id}`);
-                let loadedFromDraft = false;
-
-                if (savedDraft) {
-                    try {
-                        const parsed = JSON.parse(savedDraft);
-                        if (parsed.localData && parsed.localData.id === id) {
-                            setLocalData(parsed.localData);
-                            if (parsed.diligence) setNewDiligence(parsed.diligence);
-                            if (parsed.aiDiligenceResult) setAiDiligenceResult(parsed.aiDiligenceResult);
-                            if (parsed.analyzedDocumentText) setAnalyzedDocumentText(parsed.analyzedDocumentText);
-                            if (parsed.chatHistory) setChatHistory(parsed.chatHistory);
-                            loadedFromDraft = true;
-                        }
-                    } catch (e) {
-                        console.error("Failed to parse draft");
-                    }
-                }
-
-                // Fallback to official DB data
-                if (!loadedFromDraft) {
-                    setLocalData({
-                        ...data,
-                        birthDate: formatDate(data.birthDate),
-                        issueDate: formatDate(data.issueDate),
-                        entryDate: formatDate(data.entryDate),
-                        expirationDate: formatDate(data.expirationDate),
-                        dischargeDate: formatDate(data.dischargeDate),
-                        fulfillmentDetails: data.fulfillmentDetails
-                    });
-                    // Clear other investigative drafts if no draft found
-                    setNewDiligence('');
-                    setAiDiligenceResult(null);
-                    setAnalyzedDocumentText('');
-                    setChatHistory([]);
-                }
-            }
+        if (data) {
+            setLocalData({
+                ...data,
+                birthDate: formatDate(data.birthDate),
+                issueDate: formatDate(data.issueDate),
+                entryDate: formatDate(data.entryDate),
+                expirationDate: formatDate(data.expirationDate),
+                dischargeDate: formatDate(data.dischargeDate),
+                fulfillmentDetails: data.fulfillmentDetails
+            });
         }
-    }, [data, id, localData.id]);
+    }, [data]);
 
 
     // Pre-fill report body when modal opens
@@ -599,7 +581,6 @@ const WarrantDetail = () => {
 
         const success = await updateWarrant(data.id, updates);
         if (success) {
-            localStorage.removeItem(`warrant_draft_${data.id}`);
             toast.success("Alterações salvas com sucesso!", { id: toastId });
         } else {
             toast.error("Erro ao salvar alterações.", { id: toastId });
@@ -608,7 +589,6 @@ const WarrantDetail = () => {
 
     const handleCancelEdits = () => {
         if (data) {
-            localStorage.removeItem(`warrant_draft_${data.id}`);
             setLocalData(data);
             toast.info("Edições descartadas.");
         }
@@ -2332,10 +2312,10 @@ ${signerName} - DIG / PCSP
                                     onChange={e => handleFieldChange('name', e.target.value)}
                                     placeholder="NOME DO ALVO"
                                 />
-                                <div className="flex items-center gap-2 mt-2 opacity-80">
-                                    <span className="text-base text-text-secondary-dark font-bold font-mono">PROC. Nº</span>
+                                <div className="flex items-center gap-2 mt-1 opacity-70">
+                                    <span className="text-sm text-text-secondary-dark font-medium font-mono">PROC. Nº</span>
                                     <input
-                                        className="text-base text-text-light dark:text-white font-bold font-mono bg-transparent border-none outline-none focus:ring-1 focus:ring-primary/40 rounded px-1.5 py-0.5 transition-all placeholder:text-text-secondary-light/50 dark:placeholder:text-white/20"
+                                        className="text-sm text-text-light dark:text-white font-medium font-mono bg-transparent border-none outline-none focus:ring-1 focus:ring-primary/40 rounded px-1 transition-all placeholder:text-text-secondary-light/50 dark:placeholder:text-white/20"
                                         value={localData.number}
                                         onChange={e => handleFieldChange('number', e.target.value)}
                                         placeholder="0000000-00.0000.0.00.0000"
@@ -2359,21 +2339,24 @@ ${signerName} - DIG / PCSP
                                 </div>
                                 <div className="bg-background-light dark:bg-white/5 border border-border-light dark:border-white/5 p-2 rounded-xl text-center flex flex-col items-center group/field">
                                     <p className="text-[9px] uppercase font-bold text-text-secondary-light dark:text-text-muted mb-0.5 tracking-tighter">Regime Prisional</p>
-                                    <select
-                                        className="w-full bg-transparent border-none text-xs font-black text-text-light dark:text-white outline-none text-center hover:text-primary transition-colors cursor-pointer"
+                                    <input
+                                        list="regime-list-detail"
+                                        className="w-full bg-transparent border-none text-xs font-black text-text-light dark:text-white outline-none text-center hover:text-primary transition-colors"
                                         value={localData.regime || ''}
                                         onChange={e => handleFieldChange('regime', e.target.value)}
-                                    >
-                                        <option value="" className="text-black dark:text-white bg-white dark:bg-slate-900">Não informado</option>
-                                        {availableRegimes.map(opt => <option key={opt} value={opt} className="text-black dark:text-white bg-white dark:bg-slate-900">{opt}</option>)}
-                                        <option value="Contramandado" className="text-black dark:text-white bg-white dark:bg-slate-900">Contramandado</option>
-                                    </select>
+                                        placeholder="Selecione..."
+                                    />
+                                    <datalist id="regime-list-detail">
+                                        {availableRegimes.map(opt => <option key={opt} value={opt} />)}
+                                        <option value="Contramandado" />
+                                    </datalist>
                                 </div>
                                 <div className="bg-background-light dark:bg-white/5 border border-border-light dark:border-white/5 p-2 rounded-xl text-center flex flex-col items-center group/field">
                                     <p className="text-[9px] uppercase font-bold text-text-secondary-light dark:text-text-muted mb-0.5 tracking-tighter">Região DP</p>
                                     <select
-                                        className="w-full bg-transparent border-none text-xs font-black text-text-light dark:text-white outline-none text-center hover:text-primary transition-colors cursor-pointer"
+                                        className="w-full bg-transparent border-none text-xs font-black text-text-light dark:text-white outline-none text-center hover:text-primary transition-colors cursor-pointer appearance-none"
                                         value={localData.dpRegion || ''}
+
                                         onChange={e => handleFieldChange('dpRegion', e.target.value)}
                                     >
                                         <option value="" className="text-black dark:text-white bg-white dark:bg-slate-900">Selecione...</option>
