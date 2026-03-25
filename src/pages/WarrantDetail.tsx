@@ -55,7 +55,7 @@ const WarrantDetail = () => {
         date: new Date().toISOString().split('T')[0],
         reportNumber: '',
         digOffice: '',
-        result: 'Fechado',
+        result: 'PRESO',
         details: ''
     });
 
@@ -2203,7 +2203,7 @@ ${signerName} - DIG / PCSP
                                         if (res === 'NEGATIVO') return 'NEGATIVO';
                                         return 'APREENDIDO';
                                     }
-                                    return res || 'PRESO';
+                                    return (res === 'FECHADO' || !res) ? 'PRESO' : res;
                                 })()}
                             </div>
                             <p className={`text-[8px] sm:text-[10px] ${isSearch ? 'text-orange-600 dark:text-orange-400 bg-orange-500/10' : 'text-emerald-600 dark:text-emerald-400 bg-emerald-500/10'} font-bold text-center mt-1 uppercase tracking-widest rounded py-0.5`}>

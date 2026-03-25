@@ -70,7 +70,7 @@ const WarrantCard = ({ data, onPrint, isPlanned, onRouteToggle, onFinalize, onDe
                                     if (res === 'NEGATIVO') return 'NEGATIVO';
                                     return 'APREENDIDO';
                                 }
-                                return res || 'PRESO';
+                                return (res === 'FECHADO' || !res) ? 'PRESO' : res;
                             })()}
                         </div>
                     </div>
