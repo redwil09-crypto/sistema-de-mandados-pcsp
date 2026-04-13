@@ -385,8 +385,9 @@ ${indent}Atenciosamente,`;
 
         doc.setFont('helvetica', 'bold');
         const sigX = margin + 40; // Mais para a esquerda que o centro
-        doc.text(currentUser?.name || "Luiz Antônio Cunha dos Santos", sigX, signatureNameY, { align: 'left' });
-        doc.text(currentUser?.name ? "Policial Responsável" : "Delegado de Polícia", sigX + 15, signatureTitleY, { align: 'left' });
+        doc.text("Dr. Luiz Antônio Cunha dos Santos", sigX, signatureNameY, { align: 'left' });
+        doc.setFont('helvetica', 'normal');
+        doc.text("Delegado de Polícia", sigX + 15, signatureTitleY, { align: 'left' });
         doc.setFont('helvetica', 'normal');
         doc.text("Ao Ilustríssimo Senhor Responsável", margin, addresseeY);
         doc.setFont('helvetica', 'bold');
