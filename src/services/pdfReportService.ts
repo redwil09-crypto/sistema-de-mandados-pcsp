@@ -593,9 +593,9 @@ export const generateIfoodOfficePDF = async (
 
         const sigX = margin + 40;
         doc.setFont('helvetica', 'bold');
-        doc.text(currentUser?.name || "Luiz Antônio Cunha dos Santos", sigX, y + 5, { align: 'left' });
+        doc.text("Dr. Luiz Antônio Cunha dos Santos", sigX, y + 5, { align: 'left' });
         doc.setFont('helvetica', 'normal');
-        doc.text(currentUser?.name ? "Policial Responsável" : "Delegado de Polícia", sigX + 15, y + 10, { align: 'left' });
+        doc.text("Delegado de Polícia", sigX + 15, y + 10, { align: 'left' });
 
         // --- FOOTER (New Model Style) ---
         const footerY = pageHeight - 15;
