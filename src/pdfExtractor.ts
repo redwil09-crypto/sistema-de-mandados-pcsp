@@ -240,30 +240,30 @@ const extractBirthDate = (text: string): string => {
 };
 
 const extractIssuingCourt = (text: string): string => {
-    // Aumenta o range de busca para 8000 caracteres pois alguns mandados têm cabeçalhos imensos
-    const headerText = text.substring(0, 8000).replace(/\s+/g, ' ');
+    // Limita para 8000 caracteres, mantendo quebras de linha para limites
+    const headerText = text.substring(0, 8000);
 
     const patterns = [
         // 1. Padrão explícito (Label: Valor) - Prioritário
-        /(?:Vara|Juízo|Ofício|Fórum|Comarca|JUÍZO DE DIREITO)[:\s]+([^-\n]+?)(?:\s-|\sProcesso|\sDigital|$)/i,
+        /(?:Vara|Juízo|Ofício|Fórum|Comarca|JUÍZO DE DIREITO)[:\s]+([^-\n]{3,80})(?:\s-|\n|Processo|Digital|$)/i,
 
         // 2. Padrões de Vara Específica no início (ex: "2ª Vara Criminal")
-        /([0-9]+[ªº]?\s+Vara\s+(?:Criminal|Cível|da\s+Família|das\s+Sucessões|do\s+Júri|de\s+Execuções\s+Criminais|da\s+Infância|do\s+Juizado|Única)[^,\-]*)/i,
+        /([0-9]+[ªº]?\s+Vara\s+(?:Criminal|Cível|da\s+Família|das\s+Sucessões|do\s+Júri|de\s+Execuções\s+Criminais|da\s+Infância|do\s+Juizado|Única)[^,\-\n]{0,50})/i,
 
         // 3. Padrão de Tribunal de Justiça (Comum no topo)
-        /TRIBUNAL DE JUSTIÇA DO ESTADO DE SÃO PAULO\s+([A-Z0-9ªº\s]+VARA\s+[A-Z\s]+)/i,
+        /TRIBUNAL DE JUSTIÇA DO ESTADO DE SÃO PAULO\s+([A-Z0-9ªº\s]+VARA\s+[A-Z\s]+?)(?:\n|-|$)/i,
 
         // 4. Foro / Comarca (Fallback se não achar Vara específica)
-        /(?:Foro|Comarca|Fórum)\s+de\s+([a-zA-ZÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑ\s\-]+?)(?:\s[-–]|\sSecretaria|\sEstado|\sJuiz)/i,
+        /(?:Foro|Comarca|Fórum)\s+de\s+([a-zA-ZÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑ\s\-]{3,50}?)(?:\s[-–]|\n|Secretaria|Estado|Juiz)/i,
 
         // 5. Padrão Genérico de Vara (ex: "Vara do Júri")
-        /(Vara\s+(?:do\s+Júri|da\s+Infância|de\s+Execuções|Única|Criminal)[^,\-]*)/i
+        /(Vara\s+(?:do\s+Júri|da\s+Infância|de\s+Execuções|Única|Criminal)[^,\-\n]{0,50})/i
     ];
 
     for (const pattern of patterns) {
         const match = headerText.match(pattern);
         if (match && match[1]) {
-            let court = match[1].trim();
+            let court = match[1].replace(/\s+/g, ' ').trim();
 
             // Limpezas agressivas
             court = court.replace(/TRIBUNAL DE JUSTIÇA.*/i, '')

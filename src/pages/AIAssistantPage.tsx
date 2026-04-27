@@ -434,6 +434,16 @@ const AIAssistantPage = () => {
                 extractedData.type?.toUpperCase().includes('CONTRA MANDADO') ||
                 extractedData.regime?.toLowerCase() === 'contramandado';
 
+            let locationStr = '';
+            let newObservations = extractedData.observations || '';
+            if (extractedData.addresses && extractedData.addresses.length > 0) {
+                locationStr = extractedData.addresses[0];
+                if (extractedData.addresses.length > 1) {
+                    const extraAddresses = extractedData.addresses.slice(1).map((addr: string, idx: number) => `Endereço 0${idx + 2}: ${addr}`).join(' | ');
+                    newObservations = newObservations ? `${newObservations} | ${extraAddresses}` : extraAddresses;
+                }
+            }
+
             const newWarrant: Warrant = {
                 id: warrantId,
                 name: extractedData.name,
@@ -445,7 +455,7 @@ const AIAssistantPage = () => {
                 cpf: extractedData.cpf || '',
                 crime: extractedData.crime || 'Não informado',
                 regime: isContramandado ? 'Contramandado' : (extractedData.regime || 'Não informado'),
-                observation: extractedData.observations || '',
+                observation: newObservations,
                 issueDate: extractedData.issueDate,
                 entryDate: new Date().toLocaleDateString('pt-BR'),
                 expirationDate: extractedData.expirationDate,
@@ -455,7 +465,7 @@ const AIAssistantPage = () => {
                 ifoodDocs: ifoodDocs,
                 tags: [], // Desativado para garantir que apenas as tags manuais do usuário sejam salvas.
                 tacticalSummary: extractedData.tacticalSummary || [],
-                location: extractedData.addresses && extractedData.addresses.length > 0 ? extractedData.addresses.join(' | ') : '',
+                location: locationStr,
                 birthDate: extractedData.birthDate,
                 age: extractedData.age,
                 issuingCourt: extractedData.issuingCourt,
