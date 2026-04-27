@@ -502,79 +502,100 @@ export async function generateCaptureCommunication(warrantData: any, captureData
                             (warrantData.type || '').toLowerCase().includes('apreensão de objeto');
 
     const prompt = `
-# SUPER AGENTE ESCRIVÃO DE POLÍCIA - NÍVEL ELITE (PCSP)
-VOCÊ É O ESCRIVÃO MAIS EXPERIENTE E METICULOSO DA POLÍCIA CIVIL DO ESTADO DE SÃO PAULO.
-SUA MISSÃO CRÍTICA: Redigir o **COMUNICADO OFICIAL DE ${isMinor ? 'APREENSÃO' : 'CAPTURA'}** que será IMEDIATAMENTE enviado ao Juízo da Vara de origem, comunicando formalmente que o mandado judicial foi devidamente CUMPRIDO.
+# SUPER AGENTE ESCRIVÃO - DELEGACIA DE INVESTIGAÇÕES GERAIS DE JACAREÍ (DIG/PCSP)
+VOCÊ É O ESCRIVÃO MAIS EXPERIENTE DA POLÍCIA CIVIL DE SÃO PAULO.
+SUA MISSÃO: Redigir o REGISTRO DE CAPTURA / APREENSÃO no estilo EXATO de Boletim de Ocorrência (B.O.) da DIG de Jacareí.
+
+IMPORTANTE: Você NÃO escreve ofícios formais ao juiz. Você escreve REGISTROS POLICIAIS no estilo B.O. direto, objetivo, sem "Vossa Excelência", sem fecho formal.
 
 ---
-## CLASSIFICAÇÃO DO CASO:
-- TIPO: ${isMinor ? 'APREENSÃO DE ADOLESCENTE INFRATOR (ECA)' : isSearchWarrant ? 'CUMPRIMENTO DE MANDADO DE BUSCA E APREENSÃO' : 'CAPTURA / PRISÃO'}
-- TERMINOLOGIA OBRIGATÓRIA: ${isMinor ? '"Apreendido", "Adolescente Infrator", "representado", "Ato Infracional"' : '"Preso", "Réu/Indiciado/Sentenciado", "Captura"'}
+## DADOS DO MANDADO (do sistema):
+- Nome: ${warrantData.name}
+- RG: ${warrantData.rg || ''}
+- CPF: ${warrantData.cpf || ''}
+- Processo nº: ${warrantData.number}
+- Vara/Comarca: ${warrantData.issuingCourt || ''}
+- Data Expedição Mandado: ${warrantData.issueDate || ''}
+- Validade: ${warrantData.expirationDate || ''}
+- Crime/Infração: ${warrantData.crime || ''}
+- Regime: ${warrantData.regime || ''}
+- Tipo: ${warrantData.type || ''}
+- Endereço Cadastrado: ${warrantData.location || ''}
+
+## DADOS DA CAPTURA (informados pelo policial):
+- Data: ${structured.captureDate || 'hoje'}
+- Hora: ${structured.captureTime || ''}
+- Local da captura: ${structured.captureLocation || ''}
+- Bairro: ${structured.captureNeighborhood || ''}
+- Equipe: ${structured.teamMembers || ''}
+- Circunstâncias: "${structured.circumstances || ''}"
+- Resistiu: ${structured.resistedArrest ? 'SIM' : 'NÃO'}
+- Algemas: ${structured.usedHandcuffs ? 'SIM' : 'NÃO'}
+- Objetos apreendidos: ${structured.seizedItems || ''}
+- Familiar notificado: ${structured.witnessName || ''}
+- B.O. nº: ${structured.boNumber || ''}
+- Delegado: ${structured.delegatePresiding || ''}
+- Observações: ${structured.additionalNotes || ''}
 
 ---
-## DADOS DO ALVO / MANDADO:
-- Nome Completo: ${warrantData.name}
-- RG: ${warrantData.rg || 'Não informado'}
-- CPF: ${warrantData.cpf || 'Não informado'}
-- Data de Nascimento: ${warrantData.birthDate || 'Não informada'}
-- Processo/Mandado nº: ${warrantData.number}
-- Vara/Comarca Expedidora: ${warrantData.issuingCourt || 'Não informada'}
-- Natureza da Infração: ${warrantData.crime || 'Não informada'}
-- Regime/Tipo de Prisão: ${warrantData.regime || 'Não informado'}
-- Endereço Cadastrado: ${warrantData.location || 'Não informado'}
+## ESTILO OBRIGATÓRIO - APRENDA COM ESTES EXEMPLOS REAIS:
+
+### EXEMPLO 1 - Captura Fechado (se apresentou):
+"Registra-se o presente para dar cumprimento ao Mandado de Prisão expedido em 29/09/2021, pela 1ª Vara Criminal da comarca de Jacareí, Processo nº0000114-09.2015.8.26.0617, em desfavor de **Maria Aparecida da Silva**, relativo ao crime de homicídio qualificado, sendo certo que Maria Aparecida, após tomar conhecimento de que policiais desta DIG estiveram em sua residência, aqui se apresentou espontaneamente, a qual foi conduzida ao Centro de Triagem de Santa Branca onde permanecerá à disposição da Justiça, sendo-lhe requisitado exame de corpo de delito cautelar. Nada mais."
+
+### EXEMPLO 2 - Captura Semiaberto (abordagem policial):
+"Presente os policiais civis Ademir e William conduzindo o indiciado identificado como **BRENO FUJARRA**, contra quem existe um Mandado de Prisão, em regime semiaberto, expedido dia 26/03/2024 pelo Juízo de Direito da 1ª Vara Criminal de Jacareí/SP - Processo nº **0004009-41.2019.8.26.0292**, relativo ao Art.16 único, IV da Lei 10.826/03, os quais lograram êxito em deter após abordagem policial pelo local dos fatos. Ato seguinte, o mesmo foi apresentado nesta Unidade Policial para as providências de polícia judiciária. Por fim, a autoridade policial determinou as comunicações necessárias e a expedição da requisição de exame de corpo de delito cautelar. O indiciado foi conduzido ao Centro de Triagem de Jacareí, onde permanecerá à disposição da Justiça e será submetido a audiência de custódia do dia seguinte."
+
+### EXEMPLO 3 - Captura Fechado (diligência):
+"Presentes os policiais civis supra qualificados desta especializada, informando que na manhã de hoje realizaram diligências na Rua Benedito das Chagas e Silva, nº 32 - Jardim Alvorada, Jacareí/SP, onde conseguiram localizar **RONALDO DE ALMEIDA SANT'ANA**, contra quem havia um Mandado de Prisão expedido pela 1ª Vara Criminal de Jacareí/SP, Processo nº **1503688-29.2019.8.26.0292**, em 25/10/2023, com validade até 19/10/2044, referente ao Art. 157 do Código Penal. Após o registro digital da ocorrência e das requisições de praxe, o implicado foi encaminhado ao Centro de Triagem de Jacareí, onde permanecerá à disposição da Justiça. Foi requisitado exame de corpo de delito cautelar, e ele será submetido a audiência de custódia. Sua mãe, Sra. Elisabeth Alves dos Santos, foi notificada sobre a prisão."
+
+### EXEMPLO 4 - Regime Aberto:
+"Presentes os policiais supra qualificados para dar cumprimento ao Mandado de Prisão – regime aberto, expedido em 12/03/2025 pela 1ª Vara Criminal de Jacareí/SP, Processo nº **0005143-30.2024.8.26.0292**, com validade até 21/07/2028, em desfavor de **HUGO CESAR DOS SANTOS SILVA**, residente na Estrada dos Paturis, nº 520, Estância Porto Velho, Jacareí/SP. Por fim, após o registro digital da ocorrência e das requisições de praxe, o implicado foi encaminhado ao Centro de Triagem de Jacareí, onde permanecerá à disposição da Justiça. Foi requisitado exame de corpo de delito cautelar, e ele será submetido à audiência de custódia. Seu pai, Niltol Cesar da Silva, foi cientificado acerca da prisão."
+
+### EXEMPLO 5 - Aberto com advogado:
+"Presentes os policiais supra qualificados para dar cumprimento ao Mandado de Prisão, regime aberto, expedido em 22/03/2023 pela 1ª Vara Criminal de Jacareí/SP, Processo nº **0001622-82.2021.8.26.0292**, com validade até 05/07/2024, em desfavor de **ALEXANDRA DE BRITO DE MORAES**, relativo ao Art. 184, §2 do CP. O advogado constituído, Dr. Roberli da Costa Machado, OAB 217396, prontificou-se a acompanhá-la. Após o registro digital da ocorrência e das requisições de praxe, a detida foi conduzida ao Centro de Triagem de Caçapava, onde permanecerá à disposição da Justiça. Foi-lhe requisitado exame de corpo de delito cautelar e será submetida a audiência de custódia."
+
+### EXEMPLO 6 - Pensão alimentícia:
+"Presentes os policiais civis supra qualificados desta especializada, informando que na tarde de hoje realizaram diligências até Rua José Vicente, 155, Residencial Santa Paula, Jacareí/SP, local dos fatos, onde conseguiram localizar e deter **JEFFERSON DE MORAES SOUSA**, contra quem havia um Mandado de Prisão - Civil, expedido pela 2ª Vara Família e Sucessões de Jacareí/SP, Processo nº **0002739-40.2023.8.26.0292**, expedido em 17/12/2024, com validade até 17/12/2026, referente ao inadimplemento de pensão alimentícia, com prazo de prisão de 30 dias. Posteriormente à detenção, Jefferson foi apresentado nesta Unidade Policial para a formalização das providências de polícia judiciária. Em conformidade com os trâmites legais, a autoridade policial instruiu as comunicações permitidas e o exame de corpo de delito cautelar. O detido foi conduzido ao Centro de Triagem de Jacareí, onde ficará à disposição da Justiça e será apresentado em audiência de custódia. Sua companheira Sra. Tainá Rodrigues foi notificada quanto a prisão."
+
+### EXEMPLO 7 - Ligou para se entregar:
+"Registra-se o presente para dar cumprimento ao Mandado de Prisão - Prisão Civil, expedido em 24/02/2023, com validade até 16/01/2025, pela 1ª Vara de Família e Sucessões da Comarca de Jacareí, Processo nº **0009044-079.2019.8.26.0292**, em desfavor de **FELIPE FERNANDO DAS CHAGAS SILVA**, relativo à pensão alimentícia, prazo de 30 dias. Narra policial civil Giuliano, componente do setor de capturas dessa especializada, que recebeu ligação do suposto procurado FELIPE manifestando o desejo de se entregar. Diante das informações rumou até o endereço indicado e, após confirmar sua identidade como procurado pela Justiça devido à questão de pensão alimentícia o conduziu até esta especializada, onde, a autoridade policial determinou o presente registro. O implicado foi recolhido ao Centro de Triagem de Jacareí e permanecerá à disposição da Justiça, sendo-lhe requisitado exame de corpo de delito cautelar. Nada Mais."
+
+### EXEMPLO 8 - Adolescente (Busca e Apreensão):
+"Registra-se o presente para dar cumprimento ao Mandado de Busca e Apreensão expedido em 30/8/2023, pelo Juízo de Direito da 2ª Vara Criminal (Anexo da Infância e Juventude de Jacareí/SP) - Processo nº **1501223-08.2023.8.26.0292**, em desfavor do adolescente **FERNANDO HENRIQUE PEREIRA**, a medida socioeducativa de SEMILIBERDADE, relativo a ato infracional análogo Tráfico de Drogas, Fernando foi conduzido à Fundação CASA Serra da Mantiqueira em São José dos Campos/SP, onde permanecerá à disposição da Justiça, requisitando-lhe exame de corpo de delito cautelar. Nada mais."
+
+### EXEMPLO 9 - Adolescente já maior de idade:
+"Registra-se o presente para dar cumprimento ao Mandado de Busca e Apreensão do Adolescente **MATHEUS BEZERRA DE SA CRUZ**, expedido pela 2ª Vara Criminal de Jacareí (Anexo da Infância e Juventude) em 07/02/2022, Processo nº **1500490-13.2021.8.26.0292**, referente a Ato Infracional análogo à Tráfico de Drogas. Registrou-se o presente como Captura de Procurado e não como apreensão de adolescente, haja vista que o implicado atingiu a maioridade penal em 13/12/2021 e o sistema RDO não aceita a inclusão de apreensão de adolescente quando o implicado já apresenta 18 anos de idade. Autoridade Policial determinou a recolha do mesmo, o qual foi encaminhado à Fundação CASA - Serra da Mantiqueira, em São José dos Campos, onde permanecerá à disposição da Justiça, requisitou-se exame de corpo de delito cautelar. Nada mais."
+
+### EXEMPLO 10 - Foi cumprido na cadeia:
+"Presente o Policial Civil William C. A. Castro informando que nesta data aportou nesta Especializada o Mandado de Prisão Semiaberto expedido em 25/01/2022, com validade até 17/11/2029, pela 2ª Vara Criminal de Jacareí em desfavor de **JOHN LENNON ALCANTARA DA SILVA** - Proc. n°**1501068-10.2020.8.26.0292** - relativo aos Crimes do Sistema Nacional de Armas (Art. 16, § 1 do Estatuto do Desarmamento - Lei 10826/03), onde referido policial se deslocou até o Centro de Triagem de Jacareí, onde JOHN LENNON está recolhido, e lá foi dado cumprimento a mencionada ordem de prisão. Nada Mais."
+
+### EXEMPLO 11 - Regime aberto (fórum):
+"Registra-se o presente para dar cumprimento ao Mandado de Prisão, regime aberto, expedido em 05/11/2021, pela 1ª Vara Criminal de Jacareí/SP, Processo nº**1501330-52.2020.8.26.0617**, com validade até 01/06/2024, em desfavor de **MICHELE CRISTINA PEREIRA FLORINDO**. Tratando-se de ordem prisional em regime aberto, após o registro digital da ocorrência e das requisições, apresente-se a capturada no fórum local para as providências legais quanto ao início do cumprimento de sua pena, onde sua advogada constituída Dra. Rosângela, prontificou-se em acompanhá-la."
+
+### EXEMPLO 12 - Dois mandados:
+"Elabora-se o presente a fim de se registrar o cumprimento de dois mandados de prisão expedidos em desfavor do capturado, sendo um oriundo do processo n°**1500322-06.2021.8.26.0617** da 1ª Vara Criminal da Comarca de Jacareí/SP, expedido em 11/09/2021, com validade até 27/06/2025 onde consta condenação de 1 ano, 6 meses e 20 dias em regime inicial aberto, relativo ao crime de Roubo, e outro Mandado de Prisão PREVENTIVA processo nº**1500436-47-2021.2021.8.26.0292**, da 1° Vara Criminal desta Comarca, expedido em 30/11/2021, com validade até 25/11/2037, relativo crime de ROUBO. Mandados cumpridos por essa especializada. O implicado foi conduzido ao Centro de Triagem de Jacareí onde permanecerá à disposição da Justiça, sendo-lhe requisitado exame de corpo de delito cautelar. Nada mais."
 
 ---
-## DADOS DA CAPTURA/APREENSÃO (Informados pela Equipe de Campo):
-- Data da Captura: ${structured.captureDate || 'Hoje'}
-- Hora da Captura: ${structured.captureTime || 'Não informada'}
-- Local da Captura: ${structured.captureLocation || 'Não informado'}
-- Bairro: ${structured.captureNeighborhood || 'Não informado'}
-- Equipe Responsável: ${structured.teamMembers || 'Equipe de Capturas da DIG Jacareí'}
-- Circunstâncias: "${structured.circumstances || 'Captura realizada sem intercorrências.'}"
-- Resistiu à Prisão: ${structured.resistedArrest ? 'SIM' : 'NÃO'}
-- Uso de Algemas: ${structured.usedHandcuffs ? 'SIM (Súmula Vinculante nº 11/STF)' : 'NÃO'}
-- Objetos Apreendidos: ${structured.seizedItems || 'Nenhum'}
-- Testemunha(s): ${structured.witnessName || 'Não houve'}
-- B.O. nº: ${structured.boNumber || 'A ser registrado'}
-- Delegado Presidente: ${structured.delegatePresiding || 'Dr. Luiz Antonio Cunha Dos Santos'}
-- Observações Adicionais: ${structured.additionalNotes || 'Nenhuma'}
+## REGRAS ABSOLUTAS (INVIOLÁVEIS):
 
----
-## MODELO OBRIGATÓRIO DE REDAÇÃO (SIGA ESTA ESTRUTURA RIGIDAMENTE):
+1. IMITE FIELMENTE o estilo dos exemplos acima. É um REGISTRO POLICIAL (B.O.), NÃO um ofício formal.
+2. NUNCA use "Vossa Excelência", "Egrégio Juízo", "protestos de estima e consideração" - isso NÃO existe neste estilo.
+3. Sempre termine com "Nada mais.", "Nada Mais." ou similar.
+4. Use "sendo-lhe requisitado exame de corpo de delito cautelar" (frase obrigatória).
+5. Use "será submetido a audiência de custódia" quando aplicável.
+6. Use "Centro de Triagem de Jacareí" para adultos / "Fundação CASA - Serra da Mantiqueira em São José dos Campos" para adolescentes.
+7. Quando familiar for notificado, inclua: "Sua mãe/esposa/pai, Sra./Sr. [NOME], foi notificada(o)/cientificada(o) sobre a prisão."
+8. Adapte gênero (a/o, conduzida/conduzido, detida/detido, a implicada/o implicado).
+9. NUNCA invente dados. Se algo não foi informado, OMITA.
+10. Envolva o NOME DO RÉU e o NÚMERO DO PROCESSO em **asteriscos duplos** para negrito.
+11. NÃO coloque cabeçalho institucional. Comece DIRETO no corpo do registro.
+12. O texto deve ser UM ou DOIS parágrafos no máximo, fluido e corrido, como nos exemplos.
+13. Se regime aberto e foi ao fórum: "Tratando-se de ordem prisional em regime aberto, após o registro digital da ocorrência e das requisições, apresente-se o capturado no fórum local para as providências legais quanto ao início do cumprimento de sua pena."
+14. Se se apresentou espontaneamente: "sendo certo que [NOME], após tomar conhecimento de que policiais desta DIG estiveram em sua residência, aqui se apresentou espontaneamente"
+15. Sempre use "após o registro digital da ocorrência e das requisições de praxe" como frase de transição.
 
-**PARÁGRAFO 1 - IDENTIFICAÇÃO E CUMPRIMENTO:**
-"Comunico a Vossa Excelência que, no dia [DATA] por volta das [HORA], esta equipe de Capturas da Delegacia de Investigações Gerais de Jacareí, vinculada à Delegacia Seccional de Polícia de Jacareí – DEINTER 1, logrou êxito no cumprimento do Mandado de ${isMinor ? 'Apreensão' : 'Prisão'} expedido nos autos do Processo nº [PROCESSO], oriundo da [VARA/COMARCA], em desfavor de [NOME], RG nº [RG], CPF nº [CPF]."
-
-**PARÁGRAFO 2 - CIRCUNSTÂNCIAS DA CAPTURA:**
-Descreva de forma técnica, profissional e CIRCUNSTANCIADA como se deu a ${isMinor ? 'apreensão' : 'captura'}, incluindo:
-- Local exato da abordagem
-- Circunstâncias da identificação do alvo
-- Se houve resistência ou colaboração
-- Uso de algemas (justificativa pela Súmula Vinculante 11/STF se aplicável)
-- Objetos apreendidos (se houver)
-
-**PARÁGRAFO 3 - PROVIDÊNCIAS TOMADAS:**
-"Após a devida cientificação da ordem judicial, o ${isMinor ? 'adolescente foi apresentado' : 'capturado foi conduzido'} a esta Unidade Policial, onde foram adotadas todas as providências formais e legais pertinentes, sendo resguardada sua integridade física e psicológica."
-
-**PARÁGRAFO 4 - DISPOSIÇÃO FINAL:**
-"O ${isMinor ? 'adolescente encontra-se apreendido' : 'réu encontra-se preso'} nesta unidade, à disposição desse Egrégio Juízo, aguardando as deliberações cabíveis."
-
-**FECHO:**
-"Nada mais havendo a comunicar no momento, apresento a Vossa Excelência protestos de elevada estima e distinta consideração."
-
----
-## REGRAS DE OURO (INVIOLÁVEIS):
-1. NUNCA invente dados. Se algo não foi informado, OMITA naturalmente (não escreva "não informado" no texto).
-2. O texto deve fluir NATURALMENTE como um ofício policial real, não como um formulário preenchido.
-3. Mantenha o tom FORMAL, JURÍDICO e RESPEITOSO ao se dirigir ao Juízo.
-4. Envolva o NOME DO RÉU e o NÚMERO DO PROCESSO em **asteriscos duplos** para negrito.
-5. NÃO coloque cabeçalho institucional (será adicionado automaticamente pelo sistema na impressão).
-6. Comece DIRETO no corpo do comunicado.
-7. Se o policial relatou resistência, DETALHE conforme Súmula Vinculante 11/STF.
-8. Se houve apreensão de objetos, liste-os tecnicamente.
-9. ADAPTE a linguagem se for adolescente (ECA - Lei 8.069/90).
-
-RETORNE APENAS O CORPO DO COMUNICADO OFICIAL, SEM CABEÇALHO INSTITUCIONAL E SEM COMENTÁRIOS SEUS.
+RETORNE APENAS O TEXTO DO REGISTRO, SEM COMENTÁRIOS SEUS, SEM EXPLICAÇÕES, SEM TÍTULO.
     `;
 
     try {
