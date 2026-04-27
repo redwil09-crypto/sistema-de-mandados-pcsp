@@ -264,15 +264,26 @@ const AIAssistantPage = () => {
             try {
                 const data = await extractFromText(text, "Comando de Voz");
                 const isDuplicate = warrants.some(w => w.number === data.processNumber);
-                // Check for Contramandado
                 const isContramandado = data.type?.toUpperCase().includes('CONTRAMANDADO') || data.type?.toUpperCase().includes('CONTRA MANDADO');
+
+                let locationStr = '';
+                let newObservations = data.observations || '';
+                if (data.addresses && Array.isArray(data.addresses) && data.addresses.length > 0) {
+                    locationStr = data.addresses[0];
+                    if (data.addresses.length > 1) {
+                        const extraAddresses = data.addresses.slice(1).map((addr: string, idx: number) => `Endereço 0${idx + 2}: ${addr}`).join(' | ');
+                        newObservations = newObservations ? `${newObservations} | ${extraAddresses}` : extraAddresses;
+                    }
+                }
 
                 setBatchResults([{
                     ...data,
                     status: isContramandado ? 'CUMPRIDO' : 'EM ABERTO',
                     regime: isContramandado ? 'Contramandado' : data.regime,
                     isDuplicate,
-                    tags: data.autoPriority || []
+                    tags: data.autoPriority || [],
+                    addresses: locationStr ? [locationStr] : [],
+                    observations: newObservations
                 }]);
                 setCurrentIndex(0);
                 setStep('review');
@@ -321,8 +332,17 @@ const AIAssistantPage = () => {
                     const data = await extractPdfData(f);
                     // Anti-duplicity check
                     const isDuplicate = warrants.some(w => w.number === data.processNumber);
-                    // Check for Contramandado
                     const isContramandado = data.type?.toUpperCase().includes('CONTRAMANDADO') || data.type?.toUpperCase().includes('CONTRA MANDADO');
+
+                    let locationStr = '';
+                    let newObservations = data.observations || '';
+                    if (data.addresses && Array.isArray(data.addresses) && data.addresses.length > 0) {
+                        locationStr = data.addresses[0];
+                        if (data.addresses.length > 1) {
+                            const extraAddresses = data.addresses.slice(1).map((addr: string, idx: number) => `Endereço 0${idx + 2}: ${addr}`).join(' | ');
+                            newObservations = newObservations ? `${newObservations} | ${extraAddresses}` : extraAddresses;
+                        }
+                    }
 
                     const formattedData = {
                         ...data,
@@ -332,7 +352,9 @@ const AIAssistantPage = () => {
                         tags: data.autoPriority || [],
                         birthDate: formatDate(data.birthDate),
                         issueDate: formatDate(data.issueDate),
-                        expirationDate: formatDate(data.expirationDate)
+                        expirationDate: formatDate(data.expirationDate),
+                        addresses: locationStr ? [locationStr] : [],
+                        observations: newObservations
                     };
                     results.push(formattedData);
                 } catch (error: any) {
@@ -358,8 +380,17 @@ const AIAssistantPage = () => {
         try {
             const data = await extractFromText(inputText, "Texto via Transferência");
             const isDuplicate = warrants.some(w => w.number === data.processNumber);
-            // Check for Contramandado
             const isContramandado = data.type?.toUpperCase().includes('CONTRAMANDADO') || data.type?.toUpperCase().includes('CONTRA MANDADO');
+
+            let locationStr = '';
+            let newObservations = data.observations || '';
+            if (data.addresses && Array.isArray(data.addresses) && data.addresses.length > 0) {
+                locationStr = data.addresses[0];
+                if (data.addresses.length > 1) {
+                    const extraAddresses = data.addresses.slice(1).map((addr: string, idx: number) => `Endereço 0${idx + 2}: ${addr}`).join(' | ');
+                    newObservations = newObservations ? `${newObservations} | ${extraAddresses}` : extraAddresses;
+                }
+            }
 
             const formattedData = {
                 ...data,
@@ -369,7 +400,9 @@ const AIAssistantPage = () => {
                 tags: data.autoPriority || [],
                 birthDate: formatDate(data.birthDate),
                 issueDate: formatDate(data.issueDate),
-                expirationDate: formatDate(data.expirationDate)
+                expirationDate: formatDate(data.expirationDate),
+                addresses: locationStr ? [locationStr] : [],
+                observations: newObservations
             };
             setBatchResults([formattedData]);
             setCurrentIndex(0);
@@ -434,16 +467,6 @@ const AIAssistantPage = () => {
                 extractedData.type?.toUpperCase().includes('CONTRA MANDADO') ||
                 extractedData.regime?.toLowerCase() === 'contramandado';
 
-            let locationStr = '';
-            let newObservations = extractedData.observations || '';
-            if (extractedData.addresses && extractedData.addresses.length > 0) {
-                locationStr = extractedData.addresses[0];
-                if (extractedData.addresses.length > 1) {
-                    const extraAddresses = extractedData.addresses.slice(1).map((addr: string, idx: number) => `Endereço 0${idx + 2}: ${addr}`).join(' | ');
-                    newObservations = newObservations ? `${newObservations} | ${extraAddresses}` : extraAddresses;
-                }
-            }
-
             const newWarrant: Warrant = {
                 id: warrantId,
                 name: extractedData.name,
@@ -455,7 +478,7 @@ const AIAssistantPage = () => {
                 cpf: extractedData.cpf || '',
                 crime: extractedData.crime || 'Não informado',
                 regime: isContramandado ? 'Contramandado' : (extractedData.regime || 'Não informado'),
-                observation: newObservations,
+                observation: extractedData.observations || '',
                 issueDate: extractedData.issueDate,
                 entryDate: new Date().toLocaleDateString('pt-BR'),
                 expirationDate: extractedData.expirationDate,
@@ -465,7 +488,7 @@ const AIAssistantPage = () => {
                 ifoodDocs: ifoodDocs,
                 tags: [], // Desativado para garantir que apenas as tags manuais do usuário sejam salvas.
                 tacticalSummary: extractedData.tacticalSummary || [],
-                location: locationStr,
+                location: (extractedData.addresses && extractedData.addresses.length > 0) ? extractedData.addresses[0] : '',
                 birthDate: extractedData.birthDate,
                 age: extractedData.age,
                 issuingCourt: extractedData.issuingCourt,
