@@ -86,6 +86,24 @@ const NewWarrant = () => {
     }, [formData.location, showSuggestions]);
 
     useEffect(() => {
+        const storageKey = `unsaved_warrant_${editId || 'new'}`;
+        const savedData = localStorage.getItem(storageKey);
+
+        if (savedData) {
+            try {
+                const parsed = JSON.parse(savedData);
+                if (parsed.formData) {
+                    setFormData(parsed.formData);
+                    if (parsed.type) setType(parsed.type);
+                    if (parsed.photoPreview) setPhotoPreview(parsed.photoPreview);
+                    toast.info("Rascunho não salvo restaurado!");
+                    return;
+                }
+            } catch (e) {
+                console.error("Erro ao carregar rascunho", e);
+            }
+        }
+
         if (editId && warrants) {
             const existing = warrants.find(w => w.id === editId);
             if (existing) {
@@ -128,6 +146,13 @@ const NewWarrant = () => {
             }
         }
     }, [editId, warrants]);
+
+    useEffect(() => {
+        if (formData.name || formData.number || formData.location) {
+            const storageKey = `unsaved_warrant_${editId || 'new'}`;
+            localStorage.setItem(storageKey, JSON.stringify({ formData, type, photoPreview }));
+        }
+    }, [formData, type, photoPreview, editId]);
 
     const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -395,6 +420,7 @@ const NewWarrant = () => {
                 const result = await updateWarrant(editId, warrantData);
                 if (result) {
                     toast.success("Mandado atualizado com sucesso!");
+                    localStorage.removeItem(`unsaved_warrant_${editId}`);
                     navigate(`/warrant-detail/${editId}`);
                 } else {
                     toast.error("Falha ao atualizar no servidor.");
@@ -408,6 +434,7 @@ const NewWarrant = () => {
                 const { success, error, id } = await addWarrant(newWarrant);
                 if (success) {
                     toast.success("Mandado salvo com sucesso!");
+                    localStorage.removeItem('unsaved_warrant_new');
                     // Ensure the route accepts the newly generated DB true ID to avoid mismatched URL 
                     navigate(id ? `/warrant-detail/${id}` : '/warrant-list');
                 } else {
