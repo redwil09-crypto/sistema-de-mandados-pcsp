@@ -243,40 +243,60 @@ const extractIssuingCourt = (text: string): string => {
     // Limita para 8000 caracteres, mantendo quebras de linha para limites
     const headerText = text.substring(0, 8000);
 
-    const patterns = [
-        // 1. Padrão explícito (Label: Valor) - Prioritário
-        /(?:Vara|Juízo|Ofício|Fórum|Comarca|JUÍZO DE DIREITO)[:\s]+([^-\n]{3,80})(?:\s-|\n|Processo|Digital|$)/i,
+    let court = '';
+    let vara = '';
+    let comarca = '';
 
-        // 2. Padrões de Vara Específica no início (ex: "2ª Vara Criminal")
+    // Tentar extrair Vara
+    const varaPatterns = [
+        /(?:Vara|Juízo|Ofício|JUÍZO DE DIREITO)[:\s]+([^-\n]{3,80})(?:\s-|\n|Processo|Digital|$)/i,
         /([0-9]+[ªº]?\s+Vara\s+(?:Criminal|Cível|da\s+Família|das\s+Sucessões|do\s+Júri|de\s+Execuções\s+Criminais|da\s+Infância|do\s+Juizado|Única)[^,\-\n]{0,50})/i,
-
-        // 3. Padrão de Tribunal de Justiça (Comum no topo)
         /TRIBUNAL DE JUSTIÇA DO ESTADO DE SÃO PAULO\s+([A-Z0-9ªº\s]+VARA\s+[A-Z\s]+?)(?:\n|-|$)/i,
-
-        // 4. Foro / Comarca (Fallback se não achar Vara específica)
-        /(?:Foro|Comarca|Fórum)\s+de\s+([a-zA-ZÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑ\s\-]{3,50}?)(?:\s[-–]|\n|Secretaria|Estado|Juiz)/i,
-
-        // 5. Padrão Genérico de Vara (ex: "Vara do Júri")
         /(Vara\s+(?:do\s+Júri|da\s+Infância|de\s+Execuções|Única|Criminal)[^,\-\n]{0,50})/i
     ];
 
-    for (const pattern of patterns) {
+    for (const pattern of varaPatterns) {
         const match = headerText.match(pattern);
         if (match && match[1]) {
-            let court = match[1].replace(/\s+/g, ' ').trim();
+            vara = match[1].replace(/\s+/g, ' ').trim();
+            break;
+        }
+    }
 
-            // Limpezas agressivas
-            court = court.replace(/TRIBUNAL DE JUSTIÇA.*/i, '')
-                .replace(/ESTADO DE SÃO PAULO.*/i, '')
-                .replace(/JUIZ DE DIREITO.*/i, '')
-                .replace(/SECRETARIA.*/i, '')
-                .replace(/Processo Digital.*/i, '')
-                .replace(/[.:;]+$/, '')
-                .trim();
+    // Tentar extrair Comarca/Foro
+    const comarcaPatterns = [
+        /(?:Foro|Comarca|Fórum)[:\s]+([^-\n]{3,50})(?:\s-|\n|Processo|Digital|Vara|$)/i,
+        /(?:Foro|Comarca|Fórum)\s+de\s+([a-zA-ZÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑ\s\-]{3,50}?)(?:\s[-–]|\n|Secretaria|Estado|Juiz|Vara)/i
+    ];
 
-            if (court.length > 3 && court.length < 120) {
-                return court.toUpperCase();
-            }
+    for (const pattern of comarcaPatterns) {
+        const match = headerText.match(pattern);
+        if (match && match[1]) {
+            comarca = match[1].replace(/\s+/g, ' ').trim();
+            break;
+        }
+    }
+
+    if (vara) {
+        court = vara;
+        if (comarca && !court.toLowerCase().includes(comarca.toLowerCase())) {
+            court += ` DA COMARCA DE ${comarca}`;
+        }
+    } else if (comarca) {
+        court = comarca;
+    }
+
+    if (court) {
+        court = court.replace(/TRIBUNAL DE JUSTIÇA.*/i, '')
+            .replace(/ESTADO DE SÃO PAULO.*/i, '')
+            .replace(/JUIZ DE DIREITO.*/i, '')
+            .replace(/SECRETARIA.*/i, '')
+            .replace(/Processo Digital.*/i, '')
+            .replace(/[.:;]+$/, '')
+            .trim();
+
+        if (court.length > 3 && court.length < 120) {
+            return court.toUpperCase();
         }
     }
 

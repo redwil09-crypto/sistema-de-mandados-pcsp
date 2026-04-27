@@ -23,10 +23,11 @@ import { formatDate, getStatusColor, maskDate } from '../utils/helpers';
 import { applyAutocorrect } from '../utils/autocorrect';
 import { Warrant } from '../types';
 import { geocodeAddress } from '../services/geocodingService';
-import { generateWarrantPDF, generateIfoodOfficePDF } from '../services/pdfReportService';
+import { generateWarrantPDF, generateIfoodOfficePDF, generateCaptureCommunicationPDF } from '../services/pdfReportService';
 import IfoodReportModal from '../components/IfoodReportModal';
 import FloatingDock from '../components/FloatingDock';
-import { analyzeRawDiligence, generateReportBody, analyzeDocumentStrategy, askAssistantStrategy, mergeIntelligence, inferDPRegion } from '../services/geminiService';
+import { analyzeRawDiligence, generateReportBody, generateCaptureCommunication, analyzeDocumentStrategy, askAssistantStrategy, mergeIntelligence, inferDPRegion } from '../services/geminiService';
+import type { CaptureFormData } from '../services/geminiService';
 import { extractPdfData } from '../services/pdfExtractionService';
 import { extractRawTextFromPdf, extractFromText } from '../pdfExtractor';
 import { useWarrants } from '../contexts/WarrantContext';
@@ -164,6 +165,25 @@ const WarrantDetail = () => {
         delegate: 'Dr. Luiz Antonio Cunha Dos Santos',
         aiInstructions: ''
     });
+
+    const [isArrestModalOpen, setIsArrestModalOpen] = useState(false);
+    const [arrestFormData, setArrestFormData] = useState<CaptureFormData>({
+        captureDate: new Date().toISOString().split('T')[0],
+        captureTime: '',
+        captureLocation: '',
+        captureNeighborhood: '',
+        teamMembers: '',
+        circumstances: '',
+        resistedArrest: false,
+        usedHandcuffs: true,
+        seizedItems: '',
+        witnessName: '',
+        boNumber: '',
+        delegatePresiding: 'Dr. Luiz Antonio Cunha Dos Santos',
+        additionalNotes: ''
+    });
+    const [arrestGeneratedText, setArrestGeneratedText] = useState('');
+    const [isGeneratingArrestReport, setIsGeneratingArrestReport] = useState(false);
 
     const getSuggestedReportNumber = async (isGlobal: boolean = false): Promise<string> => {
         const { data: { user } } = await supabase.auth.getUser();
@@ -462,6 +482,66 @@ const WarrantDetail = () => {
         } finally {
             setIsGeneratingAiReport(false);
         }
+    };
+
+    const handleOpenArrestModal = () => {
+        setArrestFormData({
+            captureDate: new Date().toISOString().split('T')[0],
+            captureTime: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+            captureLocation: localData.location || data?.location || '',
+            captureNeighborhood: '',
+            teamMembers: '',
+            circumstances: '',
+            resistedArrest: false,
+            usedHandcuffs: true,
+            seizedItems: '',
+            witnessName: '',
+            boNumber: '',
+            delegatePresiding: 'Dr. Luiz Antonio Cunha Dos Santos',
+            additionalNotes: ''
+        });
+        setArrestGeneratedText('');
+        setIsArrestModalOpen(true);
+    };
+
+    const handleGenerateArrestText = async () => {
+        if (!arrestFormData.circumstances) {
+            toast.warning("Descreva as circunstâncias da captura antes de gerar.");
+            return;
+        }
+        setIsGeneratingArrestReport(true);
+        const toastId = toast.loading("🤖 Super Agente Escrivão redigindo Comunicado...");
+        try {
+            const currentData = { ...data, ...localData } as Warrant & Partial<Warrant>;
+            const result = await generateCaptureCommunication(currentData, arrestFormData);
+            setArrestGeneratedText(result);
+            toast.success("Comunicado gerado com sucesso!", { id: toastId });
+        } catch (e) {
+            console.error(e);
+            toast.error("Erro na geração.", { id: toastId });
+        } finally {
+            setIsGeneratingArrestReport(false);
+        }
+    };
+
+    const handlePrintArrestPDF = async () => {
+        if (!arrestGeneratedText || !data) {
+            toast.warning("Gere o comunicado primeiro.");
+            return;
+        }
+        const currentData = { ...data, ...localData } as Warrant & Partial<Warrant>;
+        await generateCaptureCommunicationPDF(
+            currentData,
+            arrestGeneratedText,
+            {
+                captureDate: arrestFormData.captureDate,
+                captureTime: arrestFormData.captureTime,
+                captureLocation: arrestFormData.captureLocation,
+                delegatePresiding: arrestFormData.delegatePresiding,
+                boNumber: arrestFormData.boNumber
+            },
+            updateWarrant
+        );
     };
 
     const handleFieldChange = (field: keyof Warrant, value: any) => {
@@ -3142,9 +3222,14 @@ ${signerName} - DIG / PCSP
                                             <p className="text-[10px] text-text-muted font-bold uppercase">Gerador de Relatórios Oficiais</p>
                                         </div>
                                     </div>
-                                    <button onClick={handleOpenCapturasModal} className="bg-primary hover:bg-primary-dark text-white px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest shadow-tactic transition-all active:scale-95 flex items-center gap-2">
-                                        <Sparkles size={16} /> NOVO RELATÓRIO
-                                    </button>
+                                    <div className="flex gap-2">
+                                        <button onClick={handleOpenArrestModal} className="bg-green-600 hover:bg-green-700 text-white px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest shadow-tactic transition-all active:scale-95 flex items-center gap-2">
+                                            <CheckCircle size={16} /> COMUNICADO DE CAPTURA
+                                        </button>
+                                        <button onClick={handleOpenCapturasModal} className="bg-primary hover:bg-primary-dark text-white px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest shadow-tactic transition-all active:scale-95 flex items-center gap-2">
+                                            <Sparkles size={16} /> RELATÓRIO DE INVESTIGAÇÃO
+                                        </button>
+                                    </div>
                                 </div>
 
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -3527,6 +3612,146 @@ ${signerName} - DIG / PCSP
             <ConfirmModal isOpen={isReopenConfirmOpen} onCancel={() => setIsReopenConfirmOpen(false)} onConfirm={handleConfirmReopen} title="Reabrir Prontuário" message="Confirmar reabertura do status para 'EM ABERTO'?" confirmText="Reabrir" cancelText="Cancelar" variant="primary" />
             <ConfirmModal isOpen={isDeleteConfirmOpen} onCancel={() => setIsDeleteConfirmOpen(false)} onConfirm={handleConfirmDelete} title="Excluir Alvo" message="Deseja remover PERMANENTEMENTE este registro? Esta ação é irreversível." confirmText="Excluir" cancelText="Cancelar" variant="danger" />
             <ConfirmModal isOpen={isExitConfirmOpen} onCancel={() => setIsExitConfirmOpen(false)} onConfirm={() => { setIsExitConfirmOpen(false); navigate('/'); }} title="Alterações não salvas" message="Você possui alterações que ainda não foram sincronizadas. Deseja realmente sair e descartar o que foi feito?" confirmText="Sair e Descartar" cancelText="Continuar aqui" variant="danger" />
+
+            {
+                isArrestModalOpen && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-300">
+                        <div className="bg-surface-light dark:bg-surface-dark border border-border-light dark:border-white/10 rounded-3xl w-full max-w-3xl max-h-[92vh] overflow-hidden flex flex-col shadow-tactic">
+                            {/* Header */}
+                            <div className="p-5 border-b border-border-light dark:border-white/10 flex justify-between items-center bg-gradient-to-r from-green-900/30 to-emerald-900/10">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 rounded-xl bg-green-500/20 flex items-center justify-center text-green-400 border border-green-500/30">
+                                        <Siren size={20} />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-lg font-black uppercase tracking-tighter text-text-light dark:text-white">Super Agente Escrivão</h3>
+                                        <p className="text-[10px] text-green-400 font-bold uppercase tracking-widest">Comunicado de Captura / Apreensão com IA</p>
+                                    </div>
+                                </div>
+                                <button onClick={() => setIsArrestModalOpen(false)} className="p-2 text-text-secondary-light dark:text-text-muted hover:text-text-light dark:hover:text-white rounded-lg hover:bg-white/10 transition-all"><X size={24} /></button>
+                            </div>
+                            
+                            <div className="flex-1 overflow-y-auto p-6 space-y-5 scrollbar-none">
+                                {/* Dados resumidos do alvo */}
+                                <div className="bg-green-500/5 border border-green-500/20 rounded-2xl p-4">
+                                    <p className="text-[10px] font-black text-green-400 uppercase tracking-widest mb-2">Dados do Mandado</p>
+                                    <div className="grid grid-cols-2 gap-2 text-xs text-text-light dark:text-white">
+                                        <span><strong>Réu:</strong> {data.name}</span>
+                                        <span><strong>Processo:</strong> {data.number}</span>
+                                        <span><strong>Crime:</strong> {data.crime || 'N/I'}</span>
+                                        <span><strong>Vara:</strong> {localData.issuingCourt || data.issuingCourt || 'N/I'}</span>
+                                    </div>
+                                </div>
+
+                                {/* Formulário estruturado */}
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] font-black text-text-muted uppercase tracking-widest">Data da Captura</label>
+                                        <input type="date" className="w-full bg-background-light dark:bg-white/5 border border-border-light dark:border-white/10 rounded-xl p-2.5 text-sm text-text-light dark:text-white" value={arrestFormData.captureDate} onChange={e => setArrestFormData(p => ({...p, captureDate: e.target.value}))} />
+                                    </div>
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] font-black text-text-muted uppercase tracking-widest">Hora da Captura</label>
+                                        <input type="time" className="w-full bg-background-light dark:bg-white/5 border border-border-light dark:border-white/10 rounded-xl p-2.5 text-sm text-text-light dark:text-white" value={arrestFormData.captureTime} onChange={e => setArrestFormData(p => ({...p, captureTime: e.target.value}))} />
+                                    </div>
+                                    <div className="space-y-1 col-span-2">
+                                        <label className="text-[10px] font-black text-text-muted uppercase tracking-widest">Local da Captura (Endereço)</label>
+                                        <input type="text" className="w-full bg-background-light dark:bg-white/5 border border-border-light dark:border-white/10 rounded-xl p-2.5 text-sm text-text-light dark:text-white" placeholder="Rua, nº, Bairro, Cidade" value={arrestFormData.captureLocation} onChange={e => setArrestFormData(p => ({...p, captureLocation: e.target.value}))} />
+                                    </div>
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] font-black text-text-muted uppercase tracking-widest">Equipe de Campo</label>
+                                        <input type="text" className="w-full bg-background-light dark:bg-white/5 border border-border-light dark:border-white/10 rounded-xl p-2.5 text-sm text-text-light dark:text-white" placeholder="Nomes dos policiais" value={arrestFormData.teamMembers} onChange={e => setArrestFormData(p => ({...p, teamMembers: e.target.value}))} />
+                                    </div>
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] font-black text-text-muted uppercase tracking-widest">B.O. nº</label>
+                                        <input type="text" className="w-full bg-background-light dark:bg-white/5 border border-border-light dark:border-white/10 rounded-xl p-2.5 text-sm text-text-light dark:text-white" placeholder="Número do B.O." value={arrestFormData.boNumber} onChange={e => setArrestFormData(p => ({...p, boNumber: e.target.value}))} />
+                                    </div>
+                                </div>
+
+                                {/* Toggles */}
+                                <div className="flex gap-4">
+                                    <label className="flex items-center gap-2 cursor-pointer bg-background-light dark:bg-white/5 border border-border-light dark:border-white/10 rounded-xl px-4 py-2.5 flex-1">
+                                        <input type="checkbox" className="w-4 h-4 rounded accent-red-500" checked={arrestFormData.resistedArrest} onChange={e => setArrestFormData(p => ({...p, resistedArrest: e.target.checked}))} />
+                                        <span className="text-xs font-bold text-text-light dark:text-white">Resistiu à prisão</span>
+                                    </label>
+                                    <label className="flex items-center gap-2 cursor-pointer bg-background-light dark:bg-white/5 border border-border-light dark:border-white/10 rounded-xl px-4 py-2.5 flex-1">
+                                        <input type="checkbox" className="w-4 h-4 rounded accent-amber-500" checked={arrestFormData.usedHandcuffs} onChange={e => setArrestFormData(p => ({...p, usedHandcuffs: e.target.checked}))} />
+                                        <span className="text-xs font-bold text-text-light dark:text-white">Uso de algemas (SV 11)</span>
+                                    </label>
+                                </div>
+
+                                {/* Objetos e testemunhas */}
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] font-black text-text-muted uppercase tracking-widest">Objetos Apreendidos</label>
+                                        <input type="text" className="w-full bg-background-light dark:bg-white/5 border border-border-light dark:border-white/10 rounded-xl p-2.5 text-sm text-text-light dark:text-white" placeholder="Celular, drogas, arma..." value={arrestFormData.seizedItems} onChange={e => setArrestFormData(p => ({...p, seizedItems: e.target.value}))} />
+                                    </div>
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] font-black text-text-muted uppercase tracking-widest">Delegado Presidente</label>
+                                        <select className="w-full bg-background-light dark:bg-white/5 border border-border-light dark:border-white/10 rounded-xl p-2.5 text-sm text-text-light dark:text-white appearance-none" value={arrestFormData.delegatePresiding} onChange={e => setArrestFormData(p => ({...p, delegatePresiding: e.target.value}))}>
+                                            <option value="Dr. Luiz Antonio Cunha Dos Santos" className="bg-surface-light dark:bg-surface-dark">Dr. Luiz Antonio Cunha Dos Santos</option>
+                                            <option value="Dr. Raian Brega De Araujo" className="bg-surface-light dark:bg-surface-dark">Dr. Raian Brega De Araujo</option>
+                                            <option value="Dr. Rodrigo Mambeli de Mendonça" className="bg-surface-light dark:bg-surface-dark">Dr. Rodrigo Mambeli de Mendonça</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                {/* Circunstâncias - campo principal */}
+                                <div className="space-y-1">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-[lime]">Circunstâncias da Captura (Campo Principal para a IA)</label>
+                                    <textarea 
+                                        className="w-full bg-background-light dark:bg-white/5 border border-border-light dark:border-lime-500/30 rounded-xl p-3 text-sm text-text-light dark:text-white min-h-[80px] focus:ring-1 focus:ring-lime-500" 
+                                        placeholder="Ex: Alvo foi avistado saindo da residência da genitora no Jd. Paraíso. Abordagem rápida, não resistiu. Portava um celular Samsung com registro de furto..." 
+                                        value={arrestFormData.circumstances} 
+                                        onChange={e => setArrestFormData(p => ({...p, circumstances: e.target.value}))} 
+                                    />
+                                </div>
+                                
+                                {/* Botão Gerar */}
+                                <button 
+                                    onClick={handleGenerateArrestText} 
+                                    disabled={isGeneratingArrestReport}
+                                    className="w-full py-3.5 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white rounded-xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 shadow-lg shadow-green-600/20 transition-all active:scale-[0.98]"
+                                >
+                                    {isGeneratingArrestReport ? <RefreshCw size={14} className="animate-spin" /> : <Bot size={14} />} 
+                                    {isGeneratingArrestReport ? 'SUPER AGENTE PROCESSANDO...' : '🤖 GERAR COMUNICADO OFICIAL COM IA'}
+                                </button>
+
+                                {/* Resultado */}
+                                {arrestGeneratedText && (
+                                    <div className="space-y-3 mt-2">
+                                        <div className="flex items-center justify-between">
+                                            <label className="text-[10px] font-black uppercase tracking-widest text-indigo-400">Comunicado Gerado (Editável)</label>
+                                            <span className="text-[9px] text-green-400 font-bold bg-green-500/10 px-2 py-1 rounded-full border border-green-500/20">✓ PRONTO</span>
+                                        </div>
+                                        <textarea 
+                                            className="w-full bg-background-light dark:bg-white/5 border border-border-light dark:border-indigo-500/20 rounded-xl p-4 text-sm leading-relaxed text-text-light dark:text-white min-h-[200px] font-serif focus:ring-1 focus:ring-indigo-500" 
+                                            value={arrestGeneratedText} 
+                                            onChange={e => setArrestGeneratedText(e.target.value)} 
+                                        />
+                                        <div className="grid grid-cols-2 gap-3">
+                                            <button 
+                                                onClick={() => {
+                                                    navigator.clipboard.writeText(arrestGeneratedText);
+                                                    toast.success("Texto copiado para a área de transferência!");
+                                                }}
+                                                className="py-3 border border-border-light dark:border-white/10 text-text-light dark:text-white rounded-xl font-black text-[10px] uppercase flex justify-center items-center gap-2 hover:bg-white/5 transition-all"
+                                            >
+                                                <Copy size={14} /> COPIAR TEXTO
+                                            </button>
+                                            <button 
+                                                onClick={handlePrintArrestPDF}
+                                                className="py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-black text-[10px] uppercase flex justify-center items-center gap-2 shadow-lg shadow-indigo-600/20 transition-all active:scale-[0.98]"
+                                            >
+                                                <Printer size={14} /> IMPRIMIR PDF OFICIAL
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                )
+            }
 
             {
                 isCapturasModalOpen && (

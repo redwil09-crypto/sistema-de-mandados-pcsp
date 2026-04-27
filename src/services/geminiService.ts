@@ -267,7 +267,7 @@ export async function extractFullWarrantIntelligence(rawText: string): Promise<a
             "type": "MANDADO DE PRISÃO" ou "BUSCA E APREENSÃO",
             "crime": "NOME DO CRIME TRADUZIDO (Ex: Roubo)",
             "regime": "Fechado / Semiaberto / Aberto / Preventiva / Temporária / Civil",
-            "issuingCourt": "VARA E COMARCA POR EXTENSO (Ex: 1ª VARA CRIMINAL DE JACAREÍ)",
+            "issuingCourt": "NOME COMPLETO DA VARA E COMARCA",
             "addresses": ["Endereço 1", "Endereço 2", "etc - SEPARAR EM MÚLTIPLOS ITENS SE HOUVER MAIS DE UM, NUNCA CONCATENAR EM UMA SÓ STRING"],
             "issueDate": "AAAA-MM-DD",
             "expirationDate": "AAAA-MM-DD",
@@ -314,7 +314,7 @@ export async function extractWarrantFromImage(base64Image: string, mimeType: str
             "type": "MANDADO DE PRISÃO", "BUSCA E APREENSÃO" ou "CONTRAMANDADO DE PRISÃO",
             "crime": "NOME DO CRIME TRADUZIDO (Ex: Roubo)",
             "regime": "Fechado / Semiaberto / Aberto / Preventiva / Temporária / Civil / Contramandado",
-            "issuingCourt": "VARA E COMARCA POR EXTENSO",
+            "issuingCourt": "NOME COMPLETO DA VARA E COMARCA",
             "addresses": ["Endereço 1", "Endereço 2", "etc - SEPARAR EM MÚLTIPLOS ITENS SE HOUVER MAIS DE UM, NUNCA CONCATENAR EM UMA SÓ STRING"],
             "issueDate": "AAAA-MM-DD",
             "expirationDate": "AAAA-MM-DD",
@@ -454,6 +454,138 @@ export async function generateReportBody(warrantData: any, rawContent: string, i
         return `Erro ao processar: ${error.message}`;
     }
 }
+
+export interface CaptureFormData {
+    captureDate: string;
+    captureTime: string;
+    captureLocation: string;
+    captureNeighborhood: string;
+    teamMembers: string;
+    circumstances: string;
+    resistedArrest: boolean;
+    usedHandcuffs: boolean;
+    seizedItems: string;
+    witnessName: string;
+    boNumber: string;
+    delegatePresiding: string;
+    additionalNotes: string;
+}
+
+export async function generateCaptureCommunication(warrantData: any, captureData: CaptureFormData | string) {
+    if (!(await isGeminiEnabled())) return "IA indisponível. Cadastre a API Key nas configurações.";
+
+    // Backward compatibility: if string is passed, convert to structured format
+    const structured: CaptureFormData = typeof captureData === 'string' 
+        ? {
+            captureDate: new Date().toISOString().split('T')[0],
+            captureTime: '',
+            captureLocation: '',
+            captureNeighborhood: '',
+            teamMembers: '',
+            circumstances: captureData,
+            resistedArrest: false,
+            usedHandcuffs: true,
+            seizedItems: '',
+            witnessName: '',
+            boNumber: '',
+            delegatePresiding: 'Dr. Luiz Antonio Cunha Dos Santos',
+            additionalNotes: ''
+        }
+        : captureData;
+
+    const isMinor = (warrantData.type || '').toLowerCase().includes('menores') || 
+                    (warrantData.type || '').toLowerCase().includes('adolescente') ||
+                    (warrantData.type || '').toLowerCase().includes('ato infracional') ||
+                    (warrantData.type || '').toLowerCase().includes('apreensão');
+    
+    const isSearchWarrant = (warrantData.type || '').toLowerCase().includes('busca') ||
+                            (warrantData.type || '').toLowerCase().includes('apreensão de objeto');
+
+    const prompt = `
+# SUPER AGENTE ESCRIVÃO DE POLÍCIA - NÍVEL ELITE (PCSP)
+VOCÊ É O ESCRIVÃO MAIS EXPERIENTE E METICULOSO DA POLÍCIA CIVIL DO ESTADO DE SÃO PAULO.
+SUA MISSÃO CRÍTICA: Redigir o **COMUNICADO OFICIAL DE ${isMinor ? 'APREENSÃO' : 'CAPTURA'}** que será IMEDIATAMENTE enviado ao Juízo da Vara de origem, comunicando formalmente que o mandado judicial foi devidamente CUMPRIDO.
+
+---
+## CLASSIFICAÇÃO DO CASO:
+- TIPO: ${isMinor ? 'APREENSÃO DE ADOLESCENTE INFRATOR (ECA)' : isSearchWarrant ? 'CUMPRIMENTO DE MANDADO DE BUSCA E APREENSÃO' : 'CAPTURA / PRISÃO'}
+- TERMINOLOGIA OBRIGATÓRIA: ${isMinor ? '"Apreendido", "Adolescente Infrator", "representado", "Ato Infracional"' : '"Preso", "Réu/Indiciado/Sentenciado", "Captura"'}
+
+---
+## DADOS DO ALVO / MANDADO:
+- Nome Completo: ${warrantData.name}
+- RG: ${warrantData.rg || 'Não informado'}
+- CPF: ${warrantData.cpf || 'Não informado'}
+- Data de Nascimento: ${warrantData.birthDate || 'Não informada'}
+- Processo/Mandado nº: ${warrantData.number}
+- Vara/Comarca Expedidora: ${warrantData.issuingCourt || 'Não informada'}
+- Natureza da Infração: ${warrantData.crime || 'Não informada'}
+- Regime/Tipo de Prisão: ${warrantData.regime || 'Não informado'}
+- Endereço Cadastrado: ${warrantData.location || 'Não informado'}
+
+---
+## DADOS DA CAPTURA/APREENSÃO (Informados pela Equipe de Campo):
+- Data da Captura: ${structured.captureDate || 'Hoje'}
+- Hora da Captura: ${structured.captureTime || 'Não informada'}
+- Local da Captura: ${structured.captureLocation || 'Não informado'}
+- Bairro: ${structured.captureNeighborhood || 'Não informado'}
+- Equipe Responsável: ${structured.teamMembers || 'Equipe de Capturas da DIG Jacareí'}
+- Circunstâncias: "${structured.circumstances || 'Captura realizada sem intercorrências.'}"
+- Resistiu à Prisão: ${structured.resistedArrest ? 'SIM' : 'NÃO'}
+- Uso de Algemas: ${structured.usedHandcuffs ? 'SIM (Súmula Vinculante nº 11/STF)' : 'NÃO'}
+- Objetos Apreendidos: ${structured.seizedItems || 'Nenhum'}
+- Testemunha(s): ${structured.witnessName || 'Não houve'}
+- B.O. nº: ${structured.boNumber || 'A ser registrado'}
+- Delegado Presidente: ${structured.delegatePresiding || 'Dr. Luiz Antonio Cunha Dos Santos'}
+- Observações Adicionais: ${structured.additionalNotes || 'Nenhuma'}
+
+---
+## MODELO OBRIGATÓRIO DE REDAÇÃO (SIGA ESTA ESTRUTURA RIGIDAMENTE):
+
+**PARÁGRAFO 1 - IDENTIFICAÇÃO E CUMPRIMENTO:**
+"Comunico a Vossa Excelência que, no dia [DATA] por volta das [HORA], esta equipe de Capturas da Delegacia de Investigações Gerais de Jacareí, vinculada à Delegacia Seccional de Polícia de Jacareí – DEINTER 1, logrou êxito no cumprimento do Mandado de ${isMinor ? 'Apreensão' : 'Prisão'} expedido nos autos do Processo nº [PROCESSO], oriundo da [VARA/COMARCA], em desfavor de [NOME], RG nº [RG], CPF nº [CPF]."
+
+**PARÁGRAFO 2 - CIRCUNSTÂNCIAS DA CAPTURA:**
+Descreva de forma técnica, profissional e CIRCUNSTANCIADA como se deu a ${isMinor ? 'apreensão' : 'captura'}, incluindo:
+- Local exato da abordagem
+- Circunstâncias da identificação do alvo
+- Se houve resistência ou colaboração
+- Uso de algemas (justificativa pela Súmula Vinculante 11/STF se aplicável)
+- Objetos apreendidos (se houver)
+
+**PARÁGRAFO 3 - PROVIDÊNCIAS TOMADAS:**
+"Após a devida cientificação da ordem judicial, o ${isMinor ? 'adolescente foi apresentado' : 'capturado foi conduzido'} a esta Unidade Policial, onde foram adotadas todas as providências formais e legais pertinentes, sendo resguardada sua integridade física e psicológica."
+
+**PARÁGRAFO 4 - DISPOSIÇÃO FINAL:**
+"O ${isMinor ? 'adolescente encontra-se apreendido' : 'réu encontra-se preso'} nesta unidade, à disposição desse Egrégio Juízo, aguardando as deliberações cabíveis."
+
+**FECHO:**
+"Nada mais havendo a comunicar no momento, apresento a Vossa Excelência protestos de elevada estima e distinta consideração."
+
+---
+## REGRAS DE OURO (INVIOLÁVEIS):
+1. NUNCA invente dados. Se algo não foi informado, OMITA naturalmente (não escreva "não informado" no texto).
+2. O texto deve fluir NATURALMENTE como um ofício policial real, não como um formulário preenchido.
+3. Mantenha o tom FORMAL, JURÍDICO e RESPEITOSO ao se dirigir ao Juízo.
+4. Envolva o NOME DO RÉU e o NÚMERO DO PROCESSO em **asteriscos duplos** para negrito.
+5. NÃO coloque cabeçalho institucional (será adicionado automaticamente pelo sistema na impressão).
+6. Comece DIRETO no corpo do comunicado.
+7. Se o policial relatou resistência, DETALHE conforme Súmula Vinculante 11/STF.
+8. Se houve apreensão de objetos, liste-os tecnicamente.
+9. ADAPTE a linguagem se for adolescente (ECA - Lei 8.069/90).
+
+RETORNE APENAS O CORPO DO COMUNICADO OFICIAL, SEM CABEÇALHO INSTITUCIONAL E SEM COMENTÁRIOS SEUS.
+    `;
+
+    try {
+        const text = await tryGenerateContent(prompt);
+        return text.trim();
+    } catch (error: any) {
+        console.error("Erro no Super Agente Escrivão:", error);
+        return "Erro ao redigir o comunicado: " + error.message;
+    }
+}
+
 
 export async function analyzeWarrantData(text: string) {
     if (!(await isGeminiEnabled())) return null;

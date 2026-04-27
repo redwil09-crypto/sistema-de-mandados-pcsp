@@ -959,3 +959,298 @@ export const generateCapturasReportPDF = async (
         toast.error("Erro ao gerar relatório de capturas.");
     }
 };
+
+/**
+ * GERADOR DE PDF - COMUNICADO DE CAPTURA / APREENSÃO
+ * Gera um documento PDF oficial com cabeçalho institucional PCSP
+ * para comunicar a captura/apreensão ao Juízo de origem
+ */
+export const generateCaptureCommunicationPDF = async (
+    data: Warrant,
+    communicationBody: string,
+    captureMetadata: {
+        captureDate: string;
+        captureTime: string;
+        captureLocation: string;
+        delegatePresiding: string;
+        boNumber: string;
+    },
+    onUpdate?: (id: string, updates: Partial<Warrant>) => Promise<boolean>
+) => {
+    if (!data || !communicationBody) {
+        toast.error("Dados insuficientes para gerar o PDF.");
+        return;
+    }
+
+    try {
+        const doc = new jsPDF();
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const pageHeight = doc.internal.pageSize.getHeight();
+        const margin = 20;
+        const contentWidth = pageWidth - (margin * 2);
+        let y = 20;
+
+        const isMinor = (data.type || '').toLowerCase().includes('menores') ||
+                        (data.type || '').toLowerCase().includes('adolescente') ||
+                        (data.type || '').toLowerCase().includes('ato infracional');
+
+        // --- HEADER (Institutional) ---
+        try {
+            const badgePC = new Image();
+            badgePC.src = './brasao_pcsp_nova.png';
+
+            await new Promise((resolve) => {
+                badgePC.onload = () => resolve(true);
+                badgePC.onerror = () => {
+                    badgePC.src = './brasao_pcsp_colorido.png';
+                    badgePC.onload = () => resolve(true);
+                    badgePC.onerror = () => resolve(false);
+                }
+            });
+
+            const imgProps = doc.getImageProperties(badgePC);
+            const badgeH = 25;
+            const badgeW = (imgProps.width * badgeH) / imgProps.height;
+
+            doc.addImage(badgePC, 'PNG', margin, y, badgeW, badgeH);
+
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(9);
+            doc.setTextColor(0, 0, 0);
+            const textX = margin + badgeW + 5;
+            const headerLines = [
+                "SECRETARIA DA SEGURANÇA PÚBLICA",
+                "POLÍCIA CIVIL DO ESTADO DE SÃO PAULO",
+                "DEPARTAMENTO DE POLÍCIA JUDICIÁRIA DE SÃO PAULO INTERIOR",
+                "DEINTER 1 - SÃO JOSÉ DOS CAMPOS",
+                "DELEGACIA SECCIONAL DE POLÍCIA DE JACAREÍ",
+                "DELEGACIA DE INVESTIGAÇÕES GERAIS DE JACAREÍ"
+            ];
+
+            headerLines.forEach((line, index) => {
+                doc.text(line, textX, y + 4 + (index * 4));
+            });
+
+            doc.setLineWidth(0.5);
+            doc.line(margin, y + badgeH + 5, pageWidth - margin, y + badgeH + 5);
+            y += badgeH + 12;
+        } catch (e) {
+            console.error("Badge load error", e);
+            y += 30;
+        }
+
+        // --- TITLE BAR ---
+        const titleColor: [number, number, number] = isMinor ? [180, 83, 9] : [22, 101, 52]; // amber-700 / green-800
+        doc.setFillColor(...titleColor);
+        doc.rect(margin, y, contentWidth, 8, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(12);
+        const titleText = isMinor ? "COMUNICADO DE APREENSÃO" : "COMUNICADO DE CAPTURA";
+        doc.text(titleText, pageWidth / 2, y + 5.8, { align: 'center' });
+        doc.setTextColor(0, 0, 0);
+        y += 14;
+
+        // --- METADATA ---
+        doc.setFontSize(10);
+        const today = new Date();
+        const months = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+        const dateStr = `Jacareí, ${today.getDate()} de ${months[today.getMonth()]} de ${today.getFullYear()}.`;
+
+        doc.setFont('helvetica', 'italic');
+        doc.text(dateStr, margin, y);
+        y += 8;
+
+        // Reference data block
+        const metaFields = [
+            { label: "Referência:", value: `Processo nº ${data.number}` },
+            { label: "Juízo de Direito:", value: data.issuingCourt || 'Vara Criminal de Jacareí/SP' },
+            { label: isMinor ? "Adolescente:" : "Réu:", value: data.name },
+            { label: "Natureza:", value: data.crime || data.type || 'Cumprimento de Mandado' }
+        ];
+
+        if (captureMetadata.boNumber) {
+            metaFields.push({ label: "B.O. nº:", value: captureMetadata.boNumber });
+        }
+
+        metaFields.forEach(field => {
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(10);
+            const labelText = field.label + " ";
+            doc.text(labelText, margin, y);
+
+            const labelWidth = doc.getTextWidth(labelText);
+            doc.setFont('helvetica', 'bolditalic');
+            const valueLines = doc.splitTextToSize(field.value, contentWidth - labelWidth - 5);
+            doc.text(valueLines, margin + labelWidth, y);
+            y += (valueLines.length * 5) + 2;
+        });
+
+        y += 6;
+
+        // --- Addressee ---
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(10);
+        doc.text("Excelentíssimo(a) Senhor(a) Juiz(a) de Direito:", margin, y);
+        y += 12;
+
+        // --- BODY TEXT with Bold Support ---
+        doc.setFont('times', 'normal');
+        doc.setFontSize(11);
+
+        // Rich text renderer (handles **bold** markers)
+        const renderRichBody = (text: string) => {
+            const paragraphs = text.split('\n');
+            
+            paragraphs.forEach(paragraph => {
+                if (!paragraph.trim()) {
+                    y += 4;
+                    return;
+                }
+
+                // Split by bold markers
+                const segments = paragraph.split(/(\*\*.*?\*\*)/g);
+                let currentLine = '';
+                let lineSegments: { text: string; bold: boolean }[] = [];
+
+                segments.forEach(segment => {
+                    const isBold = segment.startsWith('**') && segment.endsWith('**');
+                    const cleanText = isBold ? segment.slice(2, -2) : segment;
+                    if (!cleanText) return;
+
+                    // Check if adding this would overflow the line
+                    const testLine = currentLine + cleanText;
+                    doc.setFont('times', isBold ? 'bold' : 'normal');
+                    
+                    const words = cleanText.split(' ');
+                    words.forEach((word, wIdx) => {
+                        const separator = wIdx > 0 ? ' ' : '';
+                        const testWidth = doc.getTextWidth(currentLine + separator + word);
+                        
+                        if (testWidth > contentWidth && currentLine.length > 0) {
+                            // Flush current line
+                            let xPos = margin;
+                            lineSegments.forEach(seg => {
+                                doc.setFont('times', seg.bold ? 'bold' : 'normal');
+                                doc.text(seg.text, xPos, y);
+                                xPos += doc.getTextWidth(seg.text);
+                            });
+                            y += 5;
+                            
+                            if (y > pageHeight - 25) {
+                                doc.addPage();
+                                y = 20;
+                            }
+                            
+                            currentLine = '';
+                            lineSegments = [];
+                        }
+                        
+                        currentLine += separator + word;
+                        
+                        if (lineSegments.length > 0 && lineSegments[lineSegments.length - 1].bold === isBold) {
+                            lineSegments[lineSegments.length - 1].text += separator + word;
+                        } else {
+                            lineSegments.push({ text: (lineSegments.length > 0 ? separator : '') + word, bold: isBold });
+                        }
+                    });
+                });
+
+                // Flush remaining line
+                if (lineSegments.length > 0) {
+                    let xPos = margin;
+                    lineSegments.forEach(seg => {
+                        doc.setFont('times', seg.bold ? 'bold' : 'normal');
+                        doc.text(seg.text, xPos, y);
+                        xPos += doc.getTextWidth(seg.text);
+                    });
+                    y += 6;
+                }
+
+                if (y > pageHeight - 25) {
+                    doc.addPage();
+                    y = 20;
+                }
+            });
+        };
+
+        // Clean markdown artifacts from AI output
+        const cleanBody = communicationBody
+            .replace(/^#+\s*/gm, '') // Remove headers
+            .replace(/^\s*[-*]\s+/gm, '• ') // Convert lists to bullets
+            .trim();
+
+        renderRichBody(cleanBody);
+
+        // --- SIGNATURE BLOCK ---
+        y += 20;
+        if (y > pageHeight - 50) {
+            doc.addPage();
+            y = 30;
+        }
+
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(10);
+        
+        // Signature line
+        const sigCenterX = pageWidth / 2;
+        doc.setDrawColor(0);
+        doc.setLineWidth(0.3);
+        doc.line(sigCenterX - 50, y, sigCenterX + 50, y);
+        y += 5;
+
+        doc.setFont('helvetica', 'bold');
+        doc.text(captureMetadata.delegatePresiding || 'Dr. Luiz Antonio Cunha Dos Santos', sigCenterX, y, { align: 'center' });
+        y += 5;
+        doc.setFont('helvetica', 'normal');
+        doc.text("Delegado de Polícia", sigCenterX, y, { align: 'center' });
+        y += 4;
+        doc.setFontSize(8);
+        doc.text("Delegacia de Investigações Gerais de Jacareí", sigCenterX, y, { align: 'center' });
+
+        // --- FOOTER ---
+        const totalPages = (doc as any).internal.getNumberOfPages();
+        for (let i = 1; i <= totalPages; i++) {
+            doc.setPage(i);
+
+            const footerY = pageHeight - 15;
+            doc.setDrawColor(200, 200, 200);
+            doc.setLineWidth(0.1);
+            doc.line(margin, footerY - 5, pageWidth - margin, footerY - 5);
+
+            doc.setFontSize(7);
+            doc.setFont('helvetica', 'normal');
+            doc.setTextColor(120, 120, 120);
+
+            doc.text("Rua Moisés Ruston, 370, Parque Itamaraty, Jacareí-SP, CEP 12.307-260", margin, footerY);
+            doc.text(`Tel: (12) 3951-1000 | dig.jacarei@policiacivil.sp.gov.br`, margin, footerY + 4);
+            
+            const now = new Date().toLocaleString('pt-BR');
+            doc.text(`Gerado em: ${now} | Página ${i} de ${totalPages}`, pageWidth - margin, footerY + 4, { align: 'right' });
+
+            doc.setTextColor(0, 0, 0);
+        }
+
+        // --- SAVE & UPLOAD ---
+        const captureType = isMinor ? 'Apreensao' : 'Captura';
+        const fileName = `Comunicado_${captureType}_${data.name.replace(/[^a-zA-Z0-9.-]/g, '_')}.pdf`;
+        doc.save(fileName);
+        toast.success(`Comunicado de ${isMinor ? 'Apreensão' : 'Captura'} gerado com sucesso!`);
+
+        if (onUpdate) {
+            const pdfBlob = doc.output('blob');
+            const pdfFile = new File([pdfBlob], fileName, { type: 'application/pdf' });
+            const path = `reports/${data.id}/${Date.now()}_${fileName}`;
+            const uploadedPath = await uploadFile(pdfFile, path);
+            if (uploadedPath) {
+                const url = getPublicUrl(uploadedPath);
+                const currentAttachments = data.attachments || [];
+                await onUpdate(data.id, { attachments: [...currentAttachments, url] });
+            }
+        }
+
+    } catch (error) {
+        console.error("Erro ao gerar PDF de Comunicado:", error);
+        toast.error("Erro ao gerar PDF do comunicado.");
+    }
+};
