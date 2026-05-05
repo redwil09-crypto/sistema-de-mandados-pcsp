@@ -433,15 +433,18 @@ export async function generateReportBody(warrantData: any, rawContent: string, i
         DADOS DE PLATAFORMA (iFood/Uber etc - Use para cruzar endereços!):
         "${warrantData.ifoodResult || 'Nenhum dado de plataforma registrado ainda.'}"
         
-        RELATO DO AGENTE:
+        🧠 OBSERVACÕES DE INTELIGÊNCIA (IMPORTANTÍSSIMO - LEIA E INCLUA SE RELEVANTE):
+        "${warrantData.observation || 'Nenhuma observação registrada.'}"
+
+        RELATO DO AGENTE (BASE PARA A REDAÇÃO):
         "${rawContent}"
 
         INSTRUÇÕES EXTRAS: "${instructions}"
 
-        ## RESULTADO ESPERADO:
         Gere APENAS o texto final do relatório, sem comentários. 
         MUITO IMPORTANTE: Use um tom HUMANIZADO e PROFISSIONAL. Evite "juridiquês" excessivo. Escreva como um policial que está relatando os fatos reais: "fomos atendidos por fulano", "conversamos com vizinhos", "foi franqueada a entrada". 
-        PRIORIDADE MÁXIMA: Se o usuário der uma instrução de refinamento, ignore o rascunho anterior e reescreva focado totalmente no que ele pediu e nos modelos de exemplo acima.
+        PRIORIDADE MÁXIMA: O conteúdo das **Observações de Inteligência** deve ser integrado ao texto de forma natural. Se houver informações sobre endereços, parentes ou periculosidade lá, use para enriquecer o relato.
+        PRIORIDADE DE REFINAMENTO: Se o usuário der uma instrução de refinamento, ignore o rascunho anterior e reescreva focado totalmente no que ele pediu e nos modelos de exemplo acima.
         REGRA DE FORMATAÇÃO: Sempre envolva o NOME DO RÉU e o NÚMERO DO PROCESSO em **asteriscos duplos** (ex: **JOÃO DA SILVA**, **12345-67.2024**) para que fiquem em negrito no relatório final.
         RESPOSTA:
     `;
