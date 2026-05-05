@@ -2145,7 +2145,13 @@ ${signerName} - DIG / PCSP
                 y = 40;
             }
 
-            const signerName = capturasData.signer || currentUserName;
+            let signerName = capturasData.signer || currentUserName;
+            
+            // Abrevia nomes do meio (mantém apenas primeiro e último)
+            const nameParts = signerName.trim().split(/\s+/);
+            if (nameParts.length > 2) {
+                signerName = `${nameParts[0]} ${nameParts[nameParts.length - 1]}`;
+            }
 
             // Position signature on the right 
             const sigX = pageWidth - margin - 40;
@@ -2156,7 +2162,7 @@ ${signerName} - DIG / PCSP
             doc.text(signerName.toUpperCase(), sigX, y, { align: 'center' });
             y += 5;
             doc.setFont('times', 'normal');
-            doc.text("Policia Civil do Estado de São Paulo", sigX, y, { align: 'center' });
+            doc.text("Policial Civil", sigX, y, { align: 'center' });
 
 
             // --- FOOTER DELEGATE + BOX ---
