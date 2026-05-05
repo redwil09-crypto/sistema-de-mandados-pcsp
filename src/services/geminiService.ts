@@ -524,6 +524,7 @@ IMPORTANTE: Você NÃO escreve ofícios formais ao juiz. Você escreve REGISTROS
 - Regime: ${warrantData.regime || ''}
 - Tipo: ${warrantData.type || ''}
 - Endereço Cadastrado: ${warrantData.location || ''}
+- 🧠 OBSERVAÇÕES ANALÍTICAS (HISTÓRICO): "${warrantData.observation || 'Sem observações.'}"
 
 ## DADOS DA CAPTURA (informados pelo policial):
 - Data: ${structured.captureDate || 'hoje'}
@@ -592,7 +593,8 @@ IMPORTANTE: Você NÃO escreve ofícios formais ao juiz. Você escreve REGISTROS
 8. Adapte gênero (a/o, conduzida/conduzido, detida/detido, a implicada/o implicado).
 9. NUNCA invente dados. Se algo não foi informado, OMITA.
 10. Envolva o NOME DO RÉU e o NÚMERO DO PROCESSO em **asteriscos duplos** para negrito.
-11. NÃO coloque cabeçalho institucional. Comece DIRETO no corpo do registro.
+11. INTEGRAÇÃO: Se as **Observações Analíticas** contiverem detalhes cruciais sobre como chegaram ao alvo ou quem ajudou na localização, use isso para tornar o relato mais verossímil e completo.
+12. NÃO coloque cabeçalho institucional. Comece DIRETO no corpo do registro.
 12. O texto deve ser UM ou DOIS parágrafos no máximo, fluido e corrido, como nos exemplos.
 13. Se regime aberto e foi ao fórum: "Tratando-se de ordem prisional em regime aberto, após o registro digital da ocorrência e das requisições, apresente-se o capturado no fórum local para as providências legais quanto ao início do cumprimento de sua pena."
 14. Se se apresentou espontaneamente: "sendo certo que [NOME], após tomar conhecimento de que policiais desta DIG estiveram em sua residência, aqui se apresentou espontaneamente"
