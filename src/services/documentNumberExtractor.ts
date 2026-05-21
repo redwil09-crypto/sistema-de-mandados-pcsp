@@ -29,32 +29,64 @@ export async function extractDocumentNumberFromPdf(
       fullText += pageText + '\n';
     }
 
-    const patterns = [
-      // "Ofício: nº.029/DIG/2026" - full identifier
-      /of[ií]cio[:\s]*n[ºo]\.?\s*(\d+)\s*\/\s*DIG\s*\/\s*(\d{4})/i,
-      // "Relatório nº.056/DIG/2026"
-      /relat[óo]rio[:\s]*n[ºo]\.?\s*(\d+)\s*\/\s*DIG\s*\/\s*(\d{4})/i,
+    interface PatternHandler {
+      regex: RegExp;
+      format: (match: RegExpMatchArray) => { number: string; fullIdentifier: string } | null;
+    }
+
+    const patternHandlers: PatternHandler[] = [
+      // "Ofício: nº.029/DIG/2026" - full identifier com DIG
+      {
+        regex: /(?:of[ií]cio|mandado|relat[óo]rio|documento)[:\s]*n[ºo]\.?\s*(\d+)\s*\/\s*DIG\s*\/\s*(\d{4})/i,
+        format: (m) => ({ number: m[1], fullIdentifier: `${m[1]}/DIG/${m[2]}` })
+      },
       // "nº.029/DIG/2026" or "nº 056/DIG/2026"
-      /n[ºo]\.?\s*(\d+)\s*\/\s*DIG\s*\/\s*(\d{4})/i,
+      {
+        regex: /n[ºo]\.?\s*(\d+)\s*\/\s*DIG\s*\/\s*(\d{4})/i,
+        format: (m) => ({ number: m[1], fullIdentifier: `${m[1]}/DIG/${m[2]}` })
+      },
       // "029/DIG/2026" - standalone
-      /(\d+)\s*\/\s*DIG\s*\/\s*(\d{4})/i,
+      {
+        regex: /(\d+)\s*\/\s*DIG\s*\/\s*(\d{4})/i,
+        format: (m) => ({ number: m[1], fullIdentifier: `${m[1]}/DIG/${m[2]}` })
+      },
+      // "Ofício nº 029/2026" - sem DIG
+      {
+        regex: /(?:of[ií]cio|mandado|relat[óo]rio|documento)[:\s]*n[ºo]\.?\s*(\d+)\s*\/\s*(\d{4})/i,
+        format: (m) => ({ number: m[1], fullIdentifier: `${m[1]}/${m[2]}` })
+      },
+      // "nº XXX/YYYY" (qualquer ano)
+      {
+        regex: /n[ºo]\.?\s*(\d+)\s*\/\s*(\d{4})/i,
+        format: (m) => ({ number: m[1], fullIdentifier: `${m[1]}/${m[2]}` })
+      },
+      // "Ofício: nº.029" ou "Relatório nº 056"
+      {
+        regex: /(?:of[ií]cio|mandado|relat[óo]rio)[:\s]*n[ºo]\.?\s*(\d+)/i,
+        format: (m) => ({ number: m[1], fullIdentifier: m[1] })
+      },
+      // "Proc. nº XXX" ou "Processo nº XXX.YYY/ZZ"
+      {
+        regex: /(?:proc|processo)[^\d]*n[ºo]\.?\s*([\d\.\/\-]+)/i,
+        format: (m) => ({ number: m[1], fullIdentifier: m[1].trim() })
+      },
       // Just the number after "nº"
-      /n[ºo]\.?\s*(\d+)/i,
+      {
+        regex: /n[ºo]\.?\s*(\d+)/i,
+        format: (m) => ({ number: m[1], fullIdentifier: m[1] })
+      },
+      // Número avulso com formato "XXX/DIG/YYYY" sem "nº"
+      {
+        regex: /(\d{3})\s*\/\s*DIG\s*\/\s*(\d{4})/i,
+        format: (m) => ({ number: m[1], fullIdentifier: `${m[1]}/DIG/${m[2]}` })
+      },
     ];
 
-    for (const pattern of patterns) {
-      const match = fullText.match(pattern);
+    for (const handler of patternHandlers) {
+      const match = fullText.match(handler.regex);
       if (match) {
-        if (match[2]) {
-          return {
-            number: match[1],
-            fullIdentifier: `${match[1]}/DIG/${match[2]}`
-          };
-        }
-        return {
-          number: match[1],
-          fullIdentifier: match[1]
-        };
+        const result = handler.format(match);
+        if (result) return result;
       }
     }
 

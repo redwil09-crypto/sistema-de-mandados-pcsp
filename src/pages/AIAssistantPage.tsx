@@ -188,6 +188,18 @@ const AIAssistantPage = () => {
             };
         });
 
+        // Anexos também usam numeração extraída quando disponível
+        const numberedAttachments = attachmentsList.map((a, index) => {
+            const extracted = documentNumbers[a.url];
+            const nameFromUrl = a.url.split('/').pop() || 'Anexo';
+            const decodedName = decodeURIComponent(nameFromUrl).replace(/^\d+_/, '');
+            return {
+                ...a,
+                displayName: extracted?.fullIdentifier ? extracted.fullIdentifier : decodedName,
+                downloadName: extracted?.fullIdentifier ? `${extracted.fullIdentifier.replace(/\//g, '_')}.pdf` : decodedName
+            };
+        });
+
         // Para exibição na tabela, ordenamos os mais recentes primeiro
         const sortByNewest = (arr: any[]) => {
             return [...arr].sort((a, b) => parseTimestamp(b.url) - parseTimestamp(a.url));
@@ -195,7 +207,7 @@ const AIAssistantPage = () => {
 
         return {
             reports: sortByNewest(numberedReports),
-            attachments: sortByNewest(attachmentsList),
+            attachments: sortByNewest(numberedAttachments),
             ifoodDocs: sortByNewest(numberedIfoodDocs)
         };
     }, [warrants, documentNumbers]);
@@ -1934,13 +1946,12 @@ const AIAssistantPage = () => {
                                         <p className="text-xs text-text-secondary-light dark:text-zinc-500 text-center py-6">Nenhum anexo encontrado.</p>
                                     ) : (
                                         filteredAttachments.map((file, idx) => {
-                                            const name = getAttachmentName(file.url);
                                             return (
                                                 <div key={idx} className="py-2 px-2 flex items-center justify-between gap-2 group hover:bg-orange-500/5 rounded-lg transition-colors">
                                                     <div className="min-w-0 flex-1">
                                                         <p className="text-xs font-bold text-text-light dark:text-white truncate flex items-center gap-1.5">
                                                             <File size={12} className="text-orange-600 dark:text-orange-400 shrink-0" />
-                                                            {name}
+                                                            {file.displayName}
                                                         </p>
                                                         <div className="flex items-center gap-1 mt-0.5 text-[9px] text-text-secondary-light dark:text-zinc-500">
                                                             <Link to={`/warrant-detail/${file.warrantId}`} className="text-orange-600 dark:text-orange-400 font-semibold hover:underline truncate max-w-[100px]">
@@ -1955,7 +1966,7 @@ const AIAssistantPage = () => {
                                                         <button onClick={() => window.open(file.url, '_blank')} title="Visualizar" className="p-1 rounded-md hover:bg-orange-500/10 text-gray-500 hover:text-orange-600 transition-all">
                                                             <Eye size={12} />
                                                         </button>
-                                                        <button onClick={() => handleDownloadFile(file.url, name)} title="Baixar" className="p-1 rounded-md hover:bg-orange-500/10 text-gray-500 hover:text-orange-600 transition-all">
+                                                        <button onClick={() => handleDownloadFile(file.url, file.downloadName)} title="Baixar" className="p-1 rounded-md hover:bg-orange-500/10 text-gray-500 hover:text-orange-600 transition-all">
                                                             <Download size={12} />
                                                         </button>
                                                         <button onClick={() => handleDeleteFile(file.warrantId, file.url, 'attachments')} title="Excluir" className="p-1 rounded-md hover:bg-red-500/10 text-gray-500 hover:text-red-600 transition-all">
