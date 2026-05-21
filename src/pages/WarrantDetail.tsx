@@ -1163,17 +1163,37 @@ ${signerName} - DIG / PCSP
         doc.setFontSize(10);
         doc.text(splitText, 15, 20);
 
+        const getNextReportNumber = () => {
+            const totalReportsCount = warrants.reduce((acc, curr) => {
+                let count = 0;
+                if (curr.reports && Array.isArray(curr.reports)) {
+                    curr.reports.forEach(url => {
+                        if (!url.toLowerCase().includes('dossie') && !url.toLowerCase().includes('dossie_tatico')) count++;
+                    });
+                }
+                if (curr.attachments && Array.isArray(curr.attachments)) {
+                    curr.attachments.forEach(url => {
+                        if (!url.toLowerCase().includes('dossie') && !url.toLowerCase().includes('dossie_tatico') && (url.toLowerCase().includes('/reports/') || url.toLowerCase().includes('relatorio'))) count++;
+                    });
+                }
+                return acc + count;
+            }, 0);
+            return String(totalReportsCount + 1).padStart(2, '0');
+        };
+
+        const reportNumber = getNextReportNumber();
+
         // Save locally
-        doc.save(`Relatorio_DIG_${data.name.replace(/\s+/g, '_')}.pdf`);
+        doc.save(`relatorio_${reportNumber}.pdf`);
         toast.success("PDF do relatório baixado!");
 
         // Auto-save to attachments
         const pdfBlob = doc.output('blob');
-        const pdfFile = new File([pdfBlob], `Relatorio_Diligencia_${Date.now()}.pdf`, { type: 'application/pdf' });
+        const pdfFile = new File([pdfBlob], `relatorio_${reportNumber}.pdf`, { type: 'application/pdf' });
 
         const toastId = toast.loading("Salvando relatório no prontuário...");
         try {
-            const path = `reports/${data.id}/${Date.now()}_Relatorio_Diligencia.pdf`;
+            const path = `reports/${data.id}/${Date.now()}_relatorio_${reportNumber}.pdf`;
             const uploadedPath = await uploadFile(pdfFile, path);
             if (uploadedPath) {
                 const url = getPublicUrl(uploadedPath);
@@ -1750,12 +1770,30 @@ ${signerName} - DIG / PCSP
                 }
             }
 
+            const getNextIfoodNumber = () => {
+                const totalIfoodCount = warrants.reduce((acc, curr) => {
+                    let count = 0;
+                    if (curr.ifoodDocs && Array.isArray(curr.ifoodDocs)) count += curr.ifoodDocs.length;
+                    if (curr.attachments && Array.isArray(curr.attachments)) {
+                        curr.attachments.forEach(url => {
+                            const lowerUrl = url.toLowerCase();
+                            if (!lowerUrl.includes('dossie') && !lowerUrl.includes('dossie_tatico') && (lowerUrl.includes('/ifooddocs/') || lowerUrl.includes('oficio_ifood') || lowerUrl.includes('ifood'))) {
+                                count++;
+                            }
+                        });
+                    }
+                    return acc + count;
+                }, 0);
+                return String(totalIfoodCount + 1).padStart(2, '0');
+            };
+
+            const ifoodNumber = getNextIfoodNumber();
             const pdfBlob = doc.output('blob');
-            const pdfFile = new File([pdfBlob], `Oficio_iFood_${officeId.replace(/\//g, '_')}.pdf`, { type: 'application/pdf' });
+            const pdfFile = new File([pdfBlob], `oficio_ifood_${ifoodNumber}.pdf`, { type: 'application/pdf' });
 
             const toastId = toast.loading("Salvando ofício no banco de dados...");
             try {
-                const path = `ifoodDocs/${data.id}/${Date.now()}_${pdfFile.name}`;
+                const path = `ifoodDocs/${data.id}/${Date.now()}_oficio_ifood_${ifoodNumber}.pdf`;
                 const uploadedPath = await uploadFile(pdfFile, path);
                 if (uploadedPath) {
                     const url = getPublicUrl(uploadedPath);
@@ -1768,7 +1806,7 @@ ${signerName} - DIG / PCSP
                 toast.error("Ofício gerado mas não pôde ser salvo no banco.", { id: toastId });
             }
 
-            doc.save(`Oficio_IFood_${data.name.replace(/\s+/g, '_')}.pdf`);
+            doc.save(`oficio_ifood_${ifoodNumber}.pdf`);
         } catch (error) {
             console.error("Erro ao gerar PDF iFood:", error);
             toast.error("Erro ao gerar Ofício iFood.");
@@ -2213,12 +2251,40 @@ ${signerName} - DIG / PCSP
 
 
             // --- SAVE ---
+            const getReportNumber = () => {
+                if (capturasData.reportNumber) {
+                    // Extrair parte numérica de formatos como "056/DIG/2026" → "56"
+                    const numMatch = String(capturasData.reportNumber).match(/^0*(\d+)/);
+                    if (numMatch) {
+                        return numMatch[1]; // Remove zeros à esquerda: "056" → "56"
+                    }
+                    return String(capturasData.reportNumber);
+                }
+                // Fallback: contagem sequencial automática
+                const totalReportsCount = warrants.reduce((acc, curr) => {
+                    let count = 0;
+                    if (curr.reports && Array.isArray(curr.reports)) {
+                        curr.reports.forEach(url => {
+                            if (!url.toLowerCase().includes('dossie') && !url.toLowerCase().includes('dossie_tatico')) count++;
+                        });
+                    }
+                    if (curr.attachments && Array.isArray(curr.attachments)) {
+                        curr.attachments.forEach(url => {
+                            if (!url.toLowerCase().includes('dossie') && !url.toLowerCase().includes('dossie_tatico') && (url.toLowerCase().includes('/reports/') || url.toLowerCase().includes('relatorio'))) count++;
+                        });
+                    }
+                    return acc + count;
+                }, 0);
+                return String(totalReportsCount + 1).padStart(2, '0');
+            };
+
+            const reportNumber = getReportNumber();
             const pdfBlob = doc.output('blob');
-            const pdfFile = new File([pdfBlob], `Relatorio_Oficial_${data.name}.pdf`, { type: 'application/pdf' });
+            const pdfFile = new File([pdfBlob], `relatorio_${reportNumber}.pdf`, { type: 'application/pdf' });
 
             const toastId = toast.loading("Registrando documento oficial...");
 
-            const path = `reports/${data.id}/${Date.now()}_Relatorio_Oficial.pdf`;
+            const path = `reports/${data.id}/${Date.now()}_relatorio_${reportNumber}.pdf`;
             const uploadedPath = await uploadFile(pdfFile, path);
 
             if (uploadedPath) {
@@ -2227,12 +2293,12 @@ ${signerName} - DIG / PCSP
                 // Save both the PDF URL and the report number so future suggestions work
                 await updateWarrant(data.id, {
                     reports: [...currentReports, url],
-                    fulfillmentReport: capturasData.reportNumber
+                    fulfillmentReport: capturasData.reportNumber || reportNumber
                 });
                 toast.success("Documento oficial gerado e anexado.", { id: toastId });
             }
 
-            doc.save(`Relatorio_Oficial_${data.name}.pdf`);
+            doc.save(`relatorio_${reportNumber}.pdf`);
             setIsCapturasModalOpen(false); // Close modal on success
 
         } catch (error) {
