@@ -9,7 +9,7 @@ import {
     Bell, Zap, Printer, User, Calendar, MapPin, Mic,
     MicOff, Bot, Briefcase, FileUp, Gavel, AlertTriangle, FileCheck,
     Paperclip, ShieldAlert, Layers, Sparkles, Camera, Map as MapIcon, ExternalLink,
-    File, Eye, Download, FileText, FolderOpen
+    File, Eye, Download, FileText
 } from 'lucide-react';
 import Header from '../components/Header';
 import ConfirmModal from '../components/ConfirmModal';
@@ -56,29 +56,30 @@ const AIAssistantPage = () => {
 
     const [currentUser, setCurrentUser] = useState<{ name: string; email: string } | null>(null);
 
-    // Lógicas da aba ARQUIVOS - Lista unificada de arquivos
-    const allFiles = useMemo(() => {
-        const filesList: any[] = [];
+    // Lógicas da aba ARQUIVOS - Três categorias separadas
+    const consolidatedFiles = useMemo(() => {
+        const reportsList: any[] = [];
+        const attachmentsList: any[] = [];
+        const ifoodDocsList: any[] = [];
 
         warrants.forEach(w => {
-            // Processar Reports (filtrando dossiê)
+            // 1. Processar Reports (filtrando dossiê)
             if (w.reports && Array.isArray(w.reports)) {
                 w.reports.forEach(url => {
                     const lowerUrl = url.toLowerCase();
                     if (!lowerUrl.includes('dossie') && !lowerUrl.includes('dossie_tatico')) {
-                        filesList.push({
+                        reportsList.push({
                             url,
                             warrantId: w.id,
                             warrantName: w.name,
                             warrantNumber: w.number,
-                            createdAt: w.createdAt || w.entryDate || '',
-                            type: 'report'
+                            createdAt: w.createdAt || w.entryDate || ''
                         });
                     }
                 });
             }
 
-            // Processar Attachments
+            // 2. Processar Attachments
             if (w.attachments && Array.isArray(w.attachments)) {
                 w.attachments.forEach(url => {
                     const lowerUrl = url.toLowerCase();
@@ -92,93 +93,108 @@ const AIAssistantPage = () => {
                             warrantId: w.id,
                             warrantName: w.name,
                             warrantNumber: w.number,
-                            createdAt: w.createdAt || w.entryDate || '',
-                            type: isIfood ? 'ifoodDoc' : (isReport ? 'report' : 'attachment')
+                            createdAt: w.createdAt || w.entryDate || ''
                         };
 
-                        filesList.push(fileObj);
+                        if (isIfood) {
+                            ifoodDocsList.push(fileObj);
+                        } else if (isReport) {
+                            reportsList.push(fileObj);
+                        } else {
+                            attachmentsList.push(fileObj);
+                        }
                     }
                 });
             }
 
-            // Processar Ifood Docs
+            // 3. Processar Ifood Docs
             if (w.ifoodDocs && Array.isArray(w.ifoodDocs)) {
                 w.ifoodDocs.forEach(url => {
-                    filesList.push({
+                    ifoodDocsList.push({
                         url,
                         warrantId: w.id,
                         warrantName: w.name,
                         warrantNumber: w.number,
-                        createdAt: w.createdAt || w.entryDate || '',
-                        type: 'ifoodDoc'
+                        createdAt: w.createdAt || w.entryDate || ''
                     });
                 });
             }
         });
 
-        // Função para extrair timestamp da URL para ordenação
+        // Ordenar relatórios por data de criação (mais antigo para o mais novo) para atribuir numeração estável
         const parseTimestamp = (url: string) => {
             const match = url.match(/\/(\d+)_/);
             return match ? parseInt(match[1]) : 0;
         };
 
-        // Separar arquivos por tipo para numeração sequencial
-        const reports = filesList.filter(f => f.type === 'report');
-        const ifoodDocs = filesList.filter(f => f.type === 'ifoodDoc');
-        const attachments = filesList.filter(f => f.type === 'attachment');
+        reportsList.sort((a, b) => parseTimestamp(a.url) - parseTimestamp(b.url));
 
-        // Ordenar por timestamp (mais antigo primeiro) para numeração estável
-        reports.sort((a, b) => parseTimestamp(a.url) - parseTimestamp(b.url));
-        ifoodDocs.sort((a, b) => parseTimestamp(a.url) - parseTimestamp(b.url));
+        // Numerar sequencialmente de forma cronológica global
+        const numberedReports = reportsList.map((r, index) => {
+            const num = String(index + 1).padStart(2, '0');
+            return {
+                ...r,
+                displayName: `Relatório ${num}`,
+                downloadName: `relatorio_${num}.pdf`
+            };
+        });
 
-        // Aplicar numeração sequencial
-        const numberedReports = reports.map((r, index) => ({
-            ...r,
-            displayName: `Relatório ${String(index + 1).padStart(2, '0')}`,
-            downloadName: `relatorio_${String(index + 1).padStart(2, '0')}.pdf`
-        }));
+        // Numerar sequencialmente os ofícios do iFood também de forma cronológica global
+        ifoodDocsList.sort((a, b) => parseTimestamp(a.url) - parseTimestamp(b.url));
+        const numberedIfoodDocs = ifoodDocsList.map((doc, index) => {
+            const num = String(index + 1).padStart(2, '0');
+            return {
+                ...doc,
+                displayName: `Ofício iFood ${num}`,
+                downloadName: `oficio_ifood_${num}.pdf`
+            };
+        });
 
-        const numberedIfoodDocs = ifoodDocs.map((doc, index) => ({
-            ...doc,
-            displayName: `Ofício iFood ${String(index + 1).padStart(2, '0')}`,
-            downloadName: `oficio_ifood_${String(index + 1).padStart(2, '0')}.pdf`
-        }));
+        // Para exibição na tabela, ordenamos os mais recentes primeiro
+        const sortByNewest = (arr: any[]) => {
+            return [...arr].sort((a, b) => parseTimestamp(b.url) - parseTimestamp(a.url));
+        };
 
-        // Attachments mantêm nome original (sem numeração)
-        const numberedAttachments = attachments.map(a => ({
-            ...a,
-            displayName: a.url.split('/').pop() || 'Anexo',
-            downloadName: a.url.split('/').pop() || 'anexo.pdf'
-        }));
-
-        // Combinar todos e ordenar por data (mais recente primeiro) para exibição
-        const allNumbered = [...numberedReports, ...numberedIfoodDocs, ...numberedAttachments];
-        return allNumbered.sort((a, b) => parseTimestamp(b.url) - parseTimestamp(a.url));
+        return {
+            reports: sortByNewest(numberedReports),
+            attachments: sortByNewest(attachmentsList),
+            ifoodDocs: sortByNewest(numberedIfoodDocs)
+        };
     }, [warrants]);
 
-    const filteredFiles = useMemo(() => {
-        if (!searchTerm) return allFiles;
+    const filteredReports = useMemo(() => {
+        if (!searchTerm) return consolidatedFiles.reports;
         const term = searchTerm.toLowerCase();
-        return allFiles.filter(f => {
-            // Busca no nome de exibição
-            if (f.displayName.toLowerCase().includes(term)) return true;
-            
-            // Busca no nome do mandado
-            if (f.warrantName.toLowerCase().includes(term)) return true;
-            
-            // Busca no número do processo
-            if (f.warrantNumber.toLowerCase().includes(term)) return true;
-            
-            // Para anexos, também busca no nome original do arquivo
-            if (f.type === 'attachment') {
-                const originalName = f.url.split('/').pop() || '';
-                const decodedName = decodeURIComponent(originalName).replace(/^\d+_/, '');
-                if (decodedName.toLowerCase().includes(term)) return true;
-            }
-            
-            return false;
+        return consolidatedFiles.reports.filter(f => 
+            f.displayName.toLowerCase().includes(term) ||
+            f.warrantName.toLowerCase().includes(term) ||
+            f.warrantNumber.toLowerCase().includes(term)
+        );
+    }, [consolidatedFiles.reports, searchTerm]);
+
+    const filteredAttachments = useMemo(() => {
+        if (!searchTerm) return consolidatedFiles.attachments;
+        const term = searchTerm.toLowerCase();
+        return consolidatedFiles.attachments.filter(f => {
+            const name = f.url.split('/').pop() || '';
+            const decodedName = decodeURIComponent(name).replace(/^\d+_/, '');
+            return decodedName.toLowerCase().includes(term) ||
+                f.warrantName.toLowerCase().includes(term) ||
+                f.warrantNumber.toLowerCase().includes(term);
         });
-    }, [allFiles, searchTerm]);
+    }, [consolidatedFiles.attachments, searchTerm]);
+
+    const filteredIfoodDocs = useMemo(() => {
+        if (!searchTerm) return consolidatedFiles.ifoodDocs;
+        const term = searchTerm.toLowerCase();
+        return consolidatedFiles.ifoodDocs.filter(f => 
+            f.displayName.toLowerCase().includes(term) ||
+            f.warrantName.toLowerCase().includes(term) ||
+            f.warrantNumber.toLowerCase().includes(term)
+        );
+    }, [consolidatedFiles.ifoodDocs, searchTerm]);
+
+    const filteredFilesCount = filteredReports.length + filteredAttachments.length + filteredIfoodDocs.length;
 
 
     const getAttachmentName = (url: string) => {
@@ -1794,248 +1810,164 @@ const AIAssistantPage = () => {
 
                 {activeTab === 'files' && (
                     <div className="space-y-6 animate-in fade-in pb-4">
-                        {/* Barra de Busca */}
+                        {/* Barra de Busca Global */}
                         <div className="relative group">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-primary dark:text-blue-500 group-focus-within:text-blue-400 transition-colors" size={20} />
                             <input
                                 type="text"
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                placeholder="Buscar em todos os arquivos por nome, mandato ou processo..."
+                                placeholder="Buscar em todas as categorias por nome, mandato ou processo..."
                                 className="w-full rounded-xl border-2 border-border-light dark:border-white/10 bg-white dark:bg-zinc-900/50 py-3 pl-10 pr-4 text-sm shadow-sm dark:text-white placeholder:text-text-secondary-light dark:placeholder:text-zinc-500 focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all outline-none"
                             />
+                            {searchTerm && (
+                                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] bg-primary/10 text-primary font-bold px-2 py-0.5 rounded-full">
+                                    {filteredFilesCount}
+                                </span>
+                            )}
                         </div>
 
-                        {/* SEÇÃO ÚNICA DE ARQUIVOS */}
-                        <div className="bg-surface-light dark:bg-surface-dark rounded-2xl border border-border-light dark:border-border-dark p-4 shadow-md space-y-3">
-                            <div className="flex items-center gap-2 border-b border-border-light dark:border-border-dark pb-2">
-                                <FolderOpen className="text-primary dark:text-blue-500" size={18} />
-                                <h3 className="font-black text-text-light dark:text-white text-xs uppercase tracking-widest flex-1">Todos os Arquivos</h3>
-                                <span className="bg-primary/10 text-primary text-[10px] font-bold px-2 py-0.5 rounded-full">{filteredFiles.length}</span>
-                            </div>
-                            
-                            {filteredFiles.length === 0 ? (
-                                <p className="text-xs text-text-secondary-light dark:text-zinc-500 text-center py-4">Nenhum arquivo encontrado.</p>
-                            ) : (
-                                <div className="divide-y divide-border-light dark:divide-border-dark">
-                                    {filteredFiles.map((file, idx) => {
-                                        // Determinar ícone e cor baseado no tipo
-                                        const getFileIconAndColor = (type: string) => {
-                                            switch (type) {
-                                                case 'report':
-                                                    return { 
-                                                        icon: <FileText size={18} className="text-blue-600 dark:text-blue-400" />,
-                                                        bg: 'bg-blue-500/10',
-                                                        text: 'text-blue-600 dark:text-blue-400'
-                                                    };
-                                                case 'ifoodDoc':
-                                                    return { 
-                                                        icon: <Cpu size={18} className="text-emerald-600 dark:text-emerald-500" />,
-                                                        bg: 'bg-emerald-500/10',
-                                                        text: 'text-emerald-600 dark:text-emerald-400'
-                                                    };
-                                                default: // attachment
-                                                    return { 
-                                                        icon: <Paperclip size={18} className="text-orange-600 dark:text-orange-500" />,
-                                                        bg: 'bg-orange-500/10',
-                                                        text: 'text-orange-600 dark:text-orange-400'
-                                                    };
-                                            }
-                                        };
-                                        
-                                        const { icon, bg, text } = getFileIconAndColor(file.type);
-                                        
-                                        // Determinar nome para download
-                                        const downloadName = file.downloadName || 
-                                                          (file.type === 'attachment' && (file.url.split('/').pop() || 'anexo.pdf')) ||
-                                                          'arquivo.pdf';
+                        {/* Grade de 3 Colunas */}
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+
+                            {/* COLUNA 1: RELATÓRIOS */}
+                            <div className="bg-surface-light dark:bg-surface-dark rounded-2xl border border-border-light dark:border-border-dark p-4 shadow-md space-y-3 flex flex-col min-h-[200px] max-h-[500px]">
+                                <div className="flex items-center gap-2 border-b border-border-light dark:border-border-dark pb-2 shrink-0">
+                                    <FileText className="text-blue-600 dark:text-blue-500" size={18} />
+                                    <h3 className="font-black text-text-light dark:text-white text-xs uppercase tracking-widest flex-1">Relatórios</h3>
+                                    <span className="bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[10px] font-bold px-2 py-0.5 rounded-full">{filteredReports.length}</span>
+                                </div>
                                 
-                                        return (
-                                            <div key={idx} className="py-3 flex items-center justify-between gap-4 group">
-                                                <div className="min-w-0 flex-1 flex items-start gap-3">
-                                                    <div className="p-2 {bg} {text} rounded-lg">
-                                                        {icon}
-                                                    </div>
-                                                    <div className="min-w-0 flex-1">
-                                                        <p className="text-xs font-bold text-text-light dark:text-white truncate">{file.displayName}</p>
-                                                        <div className="flex items-center gap-1.5 mt-0.5 text-[10px] text-text-secondary-light dark:text-zinc-500">
-                                                            <span>Tipo:</span>
-                                                            <span className="text-[10px] font-medium text-text-light dark:text-white capitalize">
-                                                                {file.type === 'report' ? 'Relatório' : 
-                                                                 file.type === 'ifoodDoc' ? 'Ofício iFood' : 'Anexo'}
-                                                            </span>
-                                                            <span className="text-zinc-300 dark:text-zinc-700 mx-2">|</span>
-                                                            <span>Alvo:</span>
-                                                            <Link to={`/warrant-detail/${file.warrantId}`} className="text-blue-600 dark:text-blue-400 font-bold hover:underline truncate max-w-[150px]">
-                                                                {file.warrantName}
-                                                            </Link>
-                                                            <span className="text-zinc-300 dark:text-zinc-700 mx-2">|</span>
-                                                            <span className="truncate">Proc: {file.warrantNumber}</span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                
-                                                <div className="flex items-center gap-1">
-                                                    <button
-                                                        onClick={() => window.open(file.url, '_blank')}
-                                                        title="Visualizar"
-                                                        className="p-1.5 rounded-lg bg-gray-500/10 text-gray-600 dark:text-gray-400 hover:bg-gray-500/20 active:scale-95 transition-all"
-                                                    >
-                                                        <Eye size={14} />
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleDownloadFile(file.url, downloadName)}
-                                                        title="Baixar"
-                                                        className="p-1.5 rounded-lg {bg} {text} hover:bg-blue-500/20 active:scale-95 transition-all"
-                                                    >
-                                                        <Download size={14} />
-                                                    </button>
-                                                    <button
-                                                        onClick={() => {
-                                                            // Determinar tipo para exclusão
-                                                            let deleteType: 'reports' | 'attachments' | 'ifoodDocs' = 'attachments';
-                                                            if (file.type === 'report') deleteType = 'reports';
-                                                            else if (file.type === 'ifoodDoc') deleteType = 'ifoodDocs';
-                                                            
-                                                            handleDeleteFile(file.warrantId, file.url, deleteType);
-                                                        }}
-                                                        title="Excluir"
-                                                        className="p-1.5 rounded-lg bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-500/20 active:scale-95 transition-all"
-                                                    >
-                                                        <Trash2 size={14} />
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                )}
-                        </div>
-
-                        {/* 2. SEÇÃO DE ANEXOS DOS MANDADOS */}
-                        <div className="bg-surface-light dark:bg-surface-dark rounded-2xl border border-border-light dark:border-border-dark p-4 shadow-md space-y-3">
-                            <div className="flex items-center gap-2 border-b border-border-light dark:border-border-dark pb-2">
-                                <Paperclip className="text-orange-600 dark:text-orange-500" size={18} />
-                                <h3 className="font-black text-text-light dark:text-white text-xs uppercase tracking-widest flex-1">Anexos de Prontuários (Mídias e Ficheiros)</h3>
-                                <span className="bg-orange-500/10 text-orange-600 dark:text-orange-500 text-[10px] font-bold px-2 py-0.5 rounded-full">{filteredAttachments.length}</span>
-                            </div>
-                            
-                            {filteredAttachments.length === 0 ? (
-                                <p className="text-xs text-text-secondary-light dark:text-zinc-500 text-center py-4">Nenhum anexo encontrado.</p>
-                            ) : (
-                                <div className="divide-y divide-border-light dark:divide-border-dark">
-                                    {filteredAttachments.map((file, idx) => {
-                                        const name = getAttachmentName(file.url);
-                                        return (
-                                            <div key={idx} className="py-3 flex items-center justify-between gap-4 group">
-                                                <div className="min-w-0 flex-1 flex items-start gap-3">
-                                                    <div className="p-2 bg-orange-500/10 text-orange-600 dark:text-orange-400 rounded-lg">
-                                                        <File size={18} />
-                                                    </div>
-                                                    <div className="min-w-0 flex-1">
-                                                        <p className="text-xs font-bold text-text-light dark:text-white truncate">{name}</p>
-                                                        <div className="flex items-center gap-1.5 mt-0.5 text-[10px] text-text-secondary-light dark:text-zinc-500">
-                                                            <span>Vínculo:</span>
-                                                            <Link to={`/warrant-detail/${file.warrantId}`} className="text-orange-600 dark:text-orange-400 font-bold hover:underline truncate max-w-[150px]">
-                                                                {file.warrantName}
-                                                            </Link>
-                                                            <span className="text-zinc-300 dark:text-zinc-700">|</span>
-                                                            <span className="truncate">Proc: {file.warrantNumber}</span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                
-                                                <div className="flex items-center gap-1">
-                                                    <button
-                                                        onClick={() => window.open(file.url, '_blank')}
-                                                        title="Visualizar"
-                                                        className="p-1.5 rounded-lg bg-gray-500/10 text-gray-600 dark:text-gray-400 hover:bg-gray-500/20 active:scale-95 transition-all"
-                                                    >
-                                                        <Eye size={14} />
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleDownloadFile(file.url, name)}
-                                                        title="Baixar"
-                                                        className="p-1.5 rounded-lg bg-orange-500/10 text-orange-600 dark:text-orange-400 hover:bg-orange-500/20 active:scale-95 transition-all"
-                                                    >
-                                                        <Download size={14} />
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleDeleteFile(file.warrantId, file.url, 'attachments')}
-                                                        title="Excluir"
-                                                        className="p-1.5 rounded-lg bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-500/20 active:scale-95 transition-all"
-                                                    >
-                                                        <Trash2 size={14} />
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                            )}
-                        </div>
-
-                        {/* 3. SEÇÃO DE OFÍCIOS DO IFOOD */}
-                        <div className="bg-surface-light dark:bg-surface-dark rounded-2xl border border-border-light dark:border-border-dark p-4 shadow-md space-y-3">
-                            <div className="flex items-center gap-2 border-b border-border-light dark:border-border-dark pb-2">
-                                <Cpu className="text-emerald-600 dark:text-emerald-500" size={18} />
-                                <h3 className="font-black text-text-light dark:text-white text-xs uppercase tracking-widest flex-1">Ofícios Expedidos ao iFood</h3>
-                                <span className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-500 text-[10px] font-bold px-2 py-0.5 rounded-full">{filteredIfoodDocs.length}</span>
-                            </div>
-                            
-                            {filteredIfoodDocs.length === 0 ? (
-                                <p className="text-xs text-text-secondary-light dark:text-zinc-500 text-center py-4">Nenhum ofício iFood encontrado.</p>
-                            ) : (
-                                <div className="divide-y divide-border-light dark:divide-border-dark">
-                                    {filteredIfoodDocs.map((file, idx) => (
-                                        <div key={idx} className="py-3 flex items-center justify-between gap-4 group">
-                                            <div className="min-w-0 flex-1 flex items-start gap-3">
-                                                <div className="p-2 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-lg">
-                                                    <FileText size={18} />
-                                                </div>
+                                <div className="overflow-y-auto flex-1 space-y-2 scrollbar-thin">
+                                    {filteredReports.length === 0 ? (
+                                        <p className="text-xs text-text-secondary-light dark:text-zinc-500 text-center py-6">Nenhum relatório encontrado.</p>
+                                    ) : (
+                                        filteredReports.map((file, idx) => (
+                                            <div key={idx} className="py-2 px-2 flex items-center justify-between gap-2 group hover:bg-blue-500/5 rounded-lg transition-colors">
                                                 <div className="min-w-0 flex-1">
-                                                    <p className="text-xs font-bold text-text-light dark:text-white truncate">{file.displayName}</p>
-                                                    <div className="flex items-center gap-1.5 mt-0.5 text-[10px] text-text-secondary-light dark:text-zinc-500">
-                                                        <span>Alvo:</span>
-                                                        <Link to={`/warrant-detail/${file.warrantId}`} className="text-emerald-600 dark:text-emerald-400 font-bold hover:underline truncate max-w-[150px]">
+                                                    <p className="text-xs font-bold text-text-light dark:text-white truncate flex items-center gap-1.5">
+                                                        <FileCheck size={12} className="text-blue-600 dark:text-blue-400 shrink-0" />
+                                                        {file.displayName}
+                                                    </p>
+                                                    <div className="flex items-center gap-1 mt-0.5 text-[9px] text-text-secondary-light dark:text-zinc-500">
+                                                        <Link to={`/warrant-detail/${file.warrantId}`} className="text-blue-600 dark:text-blue-400 font-semibold hover:underline truncate max-w-[100px]">
                                                             {file.warrantName}
                                                         </Link>
                                                         <span className="text-zinc-300 dark:text-zinc-700">|</span>
-                                                        <span className="truncate">Proc: {file.warrantNumber}</span>
+                                                        <span className="truncate">{file.warrantNumber}</span>
                                                     </div>
                                                 </div>
+                                                
+                                                <div className="flex items-center gap-0.5 shrink-0">
+                                                    <button onClick={() => window.open(file.url, '_blank')} title="Visualizar" className="p-1 rounded-md hover:bg-blue-500/10 text-gray-500 hover:text-blue-600 transition-all">
+                                                        <Eye size={12} />
+                                                    </button>
+                                                    <button onClick={() => handleDownloadFile(file.url, file.downloadName)} title="Baixar" className="p-1 rounded-md hover:bg-blue-500/10 text-gray-500 hover:text-blue-600 transition-all">
+                                                        <Download size={12} />
+                                                    </button>
+                                                    <button onClick={() => handleDeleteFile(file.warrantId, file.url, 'reports')} title="Excluir" className="p-1 rounded-md hover:bg-red-500/10 text-gray-500 hover:text-red-600 transition-all">
+                                                        <Trash2 size={12} />
+                                                    </button>
+                                                </div>
                                             </div>
-                                            
-                                            <div className="flex items-center gap-1">
-                                                <button
-                                                    onClick={() => window.open(file.url, '_blank')}
-                                                    title="Visualizar"
-                                                    className="p-1.5 rounded-lg bg-gray-500/10 text-gray-600 dark:text-gray-400 hover:bg-gray-500/20 active:scale-95 transition-all"
-                                                >
-                                                    <Eye size={14} />
-                                                </button>
-                                                <button
-                                                    onClick={() => handleDownloadFile(file.url, file.downloadName)}
-                                                    title="Baixar"
-                                                    className="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20 active:scale-95 transition-all"
-                                                >
-                                                    <Download size={14} />
-                                                </button>
-                                                <button
-                                                    onClick={() => handleDeleteFile(file.warrantId, file.url, 'ifoodDocs')}
-                                                    title="Excluir"
-                                                    className="p-1.5 rounded-lg bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-500/20 active:scale-95 transition-all"
-                                                >
-                                                    <Trash2 size={14} />
-                                                </button>
-                                            </div>
-                                        </div>
-                                    ))}
+                                        ))
+                                    )}
                                 </div>
-                            )}
+                            </div>
+
+                            {/* COLUNA 2: ANEXOS */}
+                            <div className="bg-surface-light dark:bg-surface-dark rounded-2xl border border-border-light dark:border-border-dark p-4 shadow-md space-y-3 flex flex-col min-h-[200px] max-h-[500px]">
+                                <div className="flex items-center gap-2 border-b border-border-light dark:border-border-dark pb-2 shrink-0">
+                                    <Paperclip className="text-orange-600 dark:text-orange-500" size={18} />
+                                    <h3 className="font-black text-text-light dark:text-white text-xs uppercase tracking-widest flex-1">Anexos</h3>
+                                    <span className="bg-orange-500/10 text-orange-600 dark:text-orange-400 text-[10px] font-bold px-2 py-0.5 rounded-full">{filteredAttachments.length}</span>
+                                </div>
+                                
+                                <div className="overflow-y-auto flex-1 space-y-2 scrollbar-thin">
+                                    {filteredAttachments.length === 0 ? (
+                                        <p className="text-xs text-text-secondary-light dark:text-zinc-500 text-center py-6">Nenhum anexo encontrado.</p>
+                                    ) : (
+                                        filteredAttachments.map((file, idx) => {
+                                            const name = getAttachmentName(file.url);
+                                            return (
+                                                <div key={idx} className="py-2 px-2 flex items-center justify-between gap-2 group hover:bg-orange-500/5 rounded-lg transition-colors">
+                                                    <div className="min-w-0 flex-1">
+                                                        <p className="text-xs font-bold text-text-light dark:text-white truncate flex items-center gap-1.5">
+                                                            <File size={12} className="text-orange-600 dark:text-orange-400 shrink-0" />
+                                                            {name}
+                                                        </p>
+                                                        <div className="flex items-center gap-1 mt-0.5 text-[9px] text-text-secondary-light dark:text-zinc-500">
+                                                            <Link to={`/warrant-detail/${file.warrantId}`} className="text-orange-600 dark:text-orange-400 font-semibold hover:underline truncate max-w-[100px]">
+                                                                {file.warrantName}
+                                                            </Link>
+                                                            <span className="text-zinc-300 dark:text-zinc-700">|</span>
+                                                            <span className="truncate">{file.warrantNumber}</span>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <div className="flex items-center gap-0.5 shrink-0">
+                                                        <button onClick={() => window.open(file.url, '_blank')} title="Visualizar" className="p-1 rounded-md hover:bg-orange-500/10 text-gray-500 hover:text-orange-600 transition-all">
+                                                            <Eye size={12} />
+                                                        </button>
+                                                        <button onClick={() => handleDownloadFile(file.url, name)} title="Baixar" className="p-1 rounded-md hover:bg-orange-500/10 text-gray-500 hover:text-orange-600 transition-all">
+                                                            <Download size={12} />
+                                                        </button>
+                                                        <button onClick={() => handleDeleteFile(file.warrantId, file.url, 'attachments')} title="Excluir" className="p-1 rounded-md hover:bg-red-500/10 text-gray-500 hover:text-red-600 transition-all">
+                                                            <Trash2 size={12} />
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* COLUNA 3: OFÍCIOS IFOOD */}
+                            <div className="bg-surface-light dark:bg-surface-dark rounded-2xl border border-border-light dark:border-border-dark p-4 shadow-md space-y-3 flex flex-col min-h-[200px] max-h-[500px]">
+                                <div className="flex items-center gap-2 border-b border-border-light dark:border-border-dark pb-2 shrink-0">
+                                    <Cpu className="text-emerald-600 dark:text-emerald-500" size={18} />
+                                    <h3 className="font-black text-text-light dark:text-white text-xs uppercase tracking-widest flex-1">Ofícios iFood</h3>
+                                    <span className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold px-2 py-0.5 rounded-full">{filteredIfoodDocs.length}</span>
+                                </div>
+                                
+                                <div className="overflow-y-auto flex-1 space-y-2 scrollbar-thin">
+                                    {filteredIfoodDocs.length === 0 ? (
+                                        <p className="text-xs text-text-secondary-light dark:text-zinc-500 text-center py-6">Nenhum ofício encontrado.</p>
+                                    ) : (
+                                        filteredIfoodDocs.map((file, idx) => (
+                                            <div key={idx} className="py-2 px-2 flex items-center justify-between gap-2 group hover:bg-emerald-500/5 rounded-lg transition-colors">
+                                                <div className="min-w-0 flex-1">
+                                                    <p className="text-xs font-bold text-text-light dark:text-white truncate flex items-center gap-1.5">
+                                                        <FileText size={12} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
+                                                        {file.displayName}
+                                                    </p>
+                                                    <div className="flex items-center gap-1 mt-0.5 text-[9px] text-text-secondary-light dark:text-zinc-500">
+                                                        <Link to={`/warrant-detail/${file.warrantId}`} className="text-emerald-600 dark:text-emerald-400 font-semibold hover:underline truncate max-w-[100px]">
+                                                            {file.warrantName}
+                                                        </Link>
+                                                        <span className="text-zinc-300 dark:text-zinc-700">|</span>
+                                                        <span className="truncate">{file.warrantNumber}</span>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div className="flex items-center gap-0.5 shrink-0">
+                                                    <button onClick={() => window.open(file.url, '_blank')} title="Visualizar" className="p-1 rounded-md hover:bg-emerald-500/10 text-gray-500 hover:text-emerald-600 transition-all">
+                                                        <Eye size={12} />
+                                                    </button>
+                                                    <button onClick={() => handleDownloadFile(file.url, file.downloadName)} title="Baixar" className="p-1 rounded-md hover:bg-emerald-500/10 text-gray-500 hover:text-emerald-600 transition-all">
+                                                        <Download size={12} />
+                                                    </button>
+                                                    <button onClick={() => handleDeleteFile(file.warrantId, file.url, 'ifoodDocs')} title="Excluir" className="p-1 rounded-md hover:bg-red-500/10 text-gray-500 hover:text-red-600 transition-all">
+                                                        <Trash2 size={12} />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ))
+                                    )}
+                                </div>
+                            </div>
+
                         </div>
                     </div>
                 )}
