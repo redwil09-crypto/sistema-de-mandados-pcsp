@@ -1,5 +1,5 @@
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { jsPDF } from 'jspdf';
 import { formatDate, maskDate } from '../utils/helpers';
@@ -19,6 +19,7 @@ import { extractPdfData, extractFromText, determineDpRegion } from '../pdfExtrac
 import { uploadFile, getPublicUrl } from '../supabaseStorage';
 import { analyzeWarrantData, isGeminiEnabled } from '../services/geminiService';
 import { geocodeAddress } from '../services/geocodingService';
+import { extractMultipleDocumentNumbers } from '../services/documentNumberExtractor';
 import { useWarrants } from '../contexts/WarrantContext';
 import BottomNav from '../components/BottomNav';
 import { supabase } from '../supabaseClient';
@@ -55,6 +56,41 @@ const AIAssistantPage = () => {
     const [selectedWarrants, setSelectedWarrants] = useState<string[]>([]);
 
     const [currentUser, setCurrentUser] = useState<{ name: string; email: string } | null>(null);
+
+    // Estado para números extraídos dos PDFs
+    const [documentNumbers, setDocumentNumbers] = useState<Record<string, { number: string | null; fullIdentifier: string | null }>>({});
+    const [isExtractingNumbers, setIsExtractingNumbers] = useState(false);
+    const processedUrlsRef = useRef<Set<string>>(new Set());
+
+    // Extrair números dos documentos dos PDFs
+    useEffect(() => {
+        const urlsToProcess: string[] = [];
+        warrants.forEach(w => {
+            const reports = w.reports || [];
+            const ifoodDocs = w.ifoodDocs || [];
+            const attachments = w.attachments || [];
+            [...reports, ...ifoodDocs, ...attachments].forEach(url => {
+                const lowerUrl = url.toLowerCase();
+                if (!lowerUrl.includes('dossie') && !lowerUrl.includes('dossie_tatico') && !processedUrlsRef.current.has(url)) {
+                    urlsToProcess.push(url);
+                    processedUrlsRef.current.add(url);
+                }
+            });
+        });
+
+        if (urlsToProcess.length === 0) return;
+
+        setIsExtractingNumbers(true);
+        
+        extractMultipleDocumentNumbers(urlsToProcess, (processed, total) => {
+            // Progresso opcional
+        }).then(results => {
+            setDocumentNumbers(prev => ({ ...prev, ...results }));
+            setIsExtractingNumbers(false);
+        }).catch(() => {
+            setIsExtractingNumbers(false);
+        });
+    }, [warrants]);
 
     // Lógicas da aba ARQUIVOS - Três categorias separadas
     const consolidatedFiles = useMemo(() => {
@@ -129,24 +165,26 @@ const AIAssistantPage = () => {
 
         reportsList.sort((a, b) => parseTimestamp(a.url) - parseTimestamp(b.url));
 
-        // Numerar sequencialmente de forma cronológica global
+        // Numerar usando números extraídos dos PDFs quando disponíveis
         const numberedReports = reportsList.map((r, index) => {
-            const num = String(index + 1).padStart(2, '0');
+            const extracted = documentNumbers[r.url];
+            const docNum = extracted?.fullIdentifier || String(index + 1).padStart(2, '0');
             return {
                 ...r,
-                displayName: `Relatório ${num}`,
-                downloadName: `relatorio_${num}.pdf`
+                displayName: extracted?.fullIdentifier ? `Relatório ${extracted.fullIdentifier}` : `Relatório ${String(index + 1).padStart(2, '0')}`,
+                downloadName: extracted?.fullIdentifier ? `relatorio_${extracted.fullIdentifier.replace(/\//g, '_')}.pdf` : `relatorio_${String(index + 1).padStart(2, '0')}.pdf`
             };
         });
 
-        // Numerar sequencialmente os ofícios do iFood também de forma cronológica global
+        // Numerar os ofícios do iFood usando números extraídos dos PDFs quando disponíveis
         ifoodDocsList.sort((a, b) => parseTimestamp(a.url) - parseTimestamp(b.url));
         const numberedIfoodDocs = ifoodDocsList.map((doc, index) => {
-            const num = String(index + 1).padStart(2, '0');
+            const extracted = documentNumbers[doc.url];
+            const docNum = extracted?.fullIdentifier || String(index + 1).padStart(2, '0');
             return {
                 ...doc,
-                displayName: `Ofício iFood ${num}`,
-                downloadName: `oficio_ifood_${num}.pdf`
+                displayName: extracted?.fullIdentifier ? `Ofício ${extracted.fullIdentifier}` : `Ofício iFood ${String(index + 1).padStart(2, '0')}`,
+                downloadName: extracted?.fullIdentifier ? `oficio_${extracted.fullIdentifier.replace(/\//g, '_')}.pdf` : `oficio_ifood_${String(index + 1).padStart(2, '0')}.pdf`
             };
         });
 
@@ -160,7 +198,7 @@ const AIAssistantPage = () => {
             attachments: sortByNewest(attachmentsList),
             ifoodDocs: sortByNewest(numberedIfoodDocs)
         };
-    }, [warrants]);
+    }, [warrants, documentNumbers]);
 
     const filteredReports = useMemo(() => {
         if (!searchTerm) return consolidatedFiles.reports;
@@ -1826,6 +1864,14 @@ const AIAssistantPage = () => {
                                 </span>
                             )}
                         </div>
+
+                        {/* Indicador de extração de números */}
+                        {isExtractingNumbers && (
+                            <div className="flex items-center justify-center gap-2 py-2 text-xs text-text-secondary-light dark:text-zinc-500 bg-surface-light dark:bg-surface-dark rounded-xl border border-border-light dark:border-border-dark px-4">
+                                <RefreshCw size={14} className="animate-spin text-primary" />
+                                <span>Extraindo numeração dos documentos...</span>
+                            </div>
+                        )}
 
                         {/* Grade de 3 Colunas */}
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
