@@ -9,7 +9,7 @@ import {
     Bell, Zap, Printer, User, Calendar, MapPin, Mic,
     MicOff, Bot, Briefcase, FileUp, Gavel, AlertTriangle, FileCheck,
     Paperclip, ShieldAlert, Layers, Sparkles, Camera, Map as MapIcon, ExternalLink,
-    File, Eye, Download, FileText
+    File, Eye, Download, FileText, FolderOpen
 } from 'lucide-react';
 import Header from '../components/Header';
 import ConfirmModal from '../components/ConfirmModal';
@@ -56,30 +56,29 @@ const AIAssistantPage = () => {
 
     const [currentUser, setCurrentUser] = useState<{ name: string; email: string } | null>(null);
 
-    // Lógicas da aba ARQUIVOS
-    const consolidatedFiles = useMemo(() => {
-        const reportsList: any[] = [];
-        const attachmentsList: any[] = [];
-        const ifoodDocsList: any[] = [];
+    // Lógicas da aba ARQUIVOS - Lista unificada de arquivos
+    const allFiles = useMemo(() => {
+        const filesList: any[] = [];
 
         warrants.forEach(w => {
-            // 1. Processar Reports (filtrando dossiê)
+            // Processar Reports (filtrando dossiê)
             if (w.reports && Array.isArray(w.reports)) {
                 w.reports.forEach(url => {
                     const lowerUrl = url.toLowerCase();
                     if (!lowerUrl.includes('dossie') && !lowerUrl.includes('dossie_tatico')) {
-                        reportsList.push({
+                        filesList.push({
                             url,
                             warrantId: w.id,
                             warrantName: w.name,
                             warrantNumber: w.number,
-                            createdAt: w.createdAt || w.entryDate || ''
+                            createdAt: w.createdAt || w.entryDate || '',
+                            type: 'report'
                         });
                     }
                 });
             }
 
-            // 2. Processar Attachments
+            // Processar Attachments
             if (w.attachments && Array.isArray(w.attachments)) {
                 w.attachments.forEach(url => {
                     const lowerUrl = url.toLowerCase();
@@ -93,106 +92,93 @@ const AIAssistantPage = () => {
                             warrantId: w.id,
                             warrantName: w.name,
                             warrantNumber: w.number,
-                            createdAt: w.createdAt || w.entryDate || ''
+                            createdAt: w.createdAt || w.entryDate || '',
+                            type: isIfood ? 'ifoodDoc' : (isReport ? 'report' : 'attachment')
                         };
 
-                        if (isIfood) {
-                            ifoodDocsList.push(fileObj);
-                        } else if (isReport) {
-                            reportsList.push(fileObj);
-                        } else {
-                            attachmentsList.push(fileObj);
-                        }
+                        filesList.push(fileObj);
                     }
                 });
             }
 
-            // 3. Processar Ifood Docs
+            // Processar Ifood Docs
             if (w.ifoodDocs && Array.isArray(w.ifoodDocs)) {
                 w.ifoodDocs.forEach(url => {
-                    ifoodDocsList.push({
+                    filesList.push({
                         url,
                         warrantId: w.id,
                         warrantName: w.name,
                         warrantNumber: w.number,
-                        createdAt: w.createdAt || w.entryDate || ''
+                        createdAt: w.createdAt || w.entryDate || '',
+                        type: 'ifoodDoc'
                     });
                 });
             }
         });
 
-        // Ordenar relatórios por data de criação (mais antigo para o mais novo) para atribuir numeração estável
+        // Função para extrair timestamp da URL para ordenação
         const parseTimestamp = (url: string) => {
             const match = url.match(/\/(\d+)_/);
             return match ? parseInt(match[1]) : 0;
         };
 
-        reportsList.sort((a, b) => parseTimestamp(a.url) - parseTimestamp(b.url));
+        // Separar arquivos por tipo para numeração sequencial
+        const reports = filesList.filter(f => f.type === 'report');
+        const ifoodDocs = filesList.filter(f => f.type === 'ifoodDoc');
+        const attachments = filesList.filter(f => f.type === 'attachment');
 
-        // Numerar sequencialmente de forma cronológica global
-        const numberedReports = reportsList.map((r, index) => {
-            const num = String(index + 1).padStart(2, '0');
-            return {
-                ...r,
-                displayName: `Relatório ${num}`,
-                downloadName: `relatorio_${num}.pdf`
-            };
-        });
+        // Ordenar por timestamp (mais antigo primeiro) para numeração estável
+        reports.sort((a, b) => parseTimestamp(a.url) - parseTimestamp(b.url));
+        ifoodDocs.sort((a, b) => parseTimestamp(a.url) - parseTimestamp(b.url));
 
-        // Numerar sequencialmente os ofícios do iFood também de forma cronológica global
-        ifoodDocsList.sort((a, b) => parseTimestamp(a.url) - parseTimestamp(b.url));
-        const numberedIfoodDocs = ifoodDocsList.map((doc, index) => {
-            const num = String(index + 1).padStart(2, '0');
-            return {
-                ...doc,
-                displayName: `Ofício iFood ${num}`,
-                downloadName: `oficio_ifood_${num}.pdf`
-            };
-        });
+        // Aplicar numeração sequencial
+        const numberedReports = reports.map((r, index) => ({
+            ...r,
+            displayName: `Relatório ${String(index + 1).padStart(2, '0')}`,
+            downloadName: `relatorio_${String(index + 1).padStart(2, '0')}.pdf`
+        }));
 
-        // Para exibição na tabela, ordenamos os mais recentes primeiro
-        const sortByNewest = (arr: any[]) => {
-            return [...arr].sort((a, b) => parseTimestamp(b.url) - parseTimestamp(a.url));
-        };
+        const numberedIfoodDocs = ifoodDocs.map((doc, index) => ({
+            ...doc,
+            displayName: `Ofício iFood ${String(index + 1).padStart(2, '0')}`,
+            downloadName: `oficio_ifood_${String(index + 1).padStart(2, '0')}.pdf`
+        }));
 
-        return {
-            reports: sortByNewest(numberedReports),
-            attachments: sortByNewest(attachmentsList),
-            ifoodDocs: sortByNewest(numberedIfoodDocs)
-        };
+        // Attachments mantêm nome original (sem numeração)
+        const numberedAttachments = attachments.map(a => ({
+            ...a,
+            displayName: a.url.split('/').pop() || 'Anexo',
+            downloadName: a.url.split('/').pop() || 'anexo.pdf'
+        }));
+
+        // Combinar todos e ordenar por data (mais recente primeiro) para exibição
+        const allNumbered = [...numberedReports, ...numberedIfoodDocs, ...numberedAttachments];
+        return allNumbered.sort((a, b) => parseTimestamp(b.url) - parseTimestamp(a.url));
     }, [warrants]);
 
-    const filteredReports = useMemo(() => {
-        if (!searchTerm) return consolidatedFiles.reports;
+    const filteredFiles = useMemo(() => {
+        if (!searchTerm) return allFiles;
         const term = searchTerm.toLowerCase();
-        return consolidatedFiles.reports.filter(f => 
-            f.displayName.toLowerCase().includes(term) ||
-            f.warrantName.toLowerCase().includes(term) ||
-            f.warrantNumber.toLowerCase().includes(term)
-        );
-    }, [consolidatedFiles.reports, searchTerm]);
-
-    const filteredAttachments = useMemo(() => {
-        if (!searchTerm) return consolidatedFiles.attachments;
-        const term = searchTerm.toLowerCase();
-        return consolidatedFiles.attachments.filter(f => {
-            const name = f.url.split('/').pop() || '';
-            const decodedName = decodeURIComponent(name).replace(/^\d+_/, '');
-            return decodedName.toLowerCase().includes(term) ||
-                f.warrantName.toLowerCase().includes(term) ||
-                f.warrantNumber.toLowerCase().includes(term);
+        return allFiles.filter(f => {
+            // Busca no nome de exibição
+            if (f.displayName.toLowerCase().includes(term)) return true;
+            
+            // Busca no nome do mandado
+            if (f.warrantName.toLowerCase().includes(term)) return true;
+            
+            // Busca no número do processo
+            if (f.warrantNumber.toLowerCase().includes(term)) return true;
+            
+            // Para anexos, também busca no nome original do arquivo
+            if (f.type === 'attachment') {
+                const originalName = f.url.split('/').pop() || '';
+                const decodedName = decodeURIComponent(originalName).replace(/^\d+_/, '');
+                if (decodedName.toLowerCase().includes(term)) return true;
+            }
+            
+            return false;
         });
-    }, [consolidatedFiles.attachments, searchTerm]);
-
-    const filteredIfoodDocs = useMemo(() => {
-        if (!searchTerm) return consolidatedFiles.ifoodDocs;
-        const term = searchTerm.toLowerCase();
-        return consolidatedFiles.ifoodDocs.filter(f => 
-            f.displayName.toLowerCase().includes(term) ||
-            f.warrantName.toLowerCase().includes(term) ||
-            f.warrantNumber.toLowerCase().includes(term)
-        );
-    }, [consolidatedFiles.ifoodDocs, searchTerm]);
+    }, [allFiles, searchTerm]);
 
 
     const getAttachmentName = (url: string) => {
@@ -1815,69 +1801,118 @@ const AIAssistantPage = () => {
                                 type="text"
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                placeholder="Buscar nos relatórios, anexos e ofícios por nome ou processo..."
+                                placeholder="Buscar em todos os arquivos por nome, mandato ou processo..."
                                 className="w-full rounded-xl border-2 border-border-light dark:border-white/10 bg-white dark:bg-zinc-900/50 py-3 pl-10 pr-4 text-sm shadow-sm dark:text-white placeholder:text-text-secondary-light dark:placeholder:text-zinc-500 focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all outline-none"
                             />
                         </div>
 
-                        {/* 1. SEÇÃO DE RELATÓRIOS */}
+                        {/* SEÇÃO ÚNICA DE ARQUIVOS */}
                         <div className="bg-surface-light dark:bg-surface-dark rounded-2xl border border-border-light dark:border-border-dark p-4 shadow-md space-y-3">
                             <div className="flex items-center gap-2 border-b border-border-light dark:border-border-dark pb-2">
-                                <FileText className="text-primary dark:text-blue-500" size={18} />
-                                <h3 className="font-black text-text-light dark:text-white text-xs uppercase tracking-widest flex-1">Relatórios de Cumprimento e Diligência</h3>
-                                <span className="bg-primary/10 text-primary text-[10px] font-bold px-2 py-0.5 rounded-full">{filteredReports.length}</span>
+                                <FolderOpen className="text-primary dark:text-blue-500" size={18} />
+                                <h3 className="font-black text-text-light dark:text-white text-xs uppercase tracking-widest flex-1">Todos os Arquivos</h3>
+                                <span className="bg-primary/10 text-primary text-[10px] font-bold px-2 py-0.5 rounded-full">{filteredFiles.length}</span>
                             </div>
                             
-                            {filteredReports.length === 0 ? (
-                                <p className="text-xs text-text-secondary-light dark:text-zinc-500 text-center py-4">Nenhum relatório encontrado.</p>
+                            {filteredFiles.length === 0 ? (
+                                <p className="text-xs text-text-secondary-light dark:text-zinc-500 text-center py-4">Nenhum arquivo encontrado.</p>
                             ) : (
                                 <div className="divide-y divide-border-light dark:divide-border-dark">
-                                    {filteredReports.map((file, idx) => (
-                                        <div key={idx} className="py-3 flex items-center justify-between gap-4 group">
-                                            <div className="min-w-0 flex-1 flex items-start gap-3">
-                                                <div className="p-2 bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded-lg">
-                                                    <FileCheck size={18} />
-                                                </div>
-                                                <div className="min-w-0 flex-1">
-                                                    <p className="text-xs font-bold text-text-light dark:text-white truncate">{file.displayName}</p>
-                                                    <div className="flex items-center gap-1.5 mt-0.5 text-[10px] text-text-secondary-light dark:text-zinc-500">
-                                                        <span>Alvo:</span>
-                                                        <Link to={`/warrant-detail/${file.warrantId}`} className="text-blue-600 dark:text-blue-400 font-bold hover:underline truncate max-w-[150px]">
-                                                            {file.warrantName}
-                                                        </Link>
-                                                        <span className="text-zinc-300 dark:text-zinc-700">|</span>
-                                                        <span className="truncate">Proc: {file.warrantNumber}</span>
+                                    {filteredFiles.map((file, idx) => {
+                                        // Determinar ícone e cor baseado no tipo
+                                        const getFileIconAndColor = (type: string) => {
+                                            switch (type) {
+                                                case 'report':
+                                                    return { 
+                                                        icon: <FileText size={18} className="text-blue-600 dark:text-blue-400" />,
+                                                        bg: 'bg-blue-500/10',
+                                                        text: 'text-blue-600 dark:text-blue-400'
+                                                    };
+                                                case 'ifoodDoc':
+                                                    return { 
+                                                        icon: <Cpu size={18} className="text-emerald-600 dark:text-emerald-500" />,
+                                                        bg: 'bg-emerald-500/10',
+                                                        text: 'text-emerald-600 dark:text-emerald-400'
+                                                    };
+                                                default: // attachment
+                                                    return { 
+                                                        icon: <Paperclip size={18} className="text-orange-600 dark:text-orange-500" />,
+                                                        bg: 'bg-orange-500/10',
+                                                        text: 'text-orange-600 dark:text-orange-400'
+                                                    };
+                                            }
+                                        };
+                                        
+                                        const { icon, bg, text } = getFileIconAndColor(file.type);
+                                        
+                                        // Determinar nome para download
+                                        const downloadName = file.downloadName || 
+                                                          (file.type === 'attachment' && (file.url.split('/').pop() || 'anexo.pdf')) ||
+                                                          'arquivo.pdf';
+                                
+                                        return (
+                                            <div key={idx} className="py-3 flex items-center justify-between gap-4 group">
+                                                <div className="min-w-0 flex-1 flex items-start gap-3">
+                                                    <div className="p-2 {bg} {text} rounded-lg">
+                                                        {icon}
+                                                    </div>
+                                                    <div className="min-w-0 flex-1">
+                                                        <p className="text-xs font-bold text-text-light dark:text-white truncate">{file.displayName}</p>
+                                                        <div className="flex items-center gap-1.5 mt-0.5 text-[10px] text-text-secondary-light dark:text-zinc-500">
+                                                            <span>Tipo:</span>
+                                                            <span className="text-[10px] font-medium text-text-light dark:text-white capitalize">
+                                                                {file.type === 'report' ? 'Relatório' : 
+                                                                 file.type === 'ifoodDoc' ? 'Ofício iFood' : 'Anexo'}
+                                                            </span>
+                                                            <span className="text-zinc-300 dark:text-zinc-700 mx-2">|</span>
+                                                            <span>Alvo:</span>
+                                                            <Link to={`/warrant-detail/${file.warrantId}`} className="text-blue-600 dark:text-blue-400 font-bold hover:underline truncate max-w-[150px]">
+                                                                {file.warrantName}
+                                                            </Link>
+                                                            <span className="text-zinc-300 dark:text-zinc-700 mx-2">|</span>
+                                                            <span className="truncate">Proc: {file.warrantNumber}</span>
+                                                        </div>
                                                     </div>
                                                 </div>
+                                                
+                                                <div className="flex items-center gap-1">
+                                                    <button
+                                                        onClick={() => window.open(file.url, '_blank')}
+                                                        title="Visualizar"
+                                                        className="p-1.5 rounded-lg bg-gray-500/10 text-gray-600 dark:text-gray-400 hover:bg-gray-500/20 active:scale-95 transition-all"
+                                                    >
+                                                        <Eye size={14} />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleDownloadFile(file.url, downloadName)}
+                                                        title="Baixar"
+                                                        className="p-1.5 rounded-lg {bg} {text} hover:bg-blue-500/20 active:scale-95 transition-all"
+                                                    >
+                                                        <Download size={14} />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => {
+                                                            // Determinar tipo para exclusão
+                                                            let deleteType: 'reports' | 'attachments' | 'ifoodDocs' = 'attachments';
+                                                            if (file.type === 'report') deleteType = 'reports';
+                                                            else if (file.type === 'ifoodDoc') deleteType = 'ifoodDocs';
+                                                            
+                                                            handleDeleteFile(file.warrantId, file.url, deleteType);
+                                                        }}
+                                                        title="Excluir"
+                                                        className="p-1.5 rounded-lg bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-500/20 active:scale-95 transition-all"
+                                                    >
+                                                        <Trash2 size={14} />
+                                                    </button>
+                                                </div>
                                             </div>
-                                            
-                                            <div className="flex items-center gap-1">
-                                                <button
-                                                    onClick={() => window.open(file.url, '_blank')}
-                                                    title="Visualizar"
-                                                    className="p-1.5 rounded-lg bg-gray-500/10 text-gray-600 dark:text-gray-400 hover:bg-gray-500/20 active:scale-95 transition-all"
-                                                >
-                                                    <Eye size={14} />
-                                                </button>
-                                                <button
-                                                    onClick={() => handleDownloadFile(file.url, file.downloadName)}
-                                                    title="Baixar"
-                                                    className="p-1.5 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 hover:bg-blue-500/20 active:scale-95 transition-all"
-                                                >
-                                                    <Download size={14} />
-                                                </button>
-                                                <button
-                                                    onClick={() => handleDeleteFile(file.warrantId, file.url, 'reports')}
-                                                    title="Excluir"
-                                                    className="p-1.5 rounded-lg bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-500/20 active:scale-95 transition-all"
-                                                >
-                                                    <Trash2 size={14} />
-                                                </button>
-                                            </div>
-                                        </div>
-                                    ))}
+                                        );
+                                    })}
                                 </div>
                             )}
+                        </div>
+                    </div>
+                )}
                         </div>
 
                         {/* 2. SEÇÃO DE ANEXOS DOS MANDADOS */}
