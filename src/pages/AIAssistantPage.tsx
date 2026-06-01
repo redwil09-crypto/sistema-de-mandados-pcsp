@@ -718,6 +718,7 @@ const AIAssistantPage = () => {
             let reports: string[] = [];
 
             if (files && files[currentIndex]) {
+                console.log("Uploading PDF file:", files[currentIndex].name);
                 const pdfFile = files[currentIndex];
                 const isIfood = (extractedData.type || '').toLowerCase().includes('ifood') || pdfFile.name.toLowerCase().includes('ifood');
                 const isReport = (extractedData.type || '').toLowerCase().includes('relatorio') || pdfFile.name.toLowerCase().includes('relatorio');
@@ -725,13 +726,22 @@ const AIAssistantPage = () => {
                 const typePath = isIfood ? 'ifoodDocs' : (isReport ? 'reports' : 'attachments');
                 const pdfPath = `${typePath}/${warrantId}/${Date.now()}_${pdfFile.name}`;
 
-                const uploadedPdfPath = await uploadFile(pdfFile, pdfPath);
-                if (uploadedPdfPath) {
-                    const pdfUrl = getPublicUrl(uploadedPdfPath);
-                    if (isIfood) ifoodDocs.push(pdfUrl);
-                    else if (isReport) reports.push(pdfUrl);
-                    else attachments.push(pdfUrl);
+                try {
+                    const uploadedPdfPath = await uploadFile(pdfFile, pdfPath);
+                    console.log("PDF upload result:", uploadedPdfPath);
+                    if (uploadedPdfPath) {
+                        const pdfUrl = getPublicUrl(uploadedPdfPath);
+                        console.log("Generated PDF URL:", pdfUrl);
+                        if (isIfood) ifoodDocs.push(pdfUrl);
+                        else if (isReport) reports.push(pdfUrl);
+                        else attachments.push(pdfUrl);
+                    }
+                } catch (uploadError) {
+                    console.error("Error uploading PDF:", uploadError);
+                    // Continue without the PDF attachment rather than failing the whole save
                 }
+            } else {
+                console.log("No file to upload for current index");
             }
 
             // FINAL SAFETY CHECK: Force status for Contramandado
@@ -752,7 +762,7 @@ const AIAssistantPage = () => {
                 regime: isContramandado ? 'Contramandado' : (extractedData.regime || 'Não informado'),
                 observation: extractedData.observations || '',
                 issueDate: extractedData.issueDate,
-                entryDate: new Date().toLocaleDateString('pt-BR'),
+                entryDate: new Date().toISOString().split('T')[0],
                 expirationDate: extractedData.expirationDate,
                 img: photoUrl,
                 attachments: attachments,
@@ -770,7 +780,9 @@ const AIAssistantPage = () => {
             };
 
 
+            console.log("Attempting to save warrant:", newWarrant);
             const { success, error, id } = await onAdd(newWarrant);
+            console.log("Save result:", { success, error, id });
             if (success) {
                 toast.success(`${extractedData.name} salvo com sucesso!`);
 
