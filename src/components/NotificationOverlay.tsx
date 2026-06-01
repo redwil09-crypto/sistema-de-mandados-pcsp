@@ -37,7 +37,7 @@ const NotificationOverlay = ({ warrants, isOpen, onClose }: NotificationOverlayP
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-start justify-end p-4 pt-16">
+        <div className="fixed inset-0 z-[100] flex items-start justify-end p-4 pt-16">
             <div className="absolute inset-0 bg-black/20 backdrop-blur-[1px]" onClick={onClose}></div>
             <div className="relative w-full max-w-sm bg-surface-light dark:bg-surface-dark rounded-xl shadow-2xl border border-border-light dark:border-border-dark animate-in slide-in-from-top-4 duration-200">
                 <div className="p-4 border-b border-border-light dark:border-border-dark flex justify-between items-center">

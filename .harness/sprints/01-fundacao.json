@@ -1,0 +1,36 @@
+{
+  "id": "sprint-01",
+  "name": "Fundação e Supabase",
+  "status": "pending",
+  "features": [
+    {
+      "id": "feat-001",
+      "name": "Validação e Configuração de Conexão Supabase",
+      "status": "pending",
+      "specLines": "60-100",
+      "description": "Garantir que a conexão cliente com o Supabase esteja resiliente e usando as variáveis de ambiente corretas para persistência segura dos mandados.",
+      "files": [
+        {
+          "file": "src/supabaseClient.ts",
+          "lines": "1-50"
+        }
+      ],
+      "acceptanceCriteria": [
+        "O arquivo supabaseClient.ts deve ler corretamente as variáveis VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY.",
+        "Se as chaves de ambiente não estiverem definidas, o cliente deve retornar um log informativo sem quebrar a renderização inicial."
+      ],
+      "hints": [
+        "Verifique se o arquivo .env local contém as variáveis corretas definidas no README."
+      ],
+      "verification": {
+        "grepMustMatch": [
+          "createClient",
+          "import.meta.env"
+        ],
+        "grepFiles": [
+          "src/supabaseClient.ts"
+        ]
+      }
+    }
+  ]
+}

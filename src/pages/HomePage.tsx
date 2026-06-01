@@ -9,8 +9,6 @@ import {
 import { generateWarrantPDF } from '../services/pdfReportService';
 import { Warrant } from '../types';
 import WarrantCard from '../components/WarrantCard';
-import { formatDate } from '../utils/helpers';
-import { EXPIRING_WARRANTS } from '../data/mockData';
 import { useWarrants } from '../contexts/WarrantContext';
 import { supabase } from '../supabaseClient';
 

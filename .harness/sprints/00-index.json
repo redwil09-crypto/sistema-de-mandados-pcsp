@@ -1,0 +1,24 @@
+{
+  "project": "sistema-de-mandados-pcsp",
+  "version": "1.0.0",
+  "sprints": [
+    {
+      "id": "sprint-01",
+      "name": "Fundação e Supabase",
+      "file": "01-fundacao.json",
+      "status": "pending"
+    },
+    {
+      "id": "sprint-02",
+      "name": "Dashboard e Estatísticas",
+      "file": "02-dashboard.json",
+      "status": "pending"
+    },
+    {
+      "id": "sprint-03",
+      "name": "Mapas e Rotas",
+      "file": "03-mapas.json",
+      "status": "pending"
+    }
+  ]
+}

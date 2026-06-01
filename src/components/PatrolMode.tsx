@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { Shield, Bell, Navigation, AlertCircle, MapPin, X } from 'lucide-react';
+import { Shield, Navigation, AlertCircle, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { Warrant } from '../types';
 import { calculateDistance } from '../utils/geoUtils';
