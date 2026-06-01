@@ -718,15 +718,17 @@ export const extractPdfData = async (file: File): Promise<ExtractedData> => {
                 const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
                 const pdf = await loadingTask.promise;
 
-                // Extract text from all pages
-                for (let i = 1; i <= pdf.numPages; i++) {
-                    const page = await pdf.getPage(i);
-                    const textContent = await page.getTextContent();
-                    const pageText = textContent.items
-                        .map((item: any) => item.str)
-                        .join(' ');
-                    fullText += pageText + '\n';
-                }
+        // Extract text from all pages with memory optimization
+        for (let i = 1; i <= pdf.numPages; i++) {
+            const page = await pdf.getPage(i);
+            const textContent = await page.getTextContent();
+            const pageText = textContent.items
+                .map((item: any) => item.str)
+                .join(' ');
+            fullText += pageText + '\n';
+            // Clean up page to free memory
+            page.cleanup();
+        }
             } catch (pdfError: any) {
                 console.error("PDF.js Core Error:", pdfError);
                 throw new Error("Erro interno ao decodificar PDF. O arquivo pode estar corrompido ou ter senha.");

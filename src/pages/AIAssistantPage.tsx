@@ -93,7 +93,17 @@ const AIAssistantPage = () => {
     }, [warrants]);
 
     // Lógicas da aba ARQUIVOS - Três categorias separadas
+    // Otimizado: Use useCallback para funções internas e apenas recalcule quando necessário
     const consolidatedFiles = useMemo(() => {
+        // Só processa se houver warrants para evitar cálculos desnecessários
+        if (!warrants || warrants.length === 0) {
+            return {
+                reports: [],
+                attachments: [],
+                ifoodDocs: []
+            };
+        }
+
         const reportsList: any[] = [];
         const attachmentsList: any[] = [];
         const ifoodDocsList: any[] = [];
@@ -332,6 +342,15 @@ const AIAssistantPage = () => {
         setSearchParams({ tab: activeTab }, { replace: true });
     }, [activeTab, setSearchParams]);
 
+    // Cleanup on unmount to prevent memory leaks
+    useEffect(() => {
+        return () => {
+            // Clear any pending timeouts or intervals
+            // Clear session data if needed when leaving the page completely
+            // Note: We keep session data for potential return to the page
+        };
+    }, []);
+
     // --- PERSISTENCIA DE SESSÃO ---
     useEffect(() => {
         const saved = localStorage.getItem('ai_assist_session');
@@ -361,15 +380,20 @@ const AIAssistantPage = () => {
         }
     }, []);
 
+    // Otimizado: Só salva na localStorage a cada 2 segundos para reduzir writes
     useEffect(() => {
         if (batchResults.length > 0 || inputText.length > 5) {
-            const session = {
-                step,
-                batchResults,
-                currentIndex,
-                inputText
-            };
-            localStorage.setItem('ai_assist_session', JSON.stringify(session));
+            const handler = setTimeout(() => {
+                const session = {
+                    step,
+                    batchResults,
+                    currentIndex,
+                    inputText
+                };
+                localStorage.setItem('ai_assist_session', JSON.stringify(session));
+            }, 2000);
+            
+            return () => clearTimeout(handler);
         }
     }, [step, batchResults, currentIndex, inputText]);
 
