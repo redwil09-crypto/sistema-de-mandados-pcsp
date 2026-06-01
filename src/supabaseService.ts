@@ -171,6 +171,7 @@ export const getWarrants = async (): Promise<Warrant[]> => {
             .select('*')
             .order('created_at', { ascending: false });
 
+        console.log("[DIAG] getWarrants - results count:", data?.length, "error:", error?.message);
         if (error) throw error;
 
         return data.map(dbToWarrant);

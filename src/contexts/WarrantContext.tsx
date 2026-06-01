@@ -111,6 +111,7 @@ export const WarrantProvider = ({ children }: { children: ReactNode }) => {
         if (!silent) setLoading(true);
         try {
             const data = await getWarrants();
+            console.log("[DIAG] refreshWarrants - got", data?.length, "warrants");
             setWarrants(data || []);
         } catch (err) {
             console.error("Error loading warrants:", err);
@@ -124,12 +125,13 @@ export const WarrantProvider = ({ children }: { children: ReactNode }) => {
 
     const addWarrant = async (w: Partial<Warrant>) => {
         const { data, error } = await createWarrant(w);
+        console.log("[DIAG] addWarrant - createWarrant returned:", { data, error, hasData: !!data, id: data?.id, userId: data?.userId });
         if (data) {
-            // Optimistic update or reload? Reload is safer for consistency, optimistic is faster.
-            // Let's reload for now to adhere to original logic, but we can optimize later.
             await refreshWarrants();
+            console.log("[DIAG] addWarrant - refreshWarrants done, returning success");
             return { success: true, id: data.id };
         }
+        console.log("[DIAG] addWarrant - returning failure:", error?.message);
         return { success: false, error: error?.message || "Erro desconhecido ao salvar." };
     };
 
