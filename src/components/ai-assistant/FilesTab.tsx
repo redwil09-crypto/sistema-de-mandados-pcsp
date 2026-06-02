@@ -1,5 +1,5 @@
 
-import React, { useState, useMemo, useEffect, useRef } from 'react';
+import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { Search, FileText, Paperclip, Cpu, Eye, Download, Trash2, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
@@ -17,14 +17,14 @@ const FilesTab: React.FC<FilesTabProps> = ({ initialSearchTerm = '', onSearchTer
     const [searchTerm, setSearchTerm] = useState(initialSearchTerm);
     const [documentNumbers, setDocumentNumbers] = useState<Record<string, { number: string | null; fullIdentifier: string | null }>>({});
     const [isExtractingNumbers, setIsExtractingNumbers] = useState(false);
-    const processedUrlsRef = useRef<Set<string>>(new Set());
+    const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
 
     useEffect(() => {
         onSearchTermChange?.(searchTerm);
     }, [searchTerm, onSearchTermChange]);
 
-    // Extrair números dos documentos dos PDFs apenas quando a aba está ativa
-    useEffect(() => {
+    // Função para extrair números dos PDFs - só roda quando o usuário clica em "Atualizar"
+    const handleRefreshNumbers = useCallback(async () => {
         const urlsToProcess: string[] = [];
         warrants.forEach(w => {
             const reports = w.reports || [];
@@ -32,39 +32,28 @@ const FilesTab: React.FC<FilesTabProps> = ({ initialSearchTerm = '', onSearchTer
             const attachments = w.attachments || [];
             [...reports, ...ifoodDocs, ...attachments].forEach(url => {
                 const lowerUrl = url.toLowerCase();
-                if (!lowerUrl.includes('dossie') && !lowerUrl.includes('dossie_tatico') && !processedUrlsRef.current.has(url)) {
+                if (!lowerUrl.includes('dossie') && !lowerUrl.includes('dossie_tatico')) {
                     urlsToProcess.push(url);
-                    processedUrlsRef.current.add(url);
                 }
             });
         });
 
         if (urlsToProcess.length === 0) {
-            setIsExtractingNumbers(false);
+            toast.info("Nenhum documento para processar.");
             return;
         }
 
         setIsExtractingNumbers(true);
-
-        let cancelled = false;
-        extractMultipleDocumentNumbers(urlsToProcess, (processed, total) => {
-            if (!cancelled) {
-                // Progresso opcional
-            }
-        }).then(results => {
-            if (!cancelled) {
-                setDocumentNumbers(prev => ({ ...prev, ...results }));
-                setIsExtractingNumbers(false);
-            }
-        }).catch(() => {
-            if (!cancelled) {
-                setIsExtractingNumbers(false);
-            }
-        });
-
-        return () => {
-            cancelled = true;
-        };
+        try {
+            const results = await extractMultipleDocumentNumbers(urlsToProcess, () => { });
+            setDocumentNumbers(results);
+            setLastUpdate(new Date());
+            toast.success(`${Object.keys(results).length} documentos processados!`);
+        } catch (err) {
+            toast.error("Erro ao processar documentos.");
+        } finally {
+            setIsExtractingNumbers(false);
+        }
     }, [warrants]);
 
     const consolidatedFiles = useMemo(() => {
@@ -282,12 +271,24 @@ const FilesTab: React.FC<FilesTabProps> = ({ initialSearchTerm = '', onSearchTer
                 )}
             </div>
 
-            {isExtractingNumbers && (
-                <div className="flex items-center justify-center gap-2 py-2 text-xs text-text-secondary-light dark:text-zinc-500 bg-surface-light dark:bg-surface-dark rounded-xl border border-border-light dark:border-border-dark px-4">
-                    <RefreshCw size={14} className="animate-spin text-primary" />
-                    <span>Extraindo numeração dos documentos...</span>
+            <div className="flex items-center justify-between gap-2 p-3 bg-surface-light dark:bg-surface-dark rounded-xl border border-border-light dark:border-border-dark">
+                <div className="flex flex-col">
+                    <span className="text-[10px] font-bold uppercase text-text-secondary-light dark:text-zinc-500">Numeração dos documentos</span>
+                    <span className="text-[9px] text-text-secondary-light dark:text-zinc-500">
+                        {lastUpdate
+                            ? `Última atualização: ${lastUpdate.toLocaleString('pt-BR')}`
+                            : 'Clique em atualizar para extrair a numeração dos PDFs'}
+                    </span>
                 </div>
-            )}
+                <button
+                    onClick={handleRefreshNumbers}
+                    disabled={isExtractingNumbers}
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-primary text-white rounded-lg font-bold text-[10px] uppercase disabled:opacity-50 transition-all active:scale-95 shadow-sm"
+                >
+                    <RefreshCw size={12} className={isExtractingNumbers ? 'animate-spin' : ''} />
+                    {isExtractingNumbers ? 'Atualizando...' : 'Atualizar'}
+                </button>
+            </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                 <div className="bg-surface-light dark:bg-surface-dark rounded-2xl border border-border-light dark:border-border-dark p-4 shadow-md space-y-3 flex flex-col min-h-[200px] max-h-[500px]">
