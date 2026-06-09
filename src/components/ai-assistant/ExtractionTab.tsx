@@ -961,6 +961,24 @@ const ExtractionTab: React.FC<ExtractionTabProps> = ({ onSaveSuccess }) => {
                                 ))}
                             </div>
                         )}
+
+                        <div className="flex gap-3 pt-4 border-t border-border-light dark:border-border-dark">
+                            <button
+                                onClick={handleSave}
+                                disabled={isSaving}
+                                className="flex-1 py-3.5 bg-primary text-white rounded-xl font-bold text-sm shadow-lg shadow-primary/20 hover:bg-primary/95 transition-all flex items-center justify-center gap-2 active:scale-[0.98] disabled:opacity-50"
+                            >
+                                <Save size={18} />
+                                {isSaving ? "Salvando..." : "Salvar Mandado"}
+                            </button>
+                            <button
+                                onClick={backToInput}
+                                className="px-6 py-3.5 bg-gray-500/10 text-gray-600 dark:text-gray-400 rounded-xl font-bold text-sm hover:bg-gray-500/20 transition-all flex items-center justify-center gap-2 active:scale-[0.98]"
+                            >
+                                <RefreshCw size={18} />
+                                Voltar
+                            </button>
+                        </div>
                     </div>
                 )
             )}
