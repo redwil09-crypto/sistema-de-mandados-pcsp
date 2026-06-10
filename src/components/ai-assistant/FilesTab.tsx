@@ -12,16 +12,43 @@ interface FilesTabProps {
     onSelectionChange?: (count: number) => void;
 }
 
+const STORAGE_KEY = 'filesTab_documentNumbers_v2';
+const LAST_UPDATE_KEY = 'filesTab_lastUpdate_v2';
+
 const FilesTab: React.FC<FilesTabProps> = ({ initialSearchTerm = '', onSearchTermChange, onSelectionChange }) => {
     const { warrants, updateWarrant } = useWarrants();
     const [searchTerm, setSearchTerm] = useState(initialSearchTerm);
-    const [documentNumbers, setDocumentNumbers] = useState<Record<string, { number: string | null; fullIdentifier: string | null }>>({});
+    const [documentNumbers, setDocumentNumbers] = useState<Record<string, { number: string | null; fullIdentifier: string | null }>>(() => {
+        try {
+            const stored = localStorage.getItem(STORAGE_KEY);
+            return stored ? JSON.parse(stored) : {};
+        } catch {
+            return {};
+        }
+    });
     const [isExtractingNumbers, setIsExtractingNumbers] = useState(false);
-    const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
+    const [lastUpdate, setLastUpdate] = useState<Date | null>(() => {
+        try {
+            const stored = localStorage.getItem(LAST_UPDATE_KEY);
+            return stored ? new Date(stored) : null;
+        } catch {
+            return null;
+        }
+    });
 
     useEffect(() => {
         onSearchTermChange?.(searchTerm);
     }, [searchTerm, onSearchTermChange]);
+
+    useEffect(() => {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(documentNumbers));
+    }, [documentNumbers]);
+
+    useEffect(() => {
+        if (lastUpdate) {
+            localStorage.setItem(LAST_UPDATE_KEY, lastUpdate.toISOString());
+        }
+    }, [lastUpdate]);
 
     // Função para extrair números dos PDFs - só roda quando o usuário clica em "Atualizar"
     const handleRefreshNumbers = useCallback(async () => {
