@@ -1,5 +1,5 @@
 
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     ResponsiveContainer, XAxis, YAxis,
@@ -249,6 +249,20 @@ const Stats = () => {
             'PM / GCM': monthlyCounts.fulfilledExternal[month] || 0
         }));
     }, [trendMonths, monthlyCounts]);
+
+    const hasShownExpiring = useRef(false);
+    useEffect(() => {
+        if (stats.expiring > 0 && !hasShownExpiring.current) {
+            hasShownExpiring.current = true;
+            const msg = stats.expiring === 1
+                ? '1 mandado a vencer em breve'
+                : `${stats.expiring} mandados a vencer nos próximos 30 dias`;
+            toast(msg, {
+                duration: 8000,
+                action: { label: 'Ver', onClick: () => navigate('/warrant-list?expiring=true') }
+            });
+        }
+    }, [stats.expiring, navigate]);
 
     return (
         <div className="min-h-screen bg-background-light dark:bg-[#050505] pb-24 relative overflow-hidden">
