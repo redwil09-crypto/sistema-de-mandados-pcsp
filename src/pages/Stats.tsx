@@ -642,43 +642,27 @@ const Stats = () => {
 
                 {/* MONTHLY ANALYTICS */}
                 <div className="bg-white/60 dark:bg-zinc-900/40 backdrop-blur-xl p-6 rounded-3xl border border-black/5 dark:border-white/5 shadow-xl dark:shadow-2xl">
-                    <div className="flex items-center justify-between mb-6 gap-4">
-                        <h3 className="font-bold text-[10px] uppercase tracking-[0.3em] text-black/40 dark:text-white/40 flex items-center gap-3 shrink-0">
+                    <div className="flex items-center justify-between mb-4">
+                        <h3 className="font-bold text-[10px] uppercase tracking-[0.3em] text-black/40 dark:text-white/40 flex items-center gap-3">
                             <TrendingUp size={14} className="text-primary" />
                             Analítico Mensal
                         </h3>
-                        <div className="bg-gradient-to-r from-primary/10 to-blue-600/10 dark:from-blue-950/40 dark:to-blue-900/40 rounded-2xl p-2 border border-primary/20 shadow-[0_0_20px_rgba(37,99,235,0.08)]">
-                            <div className="flex items-center gap-1">
-                                <button
-                                    onClick={() => setSelectedMonthIdx(Math.max(0, selectedMonthIdx - 1))}
-                                    className="p-1.5 rounded-lg hover:bg-black/10 dark:hover:bg-white/10 transition-colors text-black/40 dark:text-white/40 hover:text-black/70 dark:hover:text-white/70"
-                                >
-                                    <ChevronLeft size={16} />
-                                </button>
-                                <div className="flex gap-1.5 overflow-x-auto max-w-[320px] scrollbar-thin px-1">
-                                    {availableMonths.map((month, idx) => (
-                                        <button
-                                            key={month}
-                                            onClick={() => setSelectedMonthIdx(idx)}
-                                            className={`px-4 py-2 rounded-xl text-[13px] font-black tracking-wide whitespace-nowrap transition-all duration-200 ${
-                                                idx === selectedMonthIdx
-                                                    ? 'bg-gradient-to-br from-primary to-blue-600 text-white shadow-lg shadow-primary/40 scale-110 ring-2 ring-primary/60 -translate-y-0.5'
-                                                    : 'text-black/40 dark:text-white/40 hover:text-black/70 dark:hover:text-white/70 hover:bg-white/50 dark:hover:bg-white/5'
-                                            }`}
-                                        >
-                                            <span className="text-sm">{MONTH_NAMES[parseInt(month.split('-')[1]) - 1]}</span>
-                                            <span className="ml-1 text-[11px] opacity-70">{month.split('-')[0]}</span>
-                                        </button>
-                                    ))}
-                                </div>
-                                <button
-                                    onClick={() => setSelectedMonthIdx(Math.min(availableMonths.length - 1, selectedMonthIdx + 1))}
-                                    className="p-1.5 rounded-lg hover:bg-black/10 dark:hover:bg-white/10 transition-colors text-black/40 dark:text-white/40 hover:text-black/70 dark:hover:text-white/70"
-                                >
-                                    <ChevronRight size={16} />
-                                </button>
-                            </div>
-                        </div>
+                    </div>
+                    <div className="flex justify-between gap-0.5 mb-6">
+                        {availableMonths.map((month, idx) => (
+                            <button
+                                key={month}
+                                onClick={() => setSelectedMonthIdx(idx)}
+                                className={`flex-1 py-1.5 rounded-lg text-[10px] font-bold tracking-wide text-center transition-all duration-200 ${
+                                    idx === selectedMonthIdx
+                                        ? 'bg-primary text-white shadow-[0_0_12px_rgba(37,99,235,0.6)] scale-105 ring-1 ring-primary/50'
+                                        : 'text-black/30 dark:text-white/30 hover:text-black/60 dark:hover:text-white/60 hover:bg-black/5 dark:hover:bg-white/5'
+                                }`}
+                            >
+                                {MONTH_NAMES[parseInt(month.split('-')[1]) - 1]}
+                                <span className="ml-0.5 opacity-60">{month.split('-')[0].slice(2)}</span>
+                            </button>
+                        ))}
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
