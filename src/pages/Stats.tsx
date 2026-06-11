@@ -646,22 +646,22 @@ const Stats = () => {
                             <TrendingUp size={14} className="text-primary" />
                             Analítico Mensal
                         </h3>
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-1.5">
                             <button
                                 onClick={() => setSelectedMonthIdx(Math.max(0, selectedMonthIdx - 1))}
-                                className="p-1.5 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-colors text-black/40 dark:text-white/40"
+                                className="p-2 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 transition-colors text-black/40 dark:text-white/40 hover:text-black/60 dark:hover:text-white/60"
                             >
-                                <ChevronLeft size={14} />
+                                <ChevronLeft size={16} />
                             </button>
-                            <div className="flex gap-1 overflow-x-auto max-w-[220px] scrollbar-thin pb-0.5">
+                            <div className="flex gap-1.5 overflow-x-auto max-w-[260px] scrollbar-thin pb-1">
                                 {availableMonths.map((month, idx) => (
                                     <button
                                         key={month}
                                         onClick={() => setSelectedMonthIdx(idx)}
-                                        className={`px-2.5 py-1 rounded-lg text-[9px] font-bold uppercase tracking-wider whitespace-nowrap transition-all ${
+                                        className={`px-3.5 py-1.5 rounded-xl text-[11px] font-bold uppercase tracking-wider whitespace-nowrap transition-all border-2 ${
                                             idx === selectedMonthIdx
-                                                ? 'bg-primary text-white shadow-sm'
-                                                : 'text-black/40 dark:text-white/40 hover:bg-black/5 dark:hover:bg-white/5'
+                                                ? 'bg-primary text-white border-primary shadow-[0_0_12px_rgba(37,99,235,0.4)] scale-105'
+                                                : 'text-black/40 dark:text-white/40 border-transparent hover:bg-black/5 dark:hover:bg-white/5 hover:border-black/10 dark:hover:border-white/10'
                                         }`}
                                     >
                                         {MONTH_NAMES[parseInt(month.split('-')[1]) - 1]}/{month.split('-')[0].slice(2)}
@@ -670,15 +670,15 @@ const Stats = () => {
                             </div>
                             <button
                                 onClick={() => setSelectedMonthIdx(Math.min(availableMonths.length - 1, selectedMonthIdx + 1))}
-                                className="p-1.5 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-colors text-black/40 dark:text-white/40"
+                                className="p-2 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 transition-colors text-black/40 dark:text-white/40 hover:text-black/60 dark:hover:text-white/60"
                             >
-                                <ChevronRight size={14} />
+                                <ChevronRight size={16} />
                             </button>
                         </div>
                     </div>
 
                     <div className="text-center mb-6">
-                        <span className="text-lg font-black text-black dark:text-white">
+                        <span className="text-2xl font-black text-black dark:text-white drop-shadow-[0_0_10px_rgba(37,99,235,0.15)] tracking-tight">
                             {MONTH_NAMES[parseInt(selectedMonth.split('-')[1]) - 1]} de {selectedMonth.split('-')[0]}
                         </span>
                     </div>
@@ -689,7 +689,7 @@ const Stats = () => {
                             value={selectedData.included}
                             icon={<Database size={20} />}
                             className="bg-blue-500/5 text-blue-600 dark:text-blue-400 border-blue-500/20 shadow-[0_0_15px_rgba(59,130,246,0.1)] cursor-pointer hover:bg-blue-500/10"
-                            subtext={selectedMonth}
+                            subtext={`${MONTH_NAMES[parseInt(selectedMonth.split('-')[1]) - 1]}/${selectedMonth.split('-')[0].slice(2)}`}
                             onClick={() => navigate(`/warrant-list?includedMonth=${selectedMonth}`)}
                         />
                         <StatCard
@@ -697,7 +697,7 @@ const Stats = () => {
                             value={selectedData.fulfilled}
                             icon={<CheckCircle2 size={20} />}
                             className="bg-emerald-500/5 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.1)] cursor-pointer hover:bg-emerald-500/10"
-                            subtext={selectedMonth}
+                            subtext={`${MONTH_NAMES[parseInt(selectedMonth.split('-')[1]) - 1]}/${selectedMonth.split('-')[0].slice(2)}`}
                             onClick={() => navigate(`/warrant-list?fulfilledMonth=${selectedMonth}`)}
                         />
                         <StatCard
@@ -705,7 +705,7 @@ const Stats = () => {
                             value={selectedData.reports}
                             icon={<FileText size={20} />}
                             className="bg-amber-500/5 text-amber-600 dark:text-amber-400 border-amber-500/20 shadow-[0_0_15px_rgba(245,158,11,0.1)] cursor-pointer hover:bg-amber-500/10"
-                            subtext={selectedMonth}
+                            subtext={`${MONTH_NAMES[parseInt(selectedMonth.split('-')[1]) - 1]}/${selectedMonth.split('-')[0].slice(2)}`}
                             onClick={() => navigate(`/warrant-list?reportsMonth=${selectedMonth}`)}
                         />
                     </div>
