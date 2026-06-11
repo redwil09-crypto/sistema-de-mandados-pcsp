@@ -17,6 +17,7 @@ const WarrantList = () => {
     const initialType = searchParams.get('type') || '';
     const initialPriority = searchParams.get('priority') || '';
     const initialExpired = searchParams.get('expired') === 'true';
+    const initialExpiring = searchParams.get('expiring') === 'true';
     const initialLocation = searchParams.get('city') || '';
     const initialIncludedMonth = searchParams.get('includedMonth') || '';
     const initialFulfilledMonth = searchParams.get('fulfilledMonth') || '';
@@ -71,6 +72,7 @@ const WarrantList = () => {
     const [observationKeyword, setObservationKeyword] = useState('');
     const [filterPriority, setFilterPriority] = useState(initialPriority);
     const [filterExpired, setFilterExpired] = useState(initialExpired);
+    const [filterExpiring, setFilterExpiring] = useState(initialExpiring);
 
     const statuses = useMemo(() => Array.from(new Set(warrants.map(w => w.status))).sort(), [warrants]);
 
@@ -115,7 +117,30 @@ const WarrantList = () => {
                 } else {
                     expDate = new Date(w.expirationDate);
                 }
-                matchesExpired = !!(expDate && expDate < today);
+                if (expDate) expDate.setHours(0, 0, 0, 0);
+                if (today) today.setHours(0, 0, 0, 0);
+                matchesExpired = !!(expDate && expDate <= today);
+            }
+        }
+
+        // Expiring soon (within 30 days)
+        let matchesExpiring = true;
+        if (filterExpiring) {
+            if (!w.expirationDate || w.status !== 'EM ABERTO') {
+                matchesExpiring = false;
+            } else {
+                const today = new Date();
+                let expDate: Date | null = null;
+                if (w.expirationDate.includes('/')) {
+                    const [day, month, year] = w.expirationDate.split('/');
+                    expDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+                } else {
+                    expDate = new Date(w.expirationDate);
+                }
+                if (expDate) expDate.setHours(0, 0, 0, 0);
+                if (today) today.setHours(0, 0, 0, 0);
+                const diff = expDate ? (expDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24) : 999;
+                matchesExpiring = !!(expDate && diff > 0 && diff <= 30);
             }
         }
 
@@ -142,7 +167,7 @@ const WarrantList = () => {
             matchesFulfillmentResult = w.fulfillmentResult === initialFulfillmentResult;
         }
 
-        return matchesText && matchesCrime && matchesRegime && matchesDpRegion && matchesStatus && matchesDate && matchesObservation && matchesPriority && matchesExpired && matchesIncludedMonth && matchesFulfilledMonth && matchesReportsMonth && matchesFulfilledSource && matchesFulfillmentResult;
+        return matchesText && matchesCrime && matchesRegime && matchesDpRegion && matchesStatus && matchesDate && matchesObservation && matchesPriority && matchesExpired && matchesExpiring && matchesIncludedMonth && matchesFulfilledMonth && matchesReportsMonth && matchesFulfilledSource && matchesFulfillmentResult;
     }).sort((a, b) => (a.name || '').localeCompare(b.name || ''));
 
     const clearFilters = () => {
@@ -156,6 +181,7 @@ const WarrantList = () => {
         setSearchTerm('');
         setFilterPriority('');
         setFilterExpired(false);
+        setFilterExpiring(false);
     };
 
     const hasActiveFilters = filterCrime || filterRegime || filterDpRegion || filterStatus || dateStart || dateEnd || observationKeyword;

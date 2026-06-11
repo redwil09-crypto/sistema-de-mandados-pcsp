@@ -48,6 +48,7 @@ const Stats = () => {
 
         // Expiration Check
         const today = new Date();
+        today.setHours(0, 0, 0, 0);
         const expired = active.filter(w => {
             if (!w.expirationDate) return false;
             let d: Date | null = null;
@@ -57,7 +58,21 @@ const Stats = () => {
             } else if (w.expirationDate.includes('-')) {
                 d = new Date(w.expirationDate);
             }
-            return d && d < today;
+            if (d) d.setHours(0, 0, 0, 0);
+            return d && d <= today;
+        }).length;
+        const expiring = active.filter(w => {
+            if (!w.expirationDate) return false;
+            let d: Date | null = null;
+            if (w.expirationDate.includes('/')) {
+                const [day, month, year] = w.expirationDate.split('/');
+                d = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+            } else if (w.expirationDate.includes('-')) {
+                d = new Date(w.expirationDate);
+            }
+            if (d) d.setHours(0, 0, 0, 0);
+            const diff = d ? (d.getTime() - today.getTime()) / (1000 * 60 * 60 * 24) : 999;
+            return d && diff > 0 && diff <= 30;
         }).length;
 
         // Urgent
@@ -75,6 +90,7 @@ const Stats = () => {
             prisonPct,
             searchPct,
             expired,
+            expiring,
             urgent,
             doneInternal: countDoneInternal,
             doneExternal: countDoneExternal,
@@ -619,7 +635,7 @@ const Stats = () => {
                 </div>
 
                 {/* Critical Alerts Row - Pulse Neon */}
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-3 gap-4">
                     <div
                         onClick={() => navigate('/warrant-list?priority=urgent')}
                         className={`p-6 rounded-3xl border-2 flex flex-col items-center justify-center text-center gap-3 transition-all duration-500 cursor-pointer ${stats.urgent > 0 ? 'bg-red-500/10 border-red-500/50 shadow-[0_0_30px_rgba(239,68,68,0.2)] animate-pulse hover:bg-red-500/20' : 'bg-white/60 dark:bg-zinc-900/40 border-black/5 dark:border-white/5 hover:bg-black/5 dark:hover:bg-white/5'}`}
@@ -632,10 +648,21 @@ const Stats = () => {
                     </div>
 
                     <div
+                        onClick={() => navigate('/warrant-list?expiring=true')}
+                        className={`p-6 rounded-3xl border-2 flex flex-col items-center justify-center text-center gap-3 transition-all duration-500 cursor-pointer ${stats.expiring > 0 ? 'bg-orange-500/10 border-orange-500/50 shadow-[0_0_30px_rgba(249,115,22,0.2)] hover:bg-orange-500/20' : 'bg-white/60 dark:bg-zinc-900/40 border-black/5 dark:border-white/5 hover:bg-black/5 dark:hover:bg-white/5'}`}
+                    >
+                        <Clock size={32} className={`${stats.expiring > 0 ? 'text-orange-500' : 'text-black/20 dark:text-white/10'}`} />
+                        <div>
+                            <span className={`block text-3xl font-black mb-1 ${stats.expiring > 0 ? 'text-orange-500' : 'text-black/50 dark:text-white/20'}`}>{stats.expiring}</span>
+                            <span className="text-[9px] font-black uppercase tracking-[0.2em] text-black/50 dark:text-white/40">A Vencer (30 dias)</span>
+                        </div>
+                    </div>
+
+                    <div
                         onClick={() => navigate('/warrant-list?expired=true')}
                         className={`p-6 rounded-3xl border-2 flex flex-col items-center justify-center text-center gap-3 transition-all duration-500 cursor-pointer ${stats.expired > 0 ? 'bg-amber-500/10 border-amber-500/50 shadow-[0_0_30px_rgba(245,158,11,0.2)] hover:bg-amber-500/20' : 'bg-white/60 dark:bg-zinc-900/40 border-black/5 dark:border-white/5 hover:bg-black/5 dark:hover:bg-white/5'}`}
                     >
-                        <Clock size={32} className={`${stats.expired > 0 ? 'text-amber-500' : 'text-black/20 dark:text-white/10'}`} />
+                        <AlertTriangle size={32} className={`${stats.expired > 0 ? 'text-amber-500' : 'text-black/20 dark:text-white/10'}`} />
                         <div>
                             <span className={`block text-3xl font-black mb-1 ${stats.expired > 0 ? 'text-amber-500' : 'text-black/50 dark:text-white/20'}`}>{stats.expired}</span>
                             <span className="text-[9px] font-black uppercase tracking-[0.2em] text-black/50 dark:text-white/40">Prazos Expirados</span>
