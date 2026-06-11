@@ -211,22 +211,28 @@ const Stats = () => {
         reports: monthlyCounts.reportsCount[selectedMonth] || 0
     };
 
+    const trendMonths = useMemo(() => {
+        const current = new Date().getMonth();
+        const start = Math.max(0, current - 5);
+        return availableMonths.slice(start, current + 1);
+    }, [availableMonths]);
+
     const trendData = useMemo(() => {
-        return availableMonths.slice(-6).map(month => ({
+        return trendMonths.map(month => ({
             name: MONTH_NAMES[parseInt(month.split('-')[1]) - 1],
             Incluídos: monthlyCounts.included[month] || 0,
             Cumpridos: monthlyCounts.fulfilled[month] || 0,
             Relatórios: monthlyCounts.reportsCount[month] || 0
         }));
-    }, [availableMonths, monthlyCounts]);
+    }, [trendMonths, monthlyCounts]);
 
     const presoTrendData = useMemo(() => {
-        return availableMonths.slice(-6).map(month => ({
+        return trendMonths.map(month => ({
             name: MONTH_NAMES[parseInt(month.split('-')[1]) - 1],
             'Minha Equipe': monthlyCounts.fulfilledInternal[month] || 0,
             'PM / GCM': monthlyCounts.fulfilledExternal[month] || 0
         }));
-    }, [availableMonths, monthlyCounts]);
+    }, [trendMonths, monthlyCounts]);
 
     return (
         <div className="min-h-screen bg-background-light dark:bg-[#050505] pb-24 relative overflow-hidden">
