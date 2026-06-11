@@ -1,14 +1,14 @@
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     ResponsiveContainer, XAxis, YAxis,
-    Tooltip, BarChart, Bar, Cell, PieChart, Pie, CartesianGrid
+    Tooltip, BarChart, Bar, Cell, PieChart, Pie, CartesianGrid, Legend
 } from 'recharts';
 import {
     Database, AlertTriangle, CheckCircle2, Activity,
     Shield, Briefcase, Gavel, Clock, Siren, TrendingUp,
-    AlertOctagon, Lock, Search
+    AlertOctagon, Lock, Search, FileText, ChevronLeft, ChevronRight
 } from 'lucide-react';
 import Header from '../components/Header';
 import BottomNav from '../components/BottomNav';
@@ -113,6 +113,89 @@ const Stats = () => {
             intensity: Math.round((value / max) * 100)
         }));
     }, [warrants]);
+
+    // Monthly Analytics
+    const MONTH_NAMES = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+
+    const getMonthKey = (dateStr: string | undefined | null): string | null => {
+        if (!dateStr) return null;
+        let d: Date | null = null;
+        if (dateStr.includes('/')) {
+            const [day, month, year] = dateStr.split('/');
+            d = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+        } else if (dateStr.includes('-')) {
+            const clean = dateStr.split('T')[0].split(' ')[0];
+            const parts = clean.split('-');
+            if (parts.length === 3) {
+                d = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+            }
+        }
+        if (!d || isNaN(d.getTime())) return null;
+        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+    };
+
+    const getMonthFromReportUrl = (url: string): string | null => {
+        const match = url.match(/\/(\d{13})_/);
+        if (match) {
+            const d = new Date(parseInt(match[1]));
+            return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+        }
+        return null;
+    };
+
+    const [selectedMonthIdx, setSelectedMonthIdx] = useState(11);
+
+    const availableMonths = useMemo(() => {
+        const now = new Date();
+        const months: string[] = [];
+        for (let i = 11; i >= 0; i--) {
+            const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+            months.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`);
+        }
+        return months;
+    }, []);
+
+    const monthlyCounts = useMemo(() => {
+        const included: Record<string, number> = {};
+        const fulfilled: Record<string, number> = {};
+        const reportsCount: Record<string, number> = {};
+
+        warrants.forEach(w => {
+            const month = getMonthKey(w.createdAt) || getMonthKey(w.entryDate);
+            if (month) included[month] = (included[month] || 0) + 1;
+        });
+
+        warrants.filter(w => w.status === 'CUMPRIDO' || w.status === 'PRESO').forEach(w => {
+            const month = getMonthKey(w.dischargeDate) || getMonthKey(w.updatedAt);
+            if (month) fulfilled[month] = (fulfilled[month] || 0) + 1;
+        });
+
+        warrants.forEach(w => {
+            (w.reports || []).forEach(url => {
+                const month = getMonthFromReportUrl(url);
+                if (month) reportsCount[month] = (reportsCount[month] || 0) + 1;
+            });
+        });
+
+        return { included, fulfilled, reportsCount };
+    }, [warrants]);
+
+    const selectedMonth = availableMonths[selectedMonthIdx];
+
+    const selectedData = {
+        included: monthlyCounts.included[selectedMonth] || 0,
+        fulfilled: monthlyCounts.fulfilled[selectedMonth] || 0,
+        reports: monthlyCounts.reportsCount[selectedMonth] || 0
+    };
+
+    const trendData = useMemo(() => {
+        return availableMonths.slice(-6).map(month => ({
+            name: MONTH_NAMES[parseInt(month.split('-')[1]) - 1],
+            Incluídos: monthlyCounts.included[month] || 0,
+            Cumpridos: monthlyCounts.fulfilled[month] || 0,
+            Relatórios: monthlyCounts.reportsCount[month] || 0
+        }));
+    }, [availableMonths, monthlyCounts]);
 
     return (
         <div className="min-h-screen bg-background-light dark:bg-[#050505] pb-24 relative overflow-hidden">
@@ -444,6 +527,103 @@ const Stats = () => {
                         <div>
                             <span className={`block text-3xl font-black mb-1 ${stats.expired > 0 ? 'text-amber-500' : 'text-black/50 dark:text-white/20'}`}>{stats.expired}</span>
                             <span className="text-[9px] font-black uppercase tracking-[0.2em] text-black/50 dark:text-white/40">Prazos Expirados</span>
+                        </div>
+                    </div>
+                </div>
+
+                {/* MONTHLY ANALYTICS */}
+                <div className="bg-white/60 dark:bg-zinc-900/40 backdrop-blur-xl p-6 rounded-3xl border border-black/5 dark:border-white/5 shadow-xl dark:shadow-2xl">
+                    <div className="flex items-center justify-between mb-6 gap-4">
+                        <h3 className="font-bold text-[10px] uppercase tracking-[0.3em] text-black/40 dark:text-white/40 flex items-center gap-3 shrink-0">
+                            <TrendingUp size={14} className="text-primary" />
+                            Analítico Mensal
+                        </h3>
+                        <div className="flex items-center gap-1">
+                            <button
+                                onClick={() => setSelectedMonthIdx(Math.max(0, selectedMonthIdx - 1))}
+                                className="p-1.5 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-colors text-black/40 dark:text-white/40"
+                            >
+                                <ChevronLeft size={14} />
+                            </button>
+                            <div className="flex gap-1 overflow-x-auto max-w-[220px] scrollbar-thin pb-0.5">
+                                {availableMonths.map((month, idx) => (
+                                    <button
+                                        key={month}
+                                        onClick={() => setSelectedMonthIdx(idx)}
+                                        className={`px-2.5 py-1 rounded-lg text-[9px] font-bold uppercase tracking-wider whitespace-nowrap transition-all ${
+                                            idx === selectedMonthIdx
+                                                ? 'bg-primary text-white shadow-sm'
+                                                : 'text-black/40 dark:text-white/40 hover:bg-black/5 dark:hover:bg-white/5'
+                                        }`}
+                                    >
+                                        {MONTH_NAMES[parseInt(month.split('-')[1]) - 1]}/{month.split('-')[0].slice(2)}
+                                    </button>
+                                ))}
+                            </div>
+                            <button
+                                onClick={() => setSelectedMonthIdx(Math.min(availableMonths.length - 1, selectedMonthIdx + 1))}
+                                className="p-1.5 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-colors text-black/40 dark:text-white/40"
+                            >
+                                <ChevronRight size={14} />
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="text-center mb-6">
+                        <span className="text-lg font-black text-black dark:text-white">
+                            {MONTH_NAMES[parseInt(selectedMonth.split('-')[1]) - 1]} de {selectedMonth.split('-')[0]}
+                        </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                        <StatCard
+                            label="Mandados Incluídos"
+                            value={selectedData.included}
+                            icon={<Database size={20} />}
+                            className="bg-blue-500/5 text-blue-600 dark:text-blue-400 border-blue-500/20 shadow-[0_0_15px_rgba(59,130,246,0.1)]"
+                            subtext={selectedMonth}
+                        />
+                        <StatCard
+                            label="Cumprimentos Positivos"
+                            value={selectedData.fulfilled}
+                            icon={<CheckCircle2 size={20} />}
+                            className="bg-emerald-500/5 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.1)]"
+                            subtext={selectedMonth}
+                        />
+                        <StatCard
+                            label="Relatórios Gerados"
+                            value={selectedData.reports}
+                            icon={<FileText size={20} />}
+                            className="bg-amber-500/5 text-amber-600 dark:text-amber-400 border-amber-500/20 shadow-[0_0_15px_rgba(245,158,11,0.1)]"
+                            subtext={selectedMonth}
+                        />
+                    </div>
+
+                    <div className="border-t border-black/5 dark:border-white/5 pt-6">
+                        <h4 className="font-bold text-[10px] uppercase tracking-[0.3em] text-black/40 dark:text-white/40 mb-6 flex items-center gap-2">
+                            <Activity size={12} />
+                            Tendência Semestral
+                        </h4>
+                        <div className="h-64 w-full">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <BarChart data={trendData} barSize={14} barGap={4}>
+                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#ffffff" opacity={0.03} />
+                                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#888', fontWeight: 'bold' }} />
+                                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#888' }} />
+                                    <Tooltip
+                                        contentStyle={{ backgroundColor: 'rgba(9, 9, 11, 0.8)', borderRadius: '12px', border: '1px solid rgba(128,128,128,0.2)', backdropFilter: 'blur(8px)' }}
+                                        cursor={{ fill: 'rgba(128,128,128,0.05)' }}
+                                    />
+                                    <Legend
+                                        wrapperStyle={{ fontSize: '10px', fontWeight: 'bold', paddingTop: '8px' }}
+                                        iconType="circle"
+                                        iconSize={8}
+                                    />
+                                    <Bar dataKey="Incluídos" fill="#3b82f6" radius={[3, 3, 0, 0]} />
+                                    <Bar dataKey="Cumpridos" fill="#22c55e" radius={[3, 3, 0, 0]} />
+                                    <Bar dataKey="Relatórios" fill="#f59e0b" radius={[3, 3, 0, 0]} />
+                                </BarChart>
+                            </ResponsiveContainer>
                         </div>
                     </div>
                 </div>
