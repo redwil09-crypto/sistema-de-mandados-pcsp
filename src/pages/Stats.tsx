@@ -217,9 +217,16 @@ const Stats = () => {
         return availableMonths.slice(-6).map(month => ({
             name: MONTH_NAMES[parseInt(month.split('-')[1]) - 1],
             Incluídos: monthlyCounts.included[month] || 0,
-            'Captura Minha': monthlyCounts.fulfilledInternal[month] || 0,
-            'De Fora': monthlyCounts.fulfilledExternal[month] || 0,
+            Cumpridos: monthlyCounts.fulfilled[month] || 0,
             Relatórios: monthlyCounts.reportsCount[month] || 0
+        }));
+    }, [availableMonths, monthlyCounts]);
+
+    const presoTrendData = useMemo(() => {
+        return availableMonths.slice(-6).map(month => ({
+            name: MONTH_NAMES[parseInt(month.split('-')[1]) - 1],
+            'Minha Equipe': monthlyCounts.fulfilledInternal[month] || 0,
+            'PM / GCM': monthlyCounts.fulfilledExternal[month] || 0
         }));
     }, [availableMonths, monthlyCounts]);
 
@@ -755,12 +762,39 @@ const Stats = () => {
                                         iconSize={8}
                                     />
                                     <Bar dataKey="Incluídos" fill="#3b82f6" radius={[3, 3, 0, 0]} />
-                                    <Bar dataKey="Captura Minha" fill="#3b82f6" radius={[3, 3, 0, 0]} opacity={0.7} />
-                                    <Bar dataKey="De Fora" fill="#f59e0b" radius={[3, 3, 0, 0]} opacity={0.7} />
-                                    <Bar dataKey="Relatórios" fill="#22c55e" radius={[3, 3, 0, 0]} />
+                                    <Bar dataKey="Cumpridos" fill="#22c55e" radius={[3, 3, 0, 0]} />
+                                    <Bar dataKey="Relatórios" fill="#f59e0b" radius={[3, 3, 0, 0]} />
                                 </BarChart>
                             </ResponsiveContainer>
                         </div>
+                        {presoTrendData.some(d => d['Minha Equipe'] > 0 || d['PM / GCM'] > 0) && (
+                            <div className="mt-6 pt-6 border-t border-black/5 dark:border-white/5">
+                                <h4 className="font-bold text-[10px] uppercase tracking-[0.3em] text-black/40 dark:text-white/40 mb-4 flex items-center gap-2">
+                                    <Lock size={12} className="text-blue-500" />
+                                    Presos por Equipe (Semestral)
+                                </h4>
+                                <div className="h-40 w-full">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <BarChart data={presoTrendData} barSize={18} barGap={2}>
+                                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#ffffff" opacity={0.03} />
+                                            <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#888', fontWeight: 'bold' }} />
+                                            <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#888' }} />
+                                            <Tooltip
+                                                contentStyle={{ backgroundColor: 'rgba(9, 9, 11, 0.8)', borderRadius: '12px', border: '1px solid rgba(128,128,128,0.2)', backdropFilter: 'blur(8px)' }}
+                                                cursor={{ fill: 'rgba(128,128,128,0.05)' }}
+                                            />
+                                            <Legend
+                                                wrapperStyle={{ fontSize: '10px', fontWeight: 'bold', paddingTop: '8px' }}
+                                                iconType="circle"
+                                                iconSize={8}
+                                            />
+                                            <Bar dataKey="Minha Equipe" fill="#3b82f6" radius={[3, 3, 0, 0]} />
+                                            <Bar dataKey="PM / GCM" fill="#f59e0b" radius={[3, 3, 0, 0]} />
+                                        </BarChart>
+                                    </ResponsiveContainer>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
 
