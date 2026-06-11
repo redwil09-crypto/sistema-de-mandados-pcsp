@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, useEffect, useState, useMemo, ReactNode } from 'react';
+import React, { createContext, useContext, useEffect, useState, useMemo, useRef, ReactNode } from 'react';
 import { supabase } from '../supabaseClient';
 import { Warrant } from '../types';
 import {
@@ -106,6 +106,29 @@ export const WarrantProvider = ({ children }: { children: ReactNode }) => {
     useEffect(() => {
         localStorage.setItem('routeWarrants', JSON.stringify(routeWarrants));
     }, [routeWarrants]);
+
+    // Back-fill: detect external captures from existing fulfillmentDetails
+    const migratedRef = useRef(false);
+    useEffect(() => {
+        if (warrants.length === 0 || migratedRef.current) return;
+        migratedRef.current = true;
+
+        const isExternal = (text: string) =>
+            /PM\b|GCM\b|Polícia Militar|Guarda Civil|Polícia Civil|policia militar|guarda civil|policia civil|delegacia|plantão|plantao|terceiros|outra equipe|de fora/i.test(text);
+
+        warrants.forEach(w => {
+            if (
+                (w.fulfillmentResult === 'PRESO' || w.fulfillmentResult === 'APREENDIDO') &&
+                w.fulfillmentSource !== 'external' &&
+                w.fulfillmentDetails &&
+                isExternal(w.fulfillmentDetails)
+            ) {
+                updateWarrantDb(w.id, { fulfillment_source: 'external' }).then(() => {
+                    setWarrants(prev => prev.map(x => x.id === w.id ? { ...x, fulfillmentSource: 'external' } : x));
+                });
+            }
+        });
+    }, [warrants]);
 
     const refreshWarrants = async (silent = false) => {
         if (!silent) setLoading(true);

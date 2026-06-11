@@ -190,6 +190,12 @@ const WarrantCard = ({ data, onPrint, isPlanned, onRouteToggle, onFinalize, onDe
                                     {formatDate(data.dischargeDate)}
                                 </p>
                             )}
+                            {data.status === 'CUMPRIDO' && data.fulfillmentDetails && (
+                                <p className="text-[10px] text-emerald-600/70 dark:text-emerald-400/70 flex items-start gap-1.5 mt-0.5 max-w-[200px]">
+                                    <span className="mt-0.5 shrink-0">📋</span>
+                                    <span className="truncate">{data.fulfillmentDetails}</span>
+                                </p>
+                            )}
                         </div>
 
                         {/* Route & Print Actions */}
