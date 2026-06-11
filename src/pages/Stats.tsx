@@ -3,7 +3,8 @@ import React, { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     ResponsiveContainer, XAxis, YAxis,
-    Tooltip, BarChart, Bar, Cell, PieChart, Pie, CartesianGrid, Legend
+    Tooltip, BarChart, Bar, Cell, PieChart, Pie, CartesianGrid, Legend,
+    AreaChart, Area
 } from 'recharts';
 import {
     Database, AlertTriangle, CheckCircle2, Activity,
@@ -641,46 +642,50 @@ const Stats = () => {
 
                 {/* MONTHLY ANALYTICS */}
                 <div className="bg-white/60 dark:bg-zinc-900/40 backdrop-blur-xl p-6 rounded-3xl border border-black/5 dark:border-white/5 shadow-xl dark:shadow-2xl">
-                    <div className="flex items-center justify-between mb-6 gap-4">
+                    <div className="flex items-center justify-between mb-4 gap-4">
                         <h3 className="font-bold text-[10px] uppercase tracking-[0.3em] text-black/40 dark:text-white/40 flex items-center gap-3 shrink-0">
                             <TrendingUp size={14} className="text-primary" />
                             Analítico Mensal
                         </h3>
-                        <div className="flex items-center gap-1.5">
+                        <div className="flex items-center gap-1.5 bg-black/5 dark:bg-white/5 rounded-2xl p-1.5 border border-black/5 dark:border-white/5">
                             <button
                                 onClick={() => setSelectedMonthIdx(Math.max(0, selectedMonthIdx - 1))}
-                                className="p-2 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 transition-colors text-black/40 dark:text-white/40 hover:text-black/60 dark:hover:text-white/60"
+                                className="p-1.5 rounded-lg hover:bg-black/10 dark:hover:bg-white/10 transition-colors text-black/30 dark:text-white/30 hover:text-black/60 dark:hover:text-white/60"
                             >
-                                <ChevronLeft size={16} />
+                                <ChevronLeft size={14} />
                             </button>
-                            <div className="flex gap-1.5 overflow-x-auto max-w-[260px] scrollbar-thin pb-1">
+                            <div className="flex gap-1 overflow-x-auto max-w-[220px] scrollbar-thin">
                                 {availableMonths.map((month, idx) => (
                                     <button
                                         key={month}
                                         onClick={() => setSelectedMonthIdx(idx)}
-                                        className={`px-3.5 py-1.5 rounded-xl text-[11px] font-bold uppercase tracking-wider whitespace-nowrap transition-all border-2 ${
+                                        className={`px-3 py-1.5 rounded-xl text-[12px] font-black tracking-wide whitespace-nowrap transition-all duration-300 ${
                                             idx === selectedMonthIdx
-                                                ? 'bg-primary text-white border-primary shadow-[0_0_12px_rgba(37,99,235,0.4)] scale-105'
-                                                : 'text-black/40 dark:text-white/40 border-transparent hover:bg-black/5 dark:hover:bg-white/5 hover:border-black/10 dark:hover:border-white/10'
+                                                ? 'bg-gradient-to-br from-primary to-blue-600 text-white shadow-lg shadow-primary/30 scale-110 ring-2 ring-primary/50'
+                                                : 'text-black/30 dark:text-white/30 hover:text-black/60 dark:hover:text-white/60 hover:bg-black/5 dark:hover:bg-white/5'
                                         }`}
                                     >
-                                        {MONTH_NAMES[parseInt(month.split('-')[1]) - 1]}/{month.split('-')[0].slice(2)}
+                                        {MONTH_NAMES[parseInt(month.split('-')[1]) - 1]}
+                                        <span className="ml-0.5 opacity-60">{month.split('-')[0].slice(2)}</span>
                                     </button>
                                 ))}
                             </div>
                             <button
                                 onClick={() => setSelectedMonthIdx(Math.min(availableMonths.length - 1, selectedMonthIdx + 1))}
-                                className="p-2 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 transition-colors text-black/40 dark:text-white/40 hover:text-black/60 dark:hover:text-white/60"
+                                className="p-1.5 rounded-lg hover:bg-black/10 dark:hover:bg-white/10 transition-colors text-black/30 dark:text-white/30 hover:text-black/60 dark:hover:text-white/60"
                             >
-                                <ChevronRight size={16} />
+                                <ChevronRight size={14} />
                             </button>
                         </div>
                     </div>
 
-                    <div className="text-center mb-6">
-                        <span className="text-2xl font-black text-black dark:text-white drop-shadow-[0_0_10px_rgba(37,99,235,0.15)] tracking-tight">
-                            {MONTH_NAMES[parseInt(selectedMonth.split('-')[1]) - 1]} de {selectedMonth.split('-')[0]}
-                        </span>
+                    <div className="relative mb-6 overflow-hidden rounded-2xl bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 dark:from-blue-950/30 dark:via-primary/10 dark:to-blue-950/30 border border-primary/10">
+                        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(37,99,235,0.1)_0%,transparent_70%)]"></div>
+                        <div className="relative py-4 px-6 text-center">
+                            <span className="text-3xl md:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-primary to-blue-400 drop-shadow-[0_0_15px_rgba(37,99,235,0.3)] tracking-tight">
+                                {MONTH_NAMES[parseInt(selectedMonth.split('-')[1]) - 1]} de {selectedMonth.split('-')[0]}
+                            </span>
+                        </div>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
@@ -773,24 +778,49 @@ const Stats = () => {
                                     <Lock size={12} className="text-blue-500" />
                                     Presos por Equipe (Semestral)
                                 </h4>
-                                <div className="h-40 w-full">
+                                <div className="h-48 w-full">
                                     <ResponsiveContainer width="100%" height="100%">
-                                        <BarChart data={presoTrendData} barSize={18} barGap={2}>
+                                        <AreaChart data={presoTrendData}>
+                                            <defs>
+                                                <linearGradient id="gradMinha" x1="0" y1="0" x2="0" y2="1">
+                                                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
+                                                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                                                </linearGradient>
+                                                <linearGradient id="gradFora" x1="0" y1="0" x2="0" y2="1">
+                                                    <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.3} />
+                                                    <stop offset="95%" stopColor="#f59e0b" stopOpacity={0} />
+                                                </linearGradient>
+                                            </defs>
                                             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#ffffff" opacity={0.03} />
                                             <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#888', fontWeight: 'bold' }} />
                                             <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#888' }} />
                                             <Tooltip
                                                 contentStyle={{ backgroundColor: 'rgba(9, 9, 11, 0.8)', borderRadius: '12px', border: '1px solid rgba(128,128,128,0.2)', backdropFilter: 'blur(8px)' }}
-                                                cursor={{ fill: 'rgba(128,128,128,0.05)' }}
                                             />
                                             <Legend
                                                 wrapperStyle={{ fontSize: '10px', fontWeight: 'bold', paddingTop: '8px' }}
                                                 iconType="circle"
                                                 iconSize={8}
                                             />
-                                            <Bar dataKey="Minha Equipe" fill="#3b82f6" radius={[3, 3, 0, 0]} />
-                                            <Bar dataKey="PM / GCM" fill="#f59e0b" radius={[3, 3, 0, 0]} />
-                                        </BarChart>
+                                            <Area
+                                                type="monotone"
+                                                dataKey="Minha Equipe"
+                                                stroke="#3b82f6"
+                                                strokeWidth={2}
+                                                fill="url(#gradMinha)"
+                                                dot={{ r: 3, fill: '#3b82f6', strokeWidth: 0 }}
+                                                activeDot={{ r: 5, stroke: '#3b82f6', strokeWidth: 2, fill: 'white' }}
+                                            />
+                                            <Area
+                                                type="monotone"
+                                                dataKey="PM / GCM"
+                                                stroke="#f59e0b"
+                                                strokeWidth={2}
+                                                fill="url(#gradFora)"
+                                                dot={{ r: 3, fill: '#f59e0b', strokeWidth: 0 }}
+                                                activeDot={{ r: 5, stroke: '#f59e0b', strokeWidth: 2, fill: 'white' }}
+                                            />
+                                        </AreaChart>
                                     </ResponsiveContainer>
                                 </div>
                             </div>
