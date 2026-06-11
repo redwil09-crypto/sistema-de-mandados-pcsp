@@ -158,16 +158,13 @@ const Stats = () => {
         return null;
     };
 
-    const [selectedMonthIdx, setSelectedMonthIdx] = useState(11);
+    const [selectedMonthIdx, setSelectedMonthIdx] = useState(new Date().getMonth());
 
     const availableMonths = useMemo(() => {
-        const now = new Date();
-        const months: string[] = [];
-        for (let i = 11; i >= 0; i--) {
-            const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-            months.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`);
-        }
-        return months;
+        const year = new Date().getFullYear();
+        return Array.from({ length: 12 }, (_, i) =>
+            `${year}-${String(i + 1).padStart(2, '0')}`
+        );
     }, []);
 
     const monthlyCounts = useMemo(() => {
@@ -648,19 +645,19 @@ const Stats = () => {
                             Analítico Mensal
                         </h3>
                     </div>
-                    <div className="flex justify-between gap-0.5 mb-6">
+                    <div className="flex justify-between gap-1 mb-6">
                         {availableMonths.map((month, idx) => (
                             <button
                                 key={month}
                                 onClick={() => setSelectedMonthIdx(idx)}
-                                className={`flex-1 py-1.5 rounded-lg text-[10px] font-bold tracking-wide text-center transition-all duration-200 ${
+                                className={`flex-1 py-2 rounded-xl text-[12px] font-bold tracking-wide text-center transition-all duration-200 ${
                                     idx === selectedMonthIdx
-                                        ? 'bg-primary text-white shadow-[0_0_12px_rgba(37,99,235,0.6)] scale-105 ring-1 ring-primary/50'
+                                        ? 'bg-primary text-white shadow-[0_0_14px_rgba(37,99,235,0.7)] scale-105 ring-1 ring-primary/50'
                                         : 'text-black/30 dark:text-white/30 hover:text-black/60 dark:hover:text-white/60 hover:bg-black/5 dark:hover:bg-white/5'
                                 }`}
                             >
                                 {MONTH_NAMES[parseInt(month.split('-')[1]) - 1]}
-                                <span className="ml-0.5 opacity-60">{month.split('-')[0].slice(2)}</span>
+                                <span className="ml-1 opacity-60">{month.split('-')[0].slice(2)}</span>
                             </button>
                         ))}
                     </div>
