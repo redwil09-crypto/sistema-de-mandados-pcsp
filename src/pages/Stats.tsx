@@ -26,10 +26,17 @@ const Stats = () => {
         const total = warrants.length;
         const active = warrants.filter(w => w.status === 'EM ABERTO');
         const countActive = active.length;
-        const countDone = warrants.filter(w => w.status === 'CUMPRIDO' || w.status === 'PRESO').length;
-        const countDoneInternal = warrants.filter(w => (w.status === 'CUMPRIDO' || w.status === 'PRESO') && (!w.fulfillmentSource || w.fulfillmentSource === 'internal')).length;
-        const countDoneExternal = warrants.filter(w => (w.status === 'CUMPRIDO' || w.status === 'PRESO') && w.fulfillmentSource === 'external').length;
+        const positiveResults = ['PRESO', 'APREENDIDO'];
+        const countDone = warrants.filter(w => positiveResults.includes(w.fulfillmentResult || '')).length;
+        const countDoneInternal = warrants.filter(w => positiveResults.includes(w.fulfillmentResult || '') && (!w.fulfillmentSource || w.fulfillmentSource === 'internal')).length;
+        const countDoneExternal = warrants.filter(w => positiveResults.includes(w.fulfillmentResult || '') && w.fulfillmentSource === 'external').length;
         const successRate = total > 0 ? Math.round((countDone / total) * 100) : 0;
+
+        // Arrests by team (only PRESO, not APREENDIDO)
+        const presoResult = warrants.filter(w => w.fulfillmentResult === 'PRESO');
+        const presoCount = presoResult.length;
+        const presoInternal = presoResult.filter(w => !w.fulfillmentSource || w.fulfillmentSource === 'internal').length;
+        const presoExternal = presoResult.filter(w => w.fulfillmentSource === 'external').length;
 
         // Types
         const searchWarrants = active.filter(w => (w.type || '').toUpperCase().includes('BUSCA')).length;
@@ -69,7 +76,10 @@ const Stats = () => {
             expired,
             urgent,
             doneInternal: countDoneInternal,
-            doneExternal: countDoneExternal
+            doneExternal: countDoneExternal,
+            presoCount,
+            presoInternal,
+            presoExternal
         };
     }, [warrants]);
 
@@ -171,7 +181,7 @@ const Stats = () => {
             if (month) included[month] = (included[month] || 0) + 1;
         });
 
-        warrants.filter(w => w.status === 'CUMPRIDO' || w.status === 'PRESO').forEach(w => {
+        warrants.filter(w => w.fulfillmentResult === 'PRESO' || w.fulfillmentResult === 'APREENDIDO').forEach(w => {
             const month = getMonthKey(w.dischargeDate) || getMonthKey(w.updatedAt);
             if (month) {
                 fulfilled[month] = (fulfilled[month] || 0) + 1;
@@ -326,7 +336,7 @@ const Stats = () => {
                         onClick={() => navigate('/warrant-list?status=EM ABERTO')}
                     />
                     <StatCard
-                        label="Cumpridos"
+                        label="Resultados Positivos"
                         value={stats.done}
                         icon={<CheckCircle2 size={20} />}
                         className="bg-emerald-500/5 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.1)] cursor-pointer hover:bg-emerald-500/10"
@@ -347,7 +357,7 @@ const Stats = () => {
                         <div className="flex items-center justify-between mb-3">
                             <h3 className="font-bold text-[10px] uppercase tracking-[0.3em] text-black/40 dark:text-white/40 flex items-center gap-2">
                                 <CheckCircle2 size={12} className="text-emerald-500" />
-                                Origem dos Cumprimentos
+                                Resultados Positivos por Origem
                             </h3>
                             <div className="flex items-center gap-4 text-[10px] font-bold">
                                 <span className="flex items-center gap-1.5 text-blue-500"><span className="w-2 h-2 rounded-full bg-blue-500"></span>Captura Minha: {stats.doneInternal}</span>
@@ -358,19 +368,60 @@ const Stats = () => {
                             <div
                                 className="h-full bg-gradient-to-r from-blue-600 to-blue-400 transition-all duration-500 rounded-l-full cursor-pointer hover:brightness-110"
                                 style={{ width: `${(stats.doneInternal / Math.max(stats.done, 1)) * 100}%` }}
-                                onClick={(e) => { e.stopPropagation(); navigate('/warrant-list?status=CUMPRIDO&fulfilledSource=internal'); }}
+                                onClick={(e) => { e.stopPropagation(); navigate('/warrant-list?fulfillmentResult=PRESO&fulfilledSource=internal'); }}
                                 title="Clique para filtrar Captura Minha"
                             />
                             <div
                                 className="h-full bg-gradient-to-r from-amber-400 to-amber-600 transition-all duration-500 rounded-r-full cursor-pointer hover:brightness-110"
                                 style={{ width: `${(stats.doneExternal / Math.max(stats.done, 1)) * 100}%` }}
-                                onClick={(e) => { e.stopPropagation(); navigate('/warrant-list?status=CUMPRIDO&fulfilledSource=external'); }}
+                                onClick={(e) => { e.stopPropagation(); navigate('/warrant-list?fulfillmentResult=PRESO&fulfilledSource=external'); }}
                                 title="Clique para filtrar De Fora"
                             />
                         </div>
                         <div className="flex justify-between mt-1.5">
-                            <button onClick={(e) => { e.stopPropagation(); navigate('/warrant-list?status=CUMPRIDO&fulfilledSource=internal'); }} className="text-[8px] font-bold text-blue-500 hover:underline uppercase tracking-widest">Ver Captura Minha</button>
-                            <button onClick={(e) => { e.stopPropagation(); navigate('/warrant-list?status=CUMPRIDO&fulfilledSource=external'); }} className="text-[8px] font-bold text-amber-500 hover:underline uppercase tracking-widest">Ver De Fora</button>
+                            <button onClick={(e) => { e.stopPropagation(); navigate('/warrant-list?fulfillmentResult=PRESO&fulfilledSource=internal'); }} className="text-[8px] font-bold text-blue-500 hover:underline uppercase tracking-widest">Ver Captura Minha</button>
+                            <button onClick={(e) => { e.stopPropagation(); navigate('/warrant-list?fulfillmentResult=PRESO&fulfilledSource=external'); }} className="text-[8px] font-bold text-amber-500 hover:underline uppercase tracking-widest">Ver De Fora</button>
+                        </div>
+                    </div>
+                )}
+
+                {/* Arrests by Team */}
+                {stats.presoCount > 0 && (
+                    <div className="bg-white/60 dark:bg-zinc-900/40 backdrop-blur-xl p-5 rounded-3xl border border-blue-500/20 dark:border-blue-500/10 shadow-xl dark:shadow-2xl">
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="font-bold text-[10px] uppercase tracking-[0.3em] text-black/40 dark:text-white/40 flex items-center gap-2">
+                                <Lock size={12} className="text-blue-500" />
+                                Presos por Equipe
+                            </h3>
+                            <span className="text-[10px] font-bold text-blue-500 bg-blue-500/10 px-2 py-0.5 rounded-full">Total: {stats.presoCount}</span>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <button
+                                onClick={() => navigate('/warrant-list?fulfillmentResult=PRESO&fulfilledSource=internal')}
+                                className="flex items-center justify-between p-4 bg-blue-500/10 border border-blue-500/20 rounded-2xl hover:bg-blue-500/20 transition-all active:scale-[0.98] text-left"
+                            >
+                                <div>
+                                    <div className="flex items-center gap-2 mb-1">
+                                        <Shield size={16} className="text-blue-500" />
+                                        <span className="font-black text-sm text-blue-500 dark:text-blue-400">Minha Equipe</span>
+                                    </div>
+                                    <span className="text-[9px] text-blue-400/70 uppercase tracking-wider font-bold">DIG/CAPTURAS</span>
+                                </div>
+                                <span className="text-3xl font-black text-blue-500 drop-shadow-[0_0_8px_rgba(59,130,246,0.4)]">{stats.presoInternal}</span>
+                            </button>
+                            <button
+                                onClick={() => navigate('/warrant-list?fulfillmentResult=PRESO&fulfilledSource=external')}
+                                className="flex items-center justify-between p-4 bg-amber-500/10 border border-amber-500/20 rounded-2xl hover:bg-amber-500/20 transition-all active:scale-[0.98] text-left"
+                            >
+                                <div>
+                                    <div className="flex items-center gap-2 mb-1">
+                                        <Siren size={16} className="text-amber-500" />
+                                        <span className="font-black text-sm text-amber-500 dark:text-amber-400">Fora</span>
+                                    </div>
+                                    <span className="text-[9px] text-amber-400/70 uppercase tracking-wider font-bold">PM / GCM / OUTROS</span>
+                                </div>
+                                <span className="text-3xl font-black text-amber-500 drop-shadow-[0_0_8px_rgba(245,158,11,0.4)]">{stats.presoExternal}</span>
+                            </button>
                         </div>
                     </div>
                 )}

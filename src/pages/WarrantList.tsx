@@ -22,6 +22,7 @@ const WarrantList = () => {
     const initialFulfilledMonth = searchParams.get('fulfilledMonth') || '';
     const initialReportsMonth = searchParams.get('reportsMonth') || '';
     const initialFulfilledSource = searchParams.get('fulfilledSource') || '';
+    const initialFulfillmentResult = searchParams.get('fulfillmentResult') || '';
 
     const [searchTerm, setSearchTerm] = useState(query || initialType || initialLocation);
 
@@ -125,8 +126,8 @@ const WarrantList = () => {
         }
         let matchesFulfilledMonth = true;
         if (initialFulfilledMonth) {
-            const isFulfilled = w.status === 'CUMPRIDO' || w.status === 'PRESO';
-            matchesFulfilledMonth = isFulfilled && (isDateInMonth(w.dischargeDate, initialFulfilledMonth) || isDateInMonth(w.updatedAt, initialFulfilledMonth));
+            const isPositive = w.fulfillmentResult === 'PRESO' || w.fulfillmentResult === 'APREENDIDO';
+            matchesFulfilledMonth = isPositive && (isDateInMonth(w.dischargeDate, initialFulfilledMonth) || isDateInMonth(w.updatedAt, initialFulfilledMonth));
         }
         let matchesReportsMonth = true;
         if (initialReportsMonth) {
@@ -136,8 +137,12 @@ const WarrantList = () => {
         if (initialFulfilledSource) {
             matchesFulfilledSource = w.fulfillmentSource === initialFulfilledSource;
         }
+        let matchesFulfillmentResult = true;
+        if (initialFulfillmentResult) {
+            matchesFulfillmentResult = w.fulfillmentResult === initialFulfillmentResult;
+        }
 
-        return matchesText && matchesCrime && matchesRegime && matchesDpRegion && matchesStatus && matchesDate && matchesObservation && matchesPriority && matchesExpired && matchesIncludedMonth && matchesFulfilledMonth && matchesReportsMonth && matchesFulfilledSource;
+        return matchesText && matchesCrime && matchesRegime && matchesDpRegion && matchesStatus && matchesDate && matchesObservation && matchesPriority && matchesExpired && matchesIncludedMonth && matchesFulfilledMonth && matchesReportsMonth && matchesFulfilledSource && matchesFulfillmentResult;
     }).sort((a, b) => (a.name || '').localeCompare(b.name || ''));
 
     const clearFilters = () => {
