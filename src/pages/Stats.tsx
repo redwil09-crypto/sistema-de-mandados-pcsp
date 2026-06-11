@@ -341,6 +341,40 @@ const Stats = () => {
                     />
                 </div>
 
+                {/* Fulfillment Source Breakdown */}
+                {stats.done > 0 && (
+                    <div onClick={() => navigate('/warrant-list?status=CUMPRIDO')} className="bg-white/60 dark:bg-zinc-900/40 backdrop-blur-xl p-4 rounded-3xl border border-black/5 dark:border-white/5 shadow-xl dark:shadow-2xl cursor-pointer hover:bg-white/80 dark:hover:bg-zinc-900/60 transition-all">
+                        <div className="flex items-center justify-between mb-3">
+                            <h3 className="font-bold text-[10px] uppercase tracking-[0.3em] text-black/40 dark:text-white/40 flex items-center gap-2">
+                                <CheckCircle2 size={12} className="text-emerald-500" />
+                                Origem dos Cumprimentos
+                            </h3>
+                            <div className="flex items-center gap-4 text-[10px] font-bold">
+                                <span className="flex items-center gap-1.5 text-blue-500"><span className="w-2 h-2 rounded-full bg-blue-500"></span>Captura Minha: {stats.doneInternal}</span>
+                                <span className="flex items-center gap-1.5 text-amber-500"><span className="w-2 h-2 rounded-full bg-amber-500"></span>De Fora: {stats.doneExternal}</span>
+                            </div>
+                        </div>
+                        <div className="w-full h-3 bg-black/10 dark:bg-white/10 rounded-full overflow-hidden flex">
+                            <div
+                                className="h-full bg-gradient-to-r from-blue-600 to-blue-400 transition-all duration-500 rounded-l-full cursor-pointer hover:brightness-110"
+                                style={{ width: `${(stats.doneInternal / Math.max(stats.done, 1)) * 100}%` }}
+                                onClick={(e) => { e.stopPropagation(); navigate('/warrant-list?status=CUMPRIDO&fulfilledSource=internal'); }}
+                                title="Clique para filtrar Captura Minha"
+                            />
+                            <div
+                                className="h-full bg-gradient-to-r from-amber-400 to-amber-600 transition-all duration-500 rounded-r-full cursor-pointer hover:brightness-110"
+                                style={{ width: `${(stats.doneExternal / Math.max(stats.done, 1)) * 100}%` }}
+                                onClick={(e) => { e.stopPropagation(); navigate('/warrant-list?status=CUMPRIDO&fulfilledSource=external'); }}
+                                title="Clique para filtrar De Fora"
+                            />
+                        </div>
+                        <div className="flex justify-between mt-1.5">
+                            <button onClick={(e) => { e.stopPropagation(); navigate('/warrant-list?status=CUMPRIDO&fulfilledSource=internal'); }} className="text-[8px] font-bold text-blue-500 hover:underline uppercase tracking-widest">Ver Captura Minha</button>
+                            <button onClick={(e) => { e.stopPropagation(); navigate('/warrant-list?status=CUMPRIDO&fulfilledSource=external'); }} className="text-[8px] font-bold text-amber-500 hover:underline uppercase tracking-widest">Ver De Fora</button>
+                        </div>
+                    </div>
+                )}
+
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     {/* General Status Chart - Glassmorphism */}
                     <div className="lg:col-span-2 bg-white/60 dark:bg-zinc-900/40 backdrop-blur-xl p-6 rounded-3xl border border-black/5 dark:border-white/5 shadow-xl dark:shadow-2xl">
@@ -591,29 +625,63 @@ const Stats = () => {
                         </span>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                         <StatCard
                             label="Mandados Incluídos"
                             value={selectedData.included}
                             icon={<Database size={20} />}
-                            className="bg-blue-500/5 text-blue-600 dark:text-blue-400 border-blue-500/20 shadow-[0_0_15px_rgba(59,130,246,0.1)]"
+                            className="bg-blue-500/5 text-blue-600 dark:text-blue-400 border-blue-500/20 shadow-[0_0_15px_rgba(59,130,246,0.1)] cursor-pointer hover:bg-blue-500/10"
                             subtext={selectedMonth}
+                            onClick={() => navigate(`/warrant-list?includedMonth=${selectedMonth}`)}
                         />
                         <StatCard
                             label="Cumprimentos Positivos"
                             value={selectedData.fulfilled}
                             icon={<CheckCircle2 size={20} />}
-                            className="bg-emerald-500/5 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.1)]"
+                            className="bg-emerald-500/5 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.1)] cursor-pointer hover:bg-emerald-500/10"
                             subtext={selectedMonth}
+                            onClick={() => navigate(`/warrant-list?fulfilledMonth=${selectedMonth}`)}
                         />
                         <StatCard
                             label="Relatórios Gerados"
                             value={selectedData.reports}
                             icon={<FileText size={20} />}
-                            className="bg-amber-500/5 text-amber-600 dark:text-amber-400 border-amber-500/20 shadow-[0_0_15px_rgba(245,158,11,0.1)]"
+                            className="bg-amber-500/5 text-amber-600 dark:text-amber-400 border-amber-500/20 shadow-[0_0_15px_rgba(245,158,11,0.1)] cursor-pointer hover:bg-amber-500/10"
                             subtext={selectedMonth}
+                            onClick={() => navigate(`/warrant-list?reportsMonth=${selectedMonth}`)}
                         />
                     </div>
+
+                    {/* Fulfillment Source Breakdown */}
+                    {(selectedData.fulfilledInternal > 0 || selectedData.fulfilledExternal > 0) && (
+                        <div className="mb-8 p-4 bg-black/5 dark:bg-white/5 rounded-2xl border border-black/5 dark:border-white/5">
+                            <div className="flex items-center justify-between mb-3">
+                                <span className="text-[9px] font-bold uppercase tracking-widest text-black/50 dark:text-white/40">Origem dos Cumprimentos</span>
+                                <div className="flex items-center gap-3 text-[9px] font-bold">
+                                    <span className="flex items-center gap-1 text-blue-500"><span className="w-2 h-2 rounded-full bg-blue-500"></span>Captura Minha: {selectedData.fulfilledInternal}</span>
+                                    <span className="flex items-center gap-1 text-amber-500"><span className="w-2 h-2 rounded-full bg-amber-500"></span>De Fora: {selectedData.fulfilledExternal}</span>
+                                </div>
+                            </div>
+                            <div className="w-full h-2.5 bg-black/10 dark:bg-white/10 rounded-full overflow-hidden flex">
+                                <div
+                                    className="h-full bg-blue-500 transition-all duration-500 rounded-l-full cursor-pointer hover:bg-blue-400"
+                                    style={{ width: `${(selectedData.fulfilledInternal / Math.max(selectedData.fulfilled, 1)) * 100}%` }}
+                                    onClick={() => navigate(`/warrant-list?fulfilledMonth=${selectedMonth}&fulfilledSource=internal`)}
+                                    title="Clique para ver Captura Minha"
+                                />
+                                <div
+                                    className="h-full bg-amber-500 transition-all duration-500 rounded-r-full cursor-pointer hover:bg-amber-400"
+                                    style={{ width: `${(selectedData.fulfilledExternal / Math.max(selectedData.fulfilled, 1)) * 100}%` }}
+                                    onClick={() => navigate(`/warrant-list?fulfilledMonth=${selectedMonth}&fulfilledSource=external`)}
+                                    title="Clique para ver De Fora"
+                                />
+                            </div>
+                            <div className="flex justify-between mt-1.5">
+                                <button onClick={() => navigate(`/warrant-list?fulfilledMonth=${selectedMonth}&fulfilledSource=internal`)} className="text-[8px] font-bold text-blue-500 hover:underline uppercase tracking-wider">Ver Captura Minha</button>
+                                <button onClick={() => navigate(`/warrant-list?fulfilledMonth=${selectedMonth}&fulfilledSource=external`)} className="text-[8px] font-bold text-amber-500 hover:underline uppercase tracking-wider">Ver De Fora</button>
+                            </div>
+                        </div>
+                    )}
 
                     <div className="border-t border-black/5 dark:border-white/5 pt-6">
                         <h4 className="font-bold text-[10px] uppercase tracking-[0.3em] text-black/40 dark:text-white/40 mb-6 flex items-center gap-2">
@@ -636,8 +704,9 @@ const Stats = () => {
                                         iconSize={8}
                                     />
                                     <Bar dataKey="Incluídos" fill="#3b82f6" radius={[3, 3, 0, 0]} />
-                                    <Bar dataKey="Cumpridos" fill="#22c55e" radius={[3, 3, 0, 0]} />
-                                    <Bar dataKey="Relatórios" fill="#f59e0b" radius={[3, 3, 0, 0]} />
+                                    <Bar dataKey="Captura Minha" fill="#3b82f6" radius={[3, 3, 0, 0]} opacity={0.7} />
+                                    <Bar dataKey="De Fora" fill="#f59e0b" radius={[3, 3, 0, 0]} opacity={0.7} />
+                                    <Bar dataKey="Relatórios" fill="#22c55e" radius={[3, 3, 0, 0]} />
                                 </BarChart>
                             </ResponsiveContainer>
                         </div>
