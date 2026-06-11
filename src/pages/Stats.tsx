@@ -254,15 +254,40 @@ const Stats = () => {
     useEffect(() => {
         if (stats.expiring > 0 && !hasShownExpiring.current) {
             hasShownExpiring.current = true;
-            const msg = stats.expiring === 1
-                ? '1 mandado a vencer em breve'
-                : `${stats.expiring} mandados a vencer nos próximos 30 dias`;
-            toast(msg, {
-                duration: 8000,
-                action: { label: 'Ver', onClick: () => navigate('/warrant-list?expiring=true') }
+
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            const list = warrants
+                .filter(w => w.status === 'EM ABERTO' && w.expirationDate)
+                .map(w => {
+                    let d: Date | null = null;
+                    if (w.expirationDate!.includes('/')) {
+                        const [day, month, year] = w.expirationDate!.split('/');
+                        d = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+                    } else {
+                        d = new Date(w.expirationDate!);
+                    }
+                    if (d) d.setHours(0, 0, 0, 0);
+                    const diff = d ? (d.getTime() - today.getTime()) / (1000 * 60 * 60 * 24) : 999;
+                    return { ...w, daysLeft: Math.round(diff) };
+                })
+                .filter(w => w.daysLeft > 0 && w.daysLeft <= 30)
+                .sort((a, b) => a.daysLeft - b.daysLeft)
+                .slice(0, 10);
+
+            const title = `${stats.expiring} mandado${stats.expiring > 1 ? 's' : ''} a vencer`;
+            const items = list.map(w =>
+                `${w.name} - ${w.daysLeft} dia${w.daysLeft > 1 ? 's' : ''}`
+            ).join('\n');
+
+            toast(title, {
+                description: items.length > 0 ? items : undefined,
+                duration: 10000,
+                action: { label: 'Ver Todos', onClick: () => navigate('/warrant-list?expiring=true') }
             });
         }
-    }, [stats.expiring, navigate]);
+    }, [stats.expiring, navigate, warrants]);
 
     return (
         <div className="min-h-screen bg-background-light dark:bg-[#050505] pb-24 relative overflow-hidden">
