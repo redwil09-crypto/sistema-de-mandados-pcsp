@@ -168,7 +168,20 @@ const WarrantList = () => {
         }
 
         return matchesText && matchesCrime && matchesRegime && matchesDpRegion && matchesStatus && matchesDate && matchesObservation && matchesPriority && matchesExpired && matchesExpiring && matchesIncludedMonth && matchesFulfilledMonth && matchesReportsMonth && matchesFulfilledSource && matchesFulfillmentResult;
-    }).sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+    }).sort((a, b) => {
+        if (filterExpiring) {
+            const parseDate = (w: typeof a) => {
+                if (!w.expirationDate) return '9999-99-99';
+                if (w.expirationDate.includes('/')) {
+                    const [d, m, y] = w.expirationDate.split('/');
+                    return `${y}-${m}-${d}`;
+                }
+                return w.expirationDate;
+            };
+            return parseDate(a).localeCompare(parseDate(b));
+        }
+        return (a.name || '').localeCompare(b.name || '');
+    });
 
     const clearFilters = () => {
         setFilterCrime('');
