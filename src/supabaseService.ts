@@ -63,6 +63,7 @@ const dbToWarrant = (dbWarrant: any): Warrant => {
         birthDate: dbWarrant.birth_date,
         issuingCourt: dbWarrant.issuing_court,
         userId: dbWarrant.user_id,
+        fulfillmentSource: dbWarrant.fulfillment_source,
     };
 };
 
@@ -108,6 +109,7 @@ const warrantToDb = (warrant: Partial<Warrant>) => {
     if (warrant.tacticalSummary !== undefined) dbObj.tactical_summary = warrant.tacticalSummary;
     if (warrant.ifoodDocs !== undefined) dbObj.ifood_docs = warrant.ifoodDocs; // Added mapping
     if (warrant.issuingCourt !== undefined) dbObj.issuing_court = warrant.issuingCourt;
+    if (warrant.fulfillmentSource !== undefined) dbObj.fulfillment_source = warrant.fulfillmentSource;
 
     return dbObj;
 };

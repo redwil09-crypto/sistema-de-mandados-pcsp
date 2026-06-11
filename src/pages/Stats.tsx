@@ -27,6 +27,8 @@ const Stats = () => {
         const active = warrants.filter(w => w.status === 'EM ABERTO');
         const countActive = active.length;
         const countDone = warrants.filter(w => w.status === 'CUMPRIDO' || w.status === 'PRESO').length;
+        const countDoneInternal = warrants.filter(w => (w.status === 'CUMPRIDO' || w.status === 'PRESO') && (!w.fulfillmentSource || w.fulfillmentSource === 'internal')).length;
+        const countDoneExternal = warrants.filter(w => (w.status === 'CUMPRIDO' || w.status === 'PRESO') && w.fulfillmentSource === 'external').length;
         const successRate = total > 0 ? Math.round((countDone / total) * 100) : 0;
 
         // Types
@@ -65,7 +67,9 @@ const Stats = () => {
             prisonPct,
             searchPct,
             expired,
-            urgent
+            urgent,
+            doneInternal: countDoneInternal,
+            doneExternal: countDoneExternal
         };
     }, [warrants]);
 
@@ -158,6 +162,8 @@ const Stats = () => {
     const monthlyCounts = useMemo(() => {
         const included: Record<string, number> = {};
         const fulfilled: Record<string, number> = {};
+        const fulfilledInternal: Record<string, number> = {};
+        const fulfilledExternal: Record<string, number> = {};
         const reportsCount: Record<string, number> = {};
 
         warrants.forEach(w => {
@@ -167,7 +173,14 @@ const Stats = () => {
 
         warrants.filter(w => w.status === 'CUMPRIDO' || w.status === 'PRESO').forEach(w => {
             const month = getMonthKey(w.dischargeDate) || getMonthKey(w.updatedAt);
-            if (month) fulfilled[month] = (fulfilled[month] || 0) + 1;
+            if (month) {
+                fulfilled[month] = (fulfilled[month] || 0) + 1;
+                if (!w.fulfillmentSource || w.fulfillmentSource === 'internal') {
+                    fulfilledInternal[month] = (fulfilledInternal[month] || 0) + 1;
+                } else {
+                    fulfilledExternal[month] = (fulfilledExternal[month] || 0) + 1;
+                }
+            }
         });
 
         warrants.forEach(w => {
@@ -177,7 +190,7 @@ const Stats = () => {
             });
         });
 
-        return { included, fulfilled, reportsCount };
+        return { included, fulfilled, fulfilledInternal, fulfilledExternal, reportsCount };
     }, [warrants]);
 
     const selectedMonth = availableMonths[selectedMonthIdx];
@@ -185,6 +198,8 @@ const Stats = () => {
     const selectedData = {
         included: monthlyCounts.included[selectedMonth] || 0,
         fulfilled: monthlyCounts.fulfilled[selectedMonth] || 0,
+        fulfilledInternal: monthlyCounts.fulfilledInternal[selectedMonth] || 0,
+        fulfilledExternal: monthlyCounts.fulfilledExternal[selectedMonth] || 0,
         reports: monthlyCounts.reportsCount[selectedMonth] || 0
     };
 
@@ -192,7 +207,8 @@ const Stats = () => {
         return availableMonths.slice(-6).map(month => ({
             name: MONTH_NAMES[parseInt(month.split('-')[1]) - 1],
             Incluídos: monthlyCounts.included[month] || 0,
-            Cumpridos: monthlyCounts.fulfilled[month] || 0,
+            'Captura Minha': monthlyCounts.fulfilledInternal[month] || 0,
+            'De Fora': monthlyCounts.fulfilledExternal[month] || 0,
             Relatórios: monthlyCounts.reportsCount[month] || 0
         }));
     }, [availableMonths, monthlyCounts]);

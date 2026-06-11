@@ -48,6 +48,7 @@ export interface Warrant {
     tacticalIntel?: any;     // Inteligência Tática (Gemini Analysis)
     ifoodDocs?: string[];    // Documentos anexos do iFood
     userId?: string;         // ID do usuário que criou o registro
+    fulfillmentSource?: string; // 'internal' (Captura Minha) | 'external' (De Fora)
 }
 
 export interface AuditLog {

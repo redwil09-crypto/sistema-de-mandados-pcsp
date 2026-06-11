@@ -18,6 +18,10 @@ const WarrantList = () => {
     const initialPriority = searchParams.get('priority') || '';
     const initialExpired = searchParams.get('expired') === 'true';
     const initialLocation = searchParams.get('city') || '';
+    const initialIncludedMonth = searchParams.get('includedMonth') || '';
+    const initialFulfilledMonth = searchParams.get('fulfilledMonth') || '';
+    const initialReportsMonth = searchParams.get('reportsMonth') || '';
+    const initialFulfilledSource = searchParams.get('fulfilledSource') || '';
 
     const [searchTerm, setSearchTerm] = useState(query || initialType || initialLocation);
 
@@ -29,6 +33,32 @@ const WarrantList = () => {
     }, [query]);
 
     const [showFilters, setShowFilters] = useState(initialStatus !== '' || initialType !== '' || initialPriority !== '' || initialExpired);
+
+    // Helper to check if a date string falls within a given YYYY-MM month key
+    const isDateInMonth = (dateStr: string | undefined | null, monthKey: string): boolean => {
+        if (!dateStr) return false;
+        let d: Date | null = null;
+        if (dateStr.includes('/')) {
+            const [day, month, year] = dateStr.split('/');
+            d = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+        } else if (dateStr.includes('-')) {
+            const clean = dateStr.split('T')[0].split(' ')[0];
+            const parts = clean.split('-');
+            if (parts.length === 3) d = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+        }
+        if (!d || isNaN(d.getTime())) return false;
+        const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+        return key === monthKey;
+    };
+
+    const getMonthFromUrl = (url: string): string | null => {
+        const match = url.match(/\/(\d{13})_/);
+        if (match) {
+            const d = new Date(parseInt(match[1]));
+            return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+        }
+        return null;
+    };
 
     // Filter states
     const [filterCrime, setFilterCrime] = useState('');
@@ -88,7 +118,26 @@ const WarrantList = () => {
             }
         }
 
-        return matchesText && matchesCrime && matchesRegime && matchesDpRegion && matchesStatus && matchesDate && matchesObservation && matchesPriority && matchesExpired;
+        // Monthly analytics filters (from URL params, no UI controls needed)
+        let matchesIncludedMonth = true;
+        if (initialIncludedMonth) {
+            matchesIncludedMonth = isDateInMonth(w.createdAt, initialIncludedMonth) || isDateInMonth(w.entryDate, initialIncludedMonth);
+        }
+        let matchesFulfilledMonth = true;
+        if (initialFulfilledMonth) {
+            const isFulfilled = w.status === 'CUMPRIDO' || w.status === 'PRESO';
+            matchesFulfilledMonth = isFulfilled && (isDateInMonth(w.dischargeDate, initialFulfilledMonth) || isDateInMonth(w.updatedAt, initialFulfilledMonth));
+        }
+        let matchesReportsMonth = true;
+        if (initialReportsMonth) {
+            matchesReportsMonth = (w.reports || []).some(url => getMonthFromUrl(url) === initialReportsMonth);
+        }
+        let matchesFulfilledSource = true;
+        if (initialFulfilledSource) {
+            matchesFulfilledSource = w.fulfillmentSource === initialFulfilledSource;
+        }
+
+        return matchesText && matchesCrime && matchesRegime && matchesDpRegion && matchesStatus && matchesDate && matchesObservation && matchesPriority && matchesExpired && matchesIncludedMonth && matchesFulfilledMonth && matchesReportsMonth && matchesFulfilledSource;
     }).sort((a, b) => (a.name || '').localeCompare(b.name || ''));
 
     const clearFilters = () => {

@@ -57,7 +57,8 @@ const WarrantDetail = () => {
         reportNumber: '',
         digOffice: '',
         result: 'PRESO',
-        details: ''
+        details: '',
+        fulfillmentSource: 'internal'
     });
 
     const [isReopenConfirmOpen, setIsReopenConfirmOpen] = useState(false);
@@ -884,6 +885,7 @@ const WarrantDetail = () => {
             fulfillmentResult: finalizeFormData.result,
             fulfillmentReport: finalizeFormData.reportNumber,
             fulfillmentDetails: finalizeFormData.details,
+            fulfillmentSource: finalizeFormData.fulfillmentSource,
             // Automatically remove priority tags when fulfilled
             tags: (data.tags || []).filter(t => t !== 'Urgente' && t !== 'Ofício de Cobrança')
         };
@@ -3881,6 +3883,25 @@ ${signerName} - DIG / PCSP
                                             <option key={opt} value={opt} className="bg-surface-light dark:bg-surface-dark text-text-light dark:text-white">{opt}</option>
                                         ))}
                                     </select>
+                                </div>
+                                <div className="space-y-1">
+                                    <label className="text-[10px] font-black text-text-muted uppercase tracking-widest">Origem do Cumprimento</label>
+                                    <div className="flex gap-2">
+                                        <button
+                                            type="button"
+                                            onClick={() => setFinalizeFormData({ ...finalizeFormData, fulfillmentSource: 'internal' })}
+                                            className={`flex-1 py-2.5 rounded-xl font-bold text-[10px] uppercase tracking-wider transition-all border ${finalizeFormData.fulfillmentSource === 'internal' ? 'bg-blue-500/20 border-blue-500 text-blue-400 shadow-[0_0_10px_rgba(59,130,246,0.2)]' : 'bg-white/5 border-white/10 text-white/60 hover:bg-white/10'}`}
+                                        >
+                                            Captura Minha
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => setFinalizeFormData({ ...finalizeFormData, fulfillmentSource: 'external' })}
+                                            className={`flex-1 py-2.5 rounded-xl font-bold text-[10px] uppercase tracking-wider transition-all border ${finalizeFormData.fulfillmentSource === 'external' ? 'bg-amber-500/20 border-amber-500 text-amber-400 shadow-[0_0_10px_rgba(245,158,11,0.2)]' : 'bg-white/5 border-white/10 text-white/60 hover:bg-white/10'}`}
+                                        >
+                                            De Fora
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                             <div className="flex gap-3">
