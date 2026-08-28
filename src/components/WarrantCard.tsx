@@ -48,9 +48,6 @@ const WarrantCard = ({ data, onPrint, isPlanned, onRouteToggle, onFinalize, onDe
             {/* Type Indicator Strip (Left Border) */}
             <div className={`absolute left-0 top-0 bottom-0 w-1.5 transition-colors duration-300 ${stripeClasses}`}></div>
 
-            {/* Hover Tech Pattern Overlay */}
-            <div className="absolute inset-0 bg-grid-pattern opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
-
             {/* Custom Priority Badge Overlay (Fixed/Static) */}
             {isPriority && data.status === 'EM ABERTO' && (
                 <div className="absolute -left-1 top-2 z-20 bg-red-600 text-white text-[9px] font-black uppercase py-1 px-2 rounded-r-md shadow-lg border-l-2 border-red-700">
