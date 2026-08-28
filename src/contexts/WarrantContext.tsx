@@ -123,7 +123,7 @@ export const WarrantProvider = ({ children }: { children: ReactNode }) => {
                 w.fulfillmentDetails &&
                 isExternal(w.fulfillmentDetails)
             ) {
-                updateWarrantDb(w.id, { fulfillmentSource: 'external' }).then(() => {
+                updateWarrantDb(w.id, { fulfillment_source: 'external' }).then(() => {
                     setWarrants(prev => prev.map(x => x.id === w.id ? { ...x, fulfillmentSource: 'external' } : x));
                 });
             }
